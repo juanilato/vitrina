@@ -1,0 +1,165 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Vitrina JWT Auth",
+  "dateExported": "2024-01-15T10:00:00.000Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Auth",
+      "items": [
+        {
+          "name": "Login Cliente",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3000/auth/login",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "json",
+              "json": {
+                "email": "cliente@ejemplo.com",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        {
+          "name": "Login Empresa",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3000/auth/login",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "json",
+              "json": {
+                "email": "empresa@ejemplo.com",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        {
+          "name": "Register Cliente",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3000/auth/register/cliente",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "json",
+              "json": {
+                "email": "nuevo@cliente.com",
+                "name": "Nuevo Cliente",
+                "password": "password123"
+              }
+            }
+          }
+        },
+        {
+          "name": "Register Empresa",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3000/auth/register/empresa",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "json",
+              "json": {
+                "email": "nueva@empresa.com",
+                "name": "Nueva Empresa",
+                "password": "password123",
+                "logo": "https://ejemplo.com/logo.png"
+              }
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3000/auth/refresh",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "json",
+              "json": {
+                "refreshToken": "{{refreshToken}}"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Protected Routes",
+      "items": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:3000/auth/profile",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:3000/auth/logout",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "environments": [
+    {
+      "name": "Local Development",
+      "data": [
+        {
+          "name": "baseUrl",
+          "value": "http://localhost:3000"
+        },
+        {
+          "name": "accessToken",
+          "value": ""
+        },
+        {
+          "name": "refreshToken",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,303 @@
+.verification-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.verification-modal {
+  background: var(--vitrina-white);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.4s ease-out;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.verification-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1.5rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--vitrina-white);
+}
+
+.verification-modal-header h2 {
+  margin: 0;
+  color: var(--vitrina-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.close-button {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  font-size: 1.5rem;
+  color: var(--vitrina-text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 300;
+}
+
+.close-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--vitrina-text-primary);
+}
+
+.verification-modal-content {
+  padding: 2rem;
+  background: var(--vitrina-white);
+}
+
+.verification-modal-content p {
+  margin: 0 0 1.25rem 0;
+  color: var(--vitrina-text-secondary);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.verification-modal-content strong {
+  color: var(--vitrina-primary);
+  font-weight: 600;
+}
+
+.code-input-container {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.code-input {
+  width: 280px;
+  height: 56px;
+  font-size: 1.25rem;
+  text-align: center;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  letter-spacing: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: var(--vitrina-white);
+  color: var(--vitrina-text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: var(--vitrina-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: var(--vitrina-white);
+}
+
+.code-input::placeholder {
+  color: var(--vitrina-text-tertiary);
+  letter-spacing: 0.25rem;
+  font-weight: 400;
+}
+
+.error-message {
+  background: rgba(254, 242, 242, 0.9);
+  border: 1px solid rgba(254, 202, 202, 0.8);
+  color: var(--vitrina-error);
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(254, 202, 202, 0.2);
+  animation: shake 0.5s ease-in-out;
+}
+
+.success-message {
+  background: rgba(240, 253, 244, 0.9);
+  border: 1px solid rgba(187, 247, 208, 0.8);
+  color: var(--vitrina-success);
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(187, 247, 208, 0.2);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.verification-actions {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.verify-button {
+  flex: 1;
+  min-width: 160px;
+  background: linear-gradient(135deg, var(--vitrina-primary), var(--vitrina-secondary));
+  color: var(--vitrina-white);
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+  min-height: 44px;
+}
+
+.verify-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
+.verify-button:disabled {
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.resend-button {
+  flex: 1;
+  min-width: 160px;
+  background: var(--vitrina-white);
+  color: var(--vitrina-text-primary);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-height: 44px;
+}
+
+.resend-button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.resend-button:disabled {
+  background: rgba(249, 250, 251, 0.8);
+  color: var(--vitrina-text-tertiary);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.verification-help {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.verification-help p {
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  color: var(--vitrina-text-primary);
+  font-size: 0.95rem;
+}
+
+.verification-help ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--vitrina-text-secondary);
+}
+
+.verification-help li {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+/* Animaciones */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .verification-modal {
+    width: 95%;
+    margin: 1rem;
+    border-radius: 16px;
+  }
+  
+  .verification-modal-header,
+  .verification-modal-content {
+    padding: 1.5rem;
+  }
+  
+  .verification-actions {
+    flex-direction: column;
+  }
+  
+  .code-input {
+    width: 100%;
+    max-width: 280px;
+    font-size: 1.125rem;
+    letter-spacing: 0.25rem;
+  }
+  
+  .verification-modal-header h2 {
+    font-size: 1.375rem;
+  }
+}

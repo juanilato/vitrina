@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Cliente {
+  id         String  @id @default(cuid())
+  email      String  @unique
+  name       String
+  password   String
+  isVerified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Empresa {
+  id         String      @id @default(cuid())
+  email      String      @unique
+  name       String
+  password   String
+  productos  Productos[]
+  logo       String
+  isVerified Boolean     @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Productos {
+  id          String  @id @default(cuid())
+  nombre      String
+  descripcion String?
+  precio      Float
+  empresaId   String
+  empresa     Empresa @relation(fields: [empresaId], references: [id])
+}
+
+model VerificationCode {
+  id              String   @id @default(cuid())
+  email           String
+  code            String
+  userType        String // 'cliente' o 'empresa'
+  expiresAt       DateTime
+  isUsed          Boolean  @default(false)
+  pendingUserData String? // Datos del usuario pendiente (JSON)
+
+  createdAt DateTime @default(now())
+
+  @@index([email, userType])
+  @@index([code])
+}

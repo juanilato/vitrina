@@ -1,0 +1,528 @@
+/* CompanyDashboard.css */
+.company-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.company-dashboard .company-header {
+  margin: 20px;
+}
+
+/* Header de la empresa */
+.company-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.company-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #667eea;
+}
+
+.company-details h1 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.company-subtitle {
+  margin: 5px 0 0 0;
+  color: #718096;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.company-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.btn-secondary:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Navegación por pestañas */
+.dashboard-tabs {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 10px;
+  margin: 0 20px 30px 20px;
+  display: flex;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 15px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Contenido de las pestañas */
+.tab-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px;
+  margin: 0 20px 30px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Pestaña Overview */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.overview-card {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.overview-card h3 {
+  margin: 0 0 20px 0;
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.overview-card p {
+  margin: 10px 0;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-active {
+  background: rgba(72, 187, 120, 0.1);
+  color: #38a169;
+}
+
+.status-inactive {
+  background: rgba(245, 101, 101, 0.1);
+  color: #e53e3e;
+}
+
+.status-pending {
+  background: rgba(237, 137, 54, 0.1);
+  color: #dd6b20;
+}
+
+/* Pestaña Proyectos */
+.projects-section h3 {
+  margin: 0 0 25px 0;
+  color: #2d3748;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+}
+
+.project-card h4 {
+  margin: 0 0 10px 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.project-card p {
+  margin: 0 0 20px 0;
+  color: #718096;
+}
+
+.project-progress {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(102, 126, 234, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.project-progress span {
+  font-weight: 600;
+  color: #667eea;
+  min-width: 40px;
+}
+
+/* Pestaña Analytics */
+.analytics-section h3 {
+  margin: 0 0 25px 0;
+  color: #2d3748;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+}
+
+.metric-card h4 {
+  margin: 0 0 15px 0;
+  color: #718096;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.metric-change {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.metric-change.positive {
+  background: rgba(72, 187, 120, 0.1);
+  color: #38a169;
+}
+
+.metric-change.negative {
+  background: rgba(245, 101, 101, 0.1);
+  color: #e53e3e;
+}
+
+/* Pestaña Equipo */
+.team-section h3 {
+  margin: 0 0 25px 0;
+  color: #2d3748;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.team-member {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.team-member:hover {
+  transform: translateY(-5px);
+}
+
+.member-avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 auto 15px auto;
+}
+
+.team-member h4 {
+  margin: 0 0 8px 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.team-member p {
+  margin: 0;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+/* Navegación entre empresas */
+.company-navigation {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 25px;
+  margin: 0 20px 30px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.company-navigation h3 {
+  margin: 0 0 20px 0;
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.company-links {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.company-link {
+  padding: 10px 20px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  background: transparent;
+  border-radius: 25px;
+  color: #667eea;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.company-link:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+  transform: translateY(-2px);
+}
+
+.company-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+/* Estados de carga y error */
+.company-dashboard.loading,
+.company-dashboard.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.company-dashboard.loading p,
+.company-dashboard.error p {
+  color: white;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.company-dashboard.error h2 {
+  color: white;
+  margin: 0 0 15px 0;
+  font-size: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .company-dashboard .company-header {
+    margin: 15px;
+  }
+  
+  .company-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .company-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .company-details h1 {
+    font-size: 2rem;
+  }
+  
+  .dashboard-tabs {
+    margin: 0 15px 20px 15px;
+    flex-wrap: wrap;
+  }
+  
+  .tab-button {
+    min-width: 120px;
+  }
+  
+  .tab-content {
+    margin: 0 15px 20px 15px;
+  }
+  
+  .overview-grid,
+  .projects-grid,
+  .metrics-grid,
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .company-links {
+    justify-content: center;
+  }
+  
+  .company-navigation {
+    margin: 0 15px 20px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .company-dashboard .company-header {
+    margin: 10px;
+  }
+  
+  .company-header {
+    padding: 20px;
+  }
+  
+  .tab-content {
+    padding: 20px;
+    margin: 0 10px 15px 10px;
+  }
+  
+  .company-details h1 {
+    font-size: 1.8rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .dashboard-tabs {
+    margin: 0 10px 15px 10px;
+  }
+  
+  .company-navigation {
+    margin: 0 10px 15px 10px;
+  }
+}

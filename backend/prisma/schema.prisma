@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+
+// ——— Cuenta cliente ———
+model Cliente {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String
+  password    String
+  isVerified  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  Pedidos     Pedido[]
+}
+
+// ——— Cuenta empresa ———
+model Empresa {
+  id          String     @id @default(cuid())
+  email       String     @unique
+  name        String
+  password    String
+  logo        String?    // opcional
+  isVerified  Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  productos   Productos[]
+  Pedidos     Pedido[]
+}
+
+// ——— Productos de empresa ———
+model Productos {
+  id          String   @id @default(cuid())
+  nombre      String
+  descripcion String?
+  precio      Decimal  @db.Decimal(12, 2)
+  fotoUrl    String?    
+  fotoPath   String?     
+  empresaId   String
+  empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  activo      Boolean  @default(true)
+  @@unique([empresaId, nombre])
+  @@index([empresaId])
+  ItemPedido ItemPedido[]
+}
+
+// ——— Código de verificación ———
+model VerificationCode {
+  id              String    @id @default(cuid())
+  email           String
+  code            String
+  userType        String
+  expiresAt       DateTime
+  isUsed          Boolean   @default(false)
+  pendingUserData Json?     // JSON real
+
+  createdAt       DateTime  @default(now())
+
+  @@unique([email, userType, code])
+  @@index([email, userType])
+  @@index([code])
+  @@index([expiresAt])
+}
+
+// ——— Pedido ———
+model Pedido {
+  id         String     @id @default(cuid())
+
+  clienteId  String
+  cliente    Cliente    @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  empresaId  String
+  empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  estado     String     @default("pendiente")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  ItemPedido ItemPedido[]
+
+  @@index([clienteId])
+  @@index([empresaId])
+  @@index([estado, createdAt])
+}
+
+// ——— Ítems del pedido ———
+model ItemPedido {
+  id         String     @id @default(cuid())
+
+  pedidoId   String
+  pedido     Pedido     @relation(fields: [pedidoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  productoId String
+  producto   Productos  @relation(fields: [productoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  cantidad   Int
+  precio     Decimal    @db.Decimal(12, 2) 
+
+  @@unique([pedidoId, productoId]) 
+  @@index([pedidoId])
+  @@index([productoId])
+}
