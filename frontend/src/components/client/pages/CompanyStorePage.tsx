@@ -32,6 +32,7 @@ const CompanyStorePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'products' | 'cart'>('products');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Load company data and products
   useEffect(() => {
@@ -206,6 +207,14 @@ const CompanyStorePage: React.FC = () => {
     return cart.items.find(item => item.product.id === productId);
   };
 
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleCloseProductModal = () => {
+    setSelectedProduct(null);
+  };
+
   // Early returns
   if (!user) {
     return (
@@ -253,106 +262,190 @@ const CompanyStorePage: React.FC = () => {
   }
 
   return (
-    <div className="company-store-page">
+    <div className="company-store-page-clean">
 
-      
-      {/* Company Store Header */}
-      <header className="company-store-header">
-        <div className="store-header-content">
-          {/* Back Button */}
-          <button 
-            className="back-btn"
-            onClick={() => navigate('/dashboard')}
-          >
-            <span className="back-icon">←</span>
-            Volver al Dashboard
-          </button>
+      {/* Company Header */}
+      <div className="company-header-section">
+        <button className="back-btn-clean" onClick={() => navigate('/dashboard')}>
+          ← Volver
+        </button>
 
-          {/* Company Info */}
-          <div className="company-store-info">
-            <div className="company-avatar">
+        {/* Company Info Card */}
+        <div className="company-info-card">
+          <div className="company-logo-section">
+            <div className="company-logo-clean">
               {company.logo ? (
-                <img src={company.logo} alt={company.name} className="company-logo" />
+                <img src={company.logo} alt={company.name} className="company-logo-img-clean" />
               ) : (
-                <div className="company-logo-placeholder">
+                <div className="company-logo-placeholder-clean">
                   {company.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
-            <div className="company-details">
-              <h1 className="company-name">{company.name}</h1>
-              {company.description && (
-                <p className="company-description">{company.description}</p>
-              )}
-     
+            <div className="company-info-text-clean">
+              <h1 className="company-name-clean">{company.name}</h1>
+              <div className="status-badge-clean">
+                <span className="status-dot-clean"></span>
+                Abierto
+              </div>
             </div>
           </div>
+          
+          <div className="company-description-clean">
+            <p>{company.description || ''}</p>
+          </div>
 
-          {/* View Toggle & Cart Button */}
-          <div className="store-header-actions">
-            <div className="view-toggle">
-              <button 
-                className={`toggle-btn ${view === 'products' ? 'active' : ''}`}
-                onClick={() => setView('products')}
-              >
-                <span className="btn-icon">🛍️</span>
-                Productos
+          {/* Delivery Options */}
+          <div className="delivery-options-clean">
+            <button className="delivery-btn-clean active">
+              <span className="delivery-icon">🚚</span>
+              Delivery
+            </button>
+            <button className="delivery-btn-clean">
+              <span className="delivery-icon">🏪</span>
+              Retirar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Products Section */}
+      <div className="products-section-clean">
+
+        <div className="products-grid-clean">
+          {company.products.filter(p => p.activo).length === 0 ? (
+            <div className="no-products-clean">
+              <div className="empty-icon">📦</div>
+              <h3 className="empty-title">No hay productos disponibles</h3>
+              <p className="empty-description">Esta empresa aún no ha publicado productos activos.</p>
+            </div>
+          ) : (
+            <>
+              {company.products
+                .filter(product => product.activo)
+                .map((product) => {
+                  const cartItem = getCartItem(product.id);
+                  return (
+                    <CompanyStoreProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={addToCart}
+                      onProductClick={handleProductClick}
+                      cartItem={cartItem}
+                    />
+                  );
+                })
+              }
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Floating Cart Button */}
+      {cart.totalItems > 0 && (
+        <button className="floating-cart-btn-clean" onClick={() => setView('cart')}>
+          <span className="cart-icon">🛒</span>
+          <span className="cart-text">Tu pedido</span>
+          <span className="cart-total">{cart.totalItems}</span>
+        </button>
+      )}
+
+      {/* Cart Modal - Fullscreen */}
+      {view === 'cart' && (
+        <div className="cart-modal-overlay-fullscreen">
+          <div className="cart-modal-fullscreen">
+            {/* Header */}
+            <div className="cart-modal-header-fullscreen">
+              <h3 className="cart-modal-title-fullscreen">Pedido de delivery</h3>
+              <button className="close-cart-btn-fullscreen" onClick={() => setView('products')}>
+                ✕
               </button>
-              <button 
-                className={`toggle-btn ${view === 'cart' ? 'active' : ''}`}
-                onClick={() => setView('cart')}
-              >
-                <span className="btn-icon">🛒</span>
-                Carrito
-                {cart.totalItems > 0 && (
-                  <span className="cart-badge">{cart.totalItems}</span>
-                )}
+            </div>
+            
+            {/* Delivery Options */}
+            <div className="cart-delivery-options">
+              <button className="cart-delivery-btn active">
+                Delivery
               </button>
+              <button className="cart-delivery-btn">
+                Retirar
+              </button>
+            </div>
+
+            {/* Cart Content */}
+            <div className="cart-modal-content-fullscreen">
+              <CartSummary
+                cart={cart}
+                onUpdateQuantity={updateCartQuantity}
+                onRemoveItem={removeFromCart}
+                onCheckout={handleCheckout}
+              />
             </div>
           </div>
         </div>
-      </header>
+      )}
 
-      {/* Main Content */}
-      <main className="company-store-main">
-        {view === 'products' ? (
-          <div className="products-section">
-            {company.products.filter(p => p.activo).length === 0 ? (
-              <div className="no-products">
-                <div className="empty-icon">📦</div>
-                <h3>No hay productos disponibles</h3>
-                <p>Esta empresa aún no ha publicado productos activos.</p>
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <div className="product-modal-overlay">
+          <div className="product-modal">
+            <div className="product-modal-header">
+              <h3 className="product-modal-title">Detalles del Producto</h3>
+              <button className="close-product-btn" onClick={handleCloseProductModal}>
+                ✕
+              </button>
+            </div>
+            <div className="product-modal-content">
+              <div className="product-image-large">
+                {selectedProduct.fotoUrl ? (
+                  <img 
+                    src={selectedProduct.fotoUrl} 
+                    alt={selectedProduct.nombre}
+                    className="product-large-image"
+                  />
+                ) : (
+                  <div className="product-image-placeholder-large">
+                    <span className="placeholder-icon-large">📦</span>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="products-grid">
-                {company.products
-                  .filter(product => product.activo)
-                  .map((product) => {
-                    const cartItem = getCartItem(product.id);
-                    return (
-                      <CompanyStoreProductCard
-                        key={product.id}
-                        product={product}
-                        onAddToCart={addToCart}
-                        cartItem={cartItem}
-                      />
-                    );
-                  })
-                }
+              
+              <div className="product-details-large">
+                <h2 className="product-name-large">{selectedProduct.nombre}</h2>
+                {selectedProduct.descripcion && (
+                  <p className="product-description-large">{selectedProduct.descripcion}</p>
+                )}
+                <div className="product-price-large">
+                  {new Intl.NumberFormat('es-AR', {
+                    style: 'currency',
+                    currency: 'ARS'
+                  }).format(selectedProduct.precio)}
+                </div>
+                
+                <div className="product-actions-large">
+                  {getCartItem(selectedProduct.id) ? (
+                    <div className="cart-info-large">
+                      <span className="cart-icon-large">✅</span>
+                      <span>En carrito: {getCartItem(selectedProduct.id)?.quantity} unidad{getCartItem(selectedProduct.id)?.quantity !== 1 ? 'es' : ''}</span>
+                    </div>
+                  ) : (
+                    <button 
+                      className="add-to-cart-btn-large"
+                      onClick={() => {
+                        addToCart(selectedProduct, 1);
+                        handleCloseProductModal();
+                      }}
+                    >
+                      <span className="cart-icon-large">🛒</span>
+                      Agregar al Carrito
+                    </button>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
           </div>
-        ) : (
-          <div className="cart-section">
-            <CartSummary
-              cart={cart}
-              onUpdateQuantity={updateCartQuantity}
-              onRemoveItem={removeFromCart}
-              onCheckout={handleCheckout}
-            />
-          </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 };

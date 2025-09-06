@@ -61,141 +61,158 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   }
 
   return (
-    <div className="cart-summary">
-      {/* Cart Header */}
-      <div className="cart-header">
-        <h2 className="cart-title">
-          <span className="cart-icon">🛒</span>
-          Tu Carrito
-        </h2>
-        <div className="cart-stats">
-          <span className="cart-items-count">
-            {cart.totalItems} {cart.totalItems === 1 ? 'producto' : 'productos'}
-          </span>
-         
+    <div className="cart-summary-fullscreen">
+      {/* Product Summary Card */}
+      <div className="product-summary-card">
+        <div className="product-summary-header">
+          <div className="product-summary-title">
+            <span className="product-icon">🍽️</span>
+            <span className="product-count">{cart.totalItems} Producto{cart.totalItems !== 1 ? 's' : ''}</span>
+          </div>
+          <button className="schedule-btn">Programar</button>
         </div>
-      </div>
+        
+        {/* Product List Header */}
+        <div className="product-list-header">
+          <span className="header-item">Item</span>
+          <span className="header-qty">Cant.</span>
+          <span className="header-price">Precio</span>
+        </div>
 
-      {/* Cart Content */}
-      <div className="cart-content">
-        {Object.entries(itemsByCompany).map(([companyId, companyData]) => (
-          <div key={companyId} className="company-section">
-            {/* Company Header */}
-            <div className="company-section-header">
-              <h3 className="company-section-title">
-         
-                {companyData.companyName}
-              </h3>
-              <div className="company-section-total">
-                {formatPrice(companyData.total)}
+        {/* Products List */}
+        <div className="products-list-compact">
+          {cart.items.map((item) => (
+            <div key={item.id} className="product-item-compact">
+              <div className="product-info-compact">
+                <div className="product-image-compact">
+                  {item.product.fotoUrl ? (
+                    <img 
+                      src={item.product.fotoUrl} 
+                      alt={item.product.nombre}
+                      className="product-img-compact"
+                    />
+                  ) : (
+                    <div className="product-placeholder-compact">📦</div>
+                  )}
+                </div>
+                <span className="product-name-compact">{item.product.nombre}</span>
+              </div>
+              
+              <div className="quantity-controls-compact">
+                <button 
+                  className="qty-btn-compact"
+                  onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                  disabled={item.quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="qty-display-compact">{item.quantity} u</span>
+                <button 
+                  className="qty-btn-compact"
+                  onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                  disabled={item.quantity >= 99}
+                >
+                  +
+                </button>
+              </div>
+              
+              <div className="product-price-compact">
+                {formatPrice(item.product.precio)}
               </div>
             </div>
-
-            {/* Company Items */}
-            <div className="company-items">
-              {companyData.items.map((item) => (
-                <div key={item.id} className="cart-item">
-                  {/* Item Image */}
-                  <div className="item-image-container">
-                    {item.product.fotoUrl ? (
-                      <img 
-                        src={item.product.fotoUrl} 
-                        alt={item.product.nombre}
-                        className="item-image"
-                      />
-                    ) : (
-                      <div className="item-image-placeholder">
-                        <span className="placeholder-icon">📦</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Item Info */}
-                  <div className="item-info">
-                    <h4 className="item-name">{item.product.nombre}</h4>
-                    {item.product.descripcion && (
-                      <p className="item-description">
-                        {item.product.descripcion.length > 100 
-                          ? `${item.product.descripcion.substring(0, 100)}...`
-                          : item.product.descripcion
-                        }
-                      </p>
-                    )}
-                    <div className="item-price">
-                      {formatPrice(item.product.precio)} c/u
-                    </div>
-                  </div>
-
-                  {/* Item Controls */}
-                  <div className="item-controls">
-                    <div className="quantity-controls">
-                      <button 
-                        className="quantity-btn"
-                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        -
-                      </button>
-                      <span className="quantity-display">{item.quantity}</span>
-                      <button 
-                        className="quantity-btn"
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                        disabled={item.quantity >= 99}
-                      >
-                        +
-                      </button>
-                    </div>
-                    
-                    <div className="item-total">
-                      {formatPrice(item.product.precio * item.quantity)}
-                    </div>
-                    
-                    <button 
-                      className="remove-btn"
-                      onClick={() => onRemoveItem(item.id)}
-                      title="Eliminar del carrito"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Company Checkout */}
-            <div className="company-checkout">
-              <button 
-                className={`checkout-btn ${processingOrders.has(companyId) ? 'loading' : ''}`}
-                onClick={() => handleCheckout(companyId)}
-                disabled={processingOrders.has(companyId)}
-              >
-                {processingOrders.has(companyId) ? (
-                  <>
-                    <span className="btn-spinner"></span>
-                    Procesando pedido...
-                  </>
-                ) : (
-                  <>
-                  
-                    Realizar Pedido
-                    <span className="checkout-total">
-                      {formatPrice(companyData.total)}
-                    </span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Cart Footer */}
-      <div className="cart-footer">
-        <div className="cart-total">
-          <div className="total-label">Total General:</div>
-          <div className="total-amount">{formatPrice(cart.totalAmount)}</div>
+          ))}
         </div>
 
+        {/* Subtotal */}
+        <div className="subtotal-section">
+          <span className="subtotal-label">Subtotal</span>
+          <span className="subtotal-amount">{formatPrice(cart.totalAmount)}</span>
+        </div>
+      </div>
+
+      {/* User Data Card */}
+      <div className="user-data-card">
+        <div className="user-data-header">
+          <span className="user-icon">👤</span>
+          <span className="user-data-title">Tus datos</span>
+        </div>
+        
+        <div className="user-data-form">
+          <input 
+            type="text" 
+            placeholder="Nombre y apellido*" 
+            className="user-input-full"
+          />
+          
+          <div className="user-input-row">
+            <select className="user-select">
+              <option value="+54">+54</option>
+            </select>
+            <input 
+              type="tel" 
+              placeholder="Teléfono *" 
+              className="user-input-half"
+            />
+          </div>
+          
+          <input 
+            type="email" 
+            placeholder="Email (opcional)" 
+            className="user-input-full"
+          />
+        </div>
+      </div>
+
+      {/* Delivery Address Card */}
+      <div className="delivery-address-card">
+        <div className="delivery-address-header">
+          <span className="delivery-icon">🏠</span>
+          <span className="delivery-address-title">Dirección de entrega</span>
+        </div>
+        
+        <div className="delivery-address-form">
+          <input 
+            type="text" 
+            placeholder="Dirección completa*" 
+            className="user-input-full"
+          />
+          
+          <div className="user-input-row">
+            <input 
+              type="text" 
+              placeholder="Piso/Depto (opcional)" 
+              className="user-input-half"
+            />
+            <input 
+              type="text" 
+              placeholder="Referencias" 
+              className="user-input-half"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Checkout Button */}
+      <div className="checkout-section">
+        <button 
+          className="checkout-btn-fullscreen"
+          onClick={() => handleCheckout(cart.items[0]?.companyId || '')}
+          disabled={processingOrders.has(cart.items[0]?.companyId || '')}
+        >
+          {processingOrders.has(cart.items[0]?.companyId || '') ? (
+            <>
+              <span className="btn-spinner"></span>
+              Procesando pedido...
+            </>
+          ) : (
+            <>
+              Realizar Pedido
+              <span className="checkout-total-fullscreen">
+                {formatPrice(cart.totalAmount)}
+              </span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

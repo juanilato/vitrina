@@ -40,7 +40,7 @@ const CompanyMainDashboard: React.FC = () => {
         return (
           <main className="dashboard-main">
             <div className="dashboard-container">
-              <iframe src={`/tienda/${user.name}`} title="Dashboard" />
+            
               </div>
           </main>
         );

@@ -83,157 +83,86 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
 
       {/* Company Header */}
       <div className="company-profile-header">
-        <div className="company-hero">
-          <div className="company-avatar-large">
-            {company.logo ? (
-              <img src={company.logo} alt={company.name} className="company-logo-large" />
-            ) : (
-              <div className="company-logo-placeholder-large">
-                {company.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-          
-          <div className="company-hero-info">
-            <div className="company-title-row">
-              <h1 className="company-title">{company.name}</h1>
-              {company.isVerified && (
-                <span className="verified-badge-large" title="Empresa verificada">
-                  ✓ Verificada
-                </span>
-              )}
-            </div>
-            
-            <div className="company-meta-large">
-              {company.category && (
-                <div className="meta-item">
-                  <span className="meta-icon">🏷️</span>
-                  <span className="meta-text">{company.category}</span>
-                </div>
-              )}
-              
-              <div className="meta-item">
-                <span className="meta-icon">📧</span>
-                <span className="meta-text">{company.email}</span>
-              </div>
-              
-              <div className="meta-item">
-                <span className="meta-icon">📅</span>
-                <span className="meta-text">
-                  Desde {new Date(company.createdAt).getFullYear()}
-                </span>
-              </div>
-            </div>
-
-            {company.rating && (
-              <div className="company-rating-large">
-                <div className="rating-stars-large">
-                  {'★'.repeat(Math.floor(company.rating))}
-                  {'☆'.repeat(5 - Math.floor(company.rating))}
-                </div>
-                <span className="rating-value-large">
-                  {company.rating.toFixed(1)}
-                </span>
-                {company.reviewCount && (
-                  <span className="review-count-large">
-                    ({company.reviewCount} reseñas)
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {company.description && (
-          <div className="company-description-large">
-            <p>{company.description}</p>
+        {/* Hero Image */}
+        {company.products.length > 0 && (
+          <div className="company-hero-image">
+            <img 
+              src={company.products[0].fotoUrl || '/default-product.jpg'} 
+              alt={company.products[0].nombre}
+              className="hero-product-image"
+            />
+            <div className="hero-overlay"></div>
           </div>
         )}
 
-        {/* Company Stats */}
-        <div className="company-stats-large">
-          <div className="stat-card">
-            <div className="stat-icon">📦</div>
-            <div className="stat-content">
-              <span className="stat-number">{company.productsCount}</span>
-              <span className="stat-label">
-                {company.productsCount === 1 ? 'Producto' : 'Productos'}
-              </span>
+        {/* Company Info Section */}
+        <div className="company-info-section">
+          <div className="company-logo-name">
+            <div className="company-logo-circular">
+              {company.logo ? (
+                <img src={company.logo} alt={company.name} className="company-logo-img" />
+              ) : (
+                <div className="company-logo-placeholder">
+                  {company.name.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-content">
-              <span className="stat-number">{company.activeProductsCount}</span>
-              <span className="stat-label">Disponibles</span>
-            </div>
-          </div>
-          
-          {company.products.length > 0 && (
-            <div className="stat-card">
-              <div className="stat-icon">💰</div>
-              <div className="stat-content">
-                <span className="stat-number">
-                  {formatPrice(
-                    company.products
-                      .filter(p => p.activo)
-                      .reduce((min, p) => Math.min(min, p.precio), Infinity)
-                  )}
-                </span>
-                <span className="stat-label">Desde</span>
+            
+            <div className="company-name-status">
+              <h1 className="company-name">{company.name}</h1>
+              <div className="status-badge open">
+                <span className="status-dot"></span>
+                Abierto
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Business Description */}
+          <div className="business-description">
+            <p>
+              {company.description || `${company.category || 'Negocio'} - ${company.activeProductsCount} productos disponibles`}
+            </p>
+          </div>
+
+          {/* Delivery Options */}
+          <div className="delivery-options">
+            <button className="delivery-btn active">
+              <span className="delivery-icon">🚚</span>
+              Delivery
+            </button>
+            <button className="delivery-btn">
+              <span className="delivery-icon">🏪</span>
+              Retirar
+            </button>
+          </div>
+
+          {/* Order Timing */}
+          <div className="order-timing">
+            <div className="timing-label">Recibir pedido</div>
+            <div className="timing-options">
+              <button className="timing-btn active">
+                <span className="timing-check">✓</span>
+                Lo más pronto
+              </button>
+              <button className="timing-btn">
+                Programar entrega
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Products Section */}
       <div className="company-products-section">
-        <div className="products-header">
-          <h2 className="products-title">
-            <span className="title-icon">🛍️</span>
-            Productos
+        {/* Category Header */}
+        <div className="category-header">
+          <h2 className="category-title">
+            {company.category?.toUpperCase() || 'PRODUCTOS'}
           </h2>
-          
-          <div className="products-controls">
-            {/* Product Search */}
-            <div className="product-search">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
-                placeholder="Buscar productos..."
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                className="search-input"
-              />
-              {productSearch && (
-                <button 
-                  className="clear-search-btn"
-                  onClick={() => setProductSearch('')}
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            {/* Product Filter */}
-            <div className="product-filter">
-              <select
-                value={productFilter}
-                onChange={(e) => setProductFilter(e.target.value as any)}
-                className="filter-select"
-              >
-                <option value="active">✅ Solo disponibles</option>
-                <option value="all">📦 Todos los productos</option>
-                <option value="inactive">❌ No disponibles</option>
-              </select>
-            </div>
-          </div>
         </div>
 
-        {/* Products Grid */}
-        <div className="products-content">
+        {/* Products List */}
+        <div className="products-list">
           {filteredProducts.length === 0 ? (
             <div className="products-empty">
               <div className="empty-icon">📦</div>
@@ -258,21 +187,72 @@ const CompanyProfile: React.FC<CompanyProfileProps> = ({
               )}
             </div>
           ) : (
-            <div className="products-grid">
+            <div className="products-menu">
               {filteredProducts.map((product) => {
                 const cartItem = getCartItem(product.id);
                 return (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={onAddToCart}
-                    isInCart={!!cartItem}
-                    cartQuantity={cartItem?.quantity || 0}
-                  />
+                  <div key={product.id} className="product-menu-item">
+                    <div className="product-info">
+                      <h3 className="product-name">{product.nombre}</h3>
+                      <p className="product-description">
+                        {product.descripcion || 'Delicioso producto disponible'}
+                      </p>
+                      <div className="product-price">
+                        {formatPrice(product.precio)}
+                      </div>
+                    </div>
+                    
+                    <div className="product-image-container">
+                      <img 
+                        src={product.fotoUrl || '/default-product.jpg'} 
+                        alt={product.nombre}
+                        className="product-menu-image"
+                      />
+                      {cartItem && (
+                        <div className="cart-indicator">
+                          {cartItem.quantity}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
             </div>
           )}
+        </div>
+
+        {/* Hidden controls for filtering */}
+        <div className="products-controls-hidden">
+          <div className="product-search">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              className="search-input"
+            />
+            {productSearch && (
+              <button 
+                className="clear-search-btn"
+                onClick={() => setProductSearch('')}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="product-filter">
+            <select
+              value={productFilter}
+              onChange={(e) => setProductFilter(e.target.value as any)}
+              className="filter-select"
+            >
+              <option value="active">✅ Solo disponibles</option>
+              <option value="all">📦 Todos los productos</option>
+              <option value="inactive">❌ No disponibles</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
