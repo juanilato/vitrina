@@ -53,7 +53,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
           <div className="empty-icon">🛒</div>
           <h3 className="empty-title">Tu carrito está vacío</h3>
           <p className="empty-description">
-            Explora nuestras empresas y agrega productos a tu carrito
+            Explora y agrega productos a tu carrito
           </p>
         </div>
       </div>
@@ -72,9 +72,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
           <span className="cart-items-count">
             {cart.totalItems} {cart.totalItems === 1 ? 'producto' : 'productos'}
           </span>
-          <span className="cart-companies-count">
-            de {cart.companiesCount} {cart.companiesCount === 1 ? 'empresa' : 'empresas'}
-          </span>
+         
         </div>
       </div>
 
@@ -85,7 +83,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
             {/* Company Header */}
             <div className="company-section-header">
               <h3 className="company-section-title">
-                <span className="company-icon">🏢</span>
+         
                 {companyData.companyName}
               </h3>
               <div className="company-section-total">
@@ -178,8 +176,8 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                   </>
                 ) : (
                   <>
-                    <span className="btn-icon">📋</span>
-                    Hacer pedido a {companyData.companyName}
+                  
+                    Realizar Pedido
                     <span className="checkout-total">
                       {formatPrice(companyData.total)}
                     </span>
@@ -197,12 +195,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
           <div className="total-label">Total General:</div>
           <div className="total-amount">{formatPrice(cart.totalAmount)}</div>
         </div>
-        <div className="cart-note">
-          <span className="note-icon">ℹ️</span>
-          <span className="note-text">
-            Los pedidos se realizan por empresa individualmente
-          </span>
-        </div>
+
       </div>
     </div>
   );

@@ -110,3 +110,31 @@ model ItemPedido {
   @@index([pedidoId])
   @@index([productoId])
 }
+
+// ——— Notificaciones ———
+model Notificacion {
+  id          String    @id @default(cuid())
+  
+  // Usuario que recibe la notificación
+  userId      String
+  userType    String    // 'cliente' o 'empresa'
+  
+  // Contenido de la notificación
+  titulo      String
+  mensaje     String
+  tipo        String    // 'pedido_creado', 'pedido_actualizado', 'general', etc.
+  
+  // Estado de la notificación
+  leida       Boolean   @default(false)
+  
+  // Datos adicionales (JSON)
+  metadata    Json?     // Información extra como ID del pedido, etc.
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  leidaAt     DateTime?
+  
+  @@index([userId, userType])
+  @@index([leida, createdAt])
+  @@index([tipo, createdAt])
+}

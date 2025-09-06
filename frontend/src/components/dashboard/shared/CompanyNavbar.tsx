@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthOptimized } from '../../../hooks/useAuthOptimized';
+import NotificationsDropdown from '../../common/NotificationsDropdown';
 import './CompanyNavbar.css';
 
 interface CompanyNavbarProps {
@@ -14,7 +15,6 @@ const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
   onLogout
 }) => {
   const { user } = useAuthOptimized();
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   if (!user) return null;
@@ -23,13 +23,8 @@ const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'productos', label: 'Productos', icon: '📦' },
     { id: 'pedidos', label: 'Pedidos', icon: '🛒' },
+    { id: 'notificaciones', label: 'Notificaciones', icon: '🔔' },
     { id: 'estadisticas', label: 'Estadísticas', icon: '📈' },
-  ];
-
-  const notifications = [
-    { id: 1, message: 'Nuevo pedido recibido', time: '5 min', type: 'order' },
-    { id: 2, message: 'Producto con stock bajo', time: '1 hora', type: 'warning' },
-    { id: 3, message: 'Nueva reseña recibida', time: '2 horas', type: 'review' },
   ];
 
   return (
@@ -63,37 +58,7 @@ const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
         {/* Acciones del usuario */}
         <div className="navbar-actions">
           {/* Notificaciones */}
-          <div className="notification-container">
-            <button
-              className={`notification-btn ${showNotifications ? 'active' : ''}`}
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <span className="notification-icon">🔔</span>
-              <span className="notification-badge">3</span>
-            </button>
-            
-            {showNotifications && (
-              <div className="notification-dropdown">
-                <div className="notification-header">
-                  <h3>Notificaciones</h3>
-                  <button className="mark-all-read">Marcar todas como leídas</button>
-                </div>
-                <div className="notification-list">
-                  {notifications.map((notification) => (
-                    <div key={notification.id} className={`notification-item ${notification.type}`}>
-                      <div className="notification-content">
-                        <p className="notification-message">{notification.message}</p>
-                        <span className="notification-time">hace {notification.time}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="notification-footer">
-                  <button className="view-all-notifications">Ver todas</button>
-                </div>
-              </div>
-            )}
-          </div>
+          <NotificationsDropdown />
 
           {/* Perfil de usuario */}
           <div className="profile-container">

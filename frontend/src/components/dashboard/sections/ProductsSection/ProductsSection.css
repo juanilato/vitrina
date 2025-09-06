@@ -534,6 +534,10 @@
 
 /* Empty State */
 .empty-state {
+  position: fixed;
+  top: 20%;
+  left: 15%;
+
   text-align: center;
   padding: 4rem 2rem;
   background: white;

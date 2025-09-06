@@ -1,0 +1,143 @@
+.notification-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 20px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.notification-popup {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 100%;
+  pointer-events: auto;
+  animation: slideInRight 0.3s ease-out;
+  border-left: 4px solid #667eea;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #f1f3f4;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.popup-icon {
+  font-size: 1.5rem;
+  margin-right: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.popup-title {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.popup-close {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+
+.popup-close:hover {
+  background: #f8f9fa;
+  color: #dc3545;
+}
+
+.popup-content {
+  padding: 16px 20px;
+}
+
+.popup-message {
+  margin: 0 0 8px 0;
+  color: #495057;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.popup-time {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.popup-actions {
+  padding: 12px 20px 16px;
+  border-top: 1px solid #f1f3f4;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+.popup-action-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.popup-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .notification-popup-overlay {
+    padding: 10px;
+  }
+  
+  .notification-popup {
+    max-width: 100%;
+  }
+  
+  .popup-header {
+    padding: 12px 16px 8px;
+  }
+  
+  .popup-content {
+    padding: 12px 16px;
+  }
+  
+  .popup-actions {
+    padding: 8px 16px 12px;
+  }
+}

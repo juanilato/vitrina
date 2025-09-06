@@ -2,10 +2,16 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePedidoDto, UpdatePedidoDto } from './dto';
 import { PedidoWithItems } from './entities/pedido.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class PedidosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+    private webSocketGateway: NotificationsWebSocketGateway,
+  ) {}
 
   // crea pedido
   async create(createPedidoDto: CreatePedidoDto): Promise<PedidoWithItems> {
@@ -66,7 +72,53 @@ export class PedidosService {
         return newPedido;
       });
 
-      return this.findOne(pedido.id);
+      const pedidoCompleto = await this.findOne(pedido.id);
+      
+      // Crear notificaciones
+      try {
+        const notifications = await this.notificationsService.createOrderNotification(
+          pedidoCompleto.id,
+          pedidoCompleto.clienteId,
+          pedidoCompleto.empresaId,
+          pedidoCompleto.cliente.name,
+          empresa.name,
+          pedidoCompleto.total
+        );
+
+        // Enviar notificaciones por WebSocket
+        await this.webSocketGateway.sendNotificationToUser(
+          pedidoCompleto.empresaId,
+          notifications.empresa
+        );
+        await this.webSocketGateway.sendNotificationToUser(
+          pedidoCompleto.clienteId,
+          notifications.cliente
+        );
+
+        // Actualizar contadores de notificaciones
+        const empresaUnreadCount = await this.notificationsService.countUnreadByUser(
+          pedidoCompleto.empresaId,
+          'empresa'
+        );
+        const clienteUnreadCount = await this.notificationsService.countUnreadByUser(
+          pedidoCompleto.clienteId,
+          'cliente'
+        );
+
+        await this.webSocketGateway.sendNotificationCountUpdate(
+          pedidoCompleto.empresaId,
+          empresaUnreadCount
+        );
+        await this.webSocketGateway.sendNotificationCountUpdate(
+          pedidoCompleto.clienteId,
+          clienteUnreadCount
+        );
+      } catch (notificationError) {
+        console.error('Error enviando notificaciones:', notificationError);
+        // No lanzar error para no interrumpir la creación del pedido
+      }
+
+      return pedidoCompleto;
     } catch (error) {
       console.error('Error creando pedido:', error);
       throw error;
@@ -267,12 +319,19 @@ export class PedidosService {
     try {
       // Verificar que el pedido existe
       const existingPedido = await this.prisma.pedido.findUnique({
-        where: { id }
+        where: { id },
+        include: {
+          cliente: { select: { id: true, name: true } },
+          empresa: { select: { id: true, name: true } }
+        }
       });
 
       if (!existingPedido) {
         throw new NotFoundException('Pedido no encontrado');
       }
+
+      const oldStatus = existingPedido.estado;
+      const newStatus = updatePedidoDto.estado;
 
       // Actualizar el pedido
       await this.prisma.pedido.update({
@@ -280,7 +339,45 @@ export class PedidosService {
         data: updatePedidoDto
       });
 
-      return this.findOne(id);
+      const pedidoActualizado = await this.findOne(id);
+
+      // Si el estado cambió, crear notificación
+      if (oldStatus !== newStatus && newStatus) {
+        try {
+          const notification = await this.notificationsService.createOrderStatusNotification(
+            pedidoActualizado.id,
+            pedidoActualizado.clienteId,
+            pedidoActualizado.empresaId,
+            pedidoActualizado.cliente.name,
+            existingPedido.empresa.name,
+            oldStatus,
+            newStatus,
+            pedidoActualizado.total
+          );
+
+          // Enviar notificación por WebSocket
+          await this.webSocketGateway.sendNotificationToUser(
+            pedidoActualizado.clienteId,
+            notification
+          );
+
+          // Actualizar contador de notificaciones del cliente
+          const clienteUnreadCount = await this.notificationsService.countUnreadByUser(
+            pedidoActualizado.clienteId,
+            'cliente'
+          );
+
+          await this.webSocketGateway.sendNotificationCountUpdate(
+            pedidoActualizado.clienteId,
+            clienteUnreadCount
+          );
+        } catch (notificationError) {
+          console.error('Error enviando notificación de cambio de estado:', notificationError);
+          // No lanzar error para no interrumpir la actualización del pedido
+        }
+      }
+
+      return pedidoActualizado;
     } catch (error) {
       console.error('Error actualizando pedido:', error);
       throw error;

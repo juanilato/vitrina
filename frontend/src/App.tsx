@@ -1,12 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import CompanySelector from './components/company/CompanySelector';
 import CompanyDashboard from './components/dashboard/CompanyDashboard';
+import CompanyStorePage from './components/client/pages/CompanyStorePage';
 import PrivateRoute from './components/auth/PrivateRoute';
+import NotificationPopup from './components/common/NotificationPopup';
 import './App.css';
 
 // Componente para manejar la redirección inteligente desde la ruta raíz
@@ -25,9 +28,11 @@ const RootRedirect: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
+      <NotificationsProvider>
+        <Router>
+          <div className="App">
+            <NotificationPopup />
+            <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route 
@@ -78,10 +83,19 @@ function App() {
                 </PrivateRoute>
               } 
             />
+            <Route 
+              path="/tienda/:companyName" 
+              element={
+                <PrivateRoute>
+                  <CompanyStorePage />
+                </PrivateRoute>
+              } 
+            />
             <Route path="/" element={<RootRedirect />} />
-          </Routes>
-        </div>
-      </Router>
+            </Routes>
+          </div>
+        </Router>
+      </NotificationsProvider>
     </AuthProvider>
   );
 }

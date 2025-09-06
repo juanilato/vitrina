@@ -84,13 +84,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </p>
         )}
 
-        {/* Company Info */}
-        {product.empresa && (
-          <div className="product-company">
-            <span className="company-label">Por:</span>
-            <span className="company-name">{product.empresa.name}</span>
-          </div>
-        )}
+
       </div>
 
       {/* Product Actions */}

@@ -1,13 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CompanyCardProps } from '../types';
+import { nameToUrlSlug } from '../../../utils/urlHelpers';
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
   company,
   onViewCompany,
   onViewProducts
 }) => {
+  const navigate = useNavigate();
+  
   const handleViewCompany = () => {
-    onViewCompany(company.id);
+    const urlSlug = nameToUrlSlug(company.name);
+    navigate(`/tienda/${urlSlug}`);
   };
 
   return (

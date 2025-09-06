@@ -28,8 +28,18 @@ export class PedidosController {
   @Roles('cliente')
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createPedidoDto: CreatePedidoDto, @Request() req) {
+    console.log('🔄 [PEDIDOS CONTROLLER] Creando nuevo pedido para cliente:', createPedidoDto);
+    console.log('🔄 [PEDIDOS CONTROLLER] Usuario autenticado:', req.user);
+    
+    // Validar que el usuario esté autenticado
+    if (!req.user || !req.user.id) {
+      throw new Error('Usuario no autenticado o ID no disponible');
+    }
+    
     // Asegurar que el cliente solo pueda crear pedidos para sí mismo
     createPedidoDto.clienteId = req.user.id;
+    
+    console.log('🔄 [PEDIDOS CONTROLLER] DTO después de asignar clienteId:', createPedidoDto);
     return this.pedidosService.create(createPedidoDto);
   }
 

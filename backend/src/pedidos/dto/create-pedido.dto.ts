@@ -17,9 +17,7 @@ export class CreateItemPedidoDto {
 }
 
 export class CreatePedidoDto {
-  @IsString()
-  @IsNotEmpty()
-  clienteId: string;
+  clienteId?: string; // Opcional, se asignará en el controller
 
   @IsString()
   @IsNotEmpty()

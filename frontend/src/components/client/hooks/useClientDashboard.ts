@@ -190,8 +190,6 @@ export const useClientDashboard = () => {
       setError(null);
       
       const orderRequest: OrderRequest = {
-        clienteNombre: user.name,
-        clienteEmail: user.email,
         empresaId: companyId,
         items: companyItems.map(item => ({
           productoId: item.product.id,

@@ -49,8 +49,6 @@ export interface CompanyWithProducts extends Company {
 }
 
 export interface OrderRequest {
-  clienteNombre: string;
-  clienteEmail: string;
   empresaId: string;
   items: {
     productoId: string;

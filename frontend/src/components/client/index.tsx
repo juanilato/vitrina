@@ -1,6 +1,7 @@
 import React from 'react';
 import { useClientDashboard } from './hooks/useClientDashboard';
 import { CompanyExplorer, CompanyProfile, CartSummary, MyOrders } from './components';
+import NotificationsDropdown from '../common/NotificationsDropdown';
 import './ClientDashboard.css';
 
 const ClientDashboard: React.FC = () => {
@@ -99,6 +100,9 @@ const ClientDashboard: React.FC = () => {
 
           {/* User Section */}
           <div className="header-user">
+            {/* Notificaciones */}
+            <NotificationsDropdown />
+            
             <div className="user-avatar">
               <span className="avatar-text">
                 {user.name.charAt(0).toUpperCase()}
@@ -106,7 +110,6 @@ const ClientDashboard: React.FC = () => {
             </div>
             <div className="user-info">
               <span className="user-name">{user.name}</span>
-
             </div>
           </div>
         </div>
