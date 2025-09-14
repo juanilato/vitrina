@@ -6,6 +6,7 @@ import ProductsSection from './sections/ProductsSection';
 import OrdersSection from './sections/OrdersSection';
 import NotificationsSection from './sections/NotificationsSection';
 import './CompanyMainDashboard.css';
+import AccountConfigSection from './sections/AccountConfigSection';
 
 /**
  * CompanyMainDashboard - Dashboard principal para usuarios tipo empresa
@@ -31,10 +32,19 @@ const CompanyMainDashboard: React.FC = () => {
         return <ProductsSection />;
       case 'pedidos':
         return <OrdersSection />;
+      case 'notificacionesDropdown':
+        return <NotificationsSection />;
       case 'notificaciones':
         return <NotificationsSection />;
       case 'estadisticas':
+      
         return <div className="section-placeholder">📈 Sección de Estadísticas (próximamente)</div>;
+      case 'config':
+        return (
+          <div className="tab-content">
+            <AccountConfigSection />
+          </div>
+        );
       case 'dashboard':
       default:
         return (

@@ -1,11 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNotifications } from '../../contexts/NotificationsContext';
+import { getNotificationIcon, formatTimeAgo } from '../../utils/notificationUtils';
 import './NotificationsDropdown.css';
 
-const NotificationsDropdown: React.FC = () => {
+interface NotificationsDropdownProps {
+  onViewAll?: () => void;
+  showTrigger?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ 
+  onViewAll, 
+  showTrigger = true, 
+  isOpen: externalIsOpen, 
+  onClose 
+}) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, loading } = useNotifications();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Usar el estado externo si se proporciona, sino usar el interno
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = onClose ? onClose : setInternalIsOpen;
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
@@ -34,55 +51,51 @@ const NotificationsDropdown: React.FC = () => {
     await deleteNotification(notificationId);
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (diffInSeconds < 60) return 'Hace un momento';
-    if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`;
-    if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} h`;
-    return `Hace ${Math.floor(diffInSeconds / 86400)} días`;
-  };
-
-  const getNotificationIcon = (tipo: string) => {
-    switch (tipo) {
-      case 'pedido_creado':
-        return '🛒';
-      case 'pedido_actualizado':
-        return '📋';
-      case 'general':
-        return '🔔';
-      default:
-        return '📢';
-    }
-  };
 
   return (
     <div className="notifications-dropdown" ref={dropdownRef}>
-      <button
-        className="notifications-trigger"
-        onClick={() => setIsOpen(!isOpen)}
-        title="Notificaciones"
-      >
-        <span className="notification-icon">🔔</span>
-        {unreadCount > 0 && (
-          <span className="notification-badge">{unreadCount}</span>
-        )}
-      </button>
+      {showTrigger && (
+        <button
+          className="notifications-trigger"
+          onClick={() => setIsOpen(!isOpen)}
+          title="Notificaciones"
+        >
+          <span className="notification-icon">🔔</span>
+          {unreadCount > 0 && (
+            <span className="notification-badge">{unreadCount}</span>
+          )}
+        </button>
+      )}
 
       {isOpen && (
         <div className="notifications-panel">
           <div className="notifications-header">
             <h3>Notificaciones</h3>
-            {unreadCount > 0 && (
-              <button
-                className="mark-all-read-btn"
-                onClick={handleMarkAllAsRead}
-              >
-                Marcar todas como leídas
-              </button>
-            )}
+            <div className="header-actions">
+              {unreadCount > 0 && (
+                <button
+                  className="mark-all-read-btn"
+                  onClick={handleMarkAllAsRead}
+                  title="Marcar todas como leídas"
+                >
+                  <span className="mark-all-icon">✓</span>
+                  <span className="mark-all-text">Todas</span>
+                </button>
+              )}
+              {onViewAll && (
+                <button
+                  className="view-all-btn"
+                  onClick={() => {
+                    onViewAll();
+                    setIsOpen(false);
+                  }}
+                  title="Ver todas las notificaciones"
+                >
+                  <span className="view-all-icon">👁️</span>
+                  <span className="view-all-text">Ver Todas</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="notifications-list">

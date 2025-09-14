@@ -1,0 +1,143 @@
+/* ===== VARIABLES CSS GLOBALES ===== */
+
+:root {
+  /* Colores Primarios */
+  --vitrina-primary: #667eea;
+  --vitrina-secondary: #764ba2;
+  --vitrina-accent: #f093fb;
+  
+  /* Colores de Texto */
+  --vitrina-text: #1a202c;           /* Texto principal más oscuro */
+  --vitrina-text-primary: #1a202c;   /* Texto principal más oscuro */
+  --vitrina-text-secondary: #2d3748; /* Texto secundario más oscuro */
+  --vitrina-text-tertiary: #4a5568;  /* Texto terciario más oscuro */
+  --vitrina-text-quaternary: #718096;
+  
+  /* Colores de Fondo */
+  --vitrina-background: #f7fafc;
+  --vitrina-surface: #ffffff;
+  --vitrina-white: #ffffff;
+  --vitrina-light: #f8f9fa;
+  --vitrina-dark: #1a202c;
+  --vitrina-gray: #6b7280;
+  
+  /* Colores de Estado */
+  --vitrina-success: #10b981;
+  --vitrina-warning: #f59e0b;
+  --vitrina-danger: #ef4444;
+  --vitrina-error: #ef4444;
+  --vitrina-info: #3b82f6;
+  
+  /* Colores de Borde */
+  --vitrina-border: #e2e8f0;
+  --vitrina-border-light: #f1f5f9;
+  --vitrina-border-dark: #cbd5e0;
+  
+  /* Sombras */
+  --vitrina-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --vitrina-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --vitrina-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --vitrina-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --vitrina-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  
+  /* Radios de Borde */
+  --vitrina-border-radius: 8px;
+  --vitrina-border-radius-xl: 20px;
+  --vitrina-radius-sm: 4px;
+  --vitrina-radius: 8px;
+  --vitrina-radius-md: 12px;
+  --vitrina-radius-lg: 16px;
+  --vitrina-radius-xl: 20px;
+  --vitrina-radius-full: 50%;
+  
+  /* Espaciado */
+  --vitrina-space-xs: 0.25rem;
+  --vitrina-space-sm: 0.5rem;
+  --vitrina-space: 1rem;
+  --vitrina-space-md: 1.5rem;
+  --vitrina-space-lg: 2rem;
+  --vitrina-space-xl: 3rem;
+  
+  /* Tamaños de Fuente */
+  --vitrina-text-xs: 0.75rem;
+  --vitrina-text-sm: 0.875rem;
+  --vitrina-text-base: 1rem;
+  --vitrina-text-lg: 1.125rem;
+  --vitrina-text-xl: 1.25rem;
+  --vitrina-text-2xl: 1.5rem;
+  --vitrina-text-3xl: 1.875rem;
+  --vitrina-text-4xl: 2.25rem;
+  
+  /* Pesos de Fuente */
+  --vitrina-font-normal: 400;
+  --vitrina-font-medium: 500;
+  --vitrina-font-semibold: 600;
+  --vitrina-font-bold: 700;
+  --vitrina-font-extrabold: 800;
+  
+  /* Alturas de Línea */
+  --vitrina-leading-tight: 1.25;
+  --vitrina-leading-normal: 1.5;
+  --vitrina-leading-relaxed: 1.75;
+  
+  /* Z-Index */
+  --vitrina-z-dropdown: 1000;
+  --vitrina-z-sticky: 1020;
+  --vitrina-z-fixed: 1030;
+  --vitrina-z-modal-backdrop: 1040;
+  --vitrina-z-modal: 1050;
+  --vitrina-z-popover: 1060;
+  --vitrina-z-tooltip: 1070;
+  --vitrina-z-toast: 1080;
+  
+  /* Transiciones */
+  --vitrina-transition-fast: 0.15s ease;
+  --vitrina-transition: 0.3s ease;
+  --vitrina-transition-slow: 0.5s ease;
+  
+  /* Breakpoints (para uso en JavaScript) */
+  --vitrina-breakpoint-sm: 640px;
+  --vitrina-breakpoint-md: 768px;
+  --vitrina-breakpoint-lg: 1024px;
+  --vitrina-breakpoint-xl: 1280px;
+  --vitrina-breakpoint-2xl: 1536px;
+}
+
+/* Variables para Modo Oscuro (futuro) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vitrina-text-primary: #3e3d3d;
+    --vitrina-text-secondary: #e2e8f0;
+    --vitrina-text-tertiary: #a0aec0;
+    --vitrina-text-quaternary: #718096;
+    
+    --vitrina-background: #1a202c;
+    --vitrina-surface: #2d3748;
+    --vitrina-light: #4a5568;
+    
+    --vitrina-border: #4a5568;
+    --vitrina-border-light: #2d3748;
+    --vitrina-border-dark: #718096;
+  }
+}
+
+/* Utilidades de Color para Notificaciones */
+.notification-pedido_creado {
+  --notification-color: var(--vitrina-success);
+  --notification-bg: rgba(16, 185, 129, 0.1);
+}
+
+.notification-pedido_actualizado {
+  --notification-color: var(--vitrina-info);
+  --notification-bg: rgba(59, 130, 246, 0.1);
+}
+
+.notification-general {
+  --notification-color: var(--vitrina-warning);
+  --notification-bg: rgba(245, 158, 11, 0.1);
+}
+
+.notification-default {
+  --notification-color: var(--vitrina-primary);
+  --notification-bg: rgba(102, 126, 234, 0.1);
+}

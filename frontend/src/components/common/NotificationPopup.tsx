@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '../../contexts/NotificationsContext';
+import { getNotificationIcon } from '../../utils/notificationUtils';
 import './NotificationPopup.css';
 
 const NotificationPopup: React.FC = () => {
@@ -34,18 +35,6 @@ const NotificationPopup: React.FC = () => {
     setShowPopup(false);
   };
 
-  const getNotificationIcon = (tipo: string) => {
-    switch (tipo) {
-      case 'pedido_creado':
-        return '🛒';
-      case 'pedido_actualizado':
-        return '📋';
-      case 'general':
-        return '🔔';
-      default:
-        return '📢';
-    }
-  };
 
   if (!showPopup || !currentNotification) return null;
 

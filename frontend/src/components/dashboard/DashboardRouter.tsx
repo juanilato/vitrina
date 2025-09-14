@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
-import ClientDashboard from './ClientDashboard';
+import ClientDashboard from '../client';
 import CompanyMainDashboard from './CompanyMainDashboard';
 import './DashboardRouter.css';
 

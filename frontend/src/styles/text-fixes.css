@@ -1,0 +1,110 @@
+/* ===== CORRECCIONES DE COLORES DE TEXTO ===== */
+/* Este archivo corrige colores de texto que están muy claros */
+
+/* Sobrescribir colores de texto problemáticos */
+* {
+  /* Reemplazar grises muy claros con versiones más oscuras */
+  --old-text-light: #718096;
+  --old-text-lighter: #a0aec0;
+  --old-gray-light: #86868b;
+  --old-gray-medium: #888888;
+  --old-gray-very-light: #cccccc;
+  --old-gray-bootstrap: #adb5bd;
+}
+
+/* Correcciones específicas para elementos con texto muy claro */
+.navbar-nav .nav-item,
+.profile-info,
+.notification-time,
+.metric-description,
+.product-description,
+.order-description,
+.form-help-text,
+.secondary-text,
+.muted-text {
+  color: var(--vitrina-text-secondary) !important;
+}
+
+/* Correcciones para elementos con texto extremadamente claro */
+.tertiary-text,
+.placeholder-text,
+.disabled-text {
+  color: var(--vitrina-text-tertiary) !important;
+}
+
+/* Sobrescribir colores específicos problemáticos */
+[style*="color: #718096"],
+[style*="color: #a0aec0"],
+[style*="color: #86868b"],
+[style*="color: #888888"],
+[style*="color: #cccccc"],
+[style*="color: #adb5bd"] {
+  color: var(--vitrina-text-secondary) !important;
+}
+
+/* Correcciones para clases CSS específicas */
+.text-gray-500,
+.text-gray-400,
+.text-gray-300 {
+  color: var(--vitrina-text-secondary) !important;
+}
+
+.text-gray-200,
+.text-gray-100 {
+  color: var(--vitrina-text-tertiary) !important;
+}
+
+/* Correcciones específicas para componentes */
+.company-navbar .nav-item {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.company-navbar .nav-item:hover {
+  color: white !important;
+}
+
+/* Correcciones para notificaciones */
+.notification-time,
+.notification-description {
+  color: var(--vitrina-text-secondary) !important;
+}
+
+/* Correcciones para formularios */
+.form-input::placeholder {
+  color: var(--vitrina-text-tertiary) !important;
+}
+
+.form-label,
+.form-text {
+  color: var(--vitrina-text-primary) !important;
+}
+
+/* Correcciones para dashboard */
+.metric-value,
+.chart-label,
+.table-header {
+  color: var(--vitrina-text-primary) !important;
+}
+
+.metric-description,
+.chart-description,
+.table-description {
+  color: var(--vitrina-text-secondary) !important;
+}
+
+/* Correcciones para botones secundarios */
+.btn-secondary,
+.btn-outline {
+  color: var(--vitrina-text-primary) !important;
+}
+
+/* Correcciones para links */
+.link-muted,
+.link-secondary {
+  color: var(--vitrina-text-secondary) !important;
+}
+
+.link-muted:hover,
+.link-secondary:hover {
+  color: var(--vitrina-text-primary) !important;
+}

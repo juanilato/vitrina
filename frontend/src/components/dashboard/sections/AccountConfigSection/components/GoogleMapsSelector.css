@@ -1,0 +1,335 @@
+/* Google Maps Selector Styles */
+.google-maps-selector {
+  width: 100%;
+  border-radius: var(--vitrina-border-radius);
+  overflow: hidden;
+  border: 1px solid var(--vitrina-border);
+  background: var(--vitrina-white);
+  box-shadow: var(--vitrina-shadow);
+}
+
+.maps-search-container {
+  padding: 1rem;
+  background: var(--vitrina-light);
+  border-bottom: 1px solid var(--vitrina-border);
+}
+
+.search-input-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--vitrina-border);
+  border-radius: var(--vitrina-border-radius);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: var(--vitrina-white);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--vitrina-primary);
+  box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+}
+
+.search-input:disabled {
+  background: var(--vitrina-light);
+  color: var(--vitrina-text-secondary);
+  cursor: not-allowed;
+}
+
+.search-button {
+  padding: 0.75rem 1rem;
+  background: var(--vitrina-primary);
+  color: white;
+  border: none;
+  border-radius: var(--vitrina-border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  min-width: 50px;
+}
+
+.search-button:hover:not(:disabled) {
+  background: var(--vitrina-secondary);
+  transform: translateY(-1px);
+}
+
+.search-button:disabled {
+  background: var(--vitrina-border);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.location-button {
+  padding: 0.75rem 1rem;
+  background: var(--vitrina-success);
+  color: white;
+  border: none;
+  border-radius: var(--vitrina-border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  min-width: 50px;
+}
+
+.location-button:hover:not(:disabled) {
+  background: #28a745;
+  transform: translateY(-1px);
+}
+
+.location-button:disabled {
+  background: var(--vitrina-border);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.selected-location-info {
+  background: var(--vitrina-white);
+  padding: 0.75rem;
+  border-radius: var(--vitrina-border-radius);
+  border: 1px solid var(--vitrina-border-light);
+}
+
+.location-address {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.address-icon {
+  font-size: 1rem;
+}
+
+.address-text {
+  font-weight: 600;
+  color: var(--vitrina-text-primary);
+  font-size: 0.9rem;
+}
+
+.location-coordinates {
+  margin-left: 1.5rem;
+}
+
+.coords-text {
+  font-size: 0.8rem;
+  color: var(--vitrina-text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.google-map {
+  width: 100%;
+  position: relative;
+  background: var(--vitrina-light);
+}
+
+.map-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+  border-radius: var(--vitrina-border-radius);
+  box-shadow: var(--vitrina-shadow);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--vitrina-border);
+  border-top: 4px solid var(--vitrina-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.map-instructions {
+  padding: 1rem;
+  background: var(--vitrina-light);
+  border-top: 1px solid var(--vitrina-border);
+}
+
+.map-instructions p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--vitrina-text-primary);
+}
+
+.map-instructions ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--vitrina-text-secondary);
+}
+
+.map-instructions li {
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .maps-search-container {
+    padding: 0.75rem;
+  }
+  
+  .search-input-group {
+    flex-direction: column;
+  }
+  
+  .search-button {
+    width: 100%;
+  }
+  
+  .selected-location-info {
+    padding: 0.5rem;
+  }
+  
+  .location-coordinates {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+  
+  .map-instructions {
+    padding: 0.75rem;
+  }
+  
+  .map-instructions ul {
+    padding-left: 1rem;
+  }
+}
+
+/* Error state when Google Maps is not configured */
+.maps-error {
+  padding: 2rem;
+  text-align: center;
+  background: var(--vitrina-light);
+  border-radius: var(--vitrina-border-radius);
+  border: 2px dashed var(--vitrina-border);
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.maps-error h3 {
+  color: var(--vitrina-text-primary);
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+}
+
+.maps-error p {
+  color: var(--vitrina-text-secondary);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.error-instructions {
+  text-align: left;
+  background: var(--vitrina-white);
+  padding: 1.5rem;
+  border-radius: var(--vitrina-border-radius);
+  border: 1px solid var(--vitrina-border);
+  margin-top: 1rem;
+}
+
+.error-instructions p {
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  color: var(--vitrina-text-primary);
+}
+
+.error-instructions ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--vitrina-text-secondary);
+}
+
+.error-instructions li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.error-instructions code {
+  background: var(--vitrina-light);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: var(--vitrina-primary);
+}
+
+.error-instructions a {
+  color: var(--vitrina-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.error-instructions a:hover {
+  text-decoration: underline;
+}
+
+.retry-button {
+  background: var(--vitrina-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--vitrina-border-radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.retry-button:hover {
+  background: var(--vitrina-secondary);
+  transform: translateY(-1px);
+  box-shadow: var(--vitrina-shadow);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .google-maps-selector {
+    background: var(--vitrina-surface);
+    border-color: var(--vitrina-border);
+  }
+  
+  .maps-search-container {
+    background: var(--vitrina-surface);
+  }
+  
+  .search-input {
+    background: var(--vitrina-surface);
+    border-color: var(--vitrina-border);
+    color: var(--vitrina-text-primary);
+  }
+  
+  .selected-location-info {
+    background: var(--vitrina-surface);
+    border-color: var(--vitrina-border);
+  }
+  
+  .map-loading {
+    background: rgba(30, 30, 30, 0.9);
+    color: white;
+  }
+  
+  .map-instructions {
+    background: var(--vitrina-surface);
+  }
+}

@@ -21,23 +21,6 @@ const CompanyExplorer: React.FC<CompanyExplorerProps> = ({
   onUpdateCategoryFilter,
   onUpdateSortBy
 }) => {
-  const categories = [
-    { value: 'all', label: 'Todas las categorías', icon: '🏢' },
-    { value: 'tecnologia', label: 'Tecnología', icon: '💻' },
-    { value: 'gastronomia', label: 'Gastronomía', icon: '🍕' },
-    { value: 'salud', label: 'Salud', icon: '🏥' },
-    { value: 'educacion', label: 'Educación', icon: '📚' },
-    { value: 'diseño', label: 'Diseño', icon: '🎨' },
-    { value: 'automotriz', label: 'Automotriz', icon: '🚗' },
-    { value: 'otros', label: 'Otros', icon: '📦' }
-  ];
-
-  const sortOptions = [
-    { value: 'name', label: 'Nombre A-Z', icon: '🔤' },
-    { value: 'rating', label: 'Mejor calificadas', icon: '⭐' },
-    { value: 'newest', label: 'Más recientes', icon: '🆕' },
-    { value: 'popular', label: 'Más populares', icon: '🔥' }
-  ];
 
   return (
     <div className="company-explorer">

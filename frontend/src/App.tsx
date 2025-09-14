@@ -5,8 +5,8 @@ import { NotificationsProvider } from './contexts/NotificationsContext';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
-import CompanySelector from './components/company/CompanySelector';
-import CompanyDashboard from './components/dashboard/CompanyDashboard';
+
+
 import CompanyStorePage from './components/client/pages/CompanyStorePage';
 import PrivateRoute from './components/auth/PrivateRoute';
 import NotificationPopup from './components/common/NotificationPopup';
@@ -43,46 +43,7 @@ function App() {
                 </PrivateRoute>
               } 
             />
-            <Route 
-              path="/dashboard/products" 
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/dashboard/analytics" 
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/dashboard/settings" 
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/empresas" 
-              element={
-                <PrivateRoute>
-                  <CompanySelector />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/empresa/:companyName" 
-              element={
-                <PrivateRoute>
-                  <CompanyDashboard />
-                </PrivateRoute>
-              } 
-            />
+
             <Route 
               path="/tienda/:companyName" 
               element={

@@ -62,58 +62,47 @@ const ClientDashboard: React.FC = () => {
               alt="VITRINA" 
               className="header-logo"
             />
-            <div className="brand-info">
-              <span className="brand-title">VITRINA</span>
-
-            </div>
+            <span className="brand-title">Vitrina</span>
           </div>
-
-          {/* Navigation */}
-          <nav className="header-nav">
-            <button 
-              className={`nav-btn ${state.view === 'companies' || state.view === 'company-profile' ? 'active' : ''}`}
-              onClick={navigateToCompanies}
-            >
-              <span className="nav-icon">🔍</span>
-              <span className="nav-label">Explorar</span>
-            </button>
-            
-            <button 
-              className={`nav-btn ${state.view === 'my-orders' ? 'active' : ''}`}
-              onClick={navigateToMyOrders}
-            >
-              <span className="nav-icon">📋</span>
-              <span className="nav-label">Mis Pedidos</span>
-            </button>
-            
-            <button 
-              className={`nav-btn ${state.view === 'cart' ? 'active' : ''}`}
-              onClick={navigateToCart}
-            >
-              <span className="nav-icon">🛒</span>
-              <span className="nav-label">Carrito</span>
-              {cart.totalItems > 0 && (
-                <span className="cart-badge">{cart.totalItems}</span>
-              )}
-            </button>
-          </nav>
 
           {/* User Section */}
           <div className="header-user">
-            {/* Notificaciones */}
-            <NotificationsDropdown />
-            
-            <div className="user-avatar">
-              <span className="avatar-text">
-                {user.name.charAt(0).toUpperCase()}
-              </span>
+          <div className="notifications-container">
+              <NotificationsDropdown />
             </div>
-            <div className="user-info">
+            <div className="user-info-card">
+     
               <span className="user-name">{user.name}</span>
             </div>
+            
+            {/* Notificaciones */}
+    
           </div>
         </div>
       </header>
+
+      {/* Navigation Bar */}
+      <nav className="main-navbar">
+        <div className="navbar-container">
+          <button 
+            className={`navbar-btn ${state.view === 'companies' || state.view === 'company-profile' ? 'active' : ''}`}
+            onClick={navigateToCompanies}
+          >
+            <span className="navbar-icon">🔍</span>
+            <span className="navbar-label">EXPLORAR</span>
+          </button>
+          
+          <button 
+            className={`navbar-btn ${state.view === 'my-orders' ? 'active' : ''}`}
+            onClick={navigateToMyOrders}
+          >
+            <span className="navbar-icon">📋</span>
+            <span className="navbar-label">MIS PEDIDOS</span>
+          </button>
+          
+
+        </div>
+      </nav>
 
       {/* Main Content */}
       <main className="client-main">

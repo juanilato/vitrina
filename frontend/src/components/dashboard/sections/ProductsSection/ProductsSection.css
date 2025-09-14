@@ -65,7 +65,7 @@
 }
 
 .error-container p {
-  color: #718096;
+  color: var(--vitrina-text-secondary);
   margin-bottom: 2rem;
   max-width: 400px;
 }
@@ -304,7 +304,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 1.2rem;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
 }
 
 .filter-info {
@@ -313,7 +313,7 @@
 }
 
 .filter-text {
-  color: #718096;
+  color: var(--vitrina-text-secondary);
   font-size: 0.9rem;
   font-weight: 500;
   background: rgba(102, 126, 234, 0.1);
@@ -366,7 +366,7 @@
 
 .placeholder-icon {
   font-size: 3rem;
-  color: #a0aec0;
+  color: var(--vitrina-text-tertiary);
 }
 
 .product-content {
@@ -405,7 +405,7 @@
 
 .status-inactive {
   background: rgba(160, 174, 192, 0.1);
-  color: #718096;
+  color: var(--vitrina-text-secondary);
 }
 
 .status-out-of-stock {
@@ -559,7 +559,7 @@
 }
 
 .empty-state p {
-  color: #718096;
+  color: var(--vitrina-text-secondary);
   margin-bottom: 2rem;
 }
 
@@ -678,7 +678,7 @@
   background: none;
   border: none;
   font-size: 2rem;
-  color: #a0aec0;
+  color: var(--vitrina-text-tertiary);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 50%;
@@ -687,7 +687,7 @@
 
 .modal-close:hover {
   background: #f7fafc;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
 }
 
 .modal-form {
@@ -957,7 +957,7 @@
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #a0aec0;
+  color: var(--vitrina-text-tertiary);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 50%;
@@ -966,7 +966,7 @@
 
 .image-preview-close:hover {
   background: #f7fafc;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
 }
 
 .image-preview-content {

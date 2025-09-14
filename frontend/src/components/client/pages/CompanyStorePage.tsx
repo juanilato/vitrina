@@ -7,6 +7,7 @@ import CartSummary from '../components/CartSummary';
 import { Company, Product, Cart, CartItem } from '../types';
 import axiosInstance from '../../../config/axios.config';
 import { findCompanyByUrlSlug } from '../../../utils/urlHelpers';
+import { ThemeProvider } from '../../../colors';
 import '../ClientDashboard.css';
 import './CompanyStorePage.css';
 
@@ -262,7 +263,8 @@ const CompanyStorePage: React.FC = () => {
   }
 
   return (
-    <div className="company-store-page-clean">
+    <ThemeProvider companySlug={companyName || 'default'}>
+      <div className="company-store-page-clean">
 
       {/* Company Header */}
       <div className="company-header-section">
@@ -445,8 +447,9 @@ const CompanyStorePage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
-    </div>
+        )}
+      </div>
+    </ThemeProvider>
   );
 };
 

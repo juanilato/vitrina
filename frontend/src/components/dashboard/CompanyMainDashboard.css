@@ -128,7 +128,7 @@
 
 .info-label {
   font-weight: 600;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -180,7 +180,7 @@
 
 .stat-label {
   font-size: 0.8rem;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
   font-weight: 500;
 }
 
@@ -276,7 +276,7 @@
 
 .activity-time {
   font-size: 0.8rem;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
 }
 
 .view-all-btn {
@@ -303,7 +303,7 @@
   padding: 0.25rem 0.75rem;
   border: 1px solid #e2e8f0;
   background: white;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
@@ -348,7 +348,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #718096;
+  color: var(--vitrina-text-secondary);
   font-weight: 500;
 }
 

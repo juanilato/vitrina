@@ -26,5 +26,8 @@
     "typescript"
   ],
   "author": "VITRINA Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^6.0.0"
+  }
 }

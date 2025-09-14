@@ -9,6 +9,7 @@ import { ProductosModule } from './productos/productos.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { WebSocketModule } from './websocket/websocket.module';
+import { EmpresasModule } from './empresas/empresas.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { WebSocketModule } from './websocket/websocket.module';
     ProductosModule, 
     PedidosModule,
     NotificationsModule,
-    WebSocketModule
+    WebSocketModule,
+    EmpresasModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

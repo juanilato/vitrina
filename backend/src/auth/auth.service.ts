@@ -374,7 +374,7 @@ export class AuthService {
           id: true,
           name: true,
           email: true,
-          
+          logo: true,
           
           isVerified: true,
           createdAt: true,

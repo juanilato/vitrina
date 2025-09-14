@@ -1,0 +1,146 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+  Res,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { EmpresasService } from './empresas.service';
+import { UpdateEmpresaDto } from './dto/update-empresa.dto';
+import { CreateUbicacionDto } from './dto/create-ubicacion.dto';
+import { UpdateUbicacionDto } from './dto/update-ubicacion.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+
+@Controller('empresas')
+@UseGuards(JwtAuthGuard)
+export class EmpresasController {
+  constructor(private readonly empresasService: EmpresasService) {}
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.empresasService.findOne(id);
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateEmpresaDto: UpdateEmpresaDto,
+  ) {
+    return this.empresasService.update(id, updateEmpresaDto);
+  }
+
+  @Patch(':id/password')
+  async changePassword(
+    @Param('id') id: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.empresasService.changePassword(id, changePasswordDto);
+  }
+
+  @Post(':id/upload-logo')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadLogo(
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+  ) {
+    console.log('📁 [UPLOAD LOGO] Iniciando subida de logo:', {
+      empresaId: id,
+      fileName: file?.originalname,
+      fileSize: file?.size,
+      fileMimetype: file?.mimetype,
+      hasBuffer: !!file?.buffer
+    });
+
+    if (!file) {
+      console.error('❌ [UPLOAD LOGO] No file uploaded');
+      throw new BadRequestException('No file uploaded');
+    }
+
+    // Validar tipo de archivo
+    if (!file.mimetype.startsWith('image/')) {
+      console.error('❌ [UPLOAD LOGO] Invalid file type:', file.mimetype);
+      throw new BadRequestException('Solo se permiten archivos de imagen');
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      console.error('❌ [UPLOAD LOGO] File too large:', file.size);
+      throw new BadRequestException('El archivo es demasiado grande. Máximo 5MB');
+    }
+
+    try {
+      const result = await this.empresasService.uploadLogo(id, file);
+      console.log('✅ [UPLOAD LOGO] Logo subido exitosamente:', result.logoUrl);
+      return result;
+    } catch (error) {
+      console.error('❌ [UPLOAD LOGO] Error en servicio:', error);
+      throw error;
+    }
+  }
+
+  // Ubicaciones
+  @Get(':id/ubicaciones')
+  async getUbicaciones(@Param('id') id: string) {
+    return this.empresasService.getUbicaciones(id);
+  }
+
+  @Post(':id/ubicaciones')
+  async createUbicacion(
+    @Param('id') id: string,
+    @Body() createUbicacionDto: CreateUbicacionDto,
+  ) {
+    return this.empresasService.createUbicacion(id, createUbicacionDto);
+  }
+
+  @Patch(':id/ubicaciones/:ubicacionId')
+  async updateUbicacion(
+    @Param('id') id: string,
+    @Param('ubicacionId') ubicacionId: string,
+    @Body() updateUbicacionDto: UpdateUbicacionDto,
+  ) {
+    return this.empresasService.updateUbicacion(id, ubicacionId, updateUbicacionDto);
+  }
+
+  @Delete(':id/ubicaciones/:ubicacionId')
+  async removeUbicacion(
+    @Param('id') id: string,
+    @Param('ubicacionId') ubicacionId: string,
+  ) {
+    return this.empresasService.removeUbicacion(id, ubicacionId);
+  }
+
+  @Get(':id/logo')
+  async getLogo(@Param('id') id: string, @Res() res: any) {
+    try {
+      const logoData = await this.empresasService.getLogoData(id);
+      
+      if (!logoData) {
+        return res.status(404).json({ message: 'Logo no encontrado' });
+      }
+
+      // Configurar headers para la imagen
+      res.set({
+        'Content-Type': logoData.contentType,
+        'Content-Length': logoData.size,
+        'Cache-Control': 'public, max-age=3600', // Cache por 1 hora
+        'Last-Modified': new Date().toUTCString(),
+      });
+
+      // Enviar la imagen
+      return res.send(logoData.buffer);
+    } catch (error) {
+      console.error('Error obteniendo logo:', error);
+      return res.status(500).json({ message: 'Error al obtener el logo' });
+    }
+  }
+}

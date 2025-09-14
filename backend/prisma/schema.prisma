@@ -29,13 +29,22 @@ model Empresa {
   email       String     @unique
   name        String
   password    String
-  logo        String?    // opcional
+  logo        String?    
+  ubicacion   Ubicacion[]
   isVerified  Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   productos   Productos[]
   Pedidos     Pedido[]
+}
+model Ubicacion {
+  id         Int      @id @default(autoincrement())
+  empresaId  String
+  direccion  String?
+  lat        Float?
+  lng        Float?
+  empresa    Empresa  @relation(fields: [empresaId], references: [id])
 }
 
 // ——— Productos de empresa ———

@@ -9,7 +9,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onViewProducts
 }) => {
   const navigate = useNavigate();
-  
+
   const handleViewCompany = () => {
     const urlSlug = nameToUrlSlug(company.name);
     navigate(`/tienda/${urlSlug}`);

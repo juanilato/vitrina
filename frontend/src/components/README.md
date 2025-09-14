@@ -19,8 +19,7 @@ frontend/src/components/
 │   ├── CompanyDashboard.tsx # Dashboard específico de empresa (vitrinas)
 │   └── shared/             # 🔧 Componentes Compartidos
 │       ├── DashboardHeader.tsx # Header común de dashboards
-│       ├── MetricCard.tsx  # Tarjetas de métricas reutilizables
-│       └── WelcomeSection.tsx # Sección de bienvenida
+│       └── CompanyNavbar.tsx   # Barra de navegación de empresa
 ├── company/                 # 🏢 Funcionalidad de Empresas
 │   └── CompanySelector.tsx # Selector de empresas
 ├── ui/                     # 🎨 Componentes de UI Reutilizables
@@ -45,15 +44,10 @@ frontend/src/components/
 - Navegación adaptativa según tipo de usuario
 - Gestión de logout y debug
 
-#### 📈 MetricCard
-- Tarjetas de métricas reutilizables
-- Soporte para tendencias (positiva/negativa/neutral)
-- Diseño consistente y responsive
-
-#### 👋 WelcomeSection
-- Sección de bienvenida personalizada
-- Acciones configurables por tipo de usuario
-- Diseño atractivo con gradientes
+#### 🏢 CompanyNavbar
+- Barra de navegación lateral para empresas
+- Navegación entre secciones del dashboard
+- Gestión de logout y estado activo
 
 ## 🎯 Beneficios de la Nueva Arquitectura
 
@@ -89,7 +83,7 @@ Usuario → Login → AuthContext → App Router → Dashboard → DashboardRout
                                     CompanyMainDashboard      ClientDashboard
                                                ↓                      ↓
                                     Componentes Compartidos ←--------┘
-                                    (Header, Cards, Welcome)
+                                    (Header, Navbar)
 ```
 
 ## 🚀 Próximos Pasos

@@ -68,6 +68,12 @@
   align-items: center;
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .notifications-header h3 {
   margin: 0;
   font-size: 1.1rem;
@@ -76,20 +82,68 @@
 }
 
 .mark-all-read-btn {
-  background: none;
+  background: #667eea;
   border: none;
-  color: #667eea;
+  color: white;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .mark-all-read-btn:hover {
-  background-color: rgba(102, 126, 234, 0.1);
+  background: #5a6fd8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
+
+.mark-all-icon {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.mark-all-text {
+  font-size: 0.75rem;
+}
+
+.view-all-btn {
+  background: #28a745;
+  border: none;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.view-all-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.view-all-icon {
+  font-size: 0.9rem;
+}
+
+.view-all-text {
+  font-size: 0.75rem;
+}
+
 
 .notifications-list {
   max-height: 400px;
@@ -102,20 +156,7 @@
   color: #6c757d;
 }
 
-.loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 0.5rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+/* Loading spinner ahora usa la clase común */
 
 .no-notifications {
   padding: 2rem;
@@ -185,7 +226,7 @@
 
 .notification-time {
   font-size: 0.75rem;
-  color: #adb5bd;
+  color: var(--vitrina-text-secondary);
   font-weight: 500;
 }
 
@@ -198,7 +239,7 @@
 .delete-notification-btn {
   background: none;
   border: none;
-  color: #adb5bd;
+  color: var(--vitrina-text-secondary);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 4px;
