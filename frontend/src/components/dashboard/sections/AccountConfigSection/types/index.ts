@@ -11,10 +11,20 @@ export interface EmpresaData {
 
 export interface UbicacionData {
   id: number;
-  empresaId: string;
+  empresaId?: string; // Hacer opcional ya que se obtiene del contexto
   direccion?: string;
   lat?: number;
   lng?: number;
+  preciosEnvio?: PrecioEnvioData[];
+}
+
+export interface PrecioEnvioData {
+  id: number;
+  empresaId: string;
+  ubicacionId: number;
+  precio: number;
+  distancia: number;
+  nombre?: string;
 }
 
 export interface UpdateEmpresaData {
@@ -25,9 +35,23 @@ export interface UpdateEmpresaData {
 
 export interface UpdateUbicacionData {
   id?: number;
+  empresaId?: string; // Hacer opcional ya que se obtiene del contexto
   direccion?: string;
   lat?: number;
   lng?: number;
+}
+
+export interface CreatePrecioEnvioData {
+  ubicacionId: number;
+  precio: number;
+  distancia: number;
+  nombre?: string;
+}
+
+export interface UpdatePrecioEnvioData {
+  precio?: number;
+  distancia?: number;
+  nombre?: string;
 }
 
 export interface AccountConfigFormData {
@@ -66,4 +90,9 @@ export interface AccountConfigActions {
   uploadLogo: (file: File) => Promise<string>;
   resetForm: () => void;
   setActiveTab: (tab: AccountConfigState['activeTab']) => void;
+  // Precios de envío
+  getPreciosEnvio: (ubicacionId: number) => Promise<PrecioEnvioData[]>;
+  createPrecioEnvio: (ubicacionId: number, data: CreatePrecioEnvioData) => Promise<void>;
+  updatePrecioEnvio: (ubicacionId: number, precioId: number, data: UpdatePrecioEnvioData) => Promise<void>;
+  removePrecioEnvio: (ubicacionId: number, precioId: number) => Promise<void>;
 }

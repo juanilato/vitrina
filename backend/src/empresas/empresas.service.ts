@@ -5,6 +5,8 @@ import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 import { CreateUbicacionDto } from './dto/create-ubicacion.dto';
 import { UpdateUbicacionDto } from './dto/update-ubicacion.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CreatePrecioEnvioDto } from './dto/create-precio-envio.dto';
+import { UpdatePrecioEnvioDto } from './dto/update-precio-envio.dto';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import * as fs from 'fs';
@@ -36,9 +38,12 @@ export class EmpresasService {
       ubicaciones: empresa.ubicacion
     });
 
-    // Remover la contraseña del objeto de respuesta
-    const { password, ...empresaSinPassword } = empresa;
-    return empresaSinPassword;
+    // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
+    const { password, ubicacion, ...empresaSinPassword } = empresa;
+    return {
+      ...empresaSinPassword,
+      ubicaciones: ubicacion || []
+    };
   }
 
   async update(id: string, updateEmpresaDto: UpdateEmpresaDto) {
@@ -58,9 +63,12 @@ export class EmpresasService {
       },
     });
 
-    // Remover la contraseña del objeto de respuesta
-    const { password, ...empresaSinPassword } = empresaActualizada;
-    return empresaSinPassword;
+    // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
+    const { password, ubicacion, ...empresaSinPassword } = empresaActualizada;
+    return {
+      ...empresaSinPassword,
+      ubicaciones: ubicacion || []
+    };
   }
 
   async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
@@ -154,9 +162,15 @@ export class EmpresasService {
 
       console.log('✅ [UPLOAD LOGO SERVICE] Empresa actualizada exitosamente');
 
-      // Remover la contraseña del objeto de respuesta
-      const { password, ...empresaSinPassword } = empresaActualizada;
-      return { logoUrl, empresa: empresaSinPassword };
+      // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
+      const { password, ubicacion, ...empresaSinPassword } = empresaActualizada;
+      return { 
+        logoUrl, 
+        empresa: {
+          ...empresaSinPassword,
+          ubicaciones: ubicacion || []
+        }
+      };
     } catch (error) {
       console.error('❌ [UPLOAD LOGO SERVICE] Error en uploadLogo:', error);
       throw new BadRequestException('Error al procesar el logo: ' + error.message);
@@ -176,17 +190,23 @@ export class EmpresasService {
       throw new NotFoundException('Empresa no encontrada');
     }
 
-    return empresa.ubicacion;
+    return empresa.ubicacion || [];
   }
 
   async createUbicacion(id: string, createUbicacionDto: CreateUbicacionDto) {
+    console.log('🔍 [CREATE UBICACION SERVICE] Buscando empresa:', id);
+    console.log('🔍 [CREATE UBICACION SERVICE] Datos recibidos:', createUbicacionDto);
+    
     const empresa = await this.prisma.empresa.findUnique({
       where: { id },
     });
 
     if (!empresa) {
+      console.error('❌ [CREATE UBICACION SERVICE] Empresa no encontrada:', id);
       throw new NotFoundException('Empresa no encontrada');
     }
+
+    console.log('✅ [CREATE UBICACION SERVICE] Empresa encontrada:', empresa.name);
 
     const ubicacion = await this.prisma.ubicacion.create({
       data: {
@@ -194,6 +214,8 @@ export class EmpresasService {
         empresaId: id,
       },
     });
+
+    console.log('✅ [CREATE UBICACION SERVICE] Ubicación creada:', ubicacion);
 
     return ubicacion;
   }
@@ -314,5 +336,121 @@ export class EmpresasService {
       console.error('❌ [GET LOGO DATA] Error procesando logo:', error);
       return null;
     }
+  }
+
+  // Métodos para precios de envío
+  async getPreciosEnvio(empresaId: string, ubicacionId: string) {
+    console.log('🚚 [GET PRECIOS ENVIO] Buscando precios para ubicación:', { empresaId, ubicacionId });
+    
+    // Verificar que la ubicación pertenece a la empresa
+    const ubicacion = await this.prisma.ubicacion.findFirst({
+      where: {
+        id: parseInt(ubicacionId),
+        empresaId: empresaId,
+      },
+    });
+
+    if (!ubicacion) {
+      throw new NotFoundException('Ubicación no encontrada');
+    }
+
+    const precios = await this.prisma.preciosEnvio.findMany({
+      where: {
+        ubicacionId: parseInt(ubicacionId),
+      },
+      orderBy: {
+        distancia: 'asc',
+      },
+    });
+
+    console.log('🚚 [GET PRECIOS ENVIO] Precios encontrados:', precios.length);
+    return precios;
+  }
+
+  async createPrecioEnvio(empresaId: string, ubicacionId: string, createPrecioEnvioDto: CreatePrecioEnvioDto) {
+    console.log('🚚 [CREATE PRECIO ENVIO] Creando precio:', { empresaId, ubicacionId, createPrecioEnvioDto });
+    
+    // Verificar que la ubicación pertenece a la empresa
+    const ubicacion = await this.prisma.ubicacion.findFirst({
+      where: {
+        id: parseInt(ubicacionId),
+        empresaId: empresaId,
+      },
+    });
+
+    if (!ubicacion) {
+      throw new NotFoundException('Ubicación no encontrada');
+    }
+
+    // Verificar que no existe ya un precio para esta ubicación
+    const precioExistente = await this.prisma.preciosEnvio.findFirst({
+      where: {
+        ubicacionId: parseInt(ubicacionId),
+      },
+    });
+
+    if (precioExistente) {
+      throw new BadRequestException('Ya existe un precio de envío para esta ubicación');
+    }
+
+    const precio = await this.prisma.preciosEnvio.create({
+      data: {
+        ...createPrecioEnvioDto,
+        ubicacionId: parseInt(ubicacionId),
+        empresaId: empresaId,
+      },
+    });
+
+    console.log('🚚 [CREATE PRECIO ENVIO] Precio creado:', precio);
+    return precio;
+  }
+
+  async updatePrecioEnvio(empresaId: string, ubicacionId: string, precioId: string, updatePrecioEnvioDto: UpdatePrecioEnvioDto) {
+    console.log('🚚 [UPDATE PRECIO ENVIO] Actualizando precio:', { empresaId, ubicacionId, precioId, updatePrecioEnvioDto });
+    
+    // Verificar que el precio pertenece a la ubicación y empresa
+    const precio = await this.prisma.preciosEnvio.findFirst({
+      where: {
+        id: parseInt(precioId),
+        ubicacionId: parseInt(ubicacionId),
+        empresaId: empresaId,
+      },
+    });
+
+    if (!precio) {
+      throw new NotFoundException('Precio de envío no encontrado');
+    }
+
+    const precioActualizado = await this.prisma.preciosEnvio.update({
+      where: { id: parseInt(precioId) },
+      data: updatePrecioEnvioDto,
+    });
+
+    console.log('🚚 [UPDATE PRECIO ENVIO] Precio actualizado:', precioActualizado);
+    return precioActualizado;
+  }
+
+  async removePrecioEnvio(empresaId: string, ubicacionId: string, precioId: string) {
+    console.log('🚚 [REMOVE PRECIO ENVIO] Eliminando precio:', { empresaId, ubicacionId, precioId });
+    
+    // Verificar que el precio pertenece a la ubicación y empresa
+    const precio = await this.prisma.preciosEnvio.findFirst({
+      where: {
+        id: parseInt(precioId),
+        ubicacionId: parseInt(ubicacionId),
+        empresaId: empresaId,
+      },
+    });
+
+    if (!precio) {
+      throw new NotFoundException('Precio de envío no encontrado');
+    }
+
+    await this.prisma.preciosEnvio.delete({
+      where: { id: parseInt(precioId) },
+    });
+
+    console.log('🚚 [REMOVE PRECIO ENVIO] Precio eliminado exitosamente');
+    return { message: 'Precio de envío eliminado exitosamente' };
   }
 }

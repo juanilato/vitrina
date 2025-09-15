@@ -35,8 +35,19 @@ model Empresa {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+
   productos   Productos[]
   Pedidos     Pedido[]
+}
+
+model PreciosEnvio {
+  id         Int      @id @default(autoincrement())
+  empresaId  String
+  precio     Decimal  @db.Decimal(12, 2)
+  distancia  Float
+  ubicacion    Ubicacion  @relation(fields: [ubicacionId], references: [id])
+  ubicacionId Int
+  @@unique([empresaId])
 }
 model Ubicacion {
   id         Int      @id @default(autoincrement())
@@ -44,6 +55,7 @@ model Ubicacion {
   direccion  String?
   lat        Float?
   lng        Float?
+  preciosEnvio PreciosEnvio[]
   empresa    Empresa  @relation(fields: [empresaId], references: [id])
 }
 

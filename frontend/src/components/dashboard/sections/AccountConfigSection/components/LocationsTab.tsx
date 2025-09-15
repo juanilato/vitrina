@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
 import GoogleMapsSelector from './GoogleMapsSelector';
+import PreciosEnvioTab from './PreciosEnvioTab';
 
 const LocationsTab: React.FC = () => {
   const {
@@ -11,26 +12,26 @@ const LocationsTab: React.FC = () => {
     removeLocation
   } = useAccountConfig();
 
+  // Log para debuggear
+  console.log('🏢 [LOCATIONS TAB] Datos actuales:', {
+    ubicacionesCount: formData.ubicaciones?.length || 0,
+    ubicaciones: formData.ubicaciones
+  });
+  
+  // Log simple para verificar
+  console.log('UBICACIONES EN TAB:', formData.ubicaciones);
+
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [editingLocationId, setEditingLocationId] = useState<number | null>(null);
-  const [newLocation, setNewLocation] = useState({
-    direccion: '',
-    lat: '',
-    lng: ''
-  });
   const [selectedLocation, setSelectedLocation] = useState<{
     direccion: string;
     lat: number;
     lng: number;
   } | null>(null);
+  const [preciosEnvioLocationId, setPreciosEnvioLocationId] = useState<number | null>(null);
 
   const handleLocationSelect = (location: { direccion: string; lat: number; lng: number }) => {
     setSelectedLocation(location);
-    setNewLocation({
-      direccion: location.direccion,
-      lat: location.lat.toString(),
-      lng: location.lng.toString()
-    });
   };
 
   const handleAddLocation = async () => {
@@ -39,19 +40,19 @@ const LocationsTab: React.FC = () => {
       return;
     }
 
+    console.log('🏢 [FRONTEND] Iniciando agregado de ubicación:', selectedLocation);
+
     try {
       await addLocation({
-        empresaId: '', 
         direccion: selectedLocation.direccion,
         lat: selectedLocation.lat,
         lng: selectedLocation.lng
       });
       
-      setNewLocation({ direccion: '', lat: '', lng: '' });
       setSelectedLocation(null);
       setIsAddingLocation(false);
     } catch (error) {
-      console.error('Error al agregar ubicación:', error);
+      console.error('❌ [FRONTEND] Error al agregar ubicación:', error);
     }
   };
 
@@ -81,6 +82,29 @@ const LocationsTab: React.FC = () => {
   const cancelEditing = () => {
     setEditingLocationId(null);
   };
+
+  const handlePreciosEnvio = (locationId: number) => {
+    setPreciosEnvioLocationId(locationId);
+  };
+
+  const closePreciosEnvio = () => {
+    setPreciosEnvioLocationId(null);
+  };
+
+  // Si hay una ubicación seleccionada para precios de envío, mostrar esa vista
+  if (preciosEnvioLocationId) {
+    const ubicacion = formData.ubicaciones.find(loc => loc.id === preciosEnvioLocationId);
+    if (ubicacion) {
+      return (
+        <PreciosEnvioTab
+          ubicacionId={ubicacion.id}
+          ubicacionDireccion={ubicacion.direccion || 'Sin dirección'}
+          ubicacionCoords={ubicacion.lat && ubicacion.lng ? { lat: ubicacion.lat, lng: ubicacion.lng } : undefined}
+          onClose={closePreciosEnvio}
+        />
+      );
+    }
+  }
 
   return (
     <div className="locations-tab">
@@ -117,7 +141,6 @@ const LocationsTab: React.FC = () => {
                   onClick={() => {
                     setIsAddingLocation(false);
                     setSelectedLocation(null);
-                    setNewLocation({ direccion: '', lat: '', lng: '' });
                   }}
                 >
                   Cancelar
@@ -162,6 +185,7 @@ const LocationsTab: React.FC = () => {
                       location={location}
                       onEdit={() => startEditing(location)}
                       onRemove={() => handleRemoveLocation(location.id)}
+                      onPreciosEnvio={handlePreciosEnvio}
                       saving={saving}
                     />
                   )}
@@ -180,8 +204,9 @@ const LocationDisplay: React.FC<{
   location: any;
   onEdit: () => void;
   onRemove: () => void;
+  onPreciosEnvio: (locationId: number) => void;
   saving: boolean;
-}> = ({ location, onEdit, onRemove, saving }) => (
+}> = ({ location, onEdit, onRemove, onPreciosEnvio, saving }) => (
   <div className="location-display">
     <div className="location-info">
       <div className="location-address">
@@ -199,6 +224,13 @@ const LocationDisplay: React.FC<{
     </div>
 
     <div className="location-actions">
+      <button 
+        className="btn btn-primary small"
+        onClick={() => onPreciosEnvio(location.id)}
+        disabled={saving}
+      >
+        🚚 Precios Envío
+      </button>
       <button 
         className="btn btn-secondary small"
         onClick={onEdit}

@@ -6,7 +6,10 @@ import {
   AccountConfigActions, 
   EmpresaData, 
   UpdateEmpresaData, 
-  UpdateUbicacionData
+  UpdateUbicacionData,
+  PrecioEnvioData,
+  CreatePrecioEnvioData,
+  UpdatePrecioEnvioData
 } from '../types';
 
 const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
@@ -32,6 +35,8 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const loadEmpresaData = useCallback(async () => {
     if (!user?.id) return;
 
+    console.log('🏢 [FRONTEND] Cargando datos de empresa para usuario:', user.id);
+
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -43,8 +48,12 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         id: empresaData.id,
         name: empresaData.name,
         ubicacionesCount: empresaData.ubicaciones?.length || 0,
-        ubicaciones: empresaData.ubicaciones
+        ubicaciones: empresaData.ubicaciones,
+        rawResponse: response.data
       });
+      
+      // Log simple para verificar
+      console.log('UBICACIONES:', empresaData.ubicaciones);
 
       setState(prev => ({
         ...prev,
@@ -58,8 +67,10 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         },
         hasChanges: false
       }));
+
+      console.log('🏢 [FRONTEND] Estado actualizado con ubicaciones:', empresaData.ubicaciones?.length || 0);
     } catch (error: any) {
-      console.error('Error al cargar datos de empresa:', error);
+      console.error('❌ [FRONTEND] Error al cargar datos de empresa:', error);
       setState(prev => ({
         ...prev,
         loading: false,
@@ -110,10 +121,19 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const updateLocation = useCallback(async (locationId: number, data: UpdateUbicacionData) => {
     if (!user?.id) return;
 
+    console.log('🏢 [FRONTEND] Actualizando ubicación:', { locationId, data });
+
     setState(prev => ({ ...prev, saving: true, error: null, success: null }));
 
     try {
-      await axiosInstance.patch(`/empresas/${user.id}/ubicaciones/${locationId}`, data);
+      // Remover empresaId del payload si existe
+      const { empresaId, ...locationData } = data as any;
+      
+      console.log('🏢 [FRONTEND] Enviando datos de actualización:', locationData);
+      
+      const response = await axiosInstance.patch(`/empresas/${user.id}/ubicaciones/${locationId}`, locationData);
+      
+      console.log('🏢 [FRONTEND] Respuesta del servidor:', response.data);
       
       // Recargar datos de la empresa
       await loadEmpresaData();
@@ -128,7 +148,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         setState(prev => ({ ...prev, success: null }));
       }, 3000);
     } catch (error: any) {
-      console.error('Error al actualizar ubicación:', error);
+      console.error('❌ [FRONTEND] Error al actualizar ubicación:', error);
       setState(prev => ({
         ...prev,
         saving: false,
@@ -141,13 +161,34 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const addLocation = useCallback(async (data: Omit<UpdateUbicacionData, 'id'>) => {
     if (!user?.id) return;
 
+    console.log('🏢 [FRONTEND] Agregando ubicación:', data);
+
     setState(prev => ({ ...prev, saving: true, error: null, success: null }));
 
     try {
-      await axiosInstance.post(`/empresas/${user.id}/ubicaciones`, data);
+      // Remover empresaId del payload ya que el backend lo obtiene del parámetro de la URL
+      const { empresaId, ...locationData } = data as any;
+      
+      console.log('🏢 [FRONTEND] Enviando datos de ubicación:', locationData);
+      
+      const response = await axiosInstance.post(`/empresas/${user.id}/ubicaciones`, locationData);
+      
+      console.log('🏢 [FRONTEND] Respuesta del servidor:', response.data);
       
       // Recargar datos de la empresa
+      console.log('🏢 [FRONTEND] Recargando datos después de agregar ubicación...');
       await loadEmpresaData();
+      
+      console.log('🏢 [FRONTEND] Datos recargados, actualizando estado...');
+      
+      // Verificar que los datos se cargaron correctamente
+      console.log('🏢 [FRONTEND] Estado actual después de recargar:', {
+        ubicacionesCount: state.formData.ubicaciones?.length || 0,
+        ubicaciones: state.formData.ubicaciones
+      });
+      
+      // Log simple para verificar
+      console.log('UBICACIONES DESPUÉS DE RECARGAR:', state.formData.ubicaciones);
       
       setState(prev => ({
         ...prev,
@@ -159,7 +200,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         setState(prev => ({ ...prev, success: null }));
       }, 3000);
     } catch (error: any) {
-      console.error('Error al agregar ubicación:', error);
+      console.error('❌ [FRONTEND] Error al agregar ubicación:', error);
       setState(prev => ({
         ...prev,
         saving: false,
@@ -294,6 +335,74 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     }
   }, [state.formData, state.empresaData]);
 
+  // Log para rastrear cambios en ubicaciones
+  useEffect(() => {
+    console.log('🏢 [FRONTEND] Ubicaciones cambiaron:', {
+      ubicacionesCount: state.formData.ubicaciones?.length || 0,
+      ubicaciones: state.formData.ubicaciones
+    });
+    
+  // Log simple para verificar
+  console.log('UBICACIONES EN HOOK:', state.formData.ubicaciones);
+  }, [state.formData.ubicaciones]);
+
+  // Precios de envío
+  const getPreciosEnvio = useCallback(async (ubicacionId: number): Promise<PrecioEnvioData[]> => {
+    if (!user?.id) {
+      console.log('🚚 [PRECIOS ENVIO] No hay usuario autenticado');
+      return [];
+    }
+
+    try {
+      console.log('🚚 [PRECIOS ENVIO] Haciendo petición a:', `/empresas/${user.id}/ubicaciones/${ubicacionId}/precios-envio`);
+      const response = await axiosInstance.get(`/empresas/${user.id}/ubicaciones/${ubicacionId}/precios-envio`);
+      console.log('🚚 [PRECIOS ENVIO] Respuesta del servidor:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [PRECIOS ENVIO] Error al cargar precios de envío:', error);
+      console.error('❌ [PRECIOS ENVIO] Detalles del error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw error;
+    }
+  }, [user?.id]);
+
+  const createPrecioEnvio = useCallback(async (ubicacionId: number, data: CreatePrecioEnvioData) => {
+    if (!user?.id) return;
+
+    try {
+      await axiosInstance.post(`/empresas/${user.id}/ubicaciones/${ubicacionId}/precios-envio`, data);
+    } catch (error: any) {
+      console.error('Error al crear precio de envío:', error);
+      throw error;
+    }
+  }, [user?.id]);
+
+  const updatePrecioEnvio = useCallback(async (ubicacionId: number, precioId: number, data: UpdatePrecioEnvioData) => {
+    if (!user?.id) return;
+
+    try {
+      await axiosInstance.patch(`/empresas/${user.id}/ubicaciones/${ubicacionId}/precios-envio/${precioId}`, data);
+    } catch (error: any) {
+      console.error('Error al actualizar precio de envío:', error);
+      throw error;
+    }
+  }, [user?.id]);
+
+  const removePrecioEnvio = useCallback(async (ubicacionId: number, precioId: number) => {
+    if (!user?.id) return;
+
+    try {
+      await axiosInstance.delete(`/empresas/${user.id}/ubicaciones/${ubicacionId}/precios-envio/${precioId}`);
+    } catch (error: any) {
+      console.error('Error al eliminar precio de envío:', error);
+      throw error;
+    }
+  }, [user?.id]);
+
   return {
     ...state,
     loadEmpresaData,
@@ -304,7 +413,11 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     changePassword,
     uploadLogo,
     resetForm,
-    setActiveTab
+    setActiveTab,
+    getPreciosEnvio,
+    createPrecioEnvio,
+    updatePrecioEnvio,
+    removePrecioEnvio
   };
 };
 

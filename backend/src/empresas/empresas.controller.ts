@@ -20,6 +20,8 @@ import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 import { CreateUbicacionDto } from './dto/create-ubicacion.dto';
 import { UpdateUbicacionDto } from './dto/update-ubicacion.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CreatePrecioEnvioDto } from './dto/create-precio-envio.dto';
+import { UpdatePrecioEnvioDto } from './dto/update-precio-envio.dto';
 
 @Controller('empresas')
 @UseGuards(JwtAuthGuard)
@@ -99,7 +101,16 @@ export class EmpresasController {
     @Param('id') id: string,
     @Body() createUbicacionDto: CreateUbicacionDto,
   ) {
-    return this.empresasService.createUbicacion(id, createUbicacionDto);
+    console.log('🏢 [CREATE UBICACION CONTROLLER] Recibiendo request:', {
+      empresaId: id,
+      data: createUbicacionDto
+    });
+    
+    const result = await this.empresasService.createUbicacion(id, createUbicacionDto);
+    
+    console.log('🏢 [CREATE UBICACION CONTROLLER] Respuesta:', result);
+    
+    return result;
   }
 
   @Patch(':id/ubicaciones/:ubicacionId')
@@ -142,5 +153,42 @@ export class EmpresasController {
       console.error('Error obteniendo logo:', error);
       return res.status(500).json({ message: 'Error al obtener el logo' });
     }
+  }
+
+  // Precios de envío
+  @Get(':id/ubicaciones/:ubicacionId/precios-envio')
+  async getPreciosEnvio(
+    @Param('id') id: string,
+    @Param('ubicacionId') ubicacionId: string,
+  ) {
+    return this.empresasService.getPreciosEnvio(id, ubicacionId);
+  }
+
+  @Post(':id/ubicaciones/:ubicacionId/precios-envio')
+  async createPrecioEnvio(
+    @Param('id') id: string,
+    @Param('ubicacionId') ubicacionId: string,
+    @Body() createPrecioEnvioDto: CreatePrecioEnvioDto,
+  ) {
+    return this.empresasService.createPrecioEnvio(id, ubicacionId, createPrecioEnvioDto);
+  }
+
+  @Patch(':id/ubicaciones/:ubicacionId/precios-envio/:precioId')
+  async updatePrecioEnvio(
+    @Param('id') id: string,
+    @Param('ubicacionId') ubicacionId: string,
+    @Param('precioId') precioId: string,
+    @Body() updatePrecioEnvioDto: UpdatePrecioEnvioDto,
+  ) {
+    return this.empresasService.updatePrecioEnvio(id, ubicacionId, precioId, updatePrecioEnvioDto);
+  }
+
+  @Delete(':id/ubicaciones/:ubicacionId/precios-envio/:precioId')
+  async removePrecioEnvio(
+    @Param('id') id: string,
+    @Param('ubicacionId') ubicacionId: string,
+    @Param('precioId') precioId: string,
+  ) {
+    return this.empresasService.removePrecioEnvio(id, ubicacionId, precioId);
   }
 }
