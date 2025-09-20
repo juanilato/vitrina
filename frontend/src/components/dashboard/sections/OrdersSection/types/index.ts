@@ -15,7 +15,7 @@ export interface Pedido {
   id: string;
   clienteId: string;
   empresaId: string;
-  estado: 'pendiente' | 'en_proceso' | 'finalizado' | 'cancelado';
+  estado: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo' | 'cancelado';
   createdAt: string;
   updatedAt: string;
 }
@@ -41,19 +41,20 @@ export interface CreatePedidoDto {
 }
 
 export interface UpdatePedidoDto {
-  estado?: 'pendiente' | 'en_proceso' | 'finalizado' | 'cancelado';
+  estado?: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo' | 'cancelado';
 }
 
 export interface OrdersStats {
   total: number;
-  pendientes: number;
+  pendientesConfirmacion: number;
+  confirmados: number;
   enProceso: number;
-  finalizados: number;
+  listos: number;
 }
 
 export interface OrderCardProps {
   pedido: PedidoWithDetails;
-  onUpdateStatus: (pedidoId: string, newStatus: 'pendiente' | 'en_proceso' | 'finalizado') => void;
+  onUpdateStatus: (pedidoId: string, newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo') => void;
   onViewDetails: (pedido: PedidoWithDetails) => void;
   onDelete?: (pedidoId: string) => void;
 }
@@ -61,5 +62,5 @@ export interface OrderCardProps {
 export interface OrderModalProps {
   pedido: PedidoWithDetails | null;
   onClose: () => void;
-  onUpdateStatus?: (pedidoId: string, newStatus: 'pendiente' | 'en_proceso' | 'finalizado') => void;
+  onUpdateStatus?: (pedidoId: string, newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo') => void;
 }

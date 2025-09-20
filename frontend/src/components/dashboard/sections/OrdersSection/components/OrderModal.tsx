@@ -35,10 +35,12 @@ const OrderModal: React.FC<OrderModalProps> = ({
 
   const getNextStatus = (currentStatus: string) => {
     switch (currentStatus) {
-      case 'pendiente':
+      case 'pendiente_confirmacion':
+        return 'confirmado';
+      case 'confirmado':
         return 'en_proceso';
       case 'en_proceso':
-        return 'finalizado';
+        return 'listo';
       default:
         return null;
     }
@@ -46,10 +48,12 @@ const OrderModal: React.FC<OrderModalProps> = ({
 
   const getNextStatusText = (currentStatus: string) => {
     switch (currentStatus) {
-      case 'pendiente':
+      case 'pendiente_confirmacion':
+        return 'Confirmar Pedido';
+      case 'confirmado':
         return 'Marcar en Proceso';
       case 'en_proceso':
-        return 'Marcar Finalizado';
+        return 'Marcar Listo';
       default:
         return null;
     }

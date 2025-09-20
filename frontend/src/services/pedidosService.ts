@@ -96,11 +96,13 @@ class PedidosService {
   // Método auxiliar para obtener el color del estado
   getStatusColor(estado: string): string {
     switch (estado) {
-      case 'pendiente':
+      case 'pendiente_confirmacion':
         return '#f59e0b'; // amber
+      case 'confirmado':
+        return '#8b5cf6'; // purple
       case 'en_proceso':
         return '#3b82f6'; // blue
-      case 'finalizado':
+      case 'listo':
         return '#10b981'; // green
       case 'cancelado':
         return '#ef4444'; // red
@@ -112,12 +114,14 @@ class PedidosService {
   // Método auxiliar para obtener el texto del estado
   getStatusText(estado: string): string {
     switch (estado) {
-      case 'pendiente':
-        return 'Pendiente';
+      case 'pendiente_confirmacion':
+        return 'Pendiente de Confirmación';
+      case 'confirmado':
+        return 'Confirmado';
       case 'en_proceso':
         return 'En Proceso';
-      case 'finalizado':
-        return 'Finalizado';
+      case 'listo':
+        return 'Listo';
       case 'cancelado':
         return 'Cancelado';
       default:

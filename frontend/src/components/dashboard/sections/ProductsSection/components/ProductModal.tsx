@@ -13,7 +13,27 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
   const [preview, setPreview] = useState<string | null>(product?.fotoUrl ?? null);
   const [guardando, setGuardando] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
-
+  const [precioStr, setPrecioStr] = useState(
+    product?.precio !== undefined && product?.precio !== null
+      ? String(product.precio)
+      : ""
+  );
+  const isValidMoneyInput = (v: string) => {
+    // admitir coma o punto como separador
+    const x = v.replace(",", ".");
+    // permite "", "123", "123.", "123.4", "123.45"
+    return /^(\d+([.]\d{0,2})?)?$/.test(x);
+  };
+  const handlePrecioChange = (v: string) => {
+    if (isValidMoneyInput(v)) {
+      setPrecioStr(v);
+    }
+  };
+  const toNumber2 = (v: string) => {
+    const n = Number(v.replace(",", "."));
+    // redondeo a 2 decimales para evitar 1.005 -> 1.00x por floating point
+    return Math.round(n * 100) / 100;
+  };
   // actualizar campos de texto/checkbox
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -55,7 +75,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
 
     try {
       // Pasar el archivo directamente al padre, que manejará la subida
-      onSave({ ...formData, file: file || undefined });
+      const precioNum = toNumber2(precioStr);
+      if (!isFinite(precioNum) || isNaN(precioNum)) {
+      throw new Error("El precio no es un número válido.");
+    }
+    if (precioNum < 0) {
+      throw new Error("El precio no puede ser negativo.");
+    }
+    onSave({ ...formData, precio: precioNum, file: file || undefined });
     } catch (err: any) {
       alert(err?.message || 'Error al guardar producto');
     } finally {
@@ -118,13 +145,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
             <div className="form-group">
               <label htmlFor="precio">Precio ($) *</label>
               <input
-                type="number"
+                type="text"
                 id="precio"
-                value={formData.precio}
-                onChange={(e) => handleChange('precio', parseFloat(e.target.value) || 0)}
+                inputMode="decimal"
+                value={precioStr}
+                onChange={(e) => handlePrecioChange(e.target.value)}
                 placeholder="0.00"
-                min="0"
-                step="0.01"
                 required
               />
             </div>

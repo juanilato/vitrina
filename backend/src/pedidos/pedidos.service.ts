@@ -53,7 +53,7 @@ export class PedidosService {
           data: {
             clienteId: createPedidoDto.clienteId,
             empresaId: createPedidoDto.empresaId,
-            estado: 'pendiente',
+            estado: 'pendiente_confirmacion',
           }
         });
 
@@ -170,7 +170,7 @@ export class PedidosService {
         clienteNombre: cliente.name,
         clienteEmail: cliente.email,
         empresaId: pedido.empresaId,
-        estado: pedido.estado as 'pendiente' | 'en_proceso' | 'finalizado',
+        estado: pedido.estado as 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo' | 'cancelado',
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         empresa: pedido.empresa,
@@ -387,18 +387,20 @@ export class PedidosService {
   // obtiene las estadisticas de la empresa
   async getStats(empresaId: string) {
     try {
-      const [total, pendientes, enProceso, finalizados] = await Promise.all([
+      const [total, pendientesConfirmacion, confirmados, enProceso, listos] = await Promise.all([
         this.prisma.pedido.count({ where: { empresaId } }),
-        this.prisma.pedido.count({ where: { empresaId, estado: 'pendiente' } }),
+        this.prisma.pedido.count({ where: { empresaId, estado: 'pendiente_confirmacion' } }),
+        this.prisma.pedido.count({ where: { empresaId, estado: 'confirmado' } }),
         this.prisma.pedido.count({ where: { empresaId, estado: 'en_proceso' } }),
-        this.prisma.pedido.count({ where: { empresaId, estado: 'finalizado' } })
+        this.prisma.pedido.count({ where: { empresaId, estado: 'listo' } })
       ]);
 
       return {
         total,
-        pendientes,
+        pendientesConfirmacion,
+        confirmados,
         enProceso,
-        finalizados
+        listos
       };
     } catch (error) {
       console.error('Error obteniendo estadísticas de pedidos:', error);

@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
+import { useNotifications } from '../../../../../contexts/NotificationsContext';
 import pedidosService from '../../../../../services/pedidosService';
 import { PedidoWithDetails, OrdersStats } from '../types';
 
 export const useOrders = () => {
   const { user } = useAuthOptimized();
+  const { socket } = useNotifications();
   const [orders, setOrders] = useState<PedidoWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<OrdersStats>({
     total: 0,
-    pendientes: 0,
+    pendientesConfirmacion: 0,
+    confirmados: 0,
     enProceso: 0,
-    finalizados: 0
+    listos: 0
   });
 
   // Cargar pedidos al montar el componente
@@ -21,6 +24,55 @@ export const useOrders = () => {
       loadOrders();
     }
   }, [user?.id]);
+
+  // Función para enviar notificación al cliente
+  const sendNotificationToClient = async (pedidoId: string, newStatus: string, clienteId: string) => {
+    if (!socket) return;
+
+    const statusMessages = {
+      'pendiente_confirmacion': {
+        titulo: 'Pedido Recibido',
+        mensaje: 'Tu pedido ha sido recibido y está pendiente de confirmación.'
+      },
+      'confirmado': {
+        titulo: 'Pedido Confirmado',
+        mensaje: 'Tu pedido ha sido confirmado y será procesado pronto.'
+      },
+      'en_proceso': {
+        titulo: 'Pedido en Proceso',
+        mensaje: 'Tu pedido está siendo preparado.'
+      },
+      'listo': {
+        titulo: 'Pedido Listo',
+        mensaje: '¡Tu pedido está listo para ser entregado!'
+      }
+    };
+
+    const message = statusMessages[newStatus as keyof typeof statusMessages];
+    if (!message) return;
+
+    try {
+      // Enviar notificación al cliente a través del WebSocket
+      socket.emit('send-notification', {
+        clienteId,
+        titulo: message.titulo,
+        mensaje: message.mensaje,
+        tipo: 'pedido_actualizado',
+        metadata: {
+          pedidoId,
+          nuevoEstado: newStatus
+        }
+      });
+
+      console.log('✅ [ORDERS HOOK] Notificación enviada al cliente:', {
+        clienteId,
+        pedidoId,
+        estado: newStatus
+      });
+    } catch (error) {
+      console.error('❌ [ORDERS HOOK] Error enviando notificación:', error);
+    }
+  };
 
   const loadOrders = async () => {
     try {
@@ -54,7 +106,7 @@ export const useOrders = () => {
 
   const handleUpdateOrderStatus = async (
     pedidoId: string, 
-    newStatus: 'pendiente' | 'en_proceso' | 'finalizado'
+    newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo'
   ) => {
     try {
       console.log('🔄 [ORDERS HOOK] Actualizando estado del pedido:', pedidoId, 'a', newStatus);
@@ -70,6 +122,11 @@ export const useOrders = () => {
       if (user?.id) {
         const newStats = await pedidosService.getPedidosStats(user.id);
         setStats(newStats);
+      }
+
+      // Enviar notificación al cliente
+      if (updatedOrder.cliente?.id) {
+        await sendNotificationToClient(pedidoId, newStatus, updatedOrder.cliente.id);
       }
       
       console.log('✅ [ORDERS HOOK] Estado del pedido actualizado exitosamente');

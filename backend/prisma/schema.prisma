@@ -103,7 +103,7 @@ model Pedido {
   empresaId  String
   empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
-  estado     String     @default("pendiente")
+  estado     String     @default("pendiente_confirmacion")
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 

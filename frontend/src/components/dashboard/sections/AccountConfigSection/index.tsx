@@ -2,6 +2,7 @@ import React from 'react';
 import useAccountConfig from './hooks/useAccountConfig';
 import { ProfileTab, LocationsTab, SecurityTab, PreferencesTab } from './components';
 import './AccountConfigSection.css';
+import TestMap from './components/test';
 
 const AccountConfigSection: React.FC = () => {
   const {
@@ -82,6 +83,7 @@ const AccountConfigSection: React.FC = () => {
 
   return (
     <div className="account-config-section">
+
       {/* Header */}
       <div className="account-config-header">
         <div className="header-content">

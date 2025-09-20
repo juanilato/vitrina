@@ -38,10 +38,12 @@ const OrderCard: React.FC<OrderCardProps> = ({
 
   const getNextStatus = (currentStatus: string) => {
     switch (currentStatus) {
-      case 'pendiente':
+      case 'pendiente_confirmacion':
+        return 'confirmado';
+      case 'confirmado':
         return 'en_proceso';
       case 'en_proceso':
-        return 'finalizado';
+        return 'listo';
       default:
         return null;
     }
@@ -49,10 +51,12 @@ const OrderCard: React.FC<OrderCardProps> = ({
 
   const getNextStatusText = (currentStatus: string) => {
     switch (currentStatus) {
-      case 'pendiente':
+      case 'pendiente_confirmacion':
+        return 'Confirmar Pedido';
+      case 'confirmado':
         return 'Marcar en Proceso';
       case 'en_proceso':
-        return 'Marcar Finalizado';
+        return 'Marcar Listo';
       default:
         return null;
     }
@@ -114,7 +118,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
           </button>
         )}
         
-        {onDelete && pedido.estado === 'pendiente' && (
+        {onDelete && pedido.estado === 'pendiente_confirmacion' && (
           <button 
             className="btn-danger delete-btn"
             onClick={() => onDelete(pedido.id)}

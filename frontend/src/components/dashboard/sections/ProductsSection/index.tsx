@@ -19,24 +19,36 @@ const ProductsSection: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithExtras | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all'); 
+  const filteredProducts = products.filter((product) => {
+  const nombre = product.nombre || '';
+  const descripcion = product.descripcion || '';
+  const searchTermLower = searchTerm.toLowerCase();
 
-  const filteredProducts = products.filter(product => {
-    // Validar que los campos existan antes de aplicar toLowerCase
-    const nombre = product.nombre || '';
-    const descripcion = product.descripcion || '';
-    const searchTermLower = searchTerm.toLowerCase();
-    
-    const matchesSearch = nombre.toLowerCase().includes(searchTermLower) ||
-                         descripcion.toLowerCase().includes(searchTermLower);
-    
-    return matchesSearch;
-  });
+  const matchesSearch =
+    nombre.toLowerCase().includes(searchTermLower) ||
+    descripcion.toLowerCase().includes(searchTermLower);
+
+  // Ojo con null/undefined en activo: normalizalo a boolean
+  const isActive = product.activo === true;
+
+  const matchesStatus =
+    statusFilter === 'all'
+      ? true
+      : statusFilter === 'active'
+      ? isActive
+      : !isActive; 
+
+  return matchesSearch && matchesStatus;
+});
 
   const handleAddProduct = () => {
     setEditingProduct(null);
     setShowAddModal(true);
   };
 
+  
+  
   const handleEditProduct = (product: ProductWithExtras) => {
     setEditingProduct(product);
     setShowAddModal(true);
@@ -109,29 +121,34 @@ const ProductsSection: React.FC = () => {
 
           <div className="sidebar-section">
             <h3 className="sidebar-section-title">Estado</h3>
-            <div className="sidebar-filters">
-              <button
-                className="sidebar-filter-btn active"
-                onClick={() => {}}
-              >
-                <span className="filter-icon">📊</span>
-                Todos ({products.length})
-              </button>
-              <button
-                className="sidebar-filter-btn"
-                onClick={() => {}}
-              >
-                <span className="filter-icon" style={{ color: '#10b981' }}>✅</span>
-                Activos ({stats.activos})
-              </button>
-              <button
-                className="sidebar-filter-btn"
-                onClick={() => {}}
-              >
-                <span className="filter-icon" style={{ color: '#ef4444' }}>❌</span>
-                Inactivos ({stats.inactivos})
-              </button>
-            </div>
+          <div className="sidebar-filters">
+  <button
+    className={`sidebar-filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
+    onClick={() => setStatusFilter('all')}
+    aria-pressed={statusFilter === 'all'}
+  >
+    <span className="filter-icon">📊</span>
+    Todos ({products.length})
+  </button>
+
+  <button
+    className={`sidebar-filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
+    onClick={() => setStatusFilter('active')}
+    aria-pressed={statusFilter === 'active'}
+  >
+    <span className="filter-icon" style={{ color: '#10b981' }}>✅</span>
+    Activos ({stats.activos})
+  </button>
+
+  <button
+    className={`sidebar-filter-btn ${statusFilter === 'inactive' ? 'active' : ''}`}
+    onClick={() => setStatusFilter('inactive')}
+    aria-pressed={statusFilter === 'inactive'}
+  >
+    <span className="filter-icon" style={{ color: '#ef4444' }}>❌</span>
+    Inactivos ({stats.inactivos})
+  </button>
+</div>
           </div>
 
           <div className="sidebar-section">

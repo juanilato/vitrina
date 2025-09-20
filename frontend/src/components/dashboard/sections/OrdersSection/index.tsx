@@ -26,7 +26,7 @@ const OrdersSection: React.FC = () => {
     setSelectedOrder(pedido);
   };
 
-  const handleStatusUpdate = async (pedidoId: string, newStatus: 'pendiente' | 'en_proceso' | 'finalizado') => {
+  const handleStatusUpdate = async (pedidoId: string, newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo') => {
     try {
       await handleUpdateOrderStatus(pedidoId, newStatus);
     } catch (err: any) {
@@ -94,11 +94,18 @@ const OrdersSection: React.FC = () => {
                 Todos ({orders.length})
               </button>
               <button
-                className={`sidebar-filter-btn ${statusFilter === 'pendiente' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('pendiente')}
+                className={`sidebar-filter-btn ${statusFilter === 'pendiente_confirmacion' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('pendiente_confirmacion')}
               >
                 <span className="filter-icon" style={{ color: '#f59e0b' }}>⏳</span>
-                Pendientes ({stats.pendientes})
+                Pendientes de Confirmación ({stats.pendientesConfirmacion})
+              </button>
+              <button
+                className={`sidebar-filter-btn ${statusFilter === 'confirmado' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('confirmado')}
+              >
+                <span className="filter-icon" style={{ color: '#8b5cf6' }}>✅</span>
+                Confirmados ({stats.confirmados})
               </button>
               <button
                 className={`sidebar-filter-btn ${statusFilter === 'en_proceso' ? 'active' : ''}`}
@@ -108,11 +115,11 @@ const OrdersSection: React.FC = () => {
                 En Proceso ({stats.enProceso})
               </button>
               <button
-                className={`sidebar-filter-btn ${statusFilter === 'finalizado' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('finalizado')}
+                className={`sidebar-filter-btn ${statusFilter === 'listo' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('listo')}
               >
-                <span className="filter-icon" style={{ color: '#10b981' }}>✅</span>
-                Finalizados ({stats.finalizados})
+                <span className="filter-icon" style={{ color: '#10b981' }}>🎉</span>
+                Listos ({stats.listos})
               </button>
             </div>
           </div>
