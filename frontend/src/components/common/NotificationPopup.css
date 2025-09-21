@@ -47,10 +47,7 @@
 .popup-icon {
   font-size: 1.5rem;
   margin-right: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  /* Removido el gradiente para que los emojis mantengan sus colores naturales */
 }
 
 .popup-title {

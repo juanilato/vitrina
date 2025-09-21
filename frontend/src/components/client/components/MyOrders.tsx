@@ -127,7 +127,6 @@ const MyOrders: React.FC = () => {
           <h3 className="error-title">Error al cargar pedidos</h3>
           <p className="error-description">{error}</p>
           <button className="btn btn-primary" onClick={loadOrders}>
-            <span className="btn-icon">🔄</span>
             Reintentar
           </button>
         </div>

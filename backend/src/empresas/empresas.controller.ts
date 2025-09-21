@@ -22,6 +22,7 @@ import { UpdateUbicacionDto } from './dto/update-ubicacion.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreatePrecioEnvioDto } from './dto/create-precio-envio.dto';
 import { UpdatePrecioEnvioDto } from './dto/update-precio-envio.dto';
+import { CalcularPrecioEnvioDto } from './dto/calcular-precio-envio.dto';
 
 @Controller('empresas')
 @UseGuards(JwtAuthGuard)
@@ -190,5 +191,19 @@ export class EmpresasController {
     @Param('precioId') precioId: string,
   ) {
     return this.empresasService.removePrecioEnvio(id, ubicacionId, precioId);
+  }
+
+  @Post(':id/calcular-precio-envio')
+  async calcularPrecioEnvio(
+    @Param('id') id: string,
+    @Body() calcularPrecioEnvioDto: CalcularPrecioEnvioDto,
+  ) {
+    return this.empresasService.calcularPrecioEnvio(id, calcularPrecioEnvioDto);
+  }
+
+  // Endpoint temporal para debug - verificar precios de envío
+  @Get(':id/debug-precios-envio')
+  async debugPreciosEnvio(@Param('id') id: string) {
+    return this.empresasService.debugPreciosEnvio(id);
   }
 }

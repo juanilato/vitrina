@@ -28,6 +28,7 @@
   "author": "VITRINA Team",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.12.2",
     "bcrypt": "^6.0.0"
   }
 }

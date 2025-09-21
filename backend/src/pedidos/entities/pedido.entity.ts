@@ -3,6 +3,9 @@ export class Pedido {
   clienteId: string;
   empresaId: string;
   estado: string;
+  tipoEntrega: string;
+  formaPago: string;
+  motivoRechazo?: string;
   createdAt: Date;
   updatedAt: Date;
 }

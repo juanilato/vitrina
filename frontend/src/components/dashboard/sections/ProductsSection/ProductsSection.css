@@ -3,6 +3,7 @@
   display: flex;
   min-height: calc(100vh - 80px);
   background: var(--vitrina-light);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Loading State */
@@ -77,8 +78,8 @@
   align-items: center;
   margin-bottom: 1.5rem;
   background: var(--vitrina-white);
-  padding: 1.5rem;
-  border-radius: var(--vitrina-border-radius);
+  padding: 1.25rem;
+  border-radius: var(--vitrina-border-radius-lg);
   box-shadow: var(--vitrina-shadow);
   border: 1px solid var(--vitrina-border);
 }
@@ -91,14 +92,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--vitrina-text);
   margin: 0;
 }
 
 .title-icon {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 .section-subtitle {
@@ -112,23 +113,22 @@
   background: var(--vitrina-primary);
   color: var(--vitrina-white);
   border: 1px solid var(--vitrina-primary);
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--vitrina-border-radius);
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
 }
 
 .add-product-btn:hover {
   background: var(--vitrina-secondary);
+  box-shadow: var(--vitrina-shadow-lg);
 }
 
-.btn-icon {
-  font-size: 1.2rem;
-}
 
 /* Products Controls */
 .products-controls {
@@ -330,15 +330,16 @@
 
 .product-card {
   background: var(--vitrina-white);
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-border-radius-lg);
   overflow: hidden;
   box-shadow: var(--vitrina-shadow);
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   border: 1px solid var(--vitrina-border);
 }
 
 .product-card:hover {
-  border-color: var(--vitrina-text-secondary);
+  box-shadow: var(--vitrina-shadow-lg);
+  border-color: var(--vitrina-primary);
 }
 
 .product-image {
@@ -381,36 +382,36 @@
 }
 
 .product-name {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--vitrina-text);
   margin: 0;
   flex: 1;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 
 .status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--vitrina-border-radius);
+  font-size: 0.75rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .status-active {
-  background: rgba(72, 187, 120, 0.1);
-  color: #38a169;
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--vitrina-success);
 }
 
 .status-inactive {
-  background: rgba(160, 174, 192, 0.1);
+  background: var(--vitrina-light);
   color: var(--vitrina-text-secondary);
 }
 
 .status-out-of-stock {
-  background: rgba(245, 101, 101, 0.1);
-  color: #e53e3e;
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--vitrina-error);
 }
 
 .product-description {
@@ -447,10 +448,10 @@
 }
 
 .price-value {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--vitrina-primary);
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 
 .stock-value {
@@ -459,15 +460,15 @@
 }
 
 .stock-good {
-  color: #38a169;
+  color: var(--vitrina-success);
 }
 
 .stock-low {
-  color: #ed8936;
+  color: var(--vitrina-warning);
 }
 
 .stock-empty {
-  color: #e53e3e;
+  color: var(--vitrina-error);
 }
 
 .info-value {
@@ -497,19 +498,21 @@
   background: var(--vitrina-white);
   color: var(--vitrina-text);
   border: 1px solid var(--vitrina-border);
-  padding: 0.5rem 0.8rem;
-  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--vitrina-border-radius);
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
 }
 
 .btn-secondary:hover {
   background: var(--vitrina-light);
+  border-color: var(--vitrina-primary);
 }
 
 .btn-danger {
@@ -517,19 +520,21 @@
   background: var(--vitrina-white);
   color: var(--vitrina-error);
   border: 1px solid rgba(220, 38, 38, 0.3);
-  padding: 0.5rem 0.8rem;
-  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--vitrina-border-radius);
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
 }
 
 .btn-danger:hover {
   background: rgba(220, 38, 38, 0.05);
+  border-color: var(--vitrina-error);
 }
 
 /* Empty State */

@@ -59,14 +59,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit, onDelete }) 
           className="btn-secondary edit-btn"
           onClick={() => onEdit(product)}
         >
-          <span className="btn-icon">✏️</span>
           Editar
         </button>
         <button 
           className="btn-danger delete-btn"
           onClick={() => onDelete(product.id)}
         >
-          <span className="btn-icon">🗑️</span>
           Eliminar
         </button>
       </div>

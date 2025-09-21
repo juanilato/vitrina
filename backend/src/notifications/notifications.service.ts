@@ -115,6 +115,7 @@ export class NotificationsService {
         clienteId,
         clienteName,
         totalAmount,
+        icono: '🛒',
       },
     });
 
@@ -122,14 +123,15 @@ export class NotificationsService {
     const clienteNotification = await this.create({
       userId: clienteId,
       userType: 'cliente',
-      titulo: 'Pedido Confirmado',
-      mensaje: `Tu pedido a ${empresaName} ha sido recibido y está siendo procesado`,
+      titulo: 'Pedido Recibido',
+      mensaje: `Tu pedido a ${empresaName} ha sido recibido y está pendiente de confirmación.`,
       tipo: 'pedido_creado',
       metadata: {
         pedidoId,
         empresaId,
         empresaName,
         totalAmount,
+        icono: '📋',
       },
     });
 
@@ -151,22 +153,76 @@ export class NotificationsService {
     totalAmount: number
   ) {
     const statusMessages = {
-      'pendiente': 'Pendiente',
-      'confirmado': 'Confirmado',
-      'preparando': 'En Preparación',
-      'listo': 'Listo para Retirar',
-      'entregado': 'Entregado',
-      'cancelado': 'Cancelado',
+      'pendiente_confirmacion': {
+        titulo: 'Pedido Recibido',
+        mensaje: 'Tu pedido ha sido recibido y está pendiente de confirmación.',
+        icono: '📋'
+      },
+      'confirmado': {
+        titulo: 'Pedido Confirmado',
+        mensaje: 'Tu pedido ha sido confirmado y será procesado pronto.',
+        icono: '✅'
+      },
+      'en_proceso': {
+        titulo: 'Pedido en Proceso',
+        mensaje: 'Tu pedido está siendo preparado.',
+        icono: '⚙️'
+      },
+      'esperando_delivery': {
+        titulo: 'Esperando Delivery',
+        mensaje: 'Tu pedido está listo, esperando delivery',
+        icono: '🏍️'
+      },
+      'en_camino': {
+        titulo: 'En Camino',
+        mensaje: 'Tu pedido está en camino',
+        icono: '📍'
+      },
+      'entregado': {
+        titulo: 'Pedido Entregado',
+        mensaje: '¡Tu pedido ha sido entregado exitosamente!',
+        icono: '🎉'
+      },
+      'esperando_retiro': {
+        titulo: 'Esperando Retiro',
+        mensaje: 'Tu pedido está listo para ser retirado en el local.',
+        icono: '🏪'
+      },
+      'no_confirmado': {
+        titulo: 'Pedido No Confirmado',
+        mensaje: 'Tu pedido no pudo ser confirmado.',
+        icono: '❌'
+      }
     };
 
-    const statusMessage = statusMessages[newStatus] || newStatus;
+    const message = statusMessages[newStatus as keyof typeof statusMessages];
+    if (!message) {
+      // Fallback para estados no reconocidos
+      const clienteNotification = await this.create({
+        userId: clienteId,
+        userType: 'cliente',
+        titulo: 'Estado de Pedido Actualizado',
+        mensaje: `Tu pedido a ${empresaName} cambió de estado a: ${newStatus}`,
+        tipo: 'pedido_actualizado',
+        metadata: {
+          pedidoId,
+          empresaId,
+          empresaName,
+          oldStatus,
+          newStatus,
+          totalAmount,
+          icono: '📢',
+        },
+      });
+      return clienteNotification;
+    }
 
-    // Notificación para el cliente
+    // Notificación para el cliente con mensaje personalizado
     const clienteNotification = await this.create({
       userId: clienteId,
       userType: 'cliente',
-      titulo: 'Estado de Pedido Actualizado',
-      mensaje: `Tu pedido a ${empresaName} cambió de estado a: ${statusMessage}`,
+      titulo: message.titulo,
+      mensaje: message.mensaje,
       tipo: 'pedido_actualizado',
       metadata: {
         pedidoId,
@@ -175,6 +231,7 @@ export class NotificationsService {
         oldStatus,
         newStatus,
         totalAmount,
+        icono: message.icono,
       },
     });
 

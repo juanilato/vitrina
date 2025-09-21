@@ -54,7 +54,6 @@ const CompanyExplorer: React.FC<CompanyExplorerProps> = ({
                   onUpdateCategoryFilter('all');
                 }}
               >
-                <span className="btn-icon">🔄</span>
                 Limpiar filtros
               </button>
             )}

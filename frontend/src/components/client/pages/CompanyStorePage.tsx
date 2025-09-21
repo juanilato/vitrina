@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthOptimized } from '../../../hooks/useAuthOptimized';
-import NavigationHeader from '../../layout/NavigationHeader';
 import CompanyStoreProductCard from './CompanyStoreProductCard';
 import CartSummary from '../components/CartSummary';
 import { Company, Product, Cart, CartItem } from '../types';
@@ -57,7 +56,7 @@ const CompanyStorePage: React.FC = () => {
 
         // Now get company details and products using the ID
         const [companyResponse, productsResponse] = await Promise.all([
-          axiosInstance.get(`/auth/companies/${targetCompany.id}`),
+          axiosInstance.get(`/auth/companies/${targetCompany.id}/locations`),
           axiosInstance.get(`/productos/empresa/${targetCompany.id}`)
         ]);
 
@@ -160,7 +159,7 @@ const CompanyStorePage: React.FC = () => {
     });
   };
 
-  const createOrder = async (): Promise<boolean> => {
+  const createOrder = async (formData: { tipoEntrega: string; formaPago: string; transferenciaFoto?: string }): Promise<boolean> => {
     if (!user || cart.items.length === 0) return false;
 
     try {
@@ -173,8 +172,12 @@ const CompanyStorePage: React.FC = () => {
           productoId: item.product.id,
           cantidad: item.quantity,
           precio: Number(item.product.precio)
-        }))
+        })),
+        tipoEntrega: formData.tipoEntrega,
+        formaPago: formData.formaPago,
+        transferenciaFoto: formData.transferenciaFoto
       };
+
 
       await axiosInstance.post('/pedidos', orderRequest);
 
@@ -196,8 +199,8 @@ const CompanyStorePage: React.FC = () => {
     }
   };
 
-  const handleCheckout = async (): Promise<void> => {
-    const success = await createOrder();
+  const handleCheckout = async (companyId: string, formData: { tipoEntrega: string; formaPago: string; transferenciaFoto?: string }): Promise<void> => {
+    const success = await createOrder(formData);
     if (success) {
       alert('¡Pedido creado exitosamente! La empresa será notificada.');
       setView('products'); // Return to products view
@@ -297,17 +300,6 @@ const CompanyStorePage: React.FC = () => {
             <p>{company.description || ''}</p>
           </div>
 
-          {/* Delivery Options */}
-          <div className="delivery-options-clean">
-            <button className="delivery-btn-clean active">
-              <span className="delivery-icon">🚚</span>
-              Delivery
-            </button>
-            <button className="delivery-btn-clean">
-              <span className="delivery-icon">🏪</span>
-              Retirar
-            </button>
-          </div>
         </div>
       </div>
 
@@ -364,15 +356,6 @@ const CompanyStorePage: React.FC = () => {
               </button>
             </div>
             
-            {/* Delivery Options */}
-            <div className="cart-delivery-options">
-              <button className="cart-delivery-btn active">
-                Delivery
-              </button>
-              <button className="cart-delivery-btn">
-                Retirar
-              </button>
-            </div>
 
             {/* Cart Content */}
             <div className="cart-modal-content-fullscreen">
@@ -381,6 +364,11 @@ const CompanyStorePage: React.FC = () => {
                 onUpdateQuantity={updateCartQuantity}
                 onRemoveItem={removeFromCart}
                 onCheckout={handleCheckout}
+                companyData={company ? {
+                  id: company.id,
+                  name: company.name,
+                  ubicaciones: company.ubicaciones || []
+                } : undefined}
               />
             </div>
           </div>

@@ -118,7 +118,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
                 >
                   <div className="notification-content">
                     <div className="notification-icon">
-                      {getNotificationIcon(notification.tipo)}
+                      {getNotificationIcon(notification.tipo, notification.metadata)}
                     </div>
                     <div className="notification-text">
                       <h4 className="notification-title">{notification.titulo}</h4>

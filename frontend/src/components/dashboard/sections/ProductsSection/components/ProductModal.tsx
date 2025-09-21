@@ -203,10 +203,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
               </button>
               <button type="submit" className="btn-empty-state" disabled={guardando}>
                 {guardando ? (
-                  <>
-                    <span className="btn-icon">⏳</span>
-                    {file ? 'Guardando con imagen...' : 'Guardando producto...'}
-                  </>
+                  file ? 'Guardando con imagen...' : 'Guardando producto...'
                 ) : (
                   <>
                     {product ? 'Actualizar' : 'Agregar'} Producto

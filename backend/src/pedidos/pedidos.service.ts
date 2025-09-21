@@ -4,6 +4,7 @@ import { CreatePedidoDto, UpdatePedidoDto } from './dto';
 import { PedidoWithItems } from './entities/pedido.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
+import { TempPhotoService } from './services/temp-photo.service';
 
 @Injectable()
 export class PedidosService {
@@ -11,6 +12,7 @@ export class PedidosService {
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
     private webSocketGateway: NotificationsWebSocketGateway,
+    private tempPhotoService: TempPhotoService,
   ) {}
 
   // crea pedido
@@ -46,6 +48,16 @@ export class PedidosService {
         throw new BadRequestException('Algunos productos no existen o no están activos');
       }
 
+      // Manejar foto de transferencia si existe
+      let transferenciaFotoFileName: string | null = null;
+      
+      if (createPedidoDto.transferenciaFoto && createPedidoDto.formaPago === 'transferencia') {
+        transferenciaFotoFileName = await this.tempPhotoService.saveTempPhoto(
+          'temp_' + Date.now(), // ID temporal, se actualizará después
+          createPedidoDto.transferenciaFoto
+        );
+      }
+
       // Crear el pedido con sus items en una transacción
       const pedido = await this.prisma.$transaction(async (prisma) => {
         // Crear el pedido
@@ -54,8 +66,24 @@ export class PedidosService {
             clienteId: createPedidoDto.clienteId,
             empresaId: createPedidoDto.empresaId,
             estado: 'pendiente_confirmacion',
+            tipoEntrega: createPedidoDto.tipoEntrega,
+            formaPago: createPedidoDto.formaPago,
           }
         });
+
+        // Renombrar la foto con el ID real del pedido si existe
+        if (transferenciaFotoFileName) {
+          const fs = require('fs');
+          const newFileName = transferenciaFotoFileName.replace('temp_', `transferencia_${newPedido.id}_`);
+          const oldPath = this.tempPhotoService.getTempPhotoPath(transferenciaFotoFileName);
+          const newPath = this.tempPhotoService.getTempPhotoPath(newFileName);
+          
+          // Renombrar archivo
+          if (fs.existsSync(oldPath)) {
+            fs.renameSync(oldPath, newPath);
+            transferenciaFotoFileName = newFileName;
+          }
+        }
 
         // Crear los items del pedido
         const itemsData = createPedidoDto.items.map(item => ({
@@ -170,7 +198,10 @@ export class PedidosService {
         clienteNombre: cliente.name,
         clienteEmail: cliente.email,
         empresaId: pedido.empresaId,
-        estado: pedido.estado as 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo' | 'cancelado',
+        estado: pedido.estado as 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'esperando_delivery' | 'en_camino' | 'entregado' | 'esperando_retiro' | 'no_confirmado' | 'cancelado',
+        tipoEntrega: pedido.tipoEntrega,
+        formaPago: pedido.formaPago,
+        motivoRechazo: pedido.motivoRechazo,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         empresa: pedido.empresa,
@@ -228,6 +259,9 @@ export class PedidosService {
         clienteId: pedido.clienteId,
         empresaId: pedido.empresaId,
         estado: pedido.estado,
+        tipoEntrega: pedido.tipoEntrega,
+        formaPago: pedido.formaPago,
+        motivoRechazo: pedido.motivoRechazo,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -289,6 +323,9 @@ export class PedidosService {
         clienteId: pedido.clienteId,
         empresaId: pedido.empresaId,
         estado: pedido.estado,
+        tipoEntrega: pedido.tipoEntrega,
+        formaPago: pedido.formaPago,
+        motivoRechazo: pedido.motivoRechazo,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -377,6 +414,17 @@ export class PedidosService {
         }
       }
 
+      // Si el pedido se confirma, eliminar la foto de transferencia
+      if (newStatus === 'confirmado' && existingPedido.formaPago === 'transferencia') {
+        try {
+          await this.deleteTransferenciaFoto(id);
+          console.log(`Foto de transferencia eliminada para pedido ${id}`);
+        } catch (photoError) {
+          console.error('Error eliminando foto de transferencia:', photoError);
+          // No lanzar error para no interrumpir la actualización del pedido
+        }
+      }
+
       return pedidoActualizado;
     } catch (error) {
       console.error('Error actualizando pedido:', error);
@@ -387,20 +435,38 @@ export class PedidosService {
   // obtiene las estadisticas de la empresa
   async getStats(empresaId: string) {
     try {
-      const [total, pendientesConfirmacion, confirmados, enProceso, listos] = await Promise.all([
+      const [
+        total, 
+        pendientesConfirmacion, 
+        confirmados, 
+        noConfirmados,
+        enProceso, 
+        esperandoDelivery,
+        enCamino,
+        entregados,
+        esperandoRetiro
+      ] = await Promise.all([
         this.prisma.pedido.count({ where: { empresaId } }),
         this.prisma.pedido.count({ where: { empresaId, estado: 'pendiente_confirmacion' } }),
         this.prisma.pedido.count({ where: { empresaId, estado: 'confirmado' } }),
+        this.prisma.pedido.count({ where: { empresaId, estado: 'no_confirmado' } }),
         this.prisma.pedido.count({ where: { empresaId, estado: 'en_proceso' } }),
-        this.prisma.pedido.count({ where: { empresaId, estado: 'listo' } })
+        this.prisma.pedido.count({ where: { empresaId, estado: 'esperando_delivery' } }),
+        this.prisma.pedido.count({ where: { empresaId, estado: 'en_camino' } }),
+        this.prisma.pedido.count({ where: { empresaId, estado: 'entregado' } }),
+        this.prisma.pedido.count({ where: { empresaId, estado: 'esperando_retiro' } })
       ]);
 
       return {
         total,
         pendientesConfirmacion,
         confirmados,
+        noConfirmados,
         enProceso,
-        listos
+        esperandoDelivery,
+        enCamino,
+        entregados,
+        esperandoRetiro
       };
     } catch (error) {
       console.error('Error obteniendo estadísticas de pedidos:', error);
@@ -408,7 +474,81 @@ export class PedidosService {
     }
   }
 
-  // elimina un pedido de la empresa
+  // rechaza un pedido (cambia estado a no_confirmado)
+  async rejectPedido(id: string, motivo?: string): Promise<PedidoWithItems> {
+    try {
+      const pedido = await this.prisma.pedido.findUnique({
+        where: { id },
+        include: {
+          cliente: { select: { id: true, name: true } },
+          empresa: { select: { id: true, name: true } }
+        }
+      });
+
+      if (!pedido) {
+        throw new NotFoundException('Pedido no encontrado');
+      }
+
+      // Actualizar el pedido a estado no_confirmado
+      const pedidoActualizado = await this.prisma.pedido.update({
+        where: { id },
+        data: { 
+          estado: 'no_confirmado',
+          motivoRechazo: motivo || null
+        }
+      });
+
+      // Obtener el pedido completo actualizado
+      const pedidoCompleto = await this.findOne(id);
+
+      // Enviar notificación al cliente
+      if (motivo && motivo.trim()) {
+        try {
+          const notification = await this.notificationsService.create({
+            userId: pedido.clienteId,
+            userType: 'cliente',
+            titulo: 'Pedido No Confirmado',
+            mensaje: `${pedido.empresa.name} no confirmó tu pedido. Motivos: ${motivo}`,
+            tipo: 'pedido_rechazado',
+            metadata: {
+              pedidoId: id,
+              empresaId: pedido.empresaId,
+              empresaName: pedido.empresa.name,
+              motivo: motivo,
+              icono: '❌'
+            },
+          });
+
+          // Enviar notificación por WebSocket
+          await this.webSocketGateway.sendNotificationToUser(
+            pedido.clienteId,
+            notification
+          );
+
+          // Actualizar contador de notificaciones del cliente
+          const clienteUnreadCount = await this.notificationsService.countUnreadByUser(
+            pedido.clienteId,
+            'cliente'
+          );
+
+          await this.webSocketGateway.sendNotificationCountUpdate(
+            pedido.clienteId,
+            clienteUnreadCount
+          );
+        } catch (notificationError) {
+          console.error('Error enviando notificación de rechazo:', notificationError);
+          // No lanzar error para no interrumpir la actualización del pedido
+        }
+      }
+
+      return pedidoCompleto;
+    } catch (error) {
+      console.error('Error rechazando pedido:', error);
+      throw error;
+    }
+  }
+
+  // elimina un pedido de la empresa (mantener para compatibilidad)
   async remove(id: string): Promise<void> {
     try {
       const pedido = await this.prisma.pedido.findUnique({
@@ -426,6 +566,69 @@ export class PedidosService {
     } catch (error) {
       console.error('Error eliminando pedido:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Obtiene la foto de transferencia de un pedido
+   */
+  async getTransferenciaFoto(pedidoId: string): Promise<{ base64: string; mimeType: string } | null> {
+    try {
+      // Buscar archivos de foto que coincidan con el patrón del pedido
+      const fs = require('fs');
+      const path = require('path');
+      const tempDir = this.tempPhotoService['tempDir'];
+      
+      if (!fs.existsSync(tempDir)) {
+        return null;
+      }
+
+      const files = fs.readdirSync(tempDir);
+      const fotoFile = files.find(file => file.includes(`_${pedidoId}_`));
+      
+      if (!fotoFile) {
+        return null;
+      }
+
+      const base64 = this.tempPhotoService.getTempPhotoAsBase64(fotoFile);
+      if (!base64) {
+        return null;
+      }
+
+      // Extraer tipo MIME del Base64
+      const mimeType = base64.split(';')[0].split(':')[1];
+      
+      return { base64, mimeType };
+    } catch (error) {
+      console.error('Error obteniendo foto de transferencia:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Elimina la foto de transferencia de un pedido (se llama al confirmar)
+   */
+  async deleteTransferenciaFoto(pedidoId: string): Promise<boolean> {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const tempDir = this.tempPhotoService['tempDir'];
+      
+      if (!fs.existsSync(tempDir)) {
+        return false;
+      }
+
+      const files = fs.readdirSync(tempDir);
+      const fotoFile = files.find(file => file.startsWith(`transferencia_${pedidoId}_`));
+      
+      if (!fotoFile) {
+        return false;
+      }
+
+      return this.tempPhotoService.deleteTempPhoto(fotoFile);
+    } catch (error) {
+      console.error('Error eliminando foto de transferencia:', error);
+      return false;
     }
   }
 }

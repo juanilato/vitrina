@@ -120,10 +120,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   Agregando...
                 </>
               ) : (
-                <>
-                  <span className="btn-icon">🛒</span>
-                  {isInCart ? 'Agregar más' : 'Agregar al carrito'}
-                </>
+                isInCart ? 'Agregar más' : 'Agregar al carrito'
               )}
             </button>
           </>

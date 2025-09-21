@@ -75,4 +75,11 @@ export class AuthController {
   async getCompany(@Param('id') id: string) {
     return this.authService.getCompany(id);
   }
+
+  // obtener empresa específica con ubicaciones (para clientes)
+  @UseGuards(JwtAuthGuard)
+  @Get('companies/:id/locations')
+  async getCompanyWithLocations(@Param('id') id: string) {
+    return this.authService.getCompanyWithLocations(id);
+  }
 }

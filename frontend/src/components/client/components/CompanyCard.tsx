@@ -27,7 +27,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
           </div>
         )}
       </div>
-      
+  
       {/* Company Info */}
       <div className="company-info-elegant">
         <h3 className="company-name-elegant">{company.name}</h3>

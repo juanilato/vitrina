@@ -2,6 +2,7 @@
 .company-main-dashboard {
   min-height: 100vh;
   background: var(--vitrina-light);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Section Placeholder */
@@ -10,24 +11,24 @@
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 80px);
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: var(--vitrina-text-secondary);
   background: var(--vitrina-white);
-  margin: 2rem;
+  margin: 1rem;
   border-radius: var(--vitrina-border-radius-lg);
-  box-shadow: var(--vitrina-shadow-xl);
+  box-shadow: var(--vitrina-shadow);
   border: 1px solid var(--vitrina-border);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .dashboard-main {
-  padding: 2rem 0;
+  padding: 1.5rem 0;
 }
 
 .dashboard-container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
 }
 
 .metrics-section {
@@ -52,16 +53,15 @@
 
 .content-card {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--vitrina-border-radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  box-shadow: var(--vitrina-shadow);
+  border: 1px solid var(--vitrina-border);
+  transition: all 0.15s ease;
 }
 
 .content-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--vitrina-shadow-lg);
 }
 
 .card-header {
@@ -74,39 +74,39 @@
 }
 
 .card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2d3748;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--vitrina-text);
   margin: 0;
 }
 
 .card-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--vitrina-primary);
   color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--vitrina-border-radius);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .edit-btn {
-  background: rgba(102, 126, 234, 0.1);
-  border: none;
-  color: #667eea;
+  background: var(--vitrina-light);
+  border: 1px solid var(--vitrina-border);
+  color: var(--vitrina-primary);
   padding: 0.5rem;
-  border-radius: 8px;
+  border-radius: var(--vitrina-border-radius);
   cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
 }
 
 .edit-btn:hover {
-  background: rgba(102, 126, 234, 0.2);
-  transform: scale(1.05);
+  background: var(--vitrina-primary);
+  color: white;
 }
 
 .card-content {
-  color: #4a5568;
+  color: var(--vitrina-text-secondary);
 }
 
 .info-grid {
@@ -134,7 +134,7 @@
 
 .info-value {
   font-weight: 500;
-  color: #2d3748;
+  color: var(--vitrina-text);
 }
 
 .logo-item {
@@ -187,46 +187,43 @@
 .btn {
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.95rem;
+  border-radius: var(--vitrina-border-radius);
+  font-weight: 500;
+  font-size: 0.875rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   text-decoration: none;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--vitrina-primary);
   color: white;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  background: var(--vitrina-secondary);
+  box-shadow: var(--vitrina-shadow-lg);
 }
 
 .btn-secondary {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  border: 2px solid rgba(102, 126, 234, 0.2);
+  background: var(--vitrina-white);
+  color: var(--vitrina-primary);
+  border: 1px solid var(--vitrina-border);
 }
 
 .btn-secondary:hover {
-  background: rgba(102, 126, 234, 0.2);
-  transform: translateY(-2px);
+  background: var(--vitrina-light);
+  border-color: var(--vitrina-primary);
 }
 
 .full-width {
   width: 100%;
 }
 
-.btn-icon {
-  font-size: 1.1rem;
-}
 
 .activity-list {
   display: flex;

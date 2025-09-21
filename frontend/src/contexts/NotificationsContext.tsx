@@ -67,7 +67,15 @@ export const NotificationsProvider: React.FC<NotificationsProviderProps> = ({ ch
 
       newSocket.on('new-notification', (notification: Notification) => {
         console.log('Nueva notificación recibida:', notification);
-        setNotifications(prev => [notification, ...prev]);
+        setNotifications(prev => {
+          // Verificar si la notificación ya existe para evitar duplicados
+          const exists = prev.some(notif => notif.id === notification.id);
+          if (exists) {
+            console.log('Notificación duplicada detectada, ignorando:', notification.id);
+            return prev;
+          }
+          return [notification, ...prev];
+        });
         setUnreadCount(prev => prev + 1);
       });
 

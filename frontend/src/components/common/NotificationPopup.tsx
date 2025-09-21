@@ -43,7 +43,7 @@ const NotificationPopup: React.FC = () => {
       <div className="notification-popup">
         <div className="popup-header">
           <div className="popup-icon">
-            {getNotificationIcon(currentNotification.tipo)}
+            {getNotificationIcon(currentNotification.tipo, currentNotification.metadata)}
           </div>
           <div className="popup-title">
             {currentNotification.titulo}

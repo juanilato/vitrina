@@ -7,6 +7,7 @@ import { UpdateUbicacionDto } from './dto/update-ubicacion.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreatePrecioEnvioDto } from './dto/create-precio-envio.dto';
 import { UpdatePrecioEnvioDto } from './dto/update-precio-envio.dto';
+import { CalcularPrecioEnvioDto } from './dto/calcular-precio-envio.dto';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import * as fs from 'fs';
@@ -452,5 +453,171 @@ export class EmpresasService {
 
     console.log('🚚 [REMOVE PRECIO ENVIO] Precio eliminado exitosamente');
     return { message: 'Precio de envío eliminado exitosamente' };
+  }
+
+  // Método para calcular precio de envío basado en distancia
+  async calcularPrecioEnvio(empresaId: string, calcularPrecioEnvioDto: CalcularPrecioEnvioDto) {
+    console.log('🚚 [CALCULAR PRECIO ENVIO] Calculando precio:', { empresaId, calcularPrecioEnvioDto });
+    
+    const { clienteLat, clienteLng, ubicacionId } = calcularPrecioEnvioDto;
+
+    // Verificar que la ubicación pertenece a la empresa
+    const ubicacion = await this.prisma.ubicacion.findFirst({
+      where: {
+        id: ubicacionId,
+        empresaId: empresaId,
+      },
+    });
+
+    if (!ubicacion) {
+      throw new NotFoundException('Ubicación no encontrada');
+    }
+
+    // Obtener precios de envío para esta ubicación ordenados por distancia
+    const preciosEnvio = await this.prisma.preciosEnvio.findMany({
+      where: {
+        ubicacionId: ubicacionId,
+      },
+      orderBy: {
+        distancia: 'asc',
+      },
+    });
+
+    if (preciosEnvio.length === 0) {
+      // No hay precios configurados
+      const empresa = await this.prisma.empresa.findUnique({
+        where: { id: empresaId },
+        select: { name: true }
+      });
+      
+      return {
+        price: null,
+        isEstimated: false,
+        message: `Estimado no disponible. ${empresa?.name || 'La empresa'} confirmará precio de envío.`
+      };
+    }
+
+    // Calcular distancia entre cliente y ubicación de la empresa
+    const distancia = this.calcularDistancia(
+      clienteLat, clienteLng,
+      ubicacion.lat!, ubicacion.lng!
+    );
+
+    console.log('🚚 [CALCULAR PRECIO ENVIO] Distancia calculada:', distancia, 'km');
+
+    // Buscar el rango de precio apropiado
+    let precioEnvio = null;
+    let isEstimated = false;
+    let message = '';
+
+    console.log('🚚 [CALCULAR PRECIO ENVIO] Buscando rango para distancia:', distancia, 'km');
+    console.log('🚚 [CALCULAR PRECIO ENVIO] Rangos disponibles:', preciosEnvio.map(p => ({ distancia: p.distancia, precio: p.precio })));
+
+    // Ordenar precios por distancia (ascendente)
+    const preciosOrdenados = preciosEnvio.sort((a, b) => a.distancia - b.distancia);
+    const distanciaMaxima = preciosOrdenados[preciosOrdenados.length - 1].distancia;
+
+    // 1. Si la distancia es menor o igual al primer rango
+    if (distancia <= preciosOrdenados[0].distancia) {
+      precioEnvio = Number(preciosOrdenados[0].precio);
+      isEstimated = false;
+      message = `Precio de envío disponible`;
+      console.log('🚚 [CALCULAR PRECIO ENVIO] Caso 1: Dentro del primer rango');
+    }
+    // 2. Si la distancia está entre rangos
+    else if (distancia <= distanciaMaxima) {
+      // Buscar el rango apropiado
+      for (let i = 0; i < preciosOrdenados.length - 1; i++) {
+        if (distancia > preciosOrdenados[i].distancia && distancia <= preciosOrdenados[i + 1].distancia) {
+          precioEnvio = Number(preciosOrdenados[i + 1].precio);
+          isEstimated = false;
+          message = `Precio de envío disponible`;
+          console.log('🚚 [CALCULAR PRECIO ENVIO] Caso 2: Entre rangos, usando siguiente rango');
+          break;
+        }
+      }
+    }
+    // 3. Si excede el rango máximo
+    else {
+      const empresa = await this.prisma.empresa.findUnique({
+        where: { id: empresaId },
+        select: { name: true }
+      });
+      
+      console.log('🚚 [CALCULAR PRECIO ENVIO] Caso 3: Excede rango máximo');
+      return {
+        price: null,
+        isEstimated: false,
+        message: `Precio de envío a confirmar. ${empresa?.name || 'La empresa'} te contactará para confirmar el precio de envío.`
+      };
+    }
+
+    // 4. Si no se encontró precio apropiado (caso de error)
+    if (precioEnvio === null) {
+      const empresa = await this.prisma.empresa.findUnique({
+        where: { id: empresaId },
+        select: { name: true }
+      });
+      
+      console.log('🚚 [CALCULAR PRECIO ENVIO] Caso 4: No se encontró precio apropiado');
+      return {
+        price: null,
+        isEstimated: false,
+        message: `Estimado no disponible. ${empresa?.name || 'La empresa'} confirmará precio de envío.`
+      };
+    }
+
+    console.log('🚚 [CALCULAR PRECIO ENVIO] Precio calculado:', { precioEnvio, isEstimated, message });
+
+    return {
+      price: precioEnvio,
+      isEstimated,
+      message
+    };
+  }
+
+  // Método auxiliar para calcular distancia usando fórmula de Haversine
+  private calcularDistancia(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  // Método temporal para debug - verificar precios de envío
+  async debugPreciosEnvio(empresaId: string) {
+    console.log('🔍 [DEBUG] Verificando precios de envío para empresa:', empresaId);
+    
+    // Obtener todas las ubicaciones de la empresa
+    const ubicaciones = await this.prisma.ubicacion.findMany({
+      where: { empresaId },
+      include: {
+        preciosEnvio: true
+      }
+    });
+
+    console.log('🔍 [DEBUG] Ubicaciones encontradas:', ubicaciones.length);
+    
+    const result = ubicaciones.map(ubicacion => ({
+      ubicacionId: ubicacion.id,
+      direccion: ubicacion.direccion,
+      lat: ubicacion.lat,
+      lng: ubicacion.lng,
+      preciosEnvio: ubicacion.preciosEnvio.map(precio => ({
+        id: precio.id,
+        precio: Number(precio.precio),
+        distancia: precio.distancia
+      }))
+    }));
+
+    return {
+      empresaId,
+      totalUbicaciones: ubicaciones.length,
+      ubicaciones: result
+    };
   }
 }

@@ -12,6 +12,7 @@ const OrdersSection: React.FC = () => {
     stats,
     loadOrders,
     handleUpdateOrderStatus,
+    handleRejectOrder,
     handleDeleteOrder,
     getFilteredOrders
   } = useOrders();
@@ -26,7 +27,7 @@ const OrdersSection: React.FC = () => {
     setSelectedOrder(pedido);
   };
 
-  const handleStatusUpdate = async (pedidoId: string, newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'listo') => {
+  const handleStatusUpdate = async (pedidoId: string, newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' |  'esperando_delivery' | 'en_camino' | 'entregado' | 'esperando_retiro') => {
     try {
       await handleUpdateOrderStatus(pedidoId, newStatus);
     } catch (err: any) {
@@ -108,18 +109,47 @@ const OrdersSection: React.FC = () => {
                 Confirmados ({stats.confirmados})
               </button>
               <button
+                className={`sidebar-filter-btn ${statusFilter === 'no_confirmado' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('no_confirmado')}
+              >
+                <span className="filter-icon" style={{ color: '#ef4444' }}>❌</span>
+                No Confirmados ({stats.noConfirmados})
+              </button>
+              <button
                 className={`sidebar-filter-btn ${statusFilter === 'en_proceso' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('en_proceso')}
               >
                 <span className="filter-icon" style={{ color: '#3b82f6' }}>⚙️</span>
                 En Proceso ({stats.enProceso})
               </button>
+
               <button
-                className={`sidebar-filter-btn ${statusFilter === 'listo' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('listo')}
+                className={`sidebar-filter-btn ${statusFilter === 'esperando_delivery' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('esperando_delivery')}
               >
-                <span className="filter-icon" style={{ color: '#10b981' }}>🎉</span>
-                Listos ({stats.listos})
+                <span className="filter-icon" style={{ color: '#f97316' }}>🏍️</span>
+                Esperando Delivery ({stats.esperandoDelivery})
+              </button>
+              <button
+                className={`sidebar-filter-btn ${statusFilter === 'en_camino' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('en_camino')}
+              >
+                <span className="filter-icon" style={{ color: '#06b6d4' }}>📍</span>
+                En Camino ({stats.enCamino})
+              </button>
+              <button
+                className={`sidebar-filter-btn ${statusFilter === 'esperando_retiro' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('esperando_retiro')}
+              >
+                <span className="filter-icon" style={{ color: '#84cc16' }}>🏪</span>
+                Esperando Retiro ({stats.esperandoRetiro})
+              </button>
+              <button
+                className={`sidebar-filter-btn ${statusFilter === 'entregado' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('entregado')}
+              >
+                <span className="filter-icon" style={{ color: '#059669' }}>✅</span>
+                Entregados ({stats.entregados})
               </button>
             </div>
           </div>
@@ -159,6 +189,7 @@ const OrdersSection: React.FC = () => {
             pedido={order}
             onUpdateStatus={handleStatusUpdate}
             onViewDetails={handleViewDetails}
+            onReject={handleRejectOrder}
             onDelete={handleDeleteOrder}
           />
         ))}

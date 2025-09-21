@@ -423,4 +423,35 @@ export class AuthService {
       throw new BadRequestException('Error al obtener empresa');
     }
   }
+
+  // obtener empresa específica con ubicaciones (para clientes)
+  async getCompanyWithLocations(id: string) {
+    try {
+      const company = await this.prisma.empresa.findUnique({
+        where: {
+          id,
+          isVerified: true // Solo empresas verificadas
+        },
+        include: {
+          ubicacion: true
+        }
+      });
+
+      if (!company) {
+        throw new NotFoundException('Empresa no encontrada');
+      }
+
+      // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
+      const { password, ubicacion, ...empresaSinPassword } = company;
+      return {
+        ...empresaSinPassword,
+        ubicaciones: ubicacion || []
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener empresa');
+    }
+  }
 }

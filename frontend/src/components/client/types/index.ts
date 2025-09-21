@@ -10,6 +10,12 @@ export interface Company {
   rating?: number;
   reviewCount?: number;
   isVerified?: boolean;
+  ubicaciones?: Array<{
+    id: number;
+    direccion: string;
+    lat: number;
+    lng: number;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -55,12 +61,14 @@ export interface OrderRequest {
     cantidad: number;
     precio: number;
   }[];
+  tipoEntrega: 'delivery' | 'retiro';
+  formaPago: 'transferencia' | 'efectivo';
+  transferenciaFoto?: string; // Base64 temporal
 }
 
 // UI State types
 export interface ClientDashboardState {
-  view: 'companies' | 'company-profile' | 'cart' | 'my-orders';
-  selectedCompanyId?: string;
+  view: 'companies' | 'cart' | 'my-orders';
   searchTerm: string;
   categoryFilter: string;
   sortBy: 'name' | 'rating' | 'newest' | 'popular';
@@ -79,9 +87,48 @@ export interface ProductCardProps {
   cartQuantity?: number;
 }
 
+export interface CheckoutFormData {
+  tipoEntrega: 'delivery' | 'retiro';
+  formaPago: 'transferencia' | 'efectivo';
+  transferenciaFoto?: string; // Base64 temporal
+  deliveryLocation?: {
+    direccion: string;
+    lat: number;
+    lng: number;
+  };
+  shippingPrice?: {
+    price: number | null;
+    isEstimated: boolean;
+    message: string;
+  };
+}
+
+export interface ShippingPriceResponse {
+  price: number | null;
+  isEstimated: boolean;
+  message: string;
+}
+
+export interface DeliveryLocation {
+  direccion: string;
+  lat: number;
+  lng: number;
+}
+
 export interface CartSummaryProps {
   cart: Cart;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   onRemoveItem: (itemId: string) => void;
-  onCheckout: (companyId: string) => void;
+  onCheckout: (companyId: string, formData: CheckoutFormData) => void;
+  companyData?: {
+    id: string;
+    name: string;
+    logo?: string;
+    ubicaciones: Array<{
+      id: number;
+      direccion: string;
+      lat: number;
+      lng: number;
+    }>;
+  };
 }

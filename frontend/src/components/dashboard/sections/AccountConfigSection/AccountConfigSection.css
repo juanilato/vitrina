@@ -1,12 +1,14 @@
 /* ===== ACCOUNT CONFIG SECTION ===== */
 
 .account-config-section {
-  padding: 2rem;
-  max-width: 1200px;
+  padding: 1.5rem;
+  max-width: 1000px;
   margin: 0 auto;
-  background: var(--vitrina-surface);
-  border-radius: 12px;
+  background: var(--vitrina-white);
+  border-radius: var(--vitrina-border-radius-lg);
   box-shadow: var(--vitrina-shadow);
+  border: 1px solid var(--vitrina-border);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Header */
@@ -22,16 +24,16 @@
 }
 
 .header-title h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--vitrina-text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--vitrina-text);
   margin: 0 0 0.5rem 0;
 }
 
 .header-title p {
   color: var(--vitrina-text-secondary);
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 
 .header-actions {
@@ -82,20 +84,21 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
   border: none;
   background: transparent;
   color: var(--vitrina-text-secondary);
   font-weight: 500;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--vitrina-border-radius) var(--vitrina-border-radius) 0 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   position: relative;
+  font-size: 0.875rem;
 }
 
 .tab-button:hover {
   background: var(--vitrina-light);
-  color: var(--vitrina-text-primary);
+  color: var(--vitrina-text);
 }
 
 .tab-button.active {
@@ -127,9 +130,10 @@
 }
 
 .tab-content-container {
-  background: var(--vitrina-surface);
-  border-radius: 8px;
-  padding: 2rem;
+  background: var(--vitrina-white);
+  border-radius: var(--vitrina-border-radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--vitrina-border);
 }
 
 /* ===== PROFILE TAB ===== */
@@ -143,9 +147,9 @@
 }
 
 .profile-header h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--vitrina-text-primary);
+  color: var(--vitrina-text);
   margin: 0 0 0.5rem 0;
 }
 
@@ -168,9 +172,9 @@
 }
 
 .profile-section h3 {
-  font-size: 1.2rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--vitrina-text-primary);
+  color: var(--vitrina-text);
   margin: 0 0 1rem 0;
 }
 
@@ -376,16 +380,16 @@
 .form-input {
   padding: 0.75rem 1rem;
   border: 1px solid var(--vitrina-border);
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  border-radius: var(--vitrina-border-radius);
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
   background: white;
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--vitrina-primary);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
 }
 
 .form-input:disabled {
@@ -457,8 +461,8 @@
 }
 
 .info-value {
-  font-size: 0.95rem;
-  color: var(--vitrina-text-primary);
+  font-size: 0.875rem;
+  color: var(--vitrina-text);
   font-weight: 500;
   word-break: break-all;
 }

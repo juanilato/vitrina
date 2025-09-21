@@ -104,6 +104,9 @@ model Pedido {
   empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   estado     String     @default("pendiente_confirmacion")
+  tipoEntrega String    @default("delivery")
+  formaPago  String     @default("transferencia")
+  motivoRechazo String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 

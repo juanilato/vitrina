@@ -28,9 +28,6 @@ export class PedidosController {
   @Roles('cliente')
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createPedidoDto: CreatePedidoDto, @Request() req) {
-    console.log('🔄 [PEDIDOS CONTROLLER] Creando nuevo pedido para cliente:', createPedidoDto);
-    console.log('🔄 [PEDIDOS CONTROLLER] Usuario autenticado:', req.user);
-    
     // Validar que el usuario esté autenticado
     if (!req.user || !req.user.id) {
       throw new Error('Usuario no autenticado o ID no disponible');
@@ -39,7 +36,6 @@ export class PedidosController {
     // Asegurar que el cliente solo pueda crear pedidos para sí mismo
     createPedidoDto.clienteId = req.user.id;
     
-    console.log('🔄 [PEDIDOS CONTROLLER] DTO después de asignar clienteId:', createPedidoDto);
     return this.pedidosService.create(createPedidoDto);
   }
 
@@ -95,11 +91,30 @@ export class PedidosController {
     return this.pedidosService.update(id, updatePedidoDto);
   }
 
+  // rechaza un pedido (cambia estado a no_confirmado)
+  @Patch(':id/reject')
+  @Roles('empresa')
+  @HttpCode(HttpStatus.OK)
+  rejectPedido(@Param('id') id: string, @Body() body: { motivo?: string }) {
+    return this.pedidosService.rejectPedido(id, body.motivo);
+  }
+
   // elimina un pedido
   @Delete(':id')
   @Roles('empresa')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.pedidosService.remove(id);
+  }
+
+  // obtiene la foto de transferencia de un pedido
+  @Get(':id/transferencia-foto')
+  @Roles('empresa')
+  async getTransferenciaFoto(@Param('id') id: string) {
+    const foto = await this.pedidosService.getTransferenciaFoto(id);
+    if (!foto) {
+      return { error: 'Foto de transferencia no encontrada' };
+    }
+    return foto;
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Company, Product, Cart, CartItem, CompanyWithProducts, ClientDashboardState, OrderRequest } from '../types';
+import { Company, Product, Cart, CartItem, ClientDashboardState, OrderRequest, CheckoutFormData } from '../types';
 import { useAuthOptimized } from '../../../hooks/useAuthOptimized';
 import axiosInstance from '../../../config/axios.config';
 
@@ -15,13 +15,13 @@ export const useClientDashboard = () => {
   });
   
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState<CompanyWithProducts | null>(null);
   const [cart, setCart] = useState<Cart>({
     items: [],
     totalItems: 0,
     totalAmount: 0,
     companiesCount: 0
   });
+  const [companyDetails, setCompanyDetails] = useState<Map<string, Company>>(new Map());
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,40 +43,33 @@ export const useClientDashboard = () => {
     }
   }, []);
 
-  // Load company with products
-  const loadCompanyProfile = useCallback(async (companyId: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Fetch company details
-      const [companyResponse, productsResponse] = await Promise.all([
-        axiosInstance.get(`/auth/companies/${companyId}`),
-        axiosInstance.get(`/productos/empresa/${companyId}`)
-      ]);
-      
-      const company = companyResponse.data;
-      const products = productsResponse.data || [];
-      
-      const companyWithProducts: CompanyWithProducts = {
-        ...company,
-        products,
-        productsCount: products.length,
-        activeProductsCount: products.filter((p: Product) => p.activo).length
-      };
-      
-      setSelectedCompany(companyWithProducts);
-      setState(prev => ({ 
-        ...prev, 
-        view: 'company-profile', 
-        selectedCompanyId: companyId 
-      }));
-    } catch (err: any) {
-      console.error('Error loading company profile:', err);
-      setError(err.response?.data?.message || 'Error al cargar perfil de empresa');
-    } finally {
-      setLoading(false);
+  // Load company details
+  const loadCompanyDetails = useCallback(async (companyId: string) => {
+    if (companyDetails.has(companyId)) {
+      return companyDetails.get(companyId);
     }
+
+    try {
+      const response = await axiosInstance.get(`/auth/companies/${companyId}/locations`);
+      const companyData = response.data;
+      console.log('🏢 [FRONTEND] Company details loaded:', {
+        id: companyData.id,
+        name: companyData.name,
+        ubicacionesCount: companyData.ubicaciones?.length || 0,
+        ubicaciones: companyData.ubicaciones
+      });
+      setCompanyDetails(prev => new Map(prev).set(companyId, companyData));
+      return companyData;
+    } catch (err: any) {
+      console.error('Error loading company details:', err);
+      return null;
+    }
+  }, [companyDetails]);
+
+  // Navigate to company store page
+  const navigateToCompanyStore = useCallback((companyId: string) => {
+    // Navigate to company store page using React Router
+    window.location.href = `/store/${companyId}`;
   }, []);
 
   // Cart management
@@ -121,6 +114,23 @@ export const useClientDashboard = () => {
     });
   }, []);
 
+  const removeFromCart = useCallback((itemId: string) => {
+    setCart(prevCart => {
+      const newItems = prevCart.items.filter(item => item.id !== itemId);
+      
+      const totalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
+      const totalAmount = newItems.reduce((sum, item) => sum + (item.product.precio * item.quantity), 0);
+      const companiesCount = new Set(newItems.map(item => item.companyId)).size;
+      
+      return {
+        items: newItems,
+        totalItems,
+        totalAmount,
+        companiesCount
+      };
+    });
+  }, []);
+
   const updateCartQuantity = useCallback((itemId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(itemId);
@@ -143,24 +153,7 @@ export const useClientDashboard = () => {
         companiesCount
       };
     });
-  }, []);
-
-  const removeFromCart = useCallback((itemId: string) => {
-    setCart(prevCart => {
-      const newItems = prevCart.items.filter(item => item.id !== itemId);
-      
-      const totalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
-      const totalAmount = newItems.reduce((sum, item) => sum + (item.product.precio * item.quantity), 0);
-      const companiesCount = new Set(newItems.map(item => item.companyId)).size;
-      
-      return {
-        items: newItems,
-        totalItems,
-        totalAmount,
-        companiesCount
-      };
-    });
-  }, []);
+  }, [removeFromCart]);
 
   const clearCart = useCallback(() => {
     setCart({
@@ -172,7 +165,8 @@ export const useClientDashboard = () => {
   }, []);
 
   // Create order
-  const createOrder = useCallback(async (companyId: string): Promise<boolean> => {
+  const createOrder = useCallback(async (companyId: string, formData: CheckoutFormData): Promise<boolean> => {
+
     if (!user) {
       setError('Debe estar autenticado para realizar pedidos');
       return false;
@@ -195,8 +189,13 @@ export const useClientDashboard = () => {
           productoId: item.product.id,
           cantidad: item.quantity,
           precio: item.product.precio
-        }))
+        })),
+        tipoEntrega: formData.tipoEntrega,
+        formaPago: formData.formaPago,
+        transferenciaFoto: formData.transferenciaFoto
       };
+      
+      
       
       await axiosInstance.post('/pedidos', orderRequest);
       
@@ -228,8 +227,7 @@ export const useClientDashboard = () => {
 
   // Navigation
   const navigateToCompanies = useCallback(() => {
-    setState(prev => ({ ...prev, view: 'companies', selectedCompanyId: undefined }));
-    setSelectedCompany(null);
+    setState(prev => ({ ...prev, view: 'companies' }));
   }, []);
 
   const navigateToCart = useCallback(() => {
@@ -289,15 +287,16 @@ export const useClientDashboard = () => {
     // State
     state,
     companies: filteredCompanies,
-    selectedCompany,
     cart,
     loading,
     error,
     user,
+    companyDetails,
     
     // Actions
     loadCompanies,
-    loadCompanyProfile,
+    loadCompanyDetails,
+    navigateToCompanyStore,
     addToCart,
     updateCartQuantity,
     removeFromCart,

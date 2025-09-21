@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useClientDashboard } from './hooks/useClientDashboard';
-import { CompanyExplorer, CompanyProfile, CartSummary, MyOrders } from './components';
+import { CompanyExplorer, CartSummary, MyOrders } from './components';
+import { CheckoutFormData, Company } from './types';
 import NotificationsDropdown from '../common/NotificationsDropdown';
+import { ThemeProvider } from '../../colors';
 import './ClientDashboard.css';
 
 const ClientDashboard: React.FC = () => {
   const {
     state,
     companies,
-    selectedCompany,
     cart,
     loading,
     error,
     user,
-    loadCompanyProfile,
-    addToCart,
+    loadCompanyDetails,
+    navigateToCompanyStore,
     updateCartQuantity,
     removeFromCart,
     createOrder,
@@ -24,15 +25,31 @@ const ClientDashboard: React.FC = () => {
     updateSearch,
     updateCategoryFilter,
     updateSortBy,
-    getCartItem
   } = useClientDashboard();
 
-  const handleAddToCart = async (product: any, quantity: number) => {
-    addToCart(product, quantity);
-  };
+  const [cartCompanyData, setCartCompanyData] = useState<Company | null>(null);
 
-  const handleCheckout = async (companyId: string): Promise<void> => {
-    const success = await createOrder(companyId);
+  // Load company details for cart items
+  useEffect(() => {
+    const loadCartCompanyData = async () => {
+      if (cart.items.length > 0) {
+        const companyId = cart.items[0].companyId;
+        const companyData = await loadCompanyDetails(companyId);
+        if (companyData) {
+          setCartCompanyData(companyData);
+        }
+      } else {
+        setCartCompanyData(null);
+      }
+    };
+
+    loadCartCompanyData();
+  }, [cart.items, loadCompanyDetails]);
+
+  const handleCheckout = async (companyId: string, formData: CheckoutFormData): Promise<void> => {
+    
+    
+    const success = await createOrder(companyId, formData);
     if (success) {
       alert('¡Pedido creado exitosamente! La empresa será notificada.');
     }
@@ -51,7 +68,8 @@ const ClientDashboard: React.FC = () => {
   }
 
   return (
-    <div className="client-dashboard">
+    <ThemeProvider companySlug="default">
+      <div className="client-dashboard">
       {/* Header */}
       <header className="client-header">
         <div className="header-container">
@@ -85,7 +103,7 @@ const ClientDashboard: React.FC = () => {
       <nav className="main-navbar">
         <div className="navbar-container">
           <button 
-            className={`navbar-btn ${state.view === 'companies' || state.view === 'company-profile' ? 'active' : ''}`}
+            className={`navbar-btn ${state.view === 'companies' ? 'active' : ''}`}
             onClick={navigateToCompanies}
           >
             <span className="navbar-icon">🔍</span>
@@ -125,22 +143,13 @@ const ClientDashboard: React.FC = () => {
               companies={companies}
               state={state}
               loading={loading}
-              onViewCompany={loadCompanyProfile}
+              onViewCompany={navigateToCompanyStore}
               onUpdateSearch={updateSearch}
               onUpdateCategoryFilter={updateCategoryFilter}
               onUpdateSortBy={updateSortBy}
             />
           )}
 
-          {state.view === 'company-profile' && (
-            <CompanyProfile
-              company={selectedCompany!}
-              loading={loading}
-              onAddToCart={handleAddToCart}
-              onBackToCompanies={navigateToCompanies}
-              getCartItem={getCartItem}
-            />
-          )}
 
           {state.view === 'cart' && (
             <CartSummary
@@ -148,6 +157,11 @@ const ClientDashboard: React.FC = () => {
               onUpdateQuantity={updateCartQuantity}
               onRemoveItem={removeFromCart}
               onCheckout={handleCheckout}
+              companyData={cartCompanyData ? {
+                id: cartCompanyData.id,
+                name: cartCompanyData.name,
+                ubicaciones: cartCompanyData.ubicaciones || []
+              } : undefined}
             />
           )}
 
@@ -174,7 +188,8 @@ const ClientDashboard: React.FC = () => {
           </span>
         </button>
       )}
-    </div>
+      </div>
+    </ThemeProvider>
   );
 };
 

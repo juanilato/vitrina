@@ -934,9 +934,6 @@
   transform: translateY(-1px);
 }
 
-.btn-icon {
-  font-size: 1rem;
-}
 
 .company-stats {
   display: flex;
@@ -3951,9 +3948,6 @@
   transform: translateY(-1px);
 }
 
-.btn-icon {
-  font-size: 20px;
-}
 
 .cart-badge {
   position: absolute;

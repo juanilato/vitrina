@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
-import { GOOGLE_MAPS_CONFIG, isGoogleMapsConfigured } from '../../../../../config/googleMaps.config';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useGoogleMaps } from '../../../../../hooks/useGoogleMaps';
 import './GoogleMapsSelector.css';
 
 interface GoogleMapsSelectorProps {
@@ -33,9 +32,6 @@ const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
   const [map, setMap] = useState<any>(null);
   const [marker, setMarker] = useState<any>(null);
   const [geocoder, setGeocoder] = useState<any>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -44,138 +40,26 @@ const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
     lng: number;
   } | null>(initialLocation || null);
 
-  // Cargar Google Maps API
-  useEffect(() => {
-    if (!isGoogleMapsConfigured()) {
-      console.error('Google Maps API key not configured');
-      return;
-    }
+  // Usar el hook personalizado para Google Maps
+  const { isLoaded, isLoading, loadError, google } = useGoogleMaps({
+    libraries: ['places']
+  });
 
-    const loadGoogleMaps = async () => {
-      try {
-        console.log('🔄 Iniciando carga de Google Maps...');
-        setIsLoading(true);
-        setLoadError(null);
-        
-        const loader = new Loader({
-          apiKey: GOOGLE_MAPS_CONFIG.apiKey,
-          version: 'weekly',
-          libraries: GOOGLE_MAPS_CONFIG.libraries,
-          // Optimizaciones para carga más rápida
-          region: 'AR', // Argentina
-          language: 'es', // Español
-        });
+  const reverseGeocode = useCallback((lat: number, lng: number) => {
+    if (!geocoder) return;
 
-        await loader.load();
-        console.log('✅ Google Maps cargado exitosamente');
-        initializeMap();
-        setIsLoading(false);
-      } catch (error) {
-        console.error('❌ Error loading Google Maps:', error);
-        setIsLoading(false);
-        
-        // Mostrar error más específico
-        let errorMessage = 'Error al cargar Google Maps';
-        if (error instanceof Error) {
-          if (error.message.includes('API key')) {
-            errorMessage = 'Problema con la API key de Google Maps';
-          } else if (error.message.includes('quota')) {
-            errorMessage = 'Límite de cuota excedido';
-          } else if (error.message.includes('network')) {
-            errorMessage = 'Error de conexión a internet';
-          } else {
-            errorMessage = `Error: ${error.message}`;
-          }
-        }
-        setLoadError(errorMessage);
+    geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
+      if (status === 'OK' && results[0]) {
+        const address = results[0].formatted_address;
+        const location = { direccion: address, lat, lng };
+        setSelectedLocation(location);
+        onLocationSelect(location);
       }
-    };
-
-    // Cargar con un pequeño delay para no bloquear la UI
-    const timeoutId = setTimeout(loadGoogleMaps, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  const initializeMap = () => {
-    if (!mapRef.current || !window.google) {
-      console.log('⚠️ No se puede inicializar el mapa: ref o google no disponibles');
-      return;
-    }
-
-    console.log('🗺️ Inicializando mapa...');
-    
-    const defaultCenter = initialLocation 
-      ? { lat: initialLocation.lat, lng: initialLocation.lng }
-      : GOOGLE_MAPS_CONFIG.defaultCenter;
-
-    // Configuración optimizada para carga más rápida
-    const mapInstance = new window.google.maps.Map(mapRef.current, {
-      zoom: GOOGLE_MAPS_CONFIG.defaultZoom,
-      center: defaultCenter,
-      // Configuración optimizada
-      mapTypeId: window.google.maps.MapTypeId.ROADMAP,
-      disableDefaultUI: false,
-      zoomControl: true,
-      mapTypeControl: false, // Deshabilitado para carga más rápida
-      streetViewControl: false, // Deshabilitado para carga más rápida
-      fullscreenControl: false, // Deshabilitado para carga más rápida
-      // Optimizaciones de rendimiento
-      gestureHandling: 'cooperative',
-      clickableIcons: false,
-      styles: [
-        {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }]
-        }
-      ]
     });
-
-    const geocoderInstance = new window.google.maps.Geocoder();
-    setGeocoder(geocoderInstance);
-    setMap(mapInstance);
-
-    // Crear marcador inicial
-    const markerInstance = new window.google.maps.Marker({
-      position: defaultCenter,
-      map: mapInstance,
-      draggable: true,
-      title: 'Arrastra para seleccionar ubicación'
-    });
-
-    setMarker(markerInstance);
-
-    // Evento cuando se arrastra el marcador
-    markerInstance.addListener('dragend', () => {
-      const position = markerInstance.getPosition();
-      reverseGeocode(position.lat(), position.lng());
-    });
-
-    // Evento cuando se hace clic en el mapa
-    mapInstance.addListener('click', (event: any) => {
-      const lat = event.latLng.lat();
-      const lng = event.latLng.lng();
-      markerInstance.setPosition({ lat, lng });
-      reverseGeocode(lat, lng);
-    });
-
-    // Si hay ubicación inicial, centrar el mapa
-    if (initialLocation) {
-      mapInstance.setCenter({ lat: initialLocation.lat, lng: initialLocation.lng });
-      reverseGeocode(initialLocation.lat, initialLocation.lng);
-    }
-
-    setIsLoaded(true);
-    
-    // Obtener ubicación actual si no hay ubicación inicial
-    if (!initialLocation) {
-      getCurrentLocation();
-    }
-  };
+  }, [geocoder, onLocationSelect]);
 
   // Función para obtener la ubicación actual del usuario
-  const getCurrentLocation = () => {
+  const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       console.warn('Geolocalización no soportada por este navegador');
       return;
@@ -232,20 +116,89 @@ const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
         maximumAge: 300000 // 5 minutos
       }
     );
-  };
+  }, [map, marker, reverseGeocode]);
 
-  const reverseGeocode = (lat: number, lng: number) => {
-    if (!geocoder) return;
+  const initializeMap = useCallback(() => {
+    if (!mapRef.current || !google) {
+      console.log('⚠️ No se puede inicializar el mapa: ref o google no disponibles');
+      return;
+    }
 
-    geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
-      if (status === 'OK' && results[0]) {
-        const address = results[0].formatted_address;
-        const location = { direccion: address, lat, lng };
-        setSelectedLocation(location);
-        onLocationSelect(location);
-      }
+    console.log('🗺️ Inicializando mapa...');
+    
+    const defaultCenter = initialLocation 
+      ? { lat: initialLocation.lat, lng: initialLocation.lng }
+      : { lat: -34.6037, lng: -58.3816 }; // Buenos Aires
+
+    // Configuración optimizada para carga más rápida
+    const mapInstance = new google.maps.Map(mapRef.current, {
+      zoom: 15,
+      center: defaultCenter,
+      // Configuración optimizada
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      disableDefaultUI: false,
+      zoomControl: true,
+      mapTypeControl: false, // Deshabilitado para carga más rápida
+      streetViewControl: false, // Deshabilitado para carga más rápida
+      fullscreenControl: false, // Deshabilitado para carga más rápida
+      // Optimizaciones de rendimiento
+      gestureHandling: 'cooperative',
+      clickableIcons: false,
+      styles: [
+        {
+          featureType: 'poi',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }]
+        }
+      ]
     });
-  };
+
+    const geocoderInstance = new google.maps.Geocoder();
+    setGeocoder(geocoderInstance);
+    setMap(mapInstance);
+
+    // Crear marcador inicial
+    const markerInstance = new google.maps.Marker({
+      position: defaultCenter,
+      map: mapInstance,
+      draggable: true,
+      title: 'Arrastra para seleccionar ubicación'
+    });
+
+    setMarker(markerInstance);
+
+    // Evento cuando se arrastra el marcador
+    markerInstance.addListener('dragend', () => {
+      const position = markerInstance.getPosition();
+      reverseGeocode(position.lat(), position.lng());
+    });
+
+    // Evento cuando se hace clic en el mapa
+    mapInstance.addListener('click', (event: any) => {
+      const lat = event.latLng.lat();
+      const lng = event.latLng.lng();
+      markerInstance.setPosition({ lat, lng });
+      reverseGeocode(lat, lng);
+    });
+
+    // Si hay ubicación inicial, centrar el mapa
+    if (initialLocation) {
+      mapInstance.setCenter({ lat: initialLocation.lat, lng: initialLocation.lng });
+      reverseGeocode(initialLocation.lat, initialLocation.lng);
+    }
+    
+    // Obtener ubicación actual si no hay ubicación inicial
+    if (!initialLocation) {
+      getCurrentLocation();
+    }
+  }, [google, initialLocation, getCurrentLocation, reverseGeocode]);
+
+  // Inicializar mapa cuando esté cargado
+  useEffect(() => {
+    if (isLoaded && mapRef.current && google) {
+      initializeMap();
+    }
+  }, [isLoaded, google, initializeMap]);
 
   const handleSearch = () => {
     if (!geocoder || !searchQuery.trim()) return;
@@ -283,7 +236,7 @@ const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
   };
 
   // Mostrar error de configuración
-  if (!isGoogleMapsConfigured()) {
+  if (loadError && loadError.includes('not configured')) {
     return (
       <div className="google-maps-selector">
         <div className="maps-error">

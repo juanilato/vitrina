@@ -1,13 +1,13 @@
 import { CompanyTheme } from '../types';
 
-// Tema por defecto - colores actuales de la aplicación
+// Tema profesional empresarial - colores corporativos
 export const defaultTheme: CompanyTheme = {
-  primary: '#007AFF',           // Azul principal (botones activos, precios)
-  secondary: '#475569',         // Gris profesional (hover, botones secundarios)
-  background: '#f8f9fa',        // Fondo principal claro
+  primary: '#1e40af',           // Azul corporativo profesional
+  secondary: '#374151',         // Gris corporativo oscuro
+  background: '#f9fafb',        // Fondo principal neutro
   surface: '#ffffff',           // Fondo de tarjetas blanco
-  text: '#333333',             // Texto principal oscuro
-  textSecondary: '#666666',    // Texto secundario gris
-  border: '#e9ecef',           // Bordes grises claros
-  success: '#10b981'           // Verde para estados positivos
+  text: '#111827',             // Texto principal muy oscuro
+  textSecondary: '#6b7280',    // Texto secundario gris medio
+  border: '#d1d5db',           // Bordes grises profesionales
+  success: '#059669'           // Verde corporativo para estados positivos
 };
