@@ -1,3 +1,26 @@
+// --- Tipos para las preferencias ---
+export type DayKey = 'LUN' | 'MAR' | 'MIE' | 'JUE' | 'VIE' | 'SAB' | 'DOM';
+
+export interface TimeSlot {
+  open: string; // "HH:MM"
+  close: string; // "HH:MM"
+}
+
+export interface PreferencesState {
+  dashboardFotoUrl: string;
+  envioDomicilio: boolean;
+  colorBotones: string;
+  colorFondo: string;
+  schedule: Record<DayKey, TimeSlot[]>;
+}
+export interface PreferenciasWebData {
+  colorBotones: string;
+  colorFondo: string;
+  envioDomicilio: boolean;
+  dashboardFoto: string | null;
+  horarios: HorarioAtencionData[];
+}
+// --- Datos de la empresa ---
 export interface EmpresaData {
   id: string;
   email: string;
@@ -7,11 +30,37 @@ export interface EmpresaData {
   createdAt: string;
   updatedAt: string;
   ubicaciones: UbicacionData[];
+  preferenciasWeb?: PreferenciasWebData | null; 
+}
+export interface HorarioAtencionData {
+  id: number;
+  empresaId: string;
+  day: DayKey;
+  slotIndex: number;
+  abreMin: number;
+  cierraMin: number;
+  cerrado: boolean;
 }
 
+export interface UpdatePreferenciasPayload {
+  empresaId?: string;
+  colorBotones: string;
+  colorFondo: string;
+  envioDomicilio: boolean;
+  dashboardFoto: string | null;
+  horarios: {
+    day: DayKey;
+    slotIndex: number;
+    abreMin: number;
+    cierraMin: number;
+    cerrado: boolean;
+  }[];
+}
+
+// --- Ubicaciones ---
 export interface UbicacionData {
   id: number;
-  empresaId?: string; // Hacer opcional ya que se obtiene del contexto
+  empresaId?: string; 
   direccion?: string;
   lat?: number;
   lng?: number;
@@ -35,7 +84,7 @@ export interface UpdateEmpresaData {
 
 export interface UpdateUbicacionData {
   id?: number;
-  empresaId?: string; // Hacer opcional ya que se obtiene del contexto
+  empresaId?: string;
   direccion?: string;
   lat?: number;
   lng?: number;
@@ -54,16 +103,12 @@ export interface UpdatePrecioEnvioData {
   nombre?: string;
 }
 
+// --- Account Config ---
 export interface AccountConfigFormData {
-  // Información básica
   name: string;
   email: string;
   logo?: string;
-  
-  // Ubicaciones
   ubicaciones: UbicacionData[];
-  
-  // Cambio de contraseña
   currentPassword?: string;
   newPassword?: string;
   confirmPassword?: string;
@@ -90,9 +135,9 @@ export interface AccountConfigActions {
   uploadLogo: (file: File) => Promise<string>;
   resetForm: () => void;
   setActiveTab: (tab: AccountConfigState['activeTab']) => void;
-  // Precios de envío
   getPreciosEnvio: (ubicacionId: number) => Promise<PrecioEnvioData[]>;
   createPrecioEnvio: (ubicacionId: number, data: CreatePrecioEnvioData) => Promise<void>;
   updatePrecioEnvio: (ubicacionId: number, precioId: number, data: UpdatePrecioEnvioData) => Promise<void>;
   removePrecioEnvio: (ubicacionId: number, precioId: number) => Promise<void>;
+  updatePreferences: (payload: UpdatePreferenciasPayload) => Promise<void>;
 }

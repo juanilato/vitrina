@@ -257,3 +257,38 @@ Content-Type: application/json
 ---
 
 **¡Sistema JWT completamente implementado y listo para usar!** 🎉
+
+---
+
+# WhatsApp Cloud API (Webhook + Envío)
+
+## Variables de entorno
+
+Agrega en tu `.env` del backend o variables del hosting:
+
+```
+WHATSAPP_TOKEN=EAAG...   # Token con permiso business_messaging
+WHATSAPP_PHONE_NUMBER_ID=XXXXXXXXXXXXXXX  # ID del número en WABA
+WHATSAPP_VERIFY_TOKEN=tu_token_de_verificacion
+```
+
+## Rutas
+
+- Verificación de webhook (Meta): `GET /webhook/whatsapp`
+- Recepción de mensajes: `POST /webhook/whatsapp`
+- Envío de prueba: `POST /webhook/whatsapp/send` body: `{ "to": "+549...", "text": "Hola" }`
+
+## Pasos de configuración (Meta Developers)
+
+1. Crea una App en Meta Developers y agrega el producto "WhatsApp".
+2. En "Getting Started":
+   - Copia `WHATSAPP_PHONE_NUMBER_ID`.
+   - Genera un token temporal y colócalo en `WHATSAPP_TOKEN` (para prod, crea un System User y token de larga duración).
+3. Despliega tu backend con HTTPS (o usa un túnel como ngrok/Cloudflare Tunnel) y configura el Webhook URL: `https://tu-dominio/webhook/whatsapp`.
+4. En la verificación del webhook, usa `WHATSAPP_VERIFY_TOKEN`.
+5. Suscribe el webhook a `messages`.
+6. Enviar mensajes:
+   - Desde Meta UI puedes enviar plantillas.
+   - O usa `POST /webhook/whatsapp/send` para pruebas directas.
+
+> Nota: Para producción, migra tu número a WABA y usa plantillas aprobadas para conversaciones iniciadas por la empresa.

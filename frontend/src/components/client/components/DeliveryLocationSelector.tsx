@@ -535,7 +535,7 @@ const DeliveryLocationSelector: React.FC<DeliveryLocationSelectorProps> = ({
                     </div>
                   ) : (
                     <div className="price-unavailable-floating">
-                      <span>A confirmar</span>
+                      <span>{/a confirmar/i.test(shippingPrice.message || '') ? 'Rango excedido' : 'A confirmar'}</span>
                     </div>
                   )}
                 </div>

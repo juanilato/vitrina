@@ -151,6 +151,12 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   };
 
   const handleCheckout = async (companyId: string) => {
+    // Bloquear si rango excedido (precio a confirmar)
+    const isRangeExceeded = formData.tipoEntrega === 'delivery' && formData.shippingPrice && formData.shippingPrice.price == null && /a confirmar/i.test(formData.shippingPrice.message || '');
+    if (isRangeExceeded) {
+      alert('Rango excedido: no puedes realizar el pedido para esta ubicación.');
+      return;
+    }
     
     if (processingOrders.has(companyId)) {
       return;
@@ -416,14 +422,16 @@ const CartSummary: React.FC<CartSummaryProps> = ({
         </div>
 
         {/* Precio de envío */}
-        {formData.tipoEntrega === 'delivery' && formData.shippingPrice && (
+          {formData.tipoEntrega === 'delivery' && formData.shippingPrice && (
           <div className="shipping-section">
             <span className="shipping-label">Envío</span>
             <span className="shipping-amount">
               {formData.shippingPrice.price ? (
                 formatPrice(formData.shippingPrice.price)
               ) : (
-                <span className="shipping-unavailable">A confirmar</span>
+                <span className="shipping-unavailable">
+                  {/a confirmar/i.test(formData.shippingPrice.message || '') ? 'Rango excedido' : 'A confirmar'}
+                </span>
               )}
             </span>
           </div>
@@ -443,7 +451,10 @@ const CartSummary: React.FC<CartSummaryProps> = ({
         <button 
           className="checkout-btn-fullscreen"
           onClick={() => handleCheckout(cart.items[0]?.companyId || '')}
-          disabled={processingOrders.has(cart.items[0]?.companyId || '')}
+          disabled={
+            processingOrders.has(cart.items[0]?.companyId || '') ||
+            (formData.tipoEntrega === 'delivery' && !!formData.shippingPrice && formData.shippingPrice.price == null && /a confirmar/i.test(formData.shippingPrice.message || ''))
+          }
         >
           {processingOrders.has(cart.items[0]?.companyId || '') ? (
             <>

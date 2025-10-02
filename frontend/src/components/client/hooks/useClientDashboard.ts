@@ -192,7 +192,13 @@ export const useClientDashboard = () => {
         })),
         tipoEntrega: formData.tipoEntrega,
         formaPago: formData.formaPago,
-        transferenciaFoto: formData.transferenciaFoto
+        transferenciaFoto: formData.transferenciaFoto,
+        deliveryLocation: formData.deliveryLocation ? {
+          direccion: formData.deliveryLocation.direccion,
+          lat: formData.deliveryLocation.lat,
+          lng: formData.deliveryLocation.lng,
+        } : undefined,
+        shippingPrice: formData.shippingPrice
       };
       
       

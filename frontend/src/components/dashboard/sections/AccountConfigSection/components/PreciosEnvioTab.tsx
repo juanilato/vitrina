@@ -27,15 +27,14 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
 
   const [precios, setPrecios] = useState<PrecioEnvioData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<CreatePrecioEnvioData>(() => ({
     ubicacionId,
     precio: 0,
     distancia: 0,
-    nombre: ''
   }));
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapDraft, setMapDraft] = useState<{ distancia: number; precio: number }>({ distancia: 3, precio: 0 });
 
   const loadPrecios = useCallback(async () => {
     try {
@@ -68,7 +67,6 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
 
   useEffect(() => {
     console.log('[PriceZoneMap DEBUG][PreciosEnvioTab] props snapshot', {
-      isAdding,
       editingId,
       formData,
       mapCenter,
@@ -76,16 +74,15 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
       initialPrice: formData.precio,
       saving,
     });
-  }, [formData, mapCenter, isAdding, editingId, saving]);
+  }, [formData, mapCenter, editingId, saving]);
 
   const handleAdd = () => {
     setFormData({
       ubicacionId,
       precio: 0,
-      distancia: 3, // 3km por defecto
-      nombre: ''
+      distancia: 3,
     });
-    setIsAdding(true);
+    setMapDraft({ distancia: 3, precio: 0 });
     setEditingId(null);
   };
 
@@ -95,10 +92,9 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
       ubicacionId,
       precio: precio.precio,
       distancia: precio.distancia,
-      nombre: precio.nombre || ''
     });
     setEditingId(precio.id);
-    setIsAdding(true);
+    setMapDraft({ distancia: precio.distancia, precio: precio.precio });
   };
 
   const handleDelete = async (precioId: number) => {
@@ -111,16 +107,17 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
       }
     }
   };
+  const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+  const kmFmt = (v: number) => `${v.toFixed(1)} km`;
 
   const handleCancel = () => {
-    setIsAdding(false);
     setEditingId(null);
     setFormData({
       ubicacionId,
       precio: 0,
       distancia: 0,
-      nombre: ''
     });
+    setMapDraft({ distancia: 3, precio: 0 });
   };
 
   console.log('🚚 [PRECIOS ENVIO] Render - loading:', loading, 'precios:', precios.length);
@@ -136,127 +133,139 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
 
   return (
     <div className="precios-envio-tab">
-      <div className="precios-envio-header">
-        <div className="header-content">
-          <h3>Precios de Envío</h3>
-          <p>Gestiona los precios de envío para: <strong>{ubicacionDireccion}</strong></p>
-        </div>
-        <button className="btn btn-secondary" onClick={onClose}>
-          ✕ Cerrar
-        </button>
-      </div>
+
 
       <div className="precios-envio-content">
-        {/* Lista de precios existentes */}
-        <div className="precios-list">
-          <div className="list-header">
-            <h4>Precios Configurados</h4>
-            <button 
-              className="btn btn-primary"
-              onClick={handleAdd}
-              disabled={saving}
-            >
-              + Agregar Precio
-            </button>
-          </div>
-
-          {precios.length === 0 ? (
-            <div className="empty-precios">
-              <span className="empty-icon">🚚</span>
-              <p>No hay precios de envío configurados</p>
-              <p className="empty-description">
-                Agrega precios basados en distancia para esta ubicación
-              </p>
+        <div className="precios-layout">
+          <div className="precios-list">
+            <div className="list-header">
+              <h4>Precios Configurados</h4>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleAdd}
+                  disabled={saving}
+                >
+                  + Agregar
+                </button>
+                {editingId && (
+                  <button 
+                    className="btn btn-danger"
+                    onClick={() => handleDelete(editingId)}
+                    disabled={saving}
+                  >
+                    − Eliminar
+                  </button>
+                )}
+              </div>
             </div>
-          ) : (
-            <div className="precios-grid">
-              {precios.map((precio) => (
-                <div key={precio.id} className="precio-card">
-                  <div className="precio-info">
-                    <div className="precio-header">
-                      <h5>{precio.nombre || `Precio ${precio.id}`}</h5>
-                      <div className="precio-actions">
-                        <button 
-                          className="btn btn-secondary small"
-                          onClick={() => handleEdit(precio)}
-                          disabled={saving}
-                        >
-                          Editar
-                        </button>
-                        <button 
-                          className="btn btn-danger small"
-                          onClick={() => handleDelete(precio.id)}
-                          disabled={saving}
-                        >
-                          Eliminar
-                        </button>
+
+            {precios.length === 0 ? (
+              <div className="empty-precios">
+                <span className="empty-icon">🚚</span>
+                <p>No hay precios de envío configurados</p>
+                <p className="empty-description">
+                  Agrega precios basados en distancia para esta ubicación
+                </p>
+              </div>
+            ) : (
+              <div className="precios-grid">
+                {precios.map((precio) => (
+                  <div 
+                    key={precio.id} 
+                    className={`precio-card ${editingId === precio.id ? 'selected' : ''}`}
+                    onClick={() => handleEdit(precio)}
+                  >
+                    <div className="precio-info">
+                      <div className="precio-header">
+                        <h5>{`Precio ${precio.id}`}</h5>
+                        <div className="precio-actions">
+                          <button 
+                            className="btn btn-secondary small"
+                            onClick={(e) => { e.stopPropagation(); handleEdit(precio); }}
+                            disabled={saving}
+                          >
+                            Editar
+                          </button>
+                          <button 
+                            className="btn btn-danger small"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(precio.id); }}
+                            disabled={saving}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="precio-details">
-                      <div className="detail-item">
-                        <span className="label">Distancia:</span>
-                        <span className="value">{precio.distancia} km</span>
-                      </div>
-                      <div className="detail-item">
-                        <span className="label">Precio:</span>
-                        <span className="value">${precio.precio}</span>
+                      <div className="precio-details">
+                        <div className="detail-item">
+                          <span className="label">Distancia:</span>
+            <span className="value">{kmFmt(precio.distancia)}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="label">Precio:</span>
+                      <span className="value">{currency.format(precio.precio)}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-        {/* Formulario de agregar/editar */}
-        {isAdding && (
-          <div className="precio-form">
-            <div className="form-header">
-              <h4>{editingId ? 'Editar Precio' : 'Agregar Precio'}</h4>
-              <p>Configura la zona de envío usando el mapa interactivo</p>
-            </div>
-            
-            <div className="form-content">
-              {mapCenter ? (
+          <div className="precio-map">
+            {mapCenter ? (
+              <div style={{ position: 'relative' }}>
                 <PriceZoneMap
                   center={mapCenter}
                   onSave={async (data) => {
-                    console.log('[PriceZoneMap DEBUG][PreciosEnvioTab] onSave payload', data);
-                    try {
-                      if (editingId) {
-                        await updatePrecioEnvio(ubicacionId, editingId, data);
-                      } else {
-                        // Agregar ubicacionId al data para createPrecioEnvio
-                        const createData: CreatePrecioEnvioData = {
-                          ...data,
-                          ubicacionId
-                        };
-                        await createPrecioEnvio(ubicacionId, createData);
-                      }
-                      
-                      await loadPrecios();
-                      setIsAdding(false);
-                      setEditingId(null);
-                    } catch (error) {
-                      console.error('Error al guardar precio de envío:', error);
-                    }
+                    // no-op; usamos el botón flotante para guardar
                   }}
                   onCancel={handleCancel}
-                  initialRadius={formData.distancia * 1000} // Convertir km a metros
-                  initialPrice={formData.precio}
+                  initialRadius={(formData.distancia || 0) * 1000}
+                  initialPrice={formData.precio || 0}
                   height="500px"
                   saving={saving}
+                  hideActions
+                  onChange={(data) => setMapDraft(data)}
                 />
-              ) : (
-                <div style={{ height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div className="loading-spinner"></div>
-                  <span style={{ marginLeft: '10px' }}>Cargando ubicación...</span>
+
+                <div style={{ position: 'absolute', right: 16, bottom: 16 }}>
+                  <button
+                    className="btn btn-primary"
+                    disabled={saving || mapDraft.precio <= 0}
+                    onClick={async () => {
+                      try {
+                        const distanciaRedondeada = Math.round(mapDraft.distancia * 10) / 10; // 1 decimal
+                        if (editingId) {
+                          await updatePrecioEnvio(ubicacionId, editingId, { distancia: distanciaRedondeada, precio: mapDraft.precio });
+                        } else {
+                          const createData: CreatePrecioEnvioData = {
+                            ubicacionId,
+                            distancia: distanciaRedondeada,
+                            precio: mapDraft.precio,
+                          };
+                          await createPrecioEnvio(ubicacionId, createData);
+                        }
+                        await loadPrecios();
+                        setEditingId(null);
+                      } catch (error) {
+                        console.error('Error al actualizar precios de envío:', error);
+                      }
+                    }}
+                  >
+                    {saving ? 'Actualizando...' : 'Actualizar precios envío'}
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div style={{ height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="loading-spinner"></div>
+                <span style={{ marginLeft: '10px' }}>Cargando ubicación...</span>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

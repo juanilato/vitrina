@@ -101,7 +101,8 @@ export class NotificationsService {
     empresaId: string,
     clienteName: string,
     empresaName: string,
-    totalAmount: number
+    totalAmount: number,
+    extras?: { deliveryLocation?: { direccion: string; lat: number; lng: number }; shippingPrice?: { price: number | null; isEstimated: boolean; message: string } }
   ) {
     // Notificación para la empresa
     const empresaNotification = await this.create({
@@ -116,6 +117,8 @@ export class NotificationsService {
         clienteName,
         totalAmount,
         icono: '🛒',
+        ...(extras?.deliveryLocation ? { deliveryLocation: extras.deliveryLocation } : {}),
+        ...(extras?.shippingPrice ? { shippingPrice: extras.shippingPrice } : {}),
       },
     });
 
@@ -132,6 +135,8 @@ export class NotificationsService {
         empresaName,
         totalAmount,
         icono: '📋',
+        ...(extras?.deliveryLocation ? { deliveryLocation: extras.deliveryLocation } : {}),
+        ...(extras?.shippingPrice ? { shippingPrice: extras.shippingPrice } : {}),
       },
     });
 

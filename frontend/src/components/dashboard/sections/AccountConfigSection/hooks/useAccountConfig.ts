@@ -42,7 +42,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     try {
       const response = await axiosInstance.get(`/empresas/${user.id}`);
       const empresaData: EmpresaData = response.data;
-
+      console.log(empresaData);
       // Log para debuggear
       console.log('🏢 [FRONTEND] Datos recibidos de empresa:', {
         id: empresaData.id,
@@ -403,6 +403,17 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     }
   }, [user?.id]);
 
+  const updatePreferences = useCallback(async (payload: any) =>{
+    if (!user?.id) return;
+    console.log("PAYLOAD", payload);
+    try{
+      await axiosInstance.patch(`/empresas/${user.id}/preferencias`, payload);
+    } catch (error: any){
+      console.error ('Error al guardar preferencias', error);
+      throw error;
+    }
+
+  },[user?.id])
   return {
     ...state,
     loadEmpresaData,
@@ -417,7 +428,8 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     getPreciosEnvio,
     createPrecioEnvio,
     updatePrecioEnvio,
-    removePrecioEnvio
+    removePrecioEnvio,
+    updatePreferences
   };
 };
 

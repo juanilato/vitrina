@@ -441,11 +441,11 @@ export class AuthService {
         throw new NotFoundException('Empresa no encontrada');
       }
 
-      // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
-      const { password, ubicacion, ...empresaSinPassword } = company;
+      // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones (array de 0-1)
+      const { password, ubicacion, ...empresaSinPassword } = company as any;
       return {
         ...empresaSinPassword,
-        ubicaciones: ubicacion || []
+        ubicaciones: ubicacion ? [ubicacion] : []
       };
     } catch (error) {
       if (error instanceof NotFoundException) {

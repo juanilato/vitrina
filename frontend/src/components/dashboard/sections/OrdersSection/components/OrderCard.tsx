@@ -102,6 +102,17 @@ const OrderCard: React.FC<OrderCardProps> = ({
             <span className="total-label">Total:</span>
             <span className="total-value">${pedido.total?.toFixed(2) || '0.00'}</span>
           </div>
+
+          {pedido.tipoEntrega === 'delivery' && (
+            <div className="order-shipping">
+              <span className="shipping-label">Envío:</span>
+              <span className="shipping-value">
+                {pedido.shippingPrice?.price
+                  ? `$${pedido.shippingPrice.price.toFixed(2)}${pedido.shippingPrice.isEstimated ? ' (estimado)' : ''}`
+                  : (pedido.shippingPrice?.message || 'A confirmar')}
+              </span>
+            </div>
+          )}
           
           <div className="order-items">
             <span className="items-label">Items:</span>
@@ -122,6 +133,23 @@ const OrderCard: React.FC<OrderCardProps> = ({
             <span className="date-label">Creado:</span>
             <span className="date-value">{formatDate(pedido.createdAt)}</span>
           </div>
+
+          {pedido.tipoEntrega === 'delivery' && pedido.deliveryLocation && (
+            <div className="order-location">
+              <span className="location-label">Ubicación:</span>
+              <span className="location-value">{pedido.deliveryLocation.direccion}</span>
+              <button
+                className="btn-secondary view-map-btn"
+                style={{ marginLeft: 8 }}
+                onClick={() => {
+                  const { lat, lng } = pedido.deliveryLocation!;
+                  window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank');
+                }}
+              >
+                Ver mapa
+              </button>
+            </div>
+          )}
 
           {pedido.estado === 'no_confirmado' && pedido.motivoRechazo && (
             <div className="order-rejection-reason">

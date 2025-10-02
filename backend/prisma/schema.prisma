@@ -30,16 +30,59 @@ model Empresa {
   name        String
   password    String
   logo        String?    
-  ubicacion   Ubicacion[]
+  ubicacion   Ubicacion?
   isVerified  Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-
+  preferenciasWeb Preferencias?
   productos   Productos[]
   Pedidos     Pedido[]
 }
+enum DayOfWeek {
+  LUN
+  MAR
+  MIE
+  JUE
+  VIE
+  SAB
+  DOM
+}
+model Preferencias {
+  // hacemos 1:1 usando el mismo id que Empresa
+  empresaId       String        @id
+  empresa         Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
+  // personalización UI
+  colorBotones    String?       // ej: "#0d6efd"
+  colorFondo      String?       // ej: "#ffffff"
+
+  // features
+  envioDomicilio  Boolean       @default(false)
+  dashboardFoto   String?       // URL en storage
+
+  // relación a horarios
+  horarios        HorarioAtencion[]
+}
+
+model HorarioAtencion {
+  id              Int           @id @default(autoincrement())
+  empresaId       String
+  preferencias    Preferencias  @relation(fields: [empresaId], references: [empresaId], onDelete: Cascade)
+
+  day             DayOfWeek
+  // Soportar corte al mediodía -> múltiples franjas por día
+  slotIndex       Int           // 0,1,... para cada franja del día
+
+  // minutos desde medianoche (local)
+  abreMin         Int           // ej: 9*60 = 540
+  cierraMin       Int           // ej: 13*60 = 780
+
+  // cerrado: no crear filas para ese día; o si querés marcar explícito:
+  cerrado         Boolean       @default(false)
+
+  @@unique([empresaId, day, slotIndex])
+}
 model PreciosEnvio {
   id         Int      @id @default(autoincrement())
   empresaId  String
@@ -47,16 +90,17 @@ model PreciosEnvio {
   distancia  Float
   ubicacion    Ubicacion  @relation(fields: [ubicacionId], references: [id])
   ubicacionId Int
-  @@unique([empresaId])
+  @@unique([ubicacionId, distancia])
 }
 model Ubicacion {
-  id         Int      @id @default(autoincrement())
-  empresaId  String
-  direccion  String?
-  lat        Float?
-  lng        Float?
+  id          Int         @id @default(autoincrement())
+  empresaId   String      @unique
+  direccion   String?
+  lat         Float?
+  lng         Float?
+
+  empresa     Empresa     @relation(fields: [empresaId], references: [id])
   preciosEnvio PreciosEnvio[]
-  empresa    Empresa  @relation(fields: [empresaId], references: [id])
 }
 
 // ——— Productos de empresa ———
@@ -111,6 +155,7 @@ model Pedido {
   updatedAt  DateTime   @updatedAt
 
   ItemPedido ItemPedido[]
+  Mensajes   Mensaje[]
 
   @@index([clienteId])
   @@index([empresaId])
@@ -135,7 +180,26 @@ model ItemPedido {
   @@index([productoId])
 }
 
-// ——— Notificaciones ———
+// --- Mensajes ---
+model Mensaje {
+  id             String   @id @default(cuid())
+
+  pedidoId       String
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  remitenteId    String   // Puede ser ID de Cliente o Empresa segun remitenteTipo
+  remitenteTipo  String   // 'cliente' o 'empresa'
+
+  contenido      String
+  enviadoAt      DateTime @default(now())
+  leido          Boolean  @default(false)
+  leidoAt        DateTime?
+
+  @@index([pedidoId, enviadoAt])
+  @@index([remitenteId, remitenteTipo])
+}
+
+// --- Notificaciones ---
 model Notificacion {
   id          String    @id @default(cuid())
   

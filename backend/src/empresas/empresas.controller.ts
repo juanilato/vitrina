@@ -23,7 +23,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { CreatePrecioEnvioDto } from './dto/create-precio-envio.dto';
 import { UpdatePrecioEnvioDto } from './dto/update-precio-envio.dto';
 import { CalcularPrecioEnvioDto } from './dto/calcular-precio-envio.dto';
-
+import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
 @Controller('empresas')
 @UseGuards(JwtAuthGuard)
 export class EmpresasController {
@@ -113,6 +113,14 @@ export class EmpresasController {
     
     return result;
   }
+  @Patch(':id/preferencias')
+  async updatePreferencias(
+    @Param('id') id: string,
+    @Body() updatePreferenciasDto: UpdatePreferenciasDto,
+  ) {
+    return this.empresasService.updatePrefenencias(id, updatePreferenciasDto);
+  }
+
 
   @Patch(':id/ubicaciones/:ubicacionId')
   async updateUbicacion(

@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsNotEmpty, IsNumber, IsPositive, ValidateNested, IsIn, IsOptional } from 'class-validator';
+import { IsString, IsArray, IsNotEmpty, IsNumber, IsPositive, ValidateNested, IsIn, IsOptional, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // creación de pedido 
@@ -14,6 +14,30 @@ export class CreateItemPedidoDto {
   @IsNumber()
   @IsPositive()
   precio: number;
+}
+
+export class DeliveryLocationDto {
+  @IsString()
+  @IsNotEmpty()
+  direccion: string;
+
+  @IsNumber()
+  lat: number;
+
+  @IsNumber()
+  lng: number;
+}
+
+export class ShippingPriceDto {
+  @IsOptional()
+  @IsNumber()
+  price: number | null;
+
+  @IsBoolean()
+  isEstimated: boolean;
+
+  @IsString()
+  message: string;
 }
 
 export class CreatePedidoDto {
@@ -39,4 +63,14 @@ export class CreatePedidoDto {
   @IsOptional()
   @IsString()
   transferenciaFoto?: string; // Base64 temporal
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DeliveryLocationDto)
+  deliveryLocation?: DeliveryLocationDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ShippingPriceDto)
+  shippingPrice?: ShippingPriceDto;
 }

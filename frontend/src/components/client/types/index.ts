@@ -64,6 +64,16 @@ export interface OrderRequest {
   tipoEntrega: 'delivery' | 'retiro';
   formaPago: 'transferencia' | 'efectivo';
   transferenciaFoto?: string; // Base64 temporal
+  deliveryLocation?: {
+    direccion: string;
+    lat: number;
+    lng: number;
+  };
+  shippingPrice?: {
+    price: number | null;
+    isEstimated: boolean;
+    message: string;
+  };
 }
 
 // UI State types

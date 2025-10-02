@@ -11,6 +11,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { EmpresasModule } from './empresas/empresas.module';
 
+
 @Module({
   imports: [
     AuthModule, 
@@ -19,7 +20,8 @@ import { EmpresasModule } from './empresas/empresas.module';
     PedidosModule,
     NotificationsModule,
     WebSocketModule,
-    EmpresasModule
+    EmpresasModule,
+
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

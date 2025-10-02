@@ -177,6 +177,32 @@ const OrderModal: React.FC<OrderModalProps> = ({
                 <span className="delivery-payment-label">Forma de Pago:</span>
                 <span className="delivery-payment-value">{getPaymentTypeText(pedido.formaPago)}</span>
               </div>
+              {pedido.tipoEntrega === 'delivery' && pedido.deliveryLocation && (
+                <div className="delivery-payment-item">
+                  <span className="delivery-payment-label">Ubicación:</span>
+            
+                  <button 
+                    className="btn-secondary"
+                    style={{ marginLeft: 8 }}
+                    onClick={() => {
+                      const { lat, lng } = pedido.deliveryLocation!;
+                      window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+                    }}
+                  >
+                    Ver mapa
+                  </button>
+                </div>
+              )}
+              {pedido.tipoEntrega === 'delivery' && (
+                <div className="delivery-payment-item">
+                  <span className="delivery-payment-label">Envío:</span>
+                  <span className="delivery-payment-value">
+                    {pedido.shippingPrice?.price
+                      ? `$${pedido.shippingPrice.price.toFixed(2)}${pedido.shippingPrice.isEstimated ? ' (estimado)' : ''}`
+                      : (pedido.shippingPrice?.message || 'A confirmar')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -248,6 +274,16 @@ const OrderModal: React.FC<OrderModalProps> = ({
                 <span className="total-label">Total del Pedido:</span>
                 <span className="total-amount">${pedido.total?.toFixed(2) || '0.00'}</span>
               </div>
+              {pedido.tipoEntrega === 'delivery' && (
+                <div className="total-row">
+                  <span className="total-label">Envío:</span>
+                  <span className="total-amount">
+                    {pedido.shippingPrice?.price
+                      ? `$${pedido.shippingPrice.price.toFixed(2)}`
+                      : (pedido.shippingPrice?.message || 'A confirmar')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

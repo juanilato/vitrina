@@ -1,6 +1,6 @@
 import React from 'react';
 import useAccountConfig from './hooks/useAccountConfig';
-import { ProfileTab, LocationsTab, SecurityTab, PreferencesTab } from './components';
+import { ProfileTab, SecurityTab, PreferencesTab, PreciosEnvioTab } from './components';
 import './AccountConfigSection.css';
 import TestMap from './components/test';
 
@@ -27,14 +27,11 @@ const AccountConfigSection: React.FC = () => {
       name: empresaData.name,
       ubicacionesCount: empresaData.ubicaciones?.length || 0
     } : null,
-    formData: {
-      ubicacionesCount: formData.ubicaciones?.length || 0,
-      ubicaciones: formData.ubicaciones
-    }
+    ubicacion:  formData.ubicaciones[0]
+    
   });
   
-  // Log simple para verificar
-  console.log('UBICACIONES EN CONFIG:', formData.ubicaciones);
+
 
   if (loading) {
     return (
@@ -61,17 +58,37 @@ const AccountConfigSection: React.FC = () => {
 
   const tabs = [
     { id: 'profile', label: 'Perfil', icon: '👤' },
-    { id: 'locations', label: 'Ubicaciones', icon: '📍' },
+    { id: 'locations', label: 'Precios Envío', icon: '📍' },
     { id: 'security', label: 'Seguridad', icon: '🔒' },
-    { id: 'preferences', label: 'Preferencias', icon: '⚙️' }
+    { id: 'preferences', label: 'Preferencias Web', icon: '⚙️' }
   ] as const;
 
   const renderActiveTab = () => {
+     const ubicacion = formData.ubicaciones?.[0]; 
     switch (activeTab) {
       case 'profile':
         return <ProfileTab />;
       case 'locations':
-        return <LocationsTab />;
+      if (!ubicacion) {
+        return (
+          <div className="empty-locations">
+            <span className="empty-icon">📍</span>
+            <p>No hay ninguna ubicación configurada</p>
+          </div>
+        );
+      }
+      return (
+        <PreciosEnvioTab
+          ubicacionId={ubicacion.id}
+          ubicacionDireccion={ubicacion.direccion || 'Sin dirección'}
+          ubicacionCoords={
+            ubicacion.lat && ubicacion.lng
+              ? { lat: ubicacion.lat, lng: ubicacion.lng }
+              : undefined
+          }
+          onClose={() => {}} // 👈 agregado para que compile
+        />
+      );
       case 'security':
         return <SecurityTab />;
       case 'preferences':

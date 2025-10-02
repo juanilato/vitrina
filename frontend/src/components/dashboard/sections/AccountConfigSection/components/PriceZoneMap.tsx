@@ -10,6 +10,8 @@ interface PriceZoneMapProps {
   initialPrice?: number;
   height?: string;
   saving?: boolean;
+  onChange?: (data: { distancia: number; precio: number }) => void;
+  hideActions?: boolean;
 }
 
 const PriceZoneMap: React.FC<PriceZoneMapProps> = ({
@@ -19,7 +21,9 @@ const PriceZoneMap: React.FC<PriceZoneMapProps> = ({
   initialRadius = 3000,
   initialPrice = 0,
   height = '500px',
-  saving = false
+  saving = false,
+  onChange,
+  hideActions = false
 }) => {
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
@@ -35,9 +39,24 @@ const PriceZoneMap: React.FC<PriceZoneMapProps> = ({
 
   // Sincroniza cuando cambian props iniciales
   useEffect(() => {
-    setRadius(initialRadius);
-    setPrecio(initialPrice);
+    // Solo sincroniza si cambió realmente para evitar ciclos de render
+    if (initialRadius !== radius) {
+      setRadius(initialRadius);
+    }
+    if (initialPrice !== precio) {
+      setPrecio(initialPrice);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialRadius, initialPrice]);
+
+  // Notificar cambios al padre si se provee onChange
+  useEffect(() => {
+    if (onChange) {
+      onChange({ distancia: distanciaKm, precio });
+    }
+    // No incluir onChange en deps para evitar recreación si el padre pasa funciones nuevas
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [distanciaKm, precio]);
 
   // Evita centro inválido
   const isValidCenter =
@@ -123,14 +142,16 @@ const PriceZoneMap: React.FC<PriceZoneMapProps> = ({
           </div>
         </div>
 
-        <div className="action-buttons">
-          <button className="btn btn-secondary" onClick={onCancel} disabled={saving}>
-            Cancelar
-          </button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving || precio <= 0}>
-            {saving ? 'Guardando...' : 'Guardar Precio'}
-          </button>
-        </div>
+        {!hideActions && (
+          <div className="action-buttons">
+            <button className="btn btn-secondary" onClick={onCancel} disabled={saving}>
+              Cancelar
+            </button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={saving || precio <= 0}>
+              {saving ? 'Guardando...' : 'Guardar Precio'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Mapa */}

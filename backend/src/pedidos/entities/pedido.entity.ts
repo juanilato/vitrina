@@ -31,4 +31,14 @@ export class PedidoWithItems extends Pedido {
     email: string;
   };
   total?: number;
+  deliveryLocation?: {
+    direccion: string;
+    lat: number;
+    lng: number;
+  };
+  shippingPrice?: {
+    price: number | null;
+    isEstimated: boolean;
+    message: string;
+  };
 }

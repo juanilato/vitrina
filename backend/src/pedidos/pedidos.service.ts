@@ -104,13 +104,18 @@ export class PedidosService {
       
       // Crear notificaciones
       try {
+        const { deliveryLocation, shippingPrice } = createPedidoDto as any;
         const notifications = await this.notificationsService.createOrderNotification(
           pedidoCompleto.id,
           pedidoCompleto.clienteId,
           pedidoCompleto.empresaId,
           pedidoCompleto.cliente.name,
           empresa.name,
-          pedidoCompleto.total
+          pedidoCompleto.total,
+          {
+            deliveryLocation,
+            shippingPrice
+          }
         );
 
         // Enviar notificaciones por WebSocket
@@ -254,33 +259,55 @@ export class PedidosService {
         orderBy: { createdAt: 'desc' }
       });
 
-      return pedidos.map(pedido => ({
-        id: pedido.id,
-        clienteId: pedido.clienteId,
-        empresaId: pedido.empresaId,
-        estado: pedido.estado,
-        tipoEntrega: pedido.tipoEntrega,
-        formaPago: pedido.formaPago,
-        motivoRechazo: pedido.motivoRechazo,
-        createdAt: pedido.createdAt,
-        updatedAt: pedido.updatedAt,
-        cliente: pedido.cliente,
-        items: pedido.ItemPedido.map(item => ({
-          id: item.id,
-          pedidoId: item.pedidoId,
-          productoId: item.productoId,
-          cantidad: item.cantidad,
-          precio: parseFloat(item.precio.toString()),
-          producto: {
-            id: item.producto.id,
-            nombre: item.producto.nombre,
-            precio: parseFloat(item.producto.precio.toString())
-          }
-        })),
-        total: pedido.ItemPedido.reduce((sum, item) => 
-          sum + (parseFloat(item.precio.toString()) * item.cantidad), 0
-        )
+      // Enriquecer con extras (deliveryLocation, shippingPrice) desde la notificación de creación
+      const enriched = await Promise.all(pedidos.map(async (pedido) => {
+        const noti = await this.prisma.notificacion.findFirst({
+          where: {
+            tipo: 'pedido_creado',
+            metadata: {
+              path: ['pedidoId'],
+              equals: pedido.id,
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          select: { metadata: true },
+        });
+
+        const deliveryLocation = (noti?.metadata as any)?.deliveryLocation || undefined;
+        const shippingPrice = (noti?.metadata as any)?.shippingPrice || undefined;
+
+        return {
+          id: pedido.id,
+          clienteId: pedido.clienteId,
+          empresaId: pedido.empresaId,
+          estado: pedido.estado,
+          tipoEntrega: pedido.tipoEntrega,
+          formaPago: pedido.formaPago,
+          motivoRechazo: pedido.motivoRechazo,
+          createdAt: pedido.createdAt,
+          updatedAt: pedido.updatedAt,
+          cliente: pedido.cliente,
+          items: pedido.ItemPedido.map(item => ({
+            id: item.id,
+            pedidoId: item.pedidoId,
+            productoId: item.productoId,
+            cantidad: item.cantidad,
+            precio: parseFloat(item.precio.toString()),
+            producto: {
+              id: item.producto.id,
+              nombre: item.producto.nombre,
+              precio: parseFloat(item.producto.precio.toString())
+            }
+          })),
+          total: pedido.ItemPedido.reduce((sum, item) => 
+            sum + (parseFloat(item.precio.toString()) * item.cantidad), 0
+          ),
+          deliveryLocation,
+          shippingPrice,
+        } as any;
       }));
+
+      return enriched as any;
     } catch (error) {
       console.error('Error obteniendo pedidos:', error);
       throw error;
@@ -318,6 +345,22 @@ export class PedidosService {
         throw new NotFoundException('Pedido no encontrado');
       }
 
+      // Extraer extras desde notificación de creación
+      const noti = await this.prisma.notificacion.findFirst({
+        where: {
+          tipo: 'pedido_creado',
+          metadata: {
+            path: ['pedidoId'],
+            equals: pedido.id,
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { metadata: true },
+      });
+
+      const deliveryLocation = (noti?.metadata as any)?.deliveryLocation || undefined;
+      const shippingPrice = (noti?.metadata as any)?.shippingPrice || undefined;
+
       return {
         id: pedido.id,
         clienteId: pedido.clienteId,
@@ -343,8 +386,10 @@ export class PedidosService {
         })),
         total: pedido.ItemPedido.reduce((sum, item) => 
           sum + (parseFloat(item.precio.toString()) * item.cantidad), 0
-        )
-      };
+        ),
+        deliveryLocation,
+        shippingPrice,
+      } as any;
     } catch (error) {
       console.error('Error obteniendo pedido:', error);
       throw error;

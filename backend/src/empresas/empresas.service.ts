@@ -11,6 +11,7 @@ import { CalcularPrecioEnvioDto } from './dto/calcular-precio-envio.dto';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import * as fs from 'fs';
+import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
 
 @Injectable()
 export class EmpresasService {
@@ -19,34 +20,40 @@ export class EmpresasService {
     private supabase: SupabaseService
   ) {}
 
-  async findOne(id: string) {
-    const empresa = await this.prisma.empresa.findUnique({
-      where: { id },
-      include: {
-        ubicacion: true,
+async findOne(id: string) {
+  const empresa = await this.prisma.empresa.findUnique({
+    where: { id },
+    include: {
+      ubicacion: true,
+      preferenciasWeb: {
+        include: {
+          horarios: true, // 👈 agregás esto
+        },
       },
-    });
+    },
+  });
 
-    if (!empresa) {
-      throw new NotFoundException('Empresa no encontrada');
-    }
-
-    // Log para debuggear
-    console.log('🏢 [EMPRESA] Datos obtenidos:', {
-      id: empresa.id,
-      name: empresa.name,
-      ubicacionesCount: empresa.ubicacion?.length || 0,
-      ubicaciones: empresa.ubicacion
-    });
-
-    // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
-    const { password, ubicacion, ...empresaSinPassword } = empresa;
-    return {
-      ...empresaSinPassword,
-      ubicaciones: ubicacion || []
-    };
+  if (!empresa) {
+    throw new NotFoundException('Empresa no encontrada');
   }
 
+  // Log para debuggear
+  console.log('🏢 [EMPRESA] Datos obtenidos:', {
+    id: empresa.id,
+    name: empresa.name,
+    hasUbicacion: !!empresa.ubicacion,
+    hasPreferencias: !!empresa.preferenciasWeb,
+    horariosCount: empresa.preferenciasWeb?.horarios?.length ?? 0,
+  });
+
+  // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
+  const { password, ubicacion, ...empresaSinPassword } = empresa as any;
+
+  return {
+    ...empresaSinPassword,
+    ubicaciones: ubicacion ? [ubicacion] : [],
+  };
+}
   async update(id: string, updateEmpresaDto: UpdateEmpresaDto) {
     const empresa = await this.prisma.empresa.findUnique({
       where: { id },
@@ -55,6 +62,7 @@ export class EmpresasService {
     if (!empresa) {
       throw new NotFoundException('Empresa no encontrada');
     }
+
 
     const empresaActualizada = await this.prisma.empresa.update({
       where: { id },
@@ -65,13 +73,78 @@ export class EmpresasService {
     });
 
     // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
-    const { password, ubicacion, ...empresaSinPassword } = empresaActualizada;
+    const { password, ubicacion, ...empresaSinPassword } = empresaActualizada as any;
     return {
       ...empresaSinPassword,
-      ubicaciones: ubicacion || []
+      ubicaciones: ubicacion ? [ubicacion] : [],
     };
   }
 
+async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
+    // Validaciones simples de rango/consistencia
+    for (const h of dto.horarios ?? []) {
+    if (h.abreMin >= h.cierraMin) {
+      throw new BadRequestException(`Horario inválido ${h.day}#${h.slotIndex}: abreMin >= cierraMin`);
+    }
+    if (h.abreMin < 0 || h.cierraMin > 1440) {
+      throw new BadRequestException(`Horario fuera de rango ${h.day}#${h.slotIndex}`);
+    }
+  }
+
+  return this.prisma.$transaction(async (tx) => {
+    // ⚠️ upsert anidado SIN empresaId en create (lo pone Prisma)
+    await tx.empresa.update({
+      where: { id: dto.empresaId },
+      data: {
+        preferenciasWeb: {
+          upsert: {
+            create: {
+              
+              colorBotones: dto.colorBotones ?? null,
+              colorFondo: dto.colorFondo ?? null,
+              envioDomicilio: dto.envioDomicilio,
+              dashboardFoto: dto.dashboardFoto ?? null,
+            },
+            update: {
+              colorBotones: dto.colorBotones ?? null,
+              colorFondo: dto.colorFondo ?? null,
+              envioDomicilio: dto.envioDomicilio,
+              dashboardFoto: dto.dashboardFoto ?? null,
+            },
+          },
+        },
+      },
+      select: { id: true },
+    });
+
+    // Sincronizar horarios
+    await tx.horarioAtencion.deleteMany({ where: { empresaId } });
+
+    if (dto.horarios?.length) {
+      await tx.horarioAtencion.createMany({
+        data: dto.horarios.map((h) => ({
+          empresaId,           // ✅ aquí sí corresponde
+          day: h.day,          // enum DayOfWeek (LUN..DOM)
+          slotIndex: h.slotIndex,
+          abreMin: h.abreMin,
+          cierraMin: h.cierraMin,
+          cerrado: h.cerrado,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    return tx.empresa.findUnique({
+      where: { id: empresaId },
+      include: {
+        preferenciasWeb: true,
+        // si querés devolver horarios:
+        // horarios: true (si tenés relación), o:
+        // horariosAtencion: true (según tu naming)
+      },
+    });
+  });
+}
   async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
     const { currentPassword, newPassword } = changePasswordDto;
 
@@ -153,23 +226,23 @@ export class EmpresasService {
 
       // Actualizar empresa con nueva URL del logo
       console.log('💾 [UPLOAD LOGO SERVICE] Actualizando empresa en base de datos...');
-      const empresaActualizada = await this.prisma.empresa.update({
-        where: { id },
-        data: { logo: logoUrl },
-        include: {
-          ubicacion: true,
-        },
-      });
+    const empresaActualizada = await this.prisma.empresa.update({
+      where: { id },
+      data: { logo: logoUrl },
+      include: {
+        ubicacion: true,
+      },
+    });
 
       console.log('✅ [UPLOAD LOGO SERVICE] Empresa actualizada exitosamente');
 
       // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
-      const { password, ubicacion, ...empresaSinPassword } = empresaActualizada;
+      const { password, ubicacion, ...empresaSinPassword } = empresaActualizada as any;
       return { 
         logoUrl, 
         empresa: {
           ...empresaSinPassword,
-          ubicaciones: ubicacion || []
+          ubicaciones: ubicacion ? [ubicacion] : [],
         }
       };
     } catch (error) {
@@ -191,7 +264,7 @@ export class EmpresasService {
       throw new NotFoundException('Empresa no encontrada');
     }
 
-    return empresa.ubicacion || [];
+    return empresa.ubicacion ? [empresa.ubicacion] : [];
   }
 
   async createUbicacion(id: string, createUbicacionDto: CreateUbicacionDto) {
@@ -208,6 +281,14 @@ export class EmpresasService {
     }
 
     console.log('✅ [CREATE UBICACION SERVICE] Empresa encontrada:', empresa.name);
+
+    // En esquema de una sola ubicación, validar que no exista ya
+    const existente = await this.prisma.ubicacion.findFirst({
+      where: { empresaId: id },
+    });
+    if (existente) {
+      throw new BadRequestException('La empresa ya tiene una ubicación. Edítala en lugar de crear otra.');
+    }
 
     const ubicacion = await this.prisma.ubicacion.create({
       data: {
@@ -383,15 +464,16 @@ export class EmpresasService {
       throw new NotFoundException('Ubicación no encontrada');
     }
 
-    // Verificar que no existe ya un precio para esta ubicación
+    // Verificar que no exista ya un precio con la misma distancia para esta ubicación
     const precioExistente = await this.prisma.preciosEnvio.findFirst({
       where: {
         ubicacionId: parseInt(ubicacionId),
+        distancia: createPrecioEnvioDto.distancia,
       },
     });
 
     if (precioExistente) {
-      throw new BadRequestException('Ya existe un precio de envío para esta ubicación');
+      throw new BadRequestException('Ya existe un precio de envío para esta distancia en esta ubicación');
     }
 
     const precio = await this.prisma.preciosEnvio.create({
@@ -593,31 +675,29 @@ export class EmpresasService {
     console.log('🔍 [DEBUG] Verificando precios de envío para empresa:', empresaId);
     
     // Obtener todas las ubicaciones de la empresa
-    const ubicaciones = await this.prisma.ubicacion.findMany({
+    const ubicacion = await this.prisma.ubicacion.findFirst({
       where: { empresaId },
-      include: {
-        preciosEnvio: true
-      }
+      include: { preciosEnvio: true },
     });
 
-    console.log('🔍 [DEBUG] Ubicaciones encontradas:', ubicaciones.length);
-    
-    const result = ubicaciones.map(ubicacion => ({
-      ubicacionId: ubicacion.id,
-      direccion: ubicacion.direccion,
-      lat: ubicacion.lat,
-      lng: ubicacion.lng,
-      preciosEnvio: ubicacion.preciosEnvio.map(precio => ({
-        id: precio.id,
-        precio: Number(precio.precio),
-        distancia: precio.distancia
-      }))
-    }));
+    const result = ubicacion
+      ? [{
+          ubicacionId: ubicacion.id,
+          direccion: ubicacion.direccion,
+          lat: ubicacion.lat,
+          lng: ubicacion.lng,
+          preciosEnvio: (ubicacion as any).preciosEnvio.map((precio: any) => ({
+            id: precio.id,
+            precio: Number(precio.precio),
+            distancia: precio.distancia,
+          })),
+        }]
+      : [];
 
     return {
       empresaId,
-      totalUbicaciones: ubicaciones.length,
-      ubicaciones: result
+      totalUbicaciones: result.length,
+      ubicaciones: result,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsOptional, Min } from 'class-validator';
+import { IsNumber, Min } from 'class-validator';
 
 export class CreatePrecioEnvioDto {
   @IsNumber()
@@ -11,8 +11,4 @@ export class CreatePrecioEnvioDto {
   @IsNumber()
   @Min(0)
   distancia: number;
-
-  @IsOptional()
-  @IsString()
-  nombre?: string;
 }
