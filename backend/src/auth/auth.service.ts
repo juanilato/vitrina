@@ -8,14 +8,31 @@ import { TokenResponseDto, TokenPayloadDto } from './dto/token.dto';
 import { VerifyCodeDto, VerificationResponseDto } from './dto/verification.dto';
 import { jwtConfig } from '../config/jwt.config';
 import { VerificationService } from '../verification/verification.service';
-
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
+import * as jwt from 'jsonwebtoken';
+import { randomBytes } from 'crypto';
 @Injectable()
 export class AuthService {
+  private google: OAuth2Client;
+  private audiences: string[];
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private verificationService: VerificationService
-  ) {}
+  ) {
+ this.audiences = (process.env.GOOGLE_CLIENT_IDS || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (this.audiences.length === 0) {
+      throw new Error('Falta GOOGLE_CLIENT_IDS en .env');
+    }
+
+    // Cualquier clientId sirve para inicializar el cliente
+    this.google = new OAuth2Client(this.audiences[0]);
+
+  }
 
   // Método para iniciar sesión
   async login(loginDto: LoginDto): Promise<TokenResponseDto> {
@@ -67,6 +84,147 @@ export class AuthService {
       }
     };
   }
+
+  async loginWithGoogle(idToken: string)/*: Promise<TokenResponseDto>*/ {
+    // 1) Verificar token de Google (firma + audiencia)
+    const ticket = await this.google.verifyIdToken({
+      idToken,
+      audience: this.audiences,
+    });
+    const payload = ticket.getPayload() as TokenPayload | undefined;
+    if (!payload) throw new UnauthorizedException('Token de Google inválido');
+
+    const { email, name, picture, email_verified, sub } = payload;
+
+    // 2) Reglas de seguridad mínimas
+    if (!email) throw new UnauthorizedException('Google no devolvió email');
+    if (!email_verified) throw new UnauthorizedException('Email de Google no verificado');
+
+    // 3) Buscar usuario en ambas tablas
+    let user: any = await this.prisma.cliente.findUnique({ where: { email } });
+    let userType: 'cliente' | 'empresa' = 'cliente';
+
+    if (!user) {
+      user = await this.prisma.empresa.findUnique({ where: { email } });
+      if (user) userType = 'empresa';
+    }
+
+    // 4) Si no existe en ninguna, crear por defecto como 'cliente' (ajustá si querés otra lógica)
+    if (!user) {
+      user = await this.prisma.cliente.create({
+        data: {
+          email,
+          name: name ?? '',
+          // password: null o vacío — NO se usa para Google
+          password: '', // evita null si tu esquema no lo permite
+          isVerified: true, // ✅ auto-verificada por Google
+          // Si tenés campo para foto/logo:
+          // logo: picture ?? null,
+          // Si querés guardar el sub (ID único de Google):
+          // googleSub: sub,
+        },
+      });
+      userType = 'cliente';
+    } else {
+      // 5) Mantener actualizado nombre/foto y marcar verificada si no lo estaba
+      const updateData: any = {};
+      if (name && user.name !== name) updateData.name = name;
+      // Si tu modelo tiene logo/foto:
+      // if (picture && user.logo !== picture) updateData.logo = picture;
+      if (user.isVerified === false) updateData.isVerified = true;
+
+      if (Object.keys(updateData).length > 0) {
+        if (userType === 'cliente') {
+          user = await this.prisma.cliente.update({ where: { id: user.id }, data: updateData });
+        } else {
+          user = await this.prisma.empresa.update({ where: { id: user.id }, data: updateData });
+        }
+      }
+    }
+
+    // 6) Generar tokens como en tu login(email/password)
+    const tokens = await this.generateTokens(user.id, user.email, userType);
+
+    // 7) Responder con el MISMO shape que ya espera tu frontend/AuthContext
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: 80 * 60, // 80 min (igual que en tu login)
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        type: userType,
+        // logo: user.logo ?? undefined,
+      },
+    };
+  }
+async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
+    // 1) Verificar token de Google
+    const ticket = await this.google.verifyIdToken({
+      idToken,
+      audience: this.audiences,
+    });
+    const payload = ticket.getPayload() as TokenPayload | undefined;
+    if (!payload) throw new UnauthorizedException('Token de Google inválido');
+
+    const { email, name, picture, email_verified } = payload || {};
+    if (!email) throw new UnauthorizedException('Google no devolvió email');
+    if (!email_verified) throw new UnauthorizedException('Email de Google no verificado');
+
+    // 2) Debe NO existir en ninguna tabla
+    const existsCliente = await this.prisma.cliente.findUnique({ where: { email } });
+    const existsEmpresa = await this.prisma.empresa.findUnique({ where: { email } });
+    if (existsCliente || existsEmpresa) {
+      throw new BadRequestException('El email ya está registrado. Probá iniciar sesión con Google.');
+    }
+
+    // 3) Crear según type, isVerified = true
+    // Tu modelo exige password: guardamos string vacío (o un hash dummy)
+    const password = randomBytes(32).toString('hex');
+    let created: any;
+
+    if (type === 'cliente') {
+      created = await this.prisma.cliente.create({
+        data: {
+          email,
+          name: name ?? '',
+          password,
+          isVerified: true,
+        },
+      });
+    } else {
+      created = await this.prisma.empresa.create({
+        data: {
+          email,
+          name: name ?? '',
+          password,
+          isVerified: true,
+          logo: picture ?? null, // si querés aprovechar la foto de Google como logo
+        },
+      });
+    }
+
+    // 4) Opcional A: devolver mismo payload que login (autologin después de registrar)
+    const tokens = await this.generateTokens(created.id, created.email, type);
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: 80 * 60,
+      user: {
+        id: created.id,
+        email: created.email,
+        name: created.name,
+        type,
+      },
+    };
+
+    // 4) Opcional B: si NO querés autologin aquí, devolvé solo:
+    // return { message: 'Registro con Google exitoso. Ahora podés iniciar sesión.' };
+  }
+
 
   // registro de cliente
   async registerCliente(registerClienteDto: RegisterClienteDto) {
@@ -427,16 +585,22 @@ export class AuthService {
   // obtener empresa específica con ubicaciones (para clientes)
   async getCompanyWithLocations(id: string) {
     try {
-      const company = await this.prisma.empresa.findUnique({
-        where: {
-          id,
-          isVerified: true // Solo empresas verificadas
-        },
-        include: {
-          ubicacion: true
-        }
-      });
 
+
+      const company = await this.prisma.empresa.findUnique({
+          where: { id,
+            isVerified: true,
+          },
+          include: {
+            ubicacion: true,
+            preferenciasWeb: {
+              include: {
+                horarios: true
+              }
+            },
+            productos: true
+          }
+        });
       if (!company) {
         throw new NotFoundException('Empresa no encontrada');
       }

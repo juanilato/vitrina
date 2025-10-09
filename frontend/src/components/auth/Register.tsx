@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import VerificationModal from './VerificationModal';
 import './Register.css';
+import { GoogleLogin } from '@react-oauth/google';
+
+
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -21,8 +24,26 @@ const Register: React.FC = () => {
     type: 'cliente' | 'empresa';
   } | null>(null);
   
-  const { register, error, user } = useAuth();
+  const { register, error, user, googleRegister } = useAuth();
   const navigate = useNavigate();
+  const handleGoogleRegister = async (cred: any) => {
+  try {
+    setFormError('');
+    setIsLoading(true);
+    const idToken = cred?.credential;
+    if (!idToken) throw new Error('Token de Google inválido');
+
+    // usamos el tipo seleccionado en el select
+    await googleRegister(idToken, formData.type);
+
+    // si el backend devuelve tokens, ya estás autenticado:
+    navigate('/dashboard');
+  } catch (e: any) {
+    setFormError(e.message || 'No se pudo registrar con Google');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Verificar si el usuario ya está autenticado al cargar el componente
   useEffect(() => {
@@ -115,6 +136,7 @@ const Register: React.FC = () => {
           {/* Panel Izquierdo - Formulario de Registro */}
           <div className="auth-form-panel register-mode">
             <div className="auth-form-container">
+
               <div className="auth-form active">
        
                 
@@ -211,7 +233,7 @@ const Register: React.FC = () => {
                     {isLoading ? 'Creando cuenta...' : 'REGISTRATE'}
                   </button>
                 </form>
-                
+
                 <div className="auth-footer">
                   <p>
                     Ya tienes una cuenta?{' '}
@@ -235,10 +257,19 @@ const Register: React.FC = () => {
                 <p>
                   Sumate a las miles de empresas que ya estan en VITRINA, mostrandote a tu publico.
                 </p>
+                                                            <div className="google-wrapper">
+                <GoogleLogin
+                  onSuccess={handleGoogleRegister}
+                  onError={() => setFormError('Error con Google')}
+                />
+              </div>
               </div>
             </div>
+            
           </div>
+          
         </div>
+        
       </div>
 
       {/* Modal de Verificación */}

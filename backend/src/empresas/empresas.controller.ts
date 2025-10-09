@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   BadRequestException,
   Res,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -24,6 +25,7 @@ import { CreatePrecioEnvioDto } from './dto/create-precio-envio.dto';
 import { UpdatePrecioEnvioDto } from './dto/update-precio-envio.dto';
 import { CalcularPrecioEnvioDto } from './dto/calcular-precio-envio.dto';
 import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
+import { UpdateExtrasDto } from './dto/update-extras.dto';
 @Controller('empresas')
 @UseGuards(JwtAuthGuard)
 export class EmpresasController {
@@ -49,6 +51,15 @@ export class EmpresasController {
   ) {
     return this.empresasService.changePassword(id, changePasswordDto);
   }
+
+    @UseGuards(JwtAuthGuard)
+  @Patch(':id/extras')
+  async updateExtras(@Param('id') id: string, @Body() dto: UpdateExtrasDto, @Req() req: any) {
+    const userId = req.user?.sub || req.user?.id; // ajustá al claim que uses
+    const empresa = await this.empresasService.updateExtras(id, dto, userId);
+    return empresa; // FE espera la empresa actualizada
+  }
+
 
   @Post(':id/upload-logo')
   @UseInterceptors(FileInterceptor('file'))
@@ -84,6 +95,48 @@ export class EmpresasController {
     try {
       const result = await this.empresasService.uploadLogo(id, file);
       console.log('✅ [UPLOAD LOGO] Logo subido exitosamente:', result.logoUrl);
+      return result;
+    } catch (error) {
+      console.error('❌ [UPLOAD LOGO] Error en servicio:', error);
+      throw error;
+    }
+  }
+
+
+   @Post(':id/upload-dashboard')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadDashboard(
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+  ) {
+    console.log('📁 [UPLOAD dashboard] Iniciando subida de dashboard:', {
+      empresaId: id,
+      fileName: file?.originalname,
+      fileSize: file?.size,
+      fileMimetype: file?.mimetype,
+      hasBuffer: !!file?.buffer
+    });
+
+    if (!file) {
+      console.error('❌ [UPLOAD LOGO] No file uploaded');
+      throw new BadRequestException('No file uploaded');
+    }
+
+    // Validar tipo de archivo
+    if (!file.mimetype.startsWith('image/')) {
+      console.error('❌ [UPLOAD LOGO] Invalid file type:', file.mimetype);
+      throw new BadRequestException('Solo se permiten archivos de imagen');
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      console.error('❌ [UPLOAD LOGO] File too large:', file.size);
+      throw new BadRequestException('El archivo es demasiado grande. Máximo 5MB');
+    }
+
+    try {
+      const result = await this.empresasService.uploadDashboard(id, file);
+      console.log('✅ [UPLOAD LOGO] Logo subido exitosamente:', result);
       return result;
     } catch (error) {
       console.error('❌ [UPLOAD LOGO] Error en servicio:', error);
@@ -163,6 +216,31 @@ export class EmpresasController {
       return res.status(500).json({ message: 'Error al obtener el logo' });
     }
   }
+  @Get(':id/dashboard')
+  async getDashboard(@Param('id') id: string, @Res() res: any) {
+    try {
+      const logoData = await this.empresasService.getDashboardData(id);
+      
+      if (!logoData) {
+        return res.status(404).json({ message: 'Logo no encontrado' });
+      }
+
+      // Configurar headers para la imagen
+      res.set({
+        'Content-Type': logoData.contentType,
+        'Content-Length': logoData.size,
+        'Cache-Control': 'public, max-age=3600', 
+        'Last-Modified': new Date().toUTCString(),
+      });
+
+      // Enviar la imagen
+      return res.send(logoData.buffer);
+    } catch (error) {
+      console.error('Error obteniendo logo:', error);
+      return res.status(500).json({ message: 'Error al obtener el logo' });
+    }
+  }
+
 
   // Precios de envío
   @Get(':id/ubicaciones/:ubicacionId/precios-envio')

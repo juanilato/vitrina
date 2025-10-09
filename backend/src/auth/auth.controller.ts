@@ -5,6 +5,8 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/token.dto';
 import { VerifyCodeDto, ResendCodeDto } from './dto/verification.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GoogleLoginDto } from './dto/google-login.dto';
+import { GoogleRegisterDto } from './dto/google-register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +17,13 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
+
+  @Post('google')
+  async loginWithGoogle(@Body() dto: GoogleLoginDto) {
+    const { accessToken, user } = await this.authService.loginWithGoogle(dto.idToken);
+    return { accessToken, user };
+  }
+
   // registro de cliente
   @Post('register/cliente')
   async registerCliente(@Body() registerClienteDto: RegisterClienteDto) {
@@ -27,6 +36,13 @@ export class AuthController {
     return this.authService.registerEmpresa(registerEmpresaDto);
   }
 
+
+  
+  @Post('google/register')
+  async googleRegister(@Body() dto: GoogleRegisterDto) {
+    return this.authService.registerWithGoogle(dto.idToken, dto.type);
+  }
+  
   // verificación de código
   @Post('verify')
   async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {

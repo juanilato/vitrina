@@ -6,6 +6,23 @@ export interface TimeSlot {
   close: string; // "HH:MM"
 }
 
+export type SocialKey =
+  | 'instagram'
+  | 'facebook'
+  | 'tiktok'
+  | 'whatsapp'
+  | 'linkedin'
+  | 'x'
+  | 'youtube'
+  | 'website'
+  | 'otros';
+
+export interface SocialLink {
+  key: SocialKey | string; // permití custom keys
+  label: string;           // cómo lo mostrás (ej: "Instagram Tienda")
+  value: string;           // URL o @handle
+}
+
 export interface PreferencesState {
   dashboardFotoUrl: string;
   envioDomicilio: boolean;
@@ -31,6 +48,8 @@ export interface EmpresaData {
   updatedAt: string;
   ubicaciones: UbicacionData[];
   preferenciasWeb?: PreferenciasWebData | null; 
+  alias?: string;               
+  redesSociales?: SocialLink[]; 
 }
 export interface HorarioAtencionData {
   id: number;
@@ -125,6 +144,12 @@ export interface AccountConfigState {
   activeTab: 'profile' | 'locations' | 'security' | 'preferences';
 }
 
+export interface UpdateEmpresaExtrasPayload {
+  empresaId: string;
+  alias: string;
+  redesSociales: SocialLink[];
+}
+
 export interface AccountConfigActions {
   loadEmpresaData: () => Promise<void>;
   updateProfile: (data: UpdateEmpresaData) => Promise<void>;
@@ -132,7 +157,7 @@ export interface AccountConfigActions {
   addLocation: (data: Omit<UbicacionData, 'id'>) => Promise<void>;
   removeLocation: (locationId: number) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  uploadLogo: (file: File) => Promise<string>;
+  uploadFoto: (file: File, dashboard: boolean) => Promise<string>;
   resetForm: () => void;
   setActiveTab: (tab: AccountConfigState['activeTab']) => void;
   getPreciosEnvio: (ubicacionId: number) => Promise<PrecioEnvioData[]>;
@@ -140,4 +165,5 @@ export interface AccountConfigActions {
   updatePrecioEnvio: (ubicacionId: number, precioId: number, data: UpdatePrecioEnvioData) => Promise<void>;
   removePrecioEnvio: (ubicacionId: number, precioId: number) => Promise<void>;
   updatePreferences: (payload: UpdatePreferenciasPayload) => Promise<void>;
+  updateEmpresaExtras: (payload: UpdateEmpresaExtrasPayload) => Promise<void>;
 }

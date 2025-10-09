@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
+import { UpdateExtrasDto } from './dto/update-extras.dto';
 
 @Injectable()
 export class EmpresasService {
@@ -250,6 +251,81 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
       throw new BadRequestException('Error al procesar el logo: ' + error.message);
     }
   }
+async uploadDashboard(id: string, file: Express.Multer.File) {
+  console.log('🔍 [UPLOAD DASHBOARD] Buscando empresa:', id);
+
+  const empresa = await this.prisma.empresa.findUnique({
+    where: { id },
+    select: { preferenciasWeb: { select: { empresaId: true } } }, // saber si existe
+  });
+
+  if (!empresa) {
+    console.error('❌ [UPLOAD DASHBOARD] Empresa no encontrada:', id);
+    throw new NotFoundException('Empresa no encontrada');
+  }
+
+  try {
+    // 1) Nombre y subida a Supabase (bucket "dashboards")
+    const ext = file.originalname.split('.').pop();
+    const fileName = `${id}/dashboard/${Date.now()}_${randomUUID()}.${ext}`;
+
+    console.log('📝 [UPLOAD DASHBOARD] Archivo:', fileName);
+
+    const { error: upErr } = await this.supabase
+      .getClient()
+      .storage
+      .from('dashboards')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (upErr) {
+      console.error('❌ [UPLOAD DASHBOARD] Error subiendo a Supabase:', upErr);
+      throw new BadRequestException('Error al subir el dashboard: ' + upErr.message);
+    }
+
+    // 2) URL pública
+    const { data: pub } = this.supabase
+      .getClient()
+      .storage
+      .from('dashboards')
+      .getPublicUrl(fileName);
+
+    const dashUrl = pub.publicUrl;
+    console.log('🌐 [UPLOAD DASHBOARD] URL pública:', dashUrl);
+
+    // 3) Persistir en Preferencias.dashboardFoto (nested upsert 1:1)
+    const empresaActualizada = await this.prisma.empresa.update({
+      where: { id },
+      data: {
+        preferenciasWeb: empresa.preferenciasWeb
+          ? { update: { dashboardFoto: dashUrl } }     // si ya existe, update
+          : { create: { dashboardFoto: dashUrl } },    // si no existe, create
+
+      },
+      include: {
+        ubicacion: true,
+        preferenciasWeb: true,
+      },
+    });
+
+    console.log('✅ [UPLOAD DASHBOARD] Preferencias actualizadas');
+
+    const { password, ubicacion, ...empresaSinPassword } = empresaActualizada as any;
+    return {
+      dashUrl,
+      empresa: {
+        ...empresaSinPassword,
+        ubicaciones: ubicacion ? [ubicacion] : [],
+      },
+    };
+  } catch (error: any) {
+    console.error('❌ [UPLOAD DASHBOARD] Error:', error);
+    throw new BadRequestException('Error al procesar el dashboard: ' + error.message);
+  }
+}
 
   // Métodos para ubicaciones
   async getUbicaciones(id: string) {
@@ -419,7 +495,67 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
       return null;
     }
   }
+  async getDashboardData(id: string): Promise<{ buffer: Buffer; contentType: string; size: number } | null> {
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id },
+      select: { preferenciasWeb: true },
+    });
 
+    if (!empresa || !empresa.preferenciasWeb.dashboardFoto) {
+      return null;
+    }
+
+    try {
+      // Extraer el path del archivo de la URL de Supabase
+      const url = new URL(empresa.preferenciasWeb.dashboardFoto);
+      const pathParts = url.pathname.split('/');
+      const bucketName = pathParts[2]; // 'logos'
+      const filePath = pathParts.slice(3).join('/'); // resto del path
+
+      console.log('🔍 [GET LOGO DATA] Descargando logo:', { bucketName, filePath });
+
+      // Descargar el archivo desde Supabase Storage
+      const { data, error } = await this.supabase
+        .getClient()
+        .storage
+        .from(bucketName)
+        .download(filePath);
+
+      if (error) {
+        console.error('❌ [GET LOGO DATA] Error descargando logo:', error);
+        return null;
+      }
+
+      // Convertir Blob a Buffer
+      const arrayBuffer = await data.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Obtener metadata del archivo
+      const { data: fileInfo } = await this.supabase
+        .getClient()
+        .storage
+        .from(bucketName)
+        .list(filePath.split('/')[0], {
+          search: filePath.split('/').pop(),
+        });
+
+      const contentType = fileInfo?.[0]?.metadata?.mimetype || 'image/jpeg';
+
+      console.log('✅ [GET dashboard DATA] dashboard descargado exitosamente:', {
+        size: buffer.length,
+        contentType
+      });
+
+      return {
+        buffer,
+        contentType,
+        size: buffer.length
+      };
+    } catch (error) {
+      console.error('❌ [GET LOGO DATA] Error procesando dashboard:', error);
+      return null;
+    }
+  }
   // Métodos para precios de envío
   async getPreciosEnvio(empresaId: string, ubicacionId: string) {
     console.log('🚚 [GET PRECIOS ENVIO] Buscando precios para ubicación:', { empresaId, ubicacionId });
@@ -448,6 +584,33 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
     console.log('🚚 [GET PRECIOS ENVIO] Precios encontrados:', precios.length);
     return precios;
   }
+
+  async updateExtras(empresaId: string, dto: UpdateExtrasDto, userId?: string) {
+
+
+    // Normalización mínima (keys en lower, trims)
+    const redesNorm = (dto.redesSociales || []).map((r) => ({
+      key: String(r.key || 'otros').toLowerCase(),
+      label: String(r.label || 'Link').trim(),
+      value: String(r.value || '').trim(),
+    }));
+
+    // Guardar alias = null si viene vacío
+    const aliasValue = (dto.alias ?? '').trim();
+    const alias = aliasValue.length ? aliasValue : null;
+
+    const updated = await this.prisma.empresa.update({
+      where: { id: empresaId },
+      data: {
+        alias,
+        redesSociales: redesNorm,
+      },
+    });
+
+    return updated;
+  }
+
+
 
   async createPrecioEnvio(empresaId: string, ubicacionId: string, createPrecioEnvioDto: CreatePrecioEnvioDto) {
     console.log('🚚 [CREATE PRECIO ENVIO] Creando precio:', { empresaId, ubicacionId, createPrecioEnvioDto });

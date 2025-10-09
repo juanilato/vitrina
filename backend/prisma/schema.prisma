@@ -34,7 +34,8 @@ model Empresa {
   isVerified  Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-
+  alias         String?          
+  redesSociales Json?      
   preferenciasWeb Preferencias?
   productos   Productos[]
   Pedidos     Pedido[]

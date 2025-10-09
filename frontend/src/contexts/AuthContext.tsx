@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axiosInstance from '../config/axios.config';
-import { logTokenInfo, startTokenMonitoring, getTokenInfo } from '../utils/tokenMonitor';
+import { logTokenInfo, startTokenMonitoring } from '../utils/tokenMonitor';
 
 interface User {
   id: string;
@@ -13,11 +13,13 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
+  register: (userData: RegisterData) => Promise<any>;
   logout: () => void;
   loading: boolean;
   error: string | null;
   debugToken: () => void;
+  googleLogin: (idToken: string) => Promise<void>;
+  googleRegister: (idToken: string, type: 'cliente' | 'empresa') => Promise<void>; // 👉 NUEVO
 }
 
 interface RegisterData {
@@ -32,146 +34,103 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+interface AuthProviderProps { children: ReactNode; }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para restaurar usuario del token almacenado
+  const saveToken = (token?: string) => {
+    if (!token) return;
+    localStorage.setItem('token', token);
+    logTokenInfo();
+  };
+
   const restoreUserFromToken = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('⚠️ [AUTH CONTEXT] No hay token para restaurar usuario');
-        return null;
-      }
-
-      console.log('🔍 [AUTH CONTEXT] Intentando restaurar usuario del token almacenado');
-      
-      // Verificar si el token es válido haciendo una petición al backend
+      if (!token) return null;
       const response = await axiosInstance.get('/auth/profile');
-      
-      if (response.data?.user) {
-        const userData = response.data.user;
-        console.log('✅ [AUTH CONTEXT] Usuario restaurado exitosamente:', {
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          type: userData.type
-        });
-        return userData;
-      }
-    } catch (error) {
-      console.warn('⚠️ [AUTH CONTEXT] Error al restaurar usuario del token:', error);
-      // Si hay error, limpiar token inválido
+      if (response.data?.user) return response.data.user as User;
+    } catch {
       localStorage.removeItem('token');
     }
     return null;
   };
 
   useEffect(() => {
-    console.log('🚀 [AUTH CONTEXT] Inicializando AuthProvider');
-    
     const initializeAuth = async () => {
       try {
-        // Check if user is logged in on app start
         const token = localStorage.getItem('token');
-        console.log('🔍 [AUTH CONTEXT] Token encontrado en localStorage:', {
-          hasToken: !!token,
-          tokenLength: token ? token.length : 0,
-          tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
-        });
-        
         if (token) {
-          console.log('✅ [AUTH CONTEXT] Token válido encontrado, configurando axios');
-          // El token se configurará automáticamente a través del interceptor
-          
-          // Mostrar información detallada del token
           logTokenInfo();
-          
-          // Intentar restaurar el usuario del token
           const restoredUser = await restoreUserFromToken();
-          if (restoredUser) {
-            setUser(restoredUser);
-            console.log('👤 [AUTH CONTEXT] Usuario restaurado en el estado');
-          } else {
-            console.log('⚠️ [AUTH CONTEXT] No se pudo restaurar el usuario, limpiando token');
-            localStorage.removeItem('token');
-          }
-          
-          // Iniciar monitoreo del token
-          const stopMonitoring = startTokenMonitoring(30000); // Cada 30 segundos
-          
-          // Cleanup function
-          return () => {
-            stopMonitoring();
-          };
-        } else {
-          console.log('⚠️ [AUTH CONTEXT] No hay token, usuario no autenticado');
+          if (restoredUser) setUser(restoredUser);
+          else localStorage.removeItem('token');
+          const stop = startTokenMonitoring(30000);
+          return () => stop();
         }
-      } catch (error) {
-        console.error('❌ [AUTH CONTEXT] Error en inicialización:', error);
       } finally {
         setLoading(false);
       }
     };
-
     initializeAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('🔐 [AUTH CONTEXT] Iniciando proceso de login para:', email);
       setLoading(true);
       setError(null);
-      
-      const response = await axiosInstance.post('/auth/login', { email, password });
-      console.log('✅ [AUTH CONTEXT] Login exitoso, respuesta del servidor:', {
-        hasUser: !!response.data.user,
-        hasToken: !!response.data.accessToken,
-        userType: response.data.user?.type,
-        tokenLength: response.data.accessToken?.length || 0
-      });
-      
-      const { user: userData, accessToken } = response.data;
-      
-      console.log('💾 [AUTH CONTEXT] Guardando token en localStorage');
-      localStorage.setItem('token', accessToken);
-      
-      // Mostrar información del nuevo token
-      console.log('🔍 [AUTH CONTEXT] Información del nuevo token:');
-      logTokenInfo();
-      
-      console.log('👤 [AUTH CONTEXT] Configurando usuario en estado:', {
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        type: userData.type
-      });
-      
-      setUser(userData);
-      
-      console.log('🎉 [AUTH CONTEXT] Login completado exitosamente');
+      const { data } = await axiosInstance.post('/auth/login', { email, password });
+      const token = data.accessToken || data.jwt;
+      saveToken(token);
+      setUser(data.user);
     } catch (err: any) {
-      console.error('❌ [AUTH CONTEXT] Error en login:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
-      
-      const errorMessage = err.response?.data?.message || 'Error al iniciar sesión';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      const msg = err?.response?.data?.message || 'Error al iniciar sesión';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const googleLogin = async (idToken: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data } = await axiosInstance.post('/auth/google', { idToken });
+      const token = data.accessToken || data.jwt;
+      if (!token) throw new Error('Respuesta sin token');
+      saveToken(token);
+      setUser(data.user);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Error con Google';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const googleRegister = async (idToken: string, type: 'cliente' | 'empresa') => { // 👉 NUEVO
+    try {
+      setLoading(true);
+      setError(null);
+      // Backend: POST /auth/google/register { idToken, type }
+      const { data } = await axiosInstance.post('/auth/google/register', { idToken, type });
+      const token = data.accessToken || data.jwt;
+      if (!token) throw new Error('Respuesta sin token');
+      saveToken(token);
+      setUser(data.user);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Error al registrar con Google';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
@@ -179,65 +138,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (userData: RegisterData) => {
     try {
-      console.log('📝 [AUTH CONTEXT] Iniciando registro para:', {
-        email: userData.email,
-        type: userData.type,
-        name: userData.name
-      });
-      
       setLoading(true);
       setError(null);
-      
-      const endpoint = userData.type === 'cliente' ? '/auth/register/cliente' : '/auth/register/empresa';
+      const endpoint =
+        userData.type === 'cliente' ? '/auth/register/cliente' : '/auth/register/empresa';
       const logo = userData.type === 'cliente' ? undefined : userData.logo;
-      
-      console.log('🌐 [AUTH CONTEXT] Enviando petición a endpoint:', endpoint);
-      const response = await axiosInstance.post(endpoint, { ...userData, logo });
-      
-      console.log('✅ [AUTH CONTEXT] Registro exitoso:', {
-        message: response.data.message,
-        email: response.data.email,
-        userType: response.data.userType
-      });
-      
-      // No hacer login automático - la cuenta necesita verificación
-      // await login(userData.email, userData.password);
-      
-      // Solo retornar éxito para que el componente maneje la verificación
-      return response.data;
+      const { data } = await axiosInstance.post(endpoint, { ...userData, logo });
+      return data;
     } catch (err: any) {
-      console.error('❌ [AUTH CONTEXT] Error en registro:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
-      
-      const errorMessage = err.response?.data?.message || 'Error al registrar usuario';
-      setError(errorMessage);
-      throw new Error(errorMessage);
+      const msg = err?.response?.data?.message || 'Error al registrar usuario';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   const logout = () => {
-    console.log('🚪 [AUTH CONTEXT] Iniciando logout');
-    
-    console.log('🗑️ [AUTH CONTEXT] Limpiando token del localStorage');
     localStorage.removeItem('token');
-    
-    console.log('👤 [AUTH CONTEXT] Limpiando usuario del estado');
     setUser(null);
-    
-    console.log('✅ [AUTH CONTEXT] Logout completado');
   };
 
   const debugToken = () => {
-    console.log('🔍 [AUTH CONTEXT] Debug del token solicitado');
     logTokenInfo();
-    
-    // También mostrar información del estado actual
-    console.log('📊 [AUTH CONTEXT] Estado actual del contexto:', {
+    console.log('Auth state:', {
       hasUser: !!user,
       userType: user?.type,
       userName: user?.name,
@@ -254,12 +178,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     loading,
     error,
-    debugToken
+    debugToken,
+    googleLogin,
+    googleRegister, // 👉 NUEVO
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

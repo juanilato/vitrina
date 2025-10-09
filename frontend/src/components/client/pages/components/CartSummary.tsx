@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CartSummaryProps, CheckoutFormData, DeliveryLocation } from '../types';
-import DeliveryLocationSelector from './DeliveryLocationSelector';
+import { CartSummaryProps, CheckoutFormData, DeliveryLocation } from '../../types';
+import DeliveryLocationSelector from '../../components/DeliveryLocationSelector';
 import './CartSummary.css';
 
 const CartSummary: React.FC<CartSummaryProps> = ({
@@ -102,7 +102,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
     } else if (companyData?.ubicaciones?.length) {
       // Si no viene precio, calcularlo (fallback)
       try {
-        const { ShippingService } = await import('../../../services/shippingService');
+        const { ShippingService } = await import('../../../../services/shippingService');
         const closestLocation = ShippingService.findClosestLocation(location, companyData.ubicaciones);
         
         const response = await ShippingService.calculateShippingPrice(companyData.id, {

@@ -1,0 +1,65 @@
+.social-editor {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.social-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.social-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.social-add {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.social-add:hover {
+  background: #f3f4f6;
+}
+
+.social-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.social-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 1.5fr 36px;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.social-key,
+.social-label,
+.social-value {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.social-remove {
+  border: 0;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 0.3rem 0.45rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.social-remove:hover {
+  background: #fecaca;
+}

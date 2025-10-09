@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
+import ImageUploader from './preferencesTab/components/imageUploader';
 
 const ProfileTab: React.FC = () => {
   const {
@@ -7,7 +8,7 @@ const ProfileTab: React.FC = () => {
     formData,
     saving,
     updateProfile,
-    uploadLogo
+    uploadFoto
   } = useAccountConfig();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -64,7 +65,7 @@ const ProfileTab: React.FC = () => {
     }
 
     try {
-      const logoUrl = await uploadLogo(file);
+      const logoUrl = await uploadFoto(file, false);
       setLocalFormData(prev => ({
         ...prev,
         logo: logoUrl
@@ -90,59 +91,15 @@ const ProfileTab: React.FC = () => {
         {/* Logo Section */}
         <div className="profile-section">
           <h3>Logo de la Empresa</h3>
-          <div className="logo-upload-container">
-            <div className="logo-upload-area">
-              <div 
-                className={`logo-preview-circle ${localFormData.logo ? 'has-logo' : 'no-logo'}`}
-                onClick={triggerFileUpload}
-              >
-                {localFormData.logo ? (
-                  <img 
-                    src={localFormData.logo} 
-                    alt="Logo de la empresa"
-                    className="logo-image-circle"
-                  />
-                ) : (
-                  <div className="logo-placeholder-circle">
-                    <span className="logo-upload-icon">📷</span>
-                    <span className="logo-upload-text">Haz clic para subir logo</span>
-                  </div>
-                )}
-                
-                {/* Overlay para indicar que es clickeable */}
-                <div className="logo-overlay">
-                  <span className="overlay-icon">📷</span>
-                  <span className="overlay-text">
-                    {localFormData.logo ? 'Cambiar' : 'Subir'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="logo-info">
-                <h4>Logo de la Empresa</h4>
-                <p>Sube una imagen para personalizar tu perfil. Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 5MB</p>
-                
-                <div className="logo-actions">
-                  <button 
-                    className="btn btn-primary"
-                    onClick={triggerFileUpload}
-                    disabled={saving}
-                  >
-                    {localFormData.logo ? 'Cambiar Logo' : 'Seleccionar Imagen'}
-                  </button>
-                  {localFormData.logo && (
-                    <button 
-                      className="btn btn-danger"
-                      onClick={() => setLocalFormData(prev => ({ ...prev, logo: '' }))}
-                      disabled={saving}
-                    >
-                      Eliminar Logo
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+   <ImageUploader
+  imageUrl={localFormData.logo}
+  onUpload={async (file) => {
+    const logoUrl = await uploadFoto(file, false); // ya la tenés
+    setLocalFormData(prev => ({ ...prev, logo: logoUrl }));
+  }}
+  onRemove={() => setLocalFormData(prev => ({ ...prev, logo: '' }))}
+  disabled={saving}
+/>
           
           <input
             ref={fileInputRef}

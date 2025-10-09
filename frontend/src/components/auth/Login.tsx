@@ -3,20 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './Login.css';
 
+import { GoogleLogin } from '@react-oauth/google';
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState('');
   
-  const { login, error, user } = useAuth();
+  const { login, googleLogin, error, user } = useAuth();
   const navigate = useNavigate();
 
-  // Verificar si el usuario ya está autenticado al cargar el componente
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && user) {
-      console.log('🔄 [LOGIN COMPONENT] Usuario ya autenticado, redirigiendo al dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
@@ -24,42 +24,34 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
-    
-    console.log('🔐 [LOGIN COMPONENT] Iniciando submit del formulario');
-    
     if (!email || !password) {
-      console.log('⚠️ [LOGIN COMPONENT] Campos vacíos detectados');
       setFormError('Por favor completa todos los campos');
       return;
     }
-
     try {
-      console.log('🚀 [LOGIN COMPONENT] Llamando a función login del AuthContext');
       setIsLoading(true);
       await login(email, password);
-      
-      console.log('✅ [LOGIN COMPONENT] Login exitoso, redirigiendo a dashboard');
       navigate('/dashboard');
     } catch (err: any) {
-      console.error('❌ [LOGIN COMPONENT] Error en login:', {
-        message: err.message,
-        error: err
-      });
       setFormError(err.message || 'Error al iniciar sesión');
     } finally {
       setIsLoading(false);
     }
   };
 
-  console.log('🔄 [LOGIN COMPONENT] Renderizando componente Login', {
-    email: email ? `${email.substring(0, 3)}...` : 'vacío',
-    hasPassword: !!password,
-    isLoading,
-    hasFormError: !!formError,
-    hasAuthError: !!error,
-    hasUser: !!user,
-    hasToken: !!localStorage.getItem('token')
-  });
+  const handleGoogle = async (cred: any) => {
+    try {
+      setIsLoading(true);
+      const idToken = cred?.credential;
+      if (!idToken) throw new Error('Token de Google inválido');
+      await googleLogin(idToken);
+      navigate('/dashboard');
+    } catch (e: any) {
+      setFormError(e.message || 'No se pudo iniciar con Google');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="auth-container">
@@ -69,12 +61,9 @@ const Login: React.FC = () => {
           <div className="auth-form-container">
             <div className="auth-form active">
               <div className="auth-header">
-  
                 <div className="logo-container">
-
-                <img src={'/vitrina-logo.png'} alt="Logo" />
+                  <img src={'/vitrina-logo.png'} alt="Logo" />
                 </div>
-       
               </div>
               
               <form onSubmit={handleSubmit} className="auth-form-content">
@@ -105,11 +94,9 @@ const Login: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 {(formError || error) && (
-                  <div className="error-message">
-                    {formError || error}
-                  </div>
+                  <div className="error-message">{formError || error}</div>
                 )}
                 
                 <button 
@@ -117,15 +104,25 @@ const Login: React.FC = () => {
                   className="btn btn-primary"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Iniciando sesion...' : 'INICIAR SESION'}
+                  {isLoading ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
                 </button>
               </form>
+
+
+              {/* Botón Google */}
+              <div className="google-wrapper">
+                <GoogleLogin
+                  onSuccess={handleGoogle}
+                  onError={() => setFormError('Error con Google')}
+                  useOneTap
+                />
+              </div>
               
               <div className="auth-footer">
                 <p>
-                  No tienes una cuenta?{' '}
+                  ¿No tienes una cuenta?{' '}
                   <Link to="/register" className="auth-link">
-                    Registrate ahora
+                    Regístrate ahora
                   </Link>
                 </p>
               </div>
@@ -133,17 +130,14 @@ const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* Panel Derecho - Visual Promocional */}
+        {/* Panel Derecho */}
         <div className="auth-visual-panel login-mode">
           <div className="visual-content">
             <div className="logo-container">
-
               <div className="logo-text">VITRINA</div>
             </div>
             <div className="visual-text">
-              <p>
-                Tu vitrina digital para el mundo.
-              </p>
+              <p>Tu vitrina digital para el mundo.</p>
             </div>
           </div>
         </div>

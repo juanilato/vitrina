@@ -521,3 +521,9 @@ select.form-input {
 .register-mode .form-input:focus::placeholder {
   color: rgba(255, 255, 255, 0.8);
 }
+
+
+.auth-divider { display:flex; align-items:center; gap:.75rem; margin:1rem 0; }
+.auth-divider::before, .auth-divider::after { content:""; flex:1; height:1px; background:rgba(0,0,0,.1); }
+.auth-divider span { color:#6b7280; font-size:.9rem; }
+.google-wrapper { display:flex; justify-content:center; }

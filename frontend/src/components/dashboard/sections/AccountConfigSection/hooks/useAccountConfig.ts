@@ -9,9 +9,18 @@ import {
   UpdateUbicacionData,
   PrecioEnvioData,
   CreatePrecioEnvioData,
-  UpdatePrecioEnvioData
+  UpdatePrecioEnvioData,
+  SocialLink,
+  UpdateEmpresaExtrasPayload
 } from '../types';
 
+const normalizeSocials = (arr: SocialLink[]) =>
+  (arr || []).map(r => ({
+    key: (r.key || "otros").toString().toLowerCase(),
+    label: (r.label || "Link").trim(),
+    value: (r.value || "").trim(),
+  }));
+  
 const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const { user } = useAuthOptimized();
   
@@ -272,20 +281,29 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   }, [user?.id]);
 
   // Subir logo
-  const uploadLogo = useCallback(async (file: File): Promise<string> => {
+  const uploadFoto = useCallback(async (file: File, dashboard?: Boolean): Promise<string> => {
     if (!user?.id) throw new Error('Usuario no autenticado');
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await axiosInstance.post(`/empresas/${user.id}/upload-logo`, formData, {
+      let response = '';
+      if (dashboard){
+      response = await axiosInstance.post(`/empresas/${user.id}/upload-dashboard`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+      }else{
+      response = await axiosInstance.post(`/empresas/${user.id}/upload-logo`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      }
 
-      return response.data.logoUrl;
+      return response;
     } catch (error: any) {
       console.error('Error al subir logo:', error);
       throw new Error(error.response?.data?.message || 'Error al subir logo');
@@ -414,6 +432,55 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     }
 
   },[user?.id])
+
+
+
+const updateEmpresaExtras = useCallback(async (payload: UpdateEmpresaExtrasPayload) => {
+  const { empresaId, alias, redesSociales } = payload;
+
+  // Optimistic UI
+  setState(s => ({
+    ...s,
+    empresaData: s.empresaData
+      ? {
+          ...s.empresaData,
+          alias: alias || undefined,
+          redesSociales: normalizeSocials(redesSociales || []),
+        }
+      : s.empresaData,
+    saving: true,
+    error: null,
+    success: null,
+  }));
+
+  try {
+    // PATCH directo a tu backend (siguiendo tu convención /empresas/:id/...)
+    const { data: updated } = await axiosInstance.patch<EmpresaData>(
+      `/empresas/${empresaId}/extras`,
+      {
+        alias: alias ?? "", // 👈 string
+        redesSociales: normalizeSocials(redesSociales || []),
+      }
+    );
+
+    setState(s => ({
+      ...s,
+      empresaData: updated || s.empresaData,
+      saving: false,
+      success: "Datos de empresa actualizados",
+    }));
+  } catch (e: any) {
+    setState(s => ({
+      ...s,
+      saving: false,
+      error: e?.response?.data?.message || e?.message || "No se pudieron guardar los extras de la empresa",
+    }));
+    // revert/refresh (te conviene refrescar del back)
+    await loadEmpresaData().catch(() => {});
+    throw e;
+  }
+}, [loadEmpresaData]);
+
   return {
     ...state,
     loadEmpresaData,
@@ -422,14 +489,15 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     addLocation,
     removeLocation,
     changePassword,
-    uploadLogo,
+    uploadFoto,
     resetForm,
     setActiveTab,
     getPreciosEnvio,
     createPrecioEnvio,
     updatePrecioEnvio,
     removePrecioEnvio,
-    updatePreferences
+    updatePreferences,
+    updateEmpresaExtras
   };
 };
 

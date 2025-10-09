@@ -1,5 +1,4 @@
 // Types for Client Dashboard
-
 export interface Company {
   id: string;
   name: string;
@@ -10,15 +9,30 @@ export interface Company {
   rating?: number;
   reviewCount?: number;
   isVerified?: boolean;
-  ubicaciones?: Array<{
+  ubicaciones?:Array<{
     id: number;
     direccion: string;
     lat: number;
     lng: number;
   }>;
+  preferenciasWeb?: Preferencias; // 👈 agregado
   createdAt: string;
   updatedAt: string;
 }
+export interface Preferencias {
+  colorBotones?: string;
+  colorFondo?: string;
+  envioDomicilio: boolean;
+  dashboardFoto?: string;
+  horarios?: {
+    day: string;       // "LUN" | "MAR" | etc.
+    slotIndex: number;
+    abreMin: number;
+    cierraMin: number;
+    cerrado: boolean;
+  }[];
+}
+
 
 export interface Product {
   id: string;
@@ -142,3 +156,6 @@ export interface CartSummaryProps {
     }>;
   };
 }
+
+
+

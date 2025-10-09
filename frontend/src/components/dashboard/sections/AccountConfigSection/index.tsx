@@ -18,19 +18,6 @@ const AccountConfigSection: React.FC = () => {
     resetForm
   } = useAccountConfig();
 
-  // Log para debuggear
-  console.log('🏢 [ACCOUNT CONFIG] Estado actual:', {
-    loading,
-    saving,
-    empresaData: empresaData ? {
-      id: empresaData.id,
-      name: empresaData.name,
-      ubicacionesCount: empresaData.ubicaciones?.length || 0
-    } : null,
-    ubicacion:  formData.ubicaciones[0]
-    
-  });
-  
 
 
   if (loading) {

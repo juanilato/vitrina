@@ -1,9 +1,9 @@
 .calendar-container {
   padding: 20px;
   border-radius: 16px;
-  background-color: var(--panel, #11151c);
-  color: var(--text, #e7ecf3);
-  box-shadow: var(--shadow, 0 4px 20px rgba(0, 0, 0, 0.3));
+  background-color: var(--vitrina-white);
+  color: var(--vitrina-text);
+
   font-family: 'Inter', sans-serif;
 }
 
@@ -14,7 +14,7 @@
 
 .calendar-subtitle {
   font-size: 14px;
-  color: var(--muted, #9aa8bd);
+  color: var(--vitrina-text-secondary);
   margin-bottom: 16px;
 }
 
@@ -26,9 +26,9 @@
 
 .day-row {
   padding: 16px;
-  border: 1px solid var(--border, rgba(255,255,255,0.08));
+
   border-radius: 12px;
-  background-color: var(--panel-2, #0f131a);
+  background-color: var(--vitrina-white);
 }
 
 .day-header {
@@ -64,11 +64,10 @@
 }
 
 .time-inputs input[type="time"] {
-  background-color: #1a1f2b;
-  border: 1px solid rgba(255,255,255,0.1);
+  
   color: #e7ecf3;
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: 16px;
   font-size: 14px;
 }
 
