@@ -86,7 +86,7 @@ const AccountConfigSection: React.FC = () => {
   };
 
   return (
-    <div className="account-config-section">
+    <div className="account-config-section" data-app-shell>
 
       {/* Header */}
       <div className="account-config-header">
