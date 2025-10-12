@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react';
-
+import './ColorPicker.css';
 interface ColorPickerProps {
   label: string;
   description?: string;

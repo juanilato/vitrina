@@ -1,65 +1,185 @@
-.social-editor {
-  display: grid;
-  gap: 0.8rem;
+/* ---- SocialLinksEditor.css (ajustes de layout) ---- */
+.social-editor.card-like{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-100);
+  padding: 12px;
+  display: grid; gap: 12px;
 }
 
-.social-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.social-header{
+  display:flex; align-items:center;  gap:12px;
+  padding-bottom: 8px; border-bottom:1px solid var(--border);
+}
+.social-title{ font-size:14px; font-weight:800; color:var(--text); }
+
+.social-list{ display:grid; gap:10px; }
+
+.social-row{
+  display:grid;
+  grid-template-columns: 160px 1fr 1.4fr auto;
+  gap:10px;
+  align-items:center;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+@media (max-width: 980px){
+  .social-row{
+    grid-template-columns: 1fr;
+    gap:8px;
+  }
 }
 
-.social-title {
-  font-weight: 600;
-  color: #333;
+.social-key, .social-label, .social-value{
+  height:36px; padding:0 10px;
+  border:1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size:13px;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.social-key:focus, .social-label:focus, .social-value:focus{
+  outline:none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
-.social-add {
-  border: 1px solid #d1d5db;
+.social-key{ min-width: 50px; }
+.social-label{ min-width: 50px; }
+.social-value{ min-width: 200px; }
+
+.social-row .btn{ justify-self:end; }
+.social-key{ max-width: 200px; }
+.social-label{ max-width: 50px; }
+.social-value{ max-width: 250px; }
+
+.social-key:focus,
+.social-label:focus,
+.social-value:focus{
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
   background: #fff;
+}
+.social-key::placeholder,
+.social-label::placeholder,
+.social-value::placeholder{ color: var(--text-muted); }
+
+/* Select estilizado (oculta flecha nativa en algunos navegadores) */
+.social-key{
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%,
+    100% 0;
+  background-size: 5px 5px, 5px 5px, 2.5em 100%;
+  background-repeat: no-repeat;
+}
+
+/* Botón eliminar (usa tus utilidades .btn .btn-danger .small) */
+.social-row .btn.small{
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12.5px;
   border-radius: 8px;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: 0.15s;
 }
 
-.social-add:hover {
-  background: #f3f4f6;
+/* Compacto móvil */
+@media (max-width: 980px){
+  .social-row{
+    grid-template-columns: 1fr;
+  }
 }
 
-.social-list {
-  display: grid;
-  gap: 0.5rem;
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .social-row,
+  .social-key,
+  .social-label,
+  .social-value{ transition: none; }
 }
 
-.social-row {
-  display: grid;
-  grid-template-columns: 150px 1fr 1.5fr 36px;
-  gap: 0.5rem;
-  align-items: center;
-}
 
-.social-key,
-.social-label,
-.social-value {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.55rem 0.65rem;
-  font-size: 0.9rem;
-}
 
-.social-remove {
-  border: 0;
-  background: #fee2e2;
+/* Chip con icono + label (Agregar) */
+.cnav-chip-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px;
+  border:1px solid var(--nav-border, var(--border));
+  border-radius: 999px;
+  background: var(--nav-surface, var(--surface));
+  color: var(--nav-text, var(--text));
+  font-weight:800; font-size:12.5px;
+  box-shadow: var(--nav-shadow, var(--shadow-100));
+  cursor:pointer;
+
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .05s ease;
+}
+.cnav-chip-btn:hover{
+  background: var(--nav-hover, var(--surface-alt));
+  border-color: var(--nav-primary, var(--primary));
+  box-shadow: var(--shadow-200);
+}
+.cnav-chip-btn:active{ transform: translateY(0.5px); }
+.cnav-chip-icon{ display:grid; place-items:center; width:18px; height:18px; color: inherit; }
+.cnav-chip-label{ line-height: 1; }
+
+/* Botón icon-only compacto (Eliminar) */
+.cnav-iconbtn{
+  display:inline-grid; place-items:center;
+  width:32px; height:32px;
+  border:1px solid var(--nav-border, var(--border));
+  border-radius: 10px;
+  background: var(--nav-surface, var(--surface));
+  color: var(--nav-text, var(--text));
+  cursor:pointer;
+  box-shadow: var(--nav-shadow, var(--shadow-100));
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .05s ease, color .15s ease;
+}
+.cnav-iconbtn:hover{
+  background: var(--nav-hover, var(--surface-alt));
+  border-color: var(--nav-primary, var(--primary));
+  box-shadow: var(--shadow-200);
+}
+.cnav-iconbtn:active{ transform: translateY(0.5px); }
+
+/* Variantes */
+.cnav-iconbtn--danger{
+  border-color: color-mix(in srgb, #ef4444 40%, var(--border));
+  color: #b91c1c;
+  background: var(--surface);
+}
+.cnav-iconbtn--danger:hover{
+  background: #fff5f5;
+  border-color: #ef4444;
   color: #991b1b;
-  border-radius: 8px;
-  padding: 0.3rem 0.45rem;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 1rem;
 }
 
-.social-remove:hover {
-  background: #fecaca;
+.cnav-iconbtn--primary{
+  border-color: var(--nav-primary, var(--primary));
+  color: var(--nav-primary, var(--primary));
+}
+.cnav-iconbtn--primary:hover{
+  background: #F8FAFF;
+}
+
+/* Ajustes de layout para que los botones no rompan filas */
+.social-header .cnav-chip-btn{ margin-left:auto; }
+.social-row .cnav-iconbtn{ justify-self: end; }
+
+/* Evitar que .btn global afecte estos */
+.cnav-chip-btn, .cnav-iconbtn{ max-width: none; }
+
+/* ===== Opcional: versión mini del chip para pantallas angostas ===== */
+@media (max-width: 560px){
+  .cnav-chip-label{ display:none; }
+  .cnav-chip-btn{ padding:8px; border-radius:10px; }
 }

@@ -1,16 +1,25 @@
+// PreferencesTab.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import useAccountConfig from '../../hooks/useAccountConfig';
-import { SocialLink ,PreferencesState, DayKey, TimeSlot, UpdatePreferenciasPayload, HorarioAtencionData } from '../../types';
-import DashboardFoto from './components/DashboardFoto';
+import {
+  SocialLink,
+  PreferencesState,
+  DayKey,
+  TimeSlot,
+  UpdatePreferenciasPayload,
+  HorarioAtencionData,
+  UpdateEmpresaExtrasPayload
+} from '../../types';
+
 import EnvioToggle from './components/EnvioToggle';
 import ColorPicker from './components/ColorPicker';
 import CalendarSchedule from './components/ScheduleEditor';
-import './PreferencesTab.css';
 import ImageUploader from './components/imageUploader';
-import LiveSitePreview from './components/liveWebPage'; 
+import LiveSitePreview from './components/liveWebPage';
 import AliasesEditor from './components/AliasEditor';
 import SocialLinksEditor from './components/SocialLinksEditor';
-import { UpdateEmpresaExtrasPayload } from '../../types';
+
+import './PreferencesTab.css';
 
 const DAYS: { key: DayKey; label: string }[] = [
   { key: 'LUN', label: 'Lunes' },
@@ -23,62 +32,48 @@ const DAYS: { key: DayKey; label: string }[] = [
 ];
 
 const hydrateSchedule = (horarios: HorarioAtencionData[] | undefined): Record<DayKey, TimeSlot[]> => {
-  const result: Record<DayKey, TimeSlot[]> = {
-    LUN: [],
-    MAR: [],
-    MIE: [],
-    JUE: [],
-    VIE: [],
-    SAB: [],
-    DOM: [],
-  };
-
+  const result: Record<DayKey, TimeSlot[]> = { LUN: [], MAR: [], MIE: [], JUE: [], VIE: [], SAB: [], DOM: [] };
   if (!horarios) return result;
-
   for (const h of horarios) {
     const openH = Math.floor(h.abreMin / 60).toString().padStart(2, '0');
     const openM = (h.abreMin % 60).toString().padStart(2, '0');
     const closeH = Math.floor(h.cierraMin / 60).toString().padStart(2, '0');
     const closeM = (h.cierraMin % 60).toString().padStart(2, '0');
-
-    result[h.day].push({
-      open: `${openH}:${openM}`,
-      close: `${closeH}:${closeM}`
-    });
+    result[h.day].push({ open: `${openH}:${openM}`, close: `${closeH}:${closeM}` });
   }
-
   return result;
 };
 
+type PrefsView = 'logos' | 'appearance' | 'hours' | 'preview';
+
 const PreferencesTab: React.FC = () => {
- const { empresaData, saving, updatePreferences, uploadFoto, updateEmpresaExtras } = useAccountConfig();
+  const { empresaData, saving, updatePreferences, uploadFoto, updateEmpresaExtras } = useAccountConfig();
 
+  const initialPreferences = useMemo<PreferencesState>(() => ({
+    dashboardFotoUrl: empresaData?.preferenciasWeb?.dashboardFoto ?? '',
+    envioDomicilio: Boolean(empresaData?.preferenciasWeb?.envioDomicilio),
+    colorBotones: empresaData?.preferenciasWeb?.colorBotones ?? '#0d6efd',
+    colorFondo: empresaData?.preferenciasWeb?.colorFondo ?? '#ffffff',
+    schedule: hydrateSchedule(empresaData?.preferenciasWeb?.horarios),
+  }), [empresaData]);
 
-   console.log("EMPRESA DATa del back", empresaData);
-const initialPreferences = useMemo<PreferencesState>(() => ({
-  dashboardFotoUrl: empresaData?.preferenciasWeb?.dashboardFoto ?? '',
-  envioDomicilio: Boolean(empresaData?.preferenciasWeb?.envioDomicilio),
-  colorBotones: empresaData?.preferenciasWeb?.colorBotones ?? '#0d6efd',
-  colorFondo: empresaData?.preferenciasWeb?.colorFondo ?? '#ffffff',
-  schedule: hydrateSchedule(empresaData?.preferenciasWeb?.horarios),
-}), [empresaData]);
   const [preferences, setPreferences] = useState<PreferencesState>(initialPreferences);
-   const [alias, setAlias] = useState<string>(empresaData?.alias || "");
+  const [alias, setAlias] = useState<string>(empresaData?.alias || '');
   const [redes, setRedes] = useState<SocialLink[]>(empresaData?.redesSociales || []);
-  
+  const [activeView, setActiveView] = useState<PrefsView>('logos');
+
   useEffect(() => {
     setPreferences(initialPreferences);
-    setAlias(empresaData?.alias || "");
+    setAlias(empresaData?.alias || '');
     setRedes(empresaData?.redesSociales || []);
   }, [initialPreferences, empresaData]);
 
- const handleSave = async () => {
+  const handleSave = async () => {
     if (!empresaData?.id) {
       alert('Falta empresaId');
       return;
     }
 
-    // ---- Preferencias web (como ya lo tenías) ----
     const payload: UpdatePreferenciasPayload = {
       empresaId: empresaData.id,
       colorBotones: preferences.colorBotones,
@@ -99,10 +94,8 @@ const initialPreferences = useMemo<PreferencesState>(() => ({
         })
       ),
     };
-
     await updatePreferences(payload);
 
-    // ---- NUEVO: Extras de empresa (aliases + redes) ----
     const extras: UpdateEmpresaExtrasPayload = {
       empresaId: empresaData.id,
       alias,
@@ -116,7 +109,6 @@ const initialPreferences = useMemo<PreferencesState>(() => ({
     if (typeof updateEmpresaExtras === 'function') {
       await updateEmpresaExtras(extras);
     } else {
-      // fallback si aún no actualizaste el hook:
       await fetch(`/api/empresa/${empresaData.id}/extras`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -126,96 +118,148 @@ const initialPreferences = useMemo<PreferencesState>(() => ({
 
     alert('Preferencias y datos de empresa guardados');
   };
+
   return (
-    <div>
-    <div className="preferences-tab">
-      <div className="preferences-content">
-        <h3>Configuración</h3>
-        
-        <div className="preferences-grid">
+    <div className="prefs-shell" aria-label="Preferencias del sitio">
+      <section className="prefs-main card" aria-labelledby="prefs-heading">
+        <header className="prefs-header">
+          <div className="prefs-header-main">
+            <div>
+              <h2 id="prefs-heading" className="prefs-title">Preferencias del sitio</h2>
+              <p className="prefs-subtitle muted">Configurá tu presencia web</p>
+            </div>
+            <div className="preferences-actions">
+              <button className="btn btn-primary" onClick={handleSave} disabled={saving} aria-live="polite">
+                {saving ? 'Guardando…' : 'Guardar cambios'}
+              </button>
+            </div>
+          </div>
 
-  <ImageUploader
-    label="Logo de la empresa"
-    imageUrl={empresaData?.logo ?? ""}
-    cropShape="circle"     // 🔵 recorte circular (ideal para logos o avatares)
-    aspect={1}             // cuadrado, mantiene simetría perfecta
-    onUpload={async (file) => {
-      await uploadFoto(file, false);
-      setPreferences(prev => ({ ...prev }));
-    }}
-    onRemove={() => {
-      console.log("Logo eliminado");
-    }}
-  />
+          {/* Segmented control (horizontal) */}
+      <nav className="seg-tabs minimal" role="tablist" aria-label="Secciones de preferencias">
+            {[
+              { id: 'logos', label: 'Logos' },
+              { id: 'appearance', label: 'Apariencia' },
+              { id: 'hours', label: 'Horarios' },
+              { id: 'preview', label: 'Visualizador' },
+            ].map(t => (
+              <button
+                key={t.id}
+                role="tab"
+                aria-selected={activeView === (t.id as PrefsView)}
+                className={`seg-btn ${activeView === (t.id as PrefsView) ? 'active' : ''}`}
+                onClick={() => setActiveView(t.id as PrefsView)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </header>
 
-  <ImageUploader
-    label="Foto de fondo"
-    imageUrl={preferences.dashboardFotoUrl}
-    cropShape="rect"       // 🟦 recorte rectangular
-    aspect={16 / 9}        // proporción widescreen (opcional)
-    onUpload={async (file) => {
-      await uploadFoto(file, true);
-      setPreferences(prev => ({ ...prev }));
-    }}
-  />
+        {/* ====== Vistas exclusivas ====== */}
 
+        {/* LOGOS */}
+        {activeView === 'logos' && (
+          <section className="section-card" aria-labelledby="prefs-media">
+            <div className="section-head">
+              <h3 id="prefs-media" className="section-title">Logos e imágenes</h3>
+              <p className="section-desc muted">Logo principal e imagen de portada</p>
+            </div>
+            <div className="preferences-grid">
+              <ImageUploader
+                label="Logo de la empresa"
+                imageUrl={empresaData?.logo ?? ''}
+                cropShape="circle"
+                aspect={1}
+                onUpload={async (file) => {
+                  await uploadFoto(file, false);
+                  setPreferences(prev => ({ ...prev }));
+                }}
+                onRemove={() => {}}
+              />
+              <ImageUploader
+                label="Foto de fondo"
+                imageUrl={preferences.dashboardFotoUrl}
+                cropShape="rect"
+                aspect={16 / 9}
+                onUpload={async (file) => {
+                  await uploadFoto(file, true);
+                  setPreferences(prev => ({ ...prev }));
+                }}
+              />
+            </div>
+            <div className="section-foot muted">Sugerencia: logo PNG con fondo transparente.</div>
+          </section>
+        )}
 
-          <EnvioToggle
-            value={preferences.envioDomicilio}
-            onChange={(val) => setPreferences((p) => ({ ...p, envioDomicilio: val }))}
-          />
-<ColorPicker
-  label="Color de botones"
-  description="Selecciona el color de los botones en tu web"
-  value={preferences.colorBotones}
-  onChange={(val) => setPreferences(p => ({ ...p, colorBotones: val }))}
-/>
+        {/* APARIENCIA */}
+        {activeView === 'appearance' && (
+          <section className="section-card" aria-labelledby="prefs-appearance">
+            <div className="section-head">
+              <h3 id="prefs-appearance" className="section-title">Apariencia y opciones</h3>
+              <p className="section-desc muted">Definí envíos y paleta de colores</p>
+            </div>
+            <div className="preferences-grid">
+              <ColorPicker
+                label="Color de botones"
+                description="Color principal para acciones"
+                value={preferences.colorBotones}
+                onChange={(val) => setPreferences(p => ({ ...p, colorBotones: val }))}
+              />
+              <ColorPicker
+                label="Color de fondo"
+                description="Color base del sitio"
+                value={preferences.colorFondo}
+                onChange={(val) => setPreferences(p => ({ ...p, colorFondo: val }))}
+              />
+              <EnvioToggle
+                value={preferences.envioDomicilio}
+                onChange={(val) => setPreferences(p => ({ ...p, envioDomicilio: val }))}
+              />
 
-<ColorPicker
-  label="Color de fondo"
-  description="Selecciona el color de fondo de tu web"
-  value={preferences.colorFondo}
-  onChange={(val) => setPreferences(p => ({ ...p, colorFondo: val }))}
-/>
-        </div>
+              <AliasesEditor value={alias} onChange={setAlias} />
+              <SocialLinksEditor value={redes} onChange={setRedes} />
+            </div>
+          </section>
+        )}
 
-        <div className="preferences-grid" style={{ marginTop: '1rem' }}>
-          <AliasesEditor value={alias} onChange={setAlias} />
-          <SocialLinksEditor value={redes} onChange={setRedes} />
-        </div>
+        {/* HORARIOS */}
+        {activeView === 'hours' && (
+          <section className="section-card" aria-labelledby="prefs-hours">
 
-<CalendarSchedule
-  schedule={preferences.schedule}
-  onChange={(next) => setPreferences(p => ({ ...p, schedule: next }))}
-/>
+            <CalendarSchedule
+              schedule={preferences.schedule}
+              onChange={(next) => setPreferences(p => ({ ...p, schedule: next }))}
+            />
+          </section>
+        )}
 
-        <div className="preferences-actions">
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Guardando...' : 'Guardar preferencias'}
-          </button>
-        </div>
-      </div>
-
+        {/* VISUALIZADOR */}
+        {activeView === 'preview' && (
+          <section className="section-card" aria-labelledby="prefs-preview">
+            <div className="section-head">
+              <h3 id="prefs-preview" className="section-title">Visualizador web</h3>
+              <p className="section-desc muted">Vista aproximada del sitio público</p>
+            </div>
+            <div className="preview-frame">
+              <LiveSitePreview
+                empresa={{
+                  id: empresaData?.id || '',
+                  name: empresaData?.name || 'Tu Empresa',
+                  logo: empresaData?.logo || undefined,
+                  ubicaciones: empresaData?.ubicaciones || [],
+                  products: (empresaData as any)?.products || [],
+                  instagram: (empresaData as any)?.instagram,
+                  facebook: (empresaData as any)?.facebook,
+                  website: (empresaData as any)?.website,
+                }}
+                prefs={preferences}
+              />
+            </div>
+          </section>
+        )}
+      </section>
     </div>
-          <div className="preferences-preview-wrapper">
-  <h4>Previsualización del sitio</h4>
-  <LiveSitePreview
-    empresa={{
-      id: empresaData?.id || "",
-      name: empresaData?.name || "Tu Empresa",
-
-      logo: empresaData?.logo || undefined,
-      ubicaciones: empresaData?.ubicaciones || [],
-      // si tenés productos en este objeto, pasalos:
-      products: (empresaData as any)?.products || [],
-      instagram: (empresaData as any)?.instagram,
-      facebook: (empresaData as any)?.facebook,
-      website: (empresaData as any)?.website,
-    }}
-    prefs={preferences}
-  />
-</div>
-</div>
   );
 };
 

@@ -1,0 +1,142 @@
+/* ============ ColorPicker (sobrio, pro, iOS/ClickUp-ish) ============ */
+
+.colorpicker-card{
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-100);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.colorpicker-card .preference-info h4{
+  margin: 0 0 4px 0;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text);
+}
+.colorpicker-card .preference-info p{
+  margin: 0 0 10px 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+/* fila principal: pill + hex input (+ input nativo oculto) */
+.colorpicker-preview-row{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* “pastilla” de preview/selector (abre el input type=color) */
+.colorpill{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 108px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 92%, #000 0%);
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 12.5px;
+  letter-spacing: .2px;
+  text-transform: uppercase;
+  box-shadow: 0 1px 0 rgba(0,0,0,.03) inset;
+  cursor: pointer;
+  transition: transform .05s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
+  user-select: none;
+}
+.colorpill:hover{
+  box-shadow: var(--shadow-100);
+  transform: translateY(-0.5px);
+}
+.colorpill:active{
+  transform: translateY(0);
+}
+.colorpill:focus-visible{
+  outline: none;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent),
+    0 0 0 1px #fff inset;
+}
+
+/* input HEX manual */
+.hex-input{
+  height: 36px;
+  min-width: 120px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.hex-input::placeholder{ color: var(--text-muted); }
+.hex-input:focus{
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+  background: #fff;
+}
+
+/* input color nativo: oculto pero accesible vía botón */
+.native-color-input{
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  border: 0;
+}
+
+/* paleta de muestras */
+.swatches{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 28px;
+  gap: 8px;
+  margin-top: 10px;
+  width: fit-content;
+}
+.swatch{
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, #000 0%);
+  box-shadow: 0 1px 0 rgba(0,0,0,.02) inset;
+  cursor: pointer;
+  transition: transform .05s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.swatch:hover{ transform: translateY(-1px); box-shadow: var(--shadow-100); }
+.swatch:active{ transform: translateY(0); }
+.swatch.active{
+  outline: 0;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px color-mix(in srgb, var(--primary) 40%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 46%, var(--border));
+}
+
+/* columna de control vacía para alinear con otros “preference-item” */
+.colorpicker-card .preference-control{ align-self: start; }
+
+/* compacto en móviles */
+@media (max-width: 820px){
+  .colorpicker-card{
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .swatches{ grid-auto-columns: 26px; gap: 6px; }
+  .swatch{ width: 26px; height: 26px; border-radius: 7px; }
+}
+
+/* respetar reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .colorpill, .hex-input, .swatch{ transition: none; }
+}

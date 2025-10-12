@@ -69,34 +69,8 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
 
       {isOpen && (
         <div className="notifications-panel">
-          <div className="notifications-header">
-            <h3>Notificaciones</h3>
-            <div className="header-actions">
-              {unreadCount > 0 && (
-                <button
-                  className="mark-all-read-btn"
-                  onClick={handleMarkAllAsRead}
-                  title="Marcar todas como leídas"
-                >
-                  <span className="mark-all-icon">✓</span>
-                  <span className="mark-all-text">Todas</span>
-                </button>
-              )}
-              {onViewAll && (
-                <button
-                  className="view-all-btn"
-                  onClick={() => {
-                    onViewAll();
-                    setIsOpen(false);
-                  }}
-                  title="Ver todas las notificaciones"
-                >
-                  <span className="view-all-icon">👁️</span>
-                  <span className="view-all-text">Ver Todas</span>
-                </button>
-              )}
-            </div>
-          </div>
+
+
 
           <div className="notifications-list">
             {loading ? (

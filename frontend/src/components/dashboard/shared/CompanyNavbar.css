@@ -1,56 +1,63 @@
-/* Hereda tokens del layout principal */
-:root{
+/* ===== Sidebar formal y claro ===== */
+:root {
   --nav-gap: 6px;
-  --nav-pad-x: 10px;
-  --nav-pad-y: 8px;
-  --nav-radius: 10px;
-  --nav-border: var(--border, #e7e8ee);
-  --nav-surface: var(--surface, #fff);
-  --nav-muted: var(--muted, #6b7280);
-  --nav-text: var(--text, #1e222b);
-  --nav-primary: var(--primary, #2a5bd7);
-  --nav-shadow: var(--shadow-100, 0 1px 2px rgba(0,0,0,.04));
+  --nav-pad-x: 12px;
+  --nav-pad-y: 10px;
+  --nav-radius: 8px;
+  --nav-border: #E5E7EB;
+  --nav-surface: #FFFFFF;
+  --nav-muted: #6B7280;
+  --nav-text: #1F2937;
+  --nav-primary: #2A5BD7;
+  --nav-hover: #F3F4F6;
+  --nav-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --ring: 0 0 0 3px rgba(42, 91, 215, 0.15);
 }
 
-.cnav-root{
+/* Contenedor principal */
+.cnav-root {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  background: var(--nav-surface);
+  padding-top: 6px;
 }
 
-/* Marca compacta (se ve sobria, no “marketera”) */
-.cnav-brand{
+/* Marca (logo + texto) */
+.cnav-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 10px 4px;
   border-bottom: 1px solid var(--nav-border);
 }
-.cnav-logo{
+
+.cnav-logo {
   width: 22px;
   height: 22px;
   object-fit: contain;
   border-radius: 4px;
 }
-.cnav-brand-text{
-  font-weight: 800;
-  letter-spacing: .2px;
+
+.cnav-brand-text {
+  font-weight: 700;
+  letter-spacing: 0.2px;
   color: var(--nav-text);
   font-size: 13px;
 }
 
-/* Lista de navegación (vertical) */
-.cnav-list{
+/* Lista vertical */
+.cnav-list {
   display: flex;
   flex-direction: column;
   gap: var(--nav-gap);
   padding: 8px;
 }
 
-/* Item base */
-.cnav-item{
+/* ===== Ítem base ===== */
+.cnav-item {
   display: grid;
-  grid-template-columns: 24px 1fr auto;
+  grid-template-columns: 22px 1fr auto;
   align-items: center;
   gap: 10px;
   padding: var(--nav-pad-y) var(--nav-pad-x);
@@ -59,47 +66,76 @@
   background: var(--nav-surface);
   color: var(--nav-text);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 13px;
   box-shadow: var(--nav-shadow);
-  transition: border-color .15s ease, background .15s ease, color .15s ease, transform .05s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.05s ease;
 }
-.cnav-item:hover{
-  border-color: var(--nav-primary);
+
+.cnav-item:hover {
+  background: var(--nav-hover);
 }
-.cnav-item:active{
+
+.cnav-item:active {
   transform: translateY(1px);
 }
 
-/* Estado activo */
-.cnav-item.active{
-  border-color: var(--nav-primary);
-  background: color-mix(in srgb, var(--nav-primary) 8%, #ffffff);
+.cnav-item:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 
-/* Icono y etiqueta */
-.cnav-icon{
-  width: 24px;
-  text-align: center;
-  opacity: .95;
+/* Estado activo */
+.cnav-item.active {
+  border-color: var(--nav-primary);
+  background: #F8FAFF;
+  color: var(--nav-primary);
 }
-.cnav-label{
+
+/* Iconos */
+.cnav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--nav-muted);
+  transition: color 0.15s ease;
+}
+
+.cnav-item:hover .cnav-icon {
+  color: var(--nav-text);
+}
+
+.cnav-item.active .cnav-icon {
+  color: var(--nav-primary);
+}
+
+/* Etiqueta */
+.cnav-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Badges/Pills */
-.cnav-pill{
+/* Badge sutil */
+.cnav-pill {
   justify-self: end;
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1;
+  padding: 2px 6px;
+  border-radius: 999px;
   color: var(--nav-primary);
+  background: #EEF3FF;
+  border: 1px solid #D7E3FF;
 }
 
-/* Grupo con dropdown (notificaciones) */
-.cnav-group{ position: relative; }
-.cnav-dropdown{
+/* Dropdown (notificaciones) */
+.cnav-group {
+  position: relative;
+}
+
+.cnav-dropdown {
   position: absolute;
   left: calc(100% + 8px);
   top: 0;
@@ -109,47 +145,50 @@
   background: var(--nav-surface);
   border: 1px solid var(--nav-border);
   border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   z-index: 50;
   padding: 8px;
 }
 
-
-
-/* ===== Sidebar angosto (hereda del layout con @media) ===== */
-@media (max-width: 1024px){
-  /* Cuando el layout reduce la sidebar a ~72px, colapsamos labels */
-  .cnav-root{ gap: 6px; }
-  .cnav-brand-text{ display: none; }
-  .cnav-list{ padding: 6px; gap: 6px; }
-  .cnav-item{
-    grid-template-columns: 24px;
+/* ===== Sidebar angosto ===== */
+@media (max-width: 1024px) {
+  .cnav-root {
+    gap: 6px;
+  }
+  .cnav-brand-text {
+    display: none;
+  }
+  .cnav-list {
+    padding: 6px;
+    gap: 6px;
+  }
+  .cnav-item {
+    grid-template-columns: 22px;
     justify-items: center;
     padding: 10px 8px;
   }
-  .cnav-label, .cnav-pill{ display: none; }
-  .cnav-dropdown{
-    left: 76px; /* sale al lado del icono al estar colapsado */
+  .cnav-label,
+  .cnav-pill {
+    display: none;
+  }
+  .cnav-dropdown {
+    left: 76px;
     top: 0;
   }
-  .cnav-userhint{ justify-content: center; }
-  .cnav-user-meta{ display: none; }
 }
+/* === Peek Panel (side sheet de notificaciones) === */
 
-/* ===== Móvil (sidebar overlay) — ya controlado por el shell, sólo afinamos el dropdown ===== */
-@media (max-width: 860px){
-  .cnav-dropdown{
+/* Animaciones */
+@keyframes peekSlideIn{ from { transform: translateX(16px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+@keyframes peekFade{ from { opacity: 0 } to { opacity: 1 } }
+
+/* ===== Móvil ===== */
+@media (max-width: 860px) {
+  .cnav-dropdown {
     position: fixed;
     left: 16px;
     right: 16px;
     top: calc(var(--topbar, 64px) + 12px);
     width: auto;
-  }
-}
-
-/* Dark compatible (hereda tokens del layout) */
-@media (prefers-color-scheme: dark){
-  .cnav-item.active{
-    background: color-mix(in srgb, var(--nav-primary) 12%, var(--nav-surface));
   }
 }

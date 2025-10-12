@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
-
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 const SecurityTab: React.FC = () => {
   const { changePassword, saving } = useAccountConfig();
   
@@ -84,13 +85,14 @@ const SecurityTab: React.FC = () => {
                   className="form-input"
                   placeholder="Ingresa tu contraseña actual"
                 />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => togglePasswordVisibility('current')}
-                >
-                  {showPasswords.current ? '🙈' : '👁️'}
-                </button>
+       <button
+  type="button"
+  className="password-toggle icon-btn"
+  onClick={() => togglePasswordVisibility('current')}
+  aria-label="Mostrar/ocultar contraseña"
+>
+  {showPasswords.current ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}
+</button>
               </div>
             </div>
 

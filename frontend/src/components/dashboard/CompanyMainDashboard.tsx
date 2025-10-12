@@ -1,14 +1,20 @@
-// CompanyMainDashboard.tsx (solo cambios relevantes)
+// CompanyMainDashboard.tsx
 import React, { useState } from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
 import CompanyNavbar from './shared/CompanyNavbar';
-
 import ProductsSection from './sections/ProductsSection';
 import OrdersSection from './sections/OrdersSection';
 import NotificationsSection from './sections/NotificationsSection';
 import AccountConfigSection from './sections/AccountConfigSection';
+import MenuOpenOutlinedIcon from '@mui/icons-material/MenuOpenOutlined';
+import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import LastPageIcon from '@mui/icons-material/LastPage';
 
 import './CompanyMainDashboard.css';
+import NotificationPeek from './shared/NotificationPeek';
+import NotificationsDropdown from '../common/NotificationsDropdown';
 
 const CompanyMainDashboard: React.FC = () => {
   const { user, logout } = useAuthOptimized();
@@ -16,7 +22,9 @@ const CompanyMainDashboard: React.FC = () => {
     'dashboard' | 'productos' | 'pedidos' | 'notificacionesDropdown' | 'notificaciones' | 'estadisticas' | 'config'
   >('dashboard');
 
-  // ⬇️ NUEVO: control de visibilidad del sidebar
+  const [showNotificationsPeek, setShowNotificationsPeek] = useState(false);
+  
+  // Sidebar control manual
   const [isSideOpen, setIsSideOpen] = useState(true);
 
   if (!user) return null;
@@ -25,8 +33,7 @@ const CompanyMainDashboard: React.FC = () => {
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section as any);
-    // cuando seleccionás algo, ocultamos el sidebar
-    setIsSideOpen(false);
+    // ❌ Ya no forzamos cerrar el sidebar aquí
   };
 
   const renderContent = () => {
@@ -59,7 +66,7 @@ const CompanyMainDashboard: React.FC = () => {
   return (
     <div className="desktop-shell">
       <div className="app-window">
-        {/* HEADER EXISTENTE — no se toca */}
+        {/* HEADER EXISTENTE */}
         <div className="titlebar" data-tauri-drag-region>
           <div className="titlebar-left">
             <img src="/vitrina-logo.png" alt="Vitrina" className="cnav-logo"
@@ -71,28 +78,19 @@ const CompanyMainDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* HOT-EDGE: al acercar el mouse reabre el sidebar */}
-        <div
-          className="hot-edge"
-          onMouseEnter={() => setIsSideOpen(true)}
-          aria-hidden
-        />
+        {/* 🔥 Se mantiene el hot-edge si querés abrir al acercar, pero ahora es opcional */}
+        {/* <div className="hot-edge" onMouseEnter={() => setIsSideOpen(true)} aria-hidden /> */}
 
-        {/* CUERPO */}
         <div className={`app-body ${!isSideOpen ? 'is-collapsed' : ''}`}>
-          {/* Sidebar (con animación) */}
-          <aside
-            className="sidebar"
-            onMouseLeave={() => setIsSideOpen(false)}
-            onMouseEnter={() => setIsSideOpen(true)}
-          >
-            {/* Podés dejar este hint o sacarlo */}
+          {/* Sidebar SIN auto-ocultar por hover */}
+          <aside className="sidebar">
             <div className="cnav-userhint" title={user.email}>
               <div className="cnav-avatar">{(user?.name || 'E')[0]?.toUpperCase()}</div>
               <div className="cnav-user-meta">
                 <div className="cnav-user-name">{user.name}</div>
                 <div className="cnav-user-role">Empresa</div>
               </div>
+
             </div>
 
             <nav className="sidebar-nav">
@@ -107,6 +105,18 @@ const CompanyMainDashboard: React.FC = () => {
           {/* Área de trabajo */}
           <section className="workspace">
             <div className="workspace-toolbar">
+                              <button
+                  type="button"
+                  className="sidebar-toggle"
+                  onClick={() => setIsSideOpen(v => !v)}
+                  aria-pressed={isSideOpen}
+                  aria-label={isSideOpen ? 'Ocultar barra lateral' : 'Mostrar barra lateral'}
+                  title={isSideOpen ? 'Ocultar barra lateral' : 'Mostrar barra lateral'}
+                 
+                >
+                  {isSideOpen ? <MenuOpenOutlinedIcon fontSize="small" /> : <MenuOutlinedIcon fontSize="small" />}
+
+                </button>
               <div className="breadcrumbs">
                 <span className="crumb">Inicio</span><span className="crumb-sep">/</span>
                 <span className="crumb active">
@@ -118,19 +128,50 @@ const CompanyMainDashboard: React.FC = () => {
                     : activeSection === 'config' ? 'Configuración' : activeSection}
                 </span>
               </div>
-              <div className="toolbar-actions" />
+
+              {/* 👉 Botón toggle fijo arriba-derecha */}
+              <div className="toolbar-actions">
+<button
+  className={`notif-icon-btn ${showNotificationsPeek ? 'is-active' : ''}`}
+  onClick={() => setShowNotificationsPeek(s => !s)}
+  aria-expanded={showNotificationsPeek}
+  aria-controls="notif-peek"
+  title="Notificaciones"
+>
+  <NotificationsNoneOutlinedIcon fontSize="small" />
+</button>
+
+              </div>
             </div>
 
             <div className="workspace-content">{renderContent()}</div>
           </section>
+          
         </div>
 
-        {/* Status bar */}
         <div className="statusbar">
           <div className="status-left" />
           <div className="status-right">Usuario: {user?.email}</div>
+          
         </div>
+              
+
       </div>
+            {/* Side sheet de notificaciones */}
+      <NotificationPeek
+        open={showNotificationsPeek}
+        onClose={() => setShowNotificationsPeek(false)}
+        title="Notificaciones"
+      >
+        <NotificationsDropdown
+          onViewAll={() => {
+            setShowNotificationsPeek(false);
+          }}
+          showTrigger={false}
+          isOpen={true}
+          onClose={() => setShowNotificationsPeek(false)}
+        />
+      </NotificationPeek>
     </div>
   );
 };

@@ -2,8 +2,14 @@ import React from 'react';
 import useAccountConfig from './hooks/useAccountConfig';
 import { ProfileTab, SecurityTab, PreferencesTab, PreciosEnvioTab } from './components';
 import './AccountConfigSection.css';
-import TestMap from './components/test';
 
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 const AccountConfigSection: React.FC = () => {
   const {
     loading,
@@ -18,14 +24,12 @@ const AccountConfigSection: React.FC = () => {
     resetForm
   } = useAccountConfig();
 
-
-
   if (loading) {
     return (
-      <div className="account-config-loading">
-        <div className="loading-container">
-          <div className="loading-spinner large"></div>
-          <p className="loading-text">Cargando configuración de cuenta...</p>
+      <div className="account-shell">
+        <div className="card center-card">
+          <div className="loading-spinner large" />
+          <p className="muted">Cargando configuración de cuenta…</p>
         </div>
       </div>
     );
@@ -33,49 +37,49 @@ const AccountConfigSection: React.FC = () => {
 
   if (!empresaData) {
     return (
-      <div className="account-config-error">
-        <div className="error-state">
-          <span className="error-icon">⚠️</span>
+      <div className="account-shell">
+        <div className="card center-card">
+          <InfoOutlinedIcon className="state-icon" />
           <h3>Error al cargar datos</h3>
-          <p>No se pudieron cargar los datos de la empresa.</p>
+          <p className="muted">No se pudieron cargar los datos de la empresa.</p>
         </div>
       </div>
     );
   }
 
   const tabs = [
-    { id: 'profile', label: 'Perfil', icon: '👤' },
-    { id: 'locations', label: 'Precios Envío', icon: '📍' },
-    { id: 'security', label: 'Seguridad', icon: '🔒' },
-    { id: 'preferences', label: 'Preferencias Web', icon: '⚙️' }
+    { id: 'profile',     label: 'Perfil',            icon: <PersonOutlineOutlinedIcon fontSize="small" /> },
+    { id: 'locations',   label: 'Precios Envío',     icon: <LocalShippingOutlinedIcon fontSize="small" /> },
+    { id: 'security',    label: 'Seguridad',         icon: <LockOutlinedIcon fontSize="small" /> },
+    { id: 'preferences', label: 'Preferencias Web',  icon: <TuneOutlinedIcon fontSize="small" /> },
   ] as const;
 
   const renderActiveTab = () => {
-     const ubicacion = formData.ubicaciones?.[0]; 
+    const ubicacion = formData.ubicaciones?.[0];
     switch (activeTab) {
       case 'profile':
         return <ProfileTab />;
       case 'locations':
-      if (!ubicacion) {
+        if (!ubicacion) {
+          return (
+            <div className="card empty-card">
+              <LocalShippingOutlinedIcon className="state-icon" />
+              <p className="muted">No hay ninguna ubicación configurada</p>
+            </div>
+          );
+        }
         return (
-          <div className="empty-locations">
-            <span className="empty-icon">📍</span>
-            <p>No hay ninguna ubicación configurada</p>
-          </div>
+          <PreciosEnvioTab
+            ubicacionId={ubicacion.id}
+            ubicacionDireccion={ubicacion.direccion || 'Sin dirección'}
+            ubicacionCoords={
+              ubicacion.lat && ubicacion.lng
+                ? { lat: ubicacion.lat, lng: ubicacion.lng }
+                : undefined
+            }
+            onClose={() => {}}
+          />
         );
-      }
-      return (
-        <PreciosEnvioTab
-          ubicacionId={ubicacion.id}
-          ubicacionDireccion={ubicacion.direccion || 'Sin dirección'}
-          ubicacionCoords={
-            ubicacion.lat && ubicacion.lng
-              ? { lat: ubicacion.lat, lng: ubicacion.lng }
-              : undefined
-          }
-          onClose={() => {}} // 👈 agregado para que compile
-        />
-      );
       case 'security':
         return <SecurityTab />;
       case 'preferences':
@@ -86,73 +90,72 @@ const AccountConfigSection: React.FC = () => {
   };
 
   return (
-    <div className="account-config-section" data-app-shell>
+    <div className="account-shell">
+      {/* Sidebar (igual patrón que Productos/Orders) */}
+      <aside className="acs-sidebar">
+        <div className="sidebar-header">
+          <h2 className="sidebar-title">
+            <span className="sidebar-icon"><SettingsOutlinedIcon /></span>
+            Configuración
+          </h2>
+        </div>
 
-      {/* Header */}
-      <div className="account-config-header">
-        <div className="header-content">
-          <div className="header-title">
-            <h1>Configuración de Cuenta</h1>
-            <p>Gestiona la información de tu empresa y preferencias</p>
+        <nav className="sidebar-content">
+          <div className="sidebar-section">
+       
+            <div className="cnav-list">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  className={`cnav-item ${activeTab === t.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(t.id)}
+                  aria-pressed={activeTab === t.id}
+                >
+                  <span className="cnav-icon">{t.icon}</span>
+                  <span className="cnav-label">{t.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
-          
-          {hasChanges && (
-            <div className="header-actions">
-              <button 
-                className="btn btn-secondary"
-                onClick={resetForm}
-                disabled={saving}
-              >
-                Descartar cambios
-              </button>
-              <button 
-                className="btn btn-primary"
-                disabled={saving}
-              >
-                {saving ? 'Guardando...' : 'Guardar cambios'}
-              </button>
+        </nav>
+      </aside>
+
+      {/* Main */}
+      <main className="acs-main card">
+        <header className="acs-header">
+          <div className="acs-header-main">
+   
+
+            {hasChanges && (
+              <div className="acs-actions">
+                <button className="btn btn-secondary" onClick={resetForm} disabled={saving}>
+                  Descartar cambios
+                </button>
+                <button className="btn btn-primary" disabled={saving}>
+                  {saving ? 'Guardando…' : 'Guardar cambios'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="acs-status acs-status--error">
+              <InfoOutlinedIcon className="status-icon" />
+              <span>{error}</span>
             </div>
           )}
-        </div>
+          {success && (
+            <div className="acs-status acs-status--ok">
+              <CheckCircleOutlineOutlinedIcon className="status-icon" />
+              <span>{success}</span>
+            </div>
+          )}
+        </header>
 
-        {/* Status Messages */}
-        {error && (
-          <div className="status-message error">
-            <span className="status-icon">⚠️</span>
-            <span className="status-text">{error}</span>
-          </div>
-        )}
-        
-        {success && (
-          <div className="status-message success">
-            <span className="status-icon">✅</span>
-            <span className="status-text">{success}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Tabs Navigation */}
-      <div className="account-config-tabs">
-        <div className="tabs-container">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span className="tab-icon">{tab.icon}</span>
-              <span className="tab-label">{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="account-config-content">
-        <div className="tab-content-container">
-          {renderActiveTab()}
-        </div>
-      </div>
+        <section className="acs-content">
+          <div className="tab-card">{renderActiveTab()}</div>
+        </section>
+      </main>
     </div>
   );
 };

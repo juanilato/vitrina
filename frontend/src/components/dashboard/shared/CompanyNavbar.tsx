@@ -1,12 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useAuthOptimized } from '../../../hooks/useAuthOptimized';
-import NotificationsDropdown from '../../common/NotificationsDropdown';
+
 import './CompanyNavbar.css';
+
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
+import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 interface CompanyNavbarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
-  onLogout: () => void; // se mantiene por compatibilidad, aunque no se usa aquí
+  onLogout?: () => void;
 }
 
 const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
@@ -14,42 +20,19 @@ const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
   onSectionChange,
 }) => {
   const { user } = useAuthOptimized();
-  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
-  const notifRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (activeSection !== 'notificaciones') {
-      setShowNotificationsDropdown(false);
-    }
-  }, [activeSection]);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setShowNotificationsDropdown(false);
-      }
-    };
-    if (showNotificationsDropdown) {
-      document.addEventListener('mousedown', handler);
-    }
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showNotificationsDropdown]);
 
   if (!user) return null;
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'productos', label: 'Productos', icon: '📦' },
-    { id: 'pedidos', label: 'Pedidos', icon: '🛒' },
-    { id: 'estadisticas', label: 'Estadísticas', icon: '📈' },
+    { id: 'dashboard', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
+    { id: 'productos', label: 'Productos', icon: <Inventory2OutlinedIcon fontSize="small" /> },
+    { id: 'pedidos', label: 'Pedidos', icon: <ReceiptLongOutlinedIcon fontSize="small" /> },
+    { id: 'estadisticas', label: 'Estadísticas', icon: <InsightsOutlinedIcon fontSize="small" /> },
+    { id: 'config', label: 'Configuración', icon: <SettingsOutlinedIcon fontSize="small" /> },
   ];
 
   return (
     <div className="cnav-root">
-      {/* Marca compacta (solo cuando el sidebar esté en modo “estrecho” hereda por CSS) */}
-
-
-      {/* Navegación principal */}
       <nav className="cnav-list" aria-label="Navegación principal">
         {navItems.map((item) => (
           <button
@@ -57,40 +40,15 @@ const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
             className={`cnav-item ${activeSection === item.id ? 'active' : ''}`}
             onClick={() => onSectionChange(item.id)}
           >
-            <span className="cnav-icon" aria-hidden>{item.icon}</span>
+            <span className="cnav-icon">{item.icon}</span>
             <span className="cnav-label">{item.label}</span>
           </button>
         ))}
 
-        {/* Notificaciones */}
-        <div className="cnav-group" ref={notifRef}>
-          <button
-            className={`cnav-item ${showNotificationsDropdown ? 'active' : ''}`}
-            onClick={() => setShowNotificationsDropdown((s) => !s)}
-          >
-            <span className="cnav-icon" aria-hidden>🔔</span>
-            <span className="cnav-label">Notificaciones</span>
-            <span className="cnav-pill" aria-label="Nuevas">•</span>
-          </button>
 
-          {showNotificationsDropdown && (
-            <div className="cnav-dropdown">
-              <NotificationsDropdown
-                onViewAll={() => {
-                  setShowNotificationsDropdown(false);
-                  onSectionChange('notificaciones');
-                }}
-                showTrigger={false}
-                isOpen={true}
-                onClose={() => setShowNotificationsDropdown(false)}
-              />
-            </div>
-          )}
-        </div>
       </nav>
 
-      {/* Hint de usuario (sólo informativo en la barra lateral) */}
- 
+
     </div>
   );
 };

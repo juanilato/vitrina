@@ -1,238 +1,206 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ProductModalProps } from '../types';
-
-const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onClose }) => {
+import './ProductModal.css';
+const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     nombre: product?.nombre || '',
     descripcion: product?.descripcion || '',
-    precio: product?.precio || 0,
+    precio: product?.precio ?? 0,
     activo: product?.activo ?? true,
   });
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(product?.fotoUrl ?? null);
-  const [guardando, setGuardando] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [precioStr, setPrecioStr] = useState(
-    product?.precio !== undefined && product?.precio !== null
-      ? String(product.precio)
-      : ""
+    product?.precio !== undefined && product?.precio !== null ? String(product.precio) : ''
   );
-  const isValidMoneyInput = (v: string) => {
-    // admitir coma o punto como separador
-    const x = v.replace(",", ".");
-    // permite "", "123", "123.", "123.4", "123.45"
-    return /^(\d+([.]\d{0,2})?)?$/.test(x);
-  };
-  const handlePrecioChange = (v: string) => {
-    if (isValidMoneyInput(v)) {
-      setPrecioStr(v);
-    }
-  };
-  const toNumber2 = (v: string) => {
-    const n = Number(v.replace(",", "."));
-    // redondeo a 2 decimales para evitar 1.005 -> 1.00x por floating point
-    return Math.round(n * 100) / 100;
-  };
-  // actualizar campos de texto/checkbox
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
-  // manejar archivo + preview
-  const handleFile = (f: File | null) => {
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    firstInputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const isValidMoneyInput = (v: string) => /^(\d+([.]\d{0,2})?)?$/.test(v.replace(',', '.'));
+  const handlePrecioChange = (v: string) => { if (isValidMoneyInput(v)) setPrecioStr(v); };
+  const toNumber2 = (v: string) => Math.round(Number(v.replace(',', '.')) * 100) / 100;
+
+  const setField = (k: string, v: any) => setFormData(p => ({ ...p, [k]: v }));
+
+  const onPickFile = (f: File | null) => {
     setFile(f);
     if (f) {
       const url = URL.createObjectURL(f);
       setPreview(url);
-      // Mostrar automáticamente el preview cuando se selecciona una imagen
-      setShowImagePreview(true);
     } else {
-      // Si no hay archivo nuevo, mantener la imagen existente del producto
       setPreview(product?.fotoUrl ?? null);
     }
   };
 
-  // manejar selector de archivos directo
-  const handleCameraClick = () => {
-    const fileInput = document.getElementById('hidden-file-input') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
-  };
+  const openPicker = () => document.getElementById('pm2-file')?.click();
 
-  // manejar preview de imagen
-  const handleImagePreview = () => {
-    if (preview) {
-      setShowImagePreview(true);
-    }
-  };
-
-  // enviar form
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setGuardando(true);
-
+    setSaving(true);
     try {
-      // Pasar el archivo directamente al padre, que manejará la subida
-      const precioNum = toNumber2(precioStr);
-      if (!isFinite(precioNum) || isNaN(precioNum)) {
-      throw new Error("El precio no es un número válido.");
-    }
-    if (precioNum < 0) {
-      throw new Error("El precio no puede ser negativo.");
-    }
-    onSave({ ...formData, precio: precioNum, file: file || undefined });
+      const precio = toNumber2(precioStr);
+      if (!isFinite(precio)) throw new Error('El precio no es válido.');
+      if (precio < 0) throw new Error('El precio no puede ser negativo.');
+      await onSave({ ...formData, precio, file: file || undefined });
+      onClose();
     } catch (err: any) {
       alert(err?.message || 'Error al guardar producto');
     } finally {
-      setGuardando(false);
+      setSaving(false);
     }
   };
 
   return (
     <>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className={`modal-content ${showImagePreview ? 'modal-shifted' : ''}`} onClick={e => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>{product ? 'Editar Producto' : 'Agregar Nuevo Producto'}</h2>
-            <div className="modal-header-actions">
-              <button 
-                type="button" 
-                className="btn-empty-state" 
-                onClick={handleCameraClick}
-                title="Seleccionar imagen"
-              >
-                Subir Imagen
-              </button>
-              <button className="modal-close" onClick={onClose}>×</button>
+      <div className="pm2-overlay" onClick={onClose}>
+        <section
+          className="pm2-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label={product ? 'Editar producto' : 'Nuevo producto'}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <header className="pm2-header">
+            <div className="pm2-titles">
+              <h2 className="pm2-title">{product ? 'Editar producto' : 'Nuevo producto'}</h2>
+              <p className="pm2-subtitle">Completa los datos y previsualiza la imagen antes de guardar.</p>
             </div>
-          </div>
-        
-          <form className="modal-form" onSubmit={handleSubmit}>
-            {/* Input file oculto */}
-            <input
-              id="hidden-file-input"
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-              style={{ display: 'none' }}
-            />
-            
-            <div className="form-group">
-              <label htmlFor="nombre">Nombre del Producto </label>
-              <input
-                type="text"
-                id="nombre"
-                value={formData.nombre}
-                onChange={(e) => handleChange('nombre', e.target.value)}
-                placeholder="Ingrese el nombre del producto"
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="descripcion">Descripción</label>
-              <textarea
-                id="descripcion"
-                value={formData.descripcion}
-                onChange={(e) => handleChange('descripcion', e.target.value)}
-                placeholder="Descripción del producto (opcional)"
-                rows={4}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="precio">Precio ($) *</label>
-              <input
-                type="text"
-                id="precio"
-                inputMode="decimal"
-                value={precioStr}
-                onChange={(e) => handlePrecioChange(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </div>
+            <button className="pm2-close" onClick={onClose} aria-label="Cerrar">×</button>
+          </header>
 
-            <div className="form-group">
-              <label>Imagen del producto</label>
-              <div 
-                className={`image-info-section ${preview ? 'clickable' : ''}`}
-                onClick={preview ? handleImagePreview : undefined}
-                title={preview ? 'Haz clic para ver la imagen completa' : ''}
-              >
-                {preview ? (
-                  <div className="image-selected">
-                    <div className="image-preview-small">
-                      <img src={preview} alt="preview" />
-                    </div>
-                    <div className="image-details">
-                      <p className="image-name">
-                        {file ? file.name : 'Imagen actual del producto'}
-                      </p>
-                      <p className="image-status">
-                        {file ? '✅ Nueva imagen seleccionada' : '📷 Imagen existente'}
-                        {preview && <span className="click-hint"> • Haz clic para ampliar</span>}
-                      </p>
-                    </div>
+          {/* Body */}
+          <div className="pm2-body">
+            {/* Form */}
+            <form className="pm2-form" onSubmit={submit}>
+              <input
+                id="pm2-file"
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+              />
+
+              <div className="pm2-field">
+                <label htmlFor="pm2-nombre">Nombre *</label>
+                <input
+                  ref={firstInputRef}
+                  id="pm2-nombre"
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => setField('nombre', e.target.value)}
+                  placeholder="Ej. Silla ergonómica"
+                  required
+                />
+              </div>
+
+              <div className="pm2-row">
+                <div className="pm2-field">
+                  <label htmlFor="pm2-precio">Precio *</label>
+                  <div className="pm2-input-adorn">
+                    <span className="pm2-adorn">$</span>
+                    <input
+                      id="pm2-precio"
+                      type="text"
+                      inputMode="decimal"
+                      value={precioStr}
+                      onChange={(e) => handlePrecioChange(e.target.value)}
+                      placeholder="0,00"
+                      required
+                    />
                   </div>
+                </div>
+
+                <div className="pm2-field">
+                  <label>Estado</label>
+                  <div className="pm2-segment">
+                    <button
+                      type="button"
+                      className={`pm2-seg-btn ${formData.activo ? 'is-active' : ''}`}
+                      onClick={() => setField('activo', true)}
+                      aria-pressed={formData.activo}
+                    >
+                      Activo
+                    </button>
+                    <button
+                      type="button"
+                      className={`pm2-seg-btn ${!formData.activo ? 'is-active' : ''}`}
+                      onClick={() => setField('activo', false)}
+                      aria-pressed={!formData.activo}
+                    >
+                      Inactivo
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pm2-field">
+                <label htmlFor="pm2-desc">Descripción</label>
+                <textarea
+                  id="pm2-desc"
+                  rows={4}
+                  value={formData.descripcion}
+                  onChange={(e) => setField('descripcion', e.target.value)}
+                  placeholder="Características, materiales, medidas…"
+                />
+              </div>
+
+              {/* Footer (sticky dentro del modal) */}
+              <div className="pm2-actions">
+                <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? (file ? 'Guardando con imagen…' : 'Guardando…') : (product ? 'Actualizar' : 'Agregar')}
+                </button>
+              </div>
+            </form>
+
+            {/* Preview / Media */}
+            <aside className="pm2-media">
+              <div className="pm2-media-box" onClick={preview ? () => setShowImagePreview(true) : undefined}>
+                {preview ? (
+                  <img src={preview} alt="Vista previa" />
                 ) : (
-                  <div className="no-image">
-                    <div className="no-image-icon">📷</div>
-                    <p>Usa el icono de cámara para seleccionar una imagen</p>
+                  <div className="pm2-drop" onClick={openPicker}>
+                    <div className="pm2-drop-icon">📷</div>
+                    <div className="pm2-drop-text">
+                      <strong>Agregar imagen</strong>
+                      <span>Click para seleccionar un archivo</span>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="form-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={formData.activo}
-                  onChange={(e) => handleChange('activo', e.target.checked)}
-                />
-                <span className="checkbox-text">Producto activo</span>
-              </label>
-            </div>
-
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={onClose} disabled={guardando}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn-empty-state" disabled={guardando}>
-                {guardando ? (
-                  file ? 'Guardando con imagen...' : 'Guardando producto...'
-                ) : (
-                  <>
-                    {product ? 'Actualizar' : 'Agregar'} Producto
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+              <div className="pm2-media-actions">
+                <button className="pm2-soft" onClick={openPicker}>Cambiar</button>
+                {preview && <button className="pm2-soft" onClick={() => setShowImagePreview(true)}>Ampliar</button>}
+                {preview && <button className="pm2-soft danger" onClick={() => { setPreview(null); setFile(null); }}>Quitar</button>}
+              </div>
+            </aside>
+          </div>
+        </section>
       </div>
 
-      {/* Modal de preview de imagen */}
+      {/* Fullscreen image */}
       {showImagePreview && preview && (
-        <div className={`image-preview-modal ${showImagePreview ? 'show' : ''}`}>
-          <div className="image-preview-header">
-            <h3>Vista Previa</h3>
-            <button 
-              className="image-preview-close" 
-              onClick={() => setShowImagePreview(false)}
-            >
-              ×
-            </button>
+        <div className="pm2-lightbox" role="dialog" aria-modal="true" aria-label="Vista previa de imagen">
+          <div className="pm2-lightbar">
+            <h3>Vista previa</h3>
+            <button className="pm2-close" onClick={() => setShowImagePreview(false)} aria-label="Cerrar">×</button>
           </div>
-          <div className="image-preview-content">
-            <img 
-              src={preview} 
-              alt="Preview del producto" 
-              className="image-preview-img"
-            />
+          <div className="pm2-lightstage">
+            <img src={preview} alt="Imagen del producto" />
           </div>
         </div>
       )}

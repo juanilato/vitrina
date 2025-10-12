@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { ProductModal, ProductCard, ProductsSkeletonLoader } from './components';
+import { ProductModal, ProductsSkeletonLoader } from './components';
 import { useProducts } from './hooks/useProducts';
 import { ProductWithExtras } from './types';
 import './ProductsSection.css';
-
+import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import ProductRow from './components/ProductCard';
 const ProductsSection: React.FC = () => {
   const {
     products,
@@ -98,104 +103,116 @@ const ProductsSection: React.FC = () => {
       <div className="products-sidebar">
         <div className="sidebar-header">
           <h2 className="sidebar-title">
-            <span className="sidebar-icon">📦</span>
+            <span className="sidebar-icon"><Inventory2OutlinedIcon fontSize="small" /></span>
             Productos
           </h2>
         </div>
 
-        {/* Filtros y búsqueda */}
-        <div className="sidebar-content">
-          <div className="sidebar-section">
-            <h3 className="sidebar-section-title">Buscar</h3>
-            <div className="sidebar-search">
-              <input
-                type="text"
-                placeholder="Nombre o descripción..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="sidebar-search-input"
-              />
-              <span className="sidebar-search-icon">🔍</span>
-            </div>
-          </div>
+<div className="sidebar-content">
+  <div className="sidebar-section">
+    <h3 className="sidebar-section-title">Buscar</h3>
+    <div className="sidebar-search">
+      <input
+        type="text"
+        placeholder="Nombre o descripción..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="sidebar-search-input"
+      />
+      <span className="sidebar-search-icon">🔍</span>
+    </div>
+  </div>
 
-          <div className="sidebar-section">
-            <h3 className="sidebar-section-title">Estado</h3>
-          <div className="sidebar-filters">
-  <button
-    className={`sidebar-filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
-    onClick={() => setStatusFilter('all')}
-    aria-pressed={statusFilter === 'all'}
-  >
-    <span className="filter-icon">📊</span>
-    Todos ({products.length})
-  </button>
+  <div className="sidebar-section">
+    <h3 className="sidebar-section-title">Estado</h3>
 
-  <button
-    className={`sidebar-filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
-    onClick={() => setStatusFilter('active')}
-    aria-pressed={statusFilter === 'active'}
-  >
-    <span className="filter-icon" style={{ color: '#10b981' }}>✅</span>
-    Activos ({stats.activos})
-  </button>
+    {/* Reutilizamos el patrón "lista vertical" del nav */}
+    <div className="cnav-list sidebar-filters">
+      {/* Todos */}
+      <button
+        className={`cnav-item ${statusFilter === 'all' ? 'active' : ''}`}
+        onClick={() => setStatusFilter('all')}
+        aria-pressed={statusFilter === 'all'}
+      >
+        <span className="cnav-icon"><FilterListOutlinedIcon fontSize="small" /></span>
+        <span className="cnav-label">Todos</span>
+        <span className="cnav-pill">{products.length}</span>
+      </button>
 
-  <button
-    className={`sidebar-filter-btn ${statusFilter === 'inactive' ? 'active' : ''}`}
-    onClick={() => setStatusFilter('inactive')}
-    aria-pressed={statusFilter === 'inactive'}
-  >
-    <span className="filter-icon" style={{ color: '#ef4444' }}>❌</span>
-    Inactivos ({stats.inactivos})
-  </button>
+      {/* Activos */}
+      <button
+        className={`cnav-item ${statusFilter === 'active' ? 'active' : ''}`}
+        onClick={() => setStatusFilter('active')}
+        aria-pressed={statusFilter === 'active'}
+      >
+        <span className="cnav-icon"><CheckCircleOutlineOutlinedIcon fontSize="small" /></span>
+        <span className="cnav-label">Activos</span>
+        <span className="cnav-pill">{stats.activos}</span>
+      </button>
+
+      {/* Inactivos */}
+      <button
+        className={`cnav-item ${statusFilter === 'inactive' ? 'active' : ''}`}
+        onClick={() => setStatusFilter('inactive')}
+        aria-pressed={statusFilter === 'inactive'}
+      >
+        <span className="cnav-icon"><HighlightOffOutlinedIcon fontSize="small" /></span>
+        <span className="cnav-label">Inactivos</span>
+        <span className="cnav-pill">{stats.inactivos}</span>
+      </button>
+    </div>
+  </div>
+
+  <div className="sidebar-section">
+    {/* Botón primario con el mismo patrón del nav */}
+    <button className="cnav-item cnav-item--primary" onClick={handleAddProduct}>
+      <span className="cnav-icon"><AddOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Agregar producto</span>
+    </button>
+  </div>
+
+  {searchTerm && (
+    <div className="sidebar-section">
+      {/* Botón sutil para limpiar */}
+      <button
+        className="cnav-item cnav-item--subtle"
+        onClick={() => setSearchTerm('')}
+      >
+        <span className="cnav-icon">🔄</span>
+        <span className="cnav-label">Limpiar búsqueda</span>
+      </button>
+    </div>
+  )}
 </div>
-          </div>
-
-          <div className="sidebar-section">
-            <button 
-              className="sidebar-add-btn"
-              onClick={handleAddProduct}
-            >
-              <span className="btn-icon">+</span>
-              Agregar Producto
-            </button>
-          </div>
-
-          {searchTerm && (
-            <div className="sidebar-section">
-              <button 
-                className="sidebar-clear-btn"
-                onClick={() => setSearchTerm('')}
-              >
-                <span className="btn-icon">🔄</span>
-                Limpiar Búsqueda
-              </button>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Contenido principal */}
       <div className="products-main">
         {/* Header del contenido */}
-        <div className="products-main-header">
-          <h1 className="main-title">Gestión de Productos</h1>
-          <p className="main-subtitle">
-            Mostrando {filteredProducts.length} de {products.length} productos
-          </p>
-        </div>
 
-        {/* Lista de productos */}
-        <div className="products-grid">
-        {filteredProducts.map(product => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onEdit={handleEditProduct}
-            onDelete={handleDeleteProduct}
-          />
-        ))}
-      </div>
+
+
+{/* Lista de productos (formato tabla liviana) */}
+<div className="products-list">
+  <div className="products-list-header">
+    <div className="hcell h-product">Producto</div>
+    <div className="hcell h-status">Estado</div>
+    <div className="hcell h-price">Precio</div>
+    <div className="hcell h-date">Creado</div>
+    <div className="hcell h-actions">Acciones</div>
+  </div>
+
+  <div className="products-list-body">
+    {filteredProducts.map((product) => (
+      <ProductRow
+        key={product.id}
+        product={product}
+        onEdit={handleEditProduct}
+        onDelete={handleDeleteProduct}
+      />
+    ))}
+  </div>
+</div>
 
         {filteredProducts.length === 0 && (
           <div className="empty-state">

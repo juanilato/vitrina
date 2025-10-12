@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import { OrderCard, OrderModal, OrdersSkeletonLoader } from './components';
+import { OrderModal, OrdersSkeletonLoader } from './components';
 import { useOrders } from './hooks/useOrders';
 import { PedidoWithDetails } from './types';
 import './OrdersSection.css';
-
+import OrderRow from './components/OrderCard';
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
+import '../../shared/CompanyNavbar.css'; 
+import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
+import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined';
+import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import DeliveryDiningOutlinedIcon from '@mui/icons-material/DeliveryDiningOutlined';
+import NearMeOutlinedIcon from '@mui/icons-material/NearMeOutlined';
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
+import DoneAllOutlinedIcon from '@mui/icons-material/DoneAllOutlined';
 const OrdersSection: React.FC = () => {
   const {
     orders,
@@ -63,152 +74,176 @@ const OrdersSection: React.FC = () => {
       <div className="orders-sidebar">
         <div className="sidebar-header">
           <h2 className="sidebar-title">
-            <span className="sidebar-icon">📋</span>
+            <span className="sidebar-icon"><ReceiptLongOutlinedIcon /></span>
             Pedidos
           </h2>
         </div>
 
         {/* Filtros y búsqueda */}
-        <div className="sidebar-content">
-          <div className="sidebar-section">
-            <h3 className="sidebar-section-title">Buscar</h3>
-            <div className="sidebar-search">
-              <input
-                type="text"
-                placeholder="Cliente, email o ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="sidebar-search-input"
-              />
-              <span className="sidebar-search-icon">🔍</span>
-            </div>
-          </div>
+{/* Filtros y búsqueda */}
+<div className="sidebar-content">
+  <div className="sidebar-section">
+    <h3 className="sidebar-section-title">Buscar</h3>
+    <div className="sidebar-search">
+      <input
+        type="text"
+        placeholder="Cliente, email o ID..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="sidebar-search-input"
+      />
+      <span className="sidebar-search-icon">🔍</span>
+    </div>
+  </div>
+<div className="sidebar-section">
+  <h3 className="sidebar-section-title">Estado</h3>
 
-          <div className="sidebar-section">
-            <h3 className="sidebar-section-title">Estado</h3>
-            <div className="sidebar-filters">
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'todos' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('todos')}
-              >
-                <span className="filter-icon">📊</span>
-                Todos ({orders.length})
-              </button>
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'pendiente_confirmacion' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('pendiente_confirmacion')}
-              >
-                <span className="filter-icon" style={{ color: '#f59e0b' }}>⏳</span>
-                Pendientes de Confirmación ({stats.pendientesConfirmacion})
-              </button>
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'confirmado' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('confirmado')}
-              >
-                <span className="filter-icon" style={{ color: '#8b5cf6' }}>✅</span>
-                Confirmados ({stats.confirmados})
-              </button>
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'no_confirmado' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('no_confirmado')}
-              >
-                <span className="filter-icon" style={{ color: '#ef4444' }}>❌</span>
-                No Confirmados ({stats.noConfirmados})
-              </button>
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'en_proceso' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('en_proceso')}
-              >
-                <span className="filter-icon" style={{ color: '#3b82f6' }}>⚙️</span>
-                En Proceso ({stats.enProceso})
-              </button>
+  <div className="sidebar-filters cnav-list">
+    <button
+      className={`cnav-item ${statusFilter === 'todos' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('todos')}
+      aria-pressed={statusFilter === 'todos'}
+    >
+      <span className="cnav-icon"><FilterListOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Todos</span>
+      <span className="cnav-pill">{orders.length}</span>
+    </button>
 
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'esperando_delivery' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('esperando_delivery')}
-              >
-                <span className="filter-icon" style={{ color: '#f97316' }}>🏍️</span>
-                Esperando Delivery ({stats.esperandoDelivery})
-              </button>
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'en_camino' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('en_camino')}
-              >
-                <span className="filter-icon" style={{ color: '#06b6d4' }}>📍</span>
-                En Camino ({stats.enCamino})
-              </button>
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'esperando_retiro' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('esperando_retiro')}
-              >
-                <span className="filter-icon" style={{ color: '#84cc16' }}>🏪</span>
-                Esperando Retiro ({stats.esperandoRetiro})
-              </button>
-              <button
-                className={`sidebar-filter-btn ${statusFilter === 'entregado' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('entregado')}
-              >
-                <span className="filter-icon" style={{ color: '#059669' }}>✅</span>
-                Entregados ({stats.entregados})
-              </button>
-            </div>
-          </div>
+    <button
+      className={`cnav-item ${statusFilter === 'pendiente_confirmacion' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('pendiente_confirmacion')}
+      aria-pressed={statusFilter === 'pendiente_confirmacion'}
+    >
+      <span className="cnav-icon"><HourglassEmptyOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Pend. de Confirmación</span>
+      <span className="cnav-pill">{stats.pendientesConfirmacion}</span>
+    </button>
 
-          {(searchTerm || statusFilter !== 'todos') && (
-            <div className="sidebar-section">
-              <button 
-                className="sidebar-clear-btn"
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('todos');
-                }}
-              >
-                <span className="btn-icon">🔄</span>
-                Limpiar Filtros
-              </button>
-            </div>
-          )}
-        </div>
+    <button
+      className={`cnav-item ${statusFilter === 'confirmado' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('confirmado')}
+      aria-pressed={statusFilter === 'confirmado'}
+    >
+      <span className="cnav-icon"><TaskAltOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Confirmados</span>
+      <span className="cnav-pill">{stats.confirmados}</span>
+    </button>
+
+    <button
+      className={`cnav-item ${statusFilter === 'no_confirmado' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('no_confirmado')}
+      aria-pressed={statusFilter === 'no_confirmado'}
+    >
+      <span className="cnav-icon"><CancelOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">No Confirmados</span>
+      <span className="cnav-pill">{stats.noConfirmados}</span>
+    </button>
+
+    <button
+      className={`cnav-item ${statusFilter === 'en_proceso' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('en_proceso')}
+      aria-pressed={statusFilter === 'en_proceso'}
+    >
+      <span className="cnav-icon"><SettingsOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">En Proceso</span>
+      <span className="cnav-pill">{stats.enProceso}</span>
+    </button>
+
+    <button
+      className={`cnav-item ${statusFilter === 'esperando_delivery' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('esperando_delivery')}
+      aria-pressed={statusFilter === 'esperando_delivery'}
+    >
+      <span className="cnav-icon"><DeliveryDiningOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Esperando Delivery</span>
+      <span className="cnav-pill">{stats.esperandoDelivery}</span>
+    </button>
+
+    <button
+      className={`cnav-item ${statusFilter === 'en_camino' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('en_camino')}
+      aria-pressed={statusFilter === 'en_camino'}
+    >
+      <span className="cnav-icon"><NearMeOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">En Camino</span>
+      <span className="cnav-pill">{stats.enCamino}</span>
+    </button>
+
+    <button
+      className={`cnav-item ${statusFilter === 'esperando_retiro' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('esperando_retiro')}
+      aria-pressed={statusFilter === 'esperando_retiro'}
+    >
+      <span className="cnav-icon"><StorefrontOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Esperando Retiro</span>
+      <span className="cnav-pill">{stats.esperandoRetiro}</span>
+    </button>
+
+    <button
+      className={`cnav-item ${statusFilter === 'entregado' ? 'active' : ''}`}
+      onClick={() => setStatusFilter('entregado')}
+      aria-pressed={statusFilter === 'entregado'}
+    >
+      <span className="cnav-icon"><DoneAllOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Entregados</span>
+      <span className="cnav-pill">{stats.entregados}</span>
+    </button>
+  </div>
+</div>
+
+  {(searchTerm || statusFilter !== 'todos') && (
+    <div className="sidebar-section">
+      <button
+        className="cnav-item cnav-item--subtle"
+        onClick={() => {
+          setSearchTerm('');
+          setStatusFilter('todos');
+        }}
+      >
+        <span className="cnav-icon">🔄</span>
+        <span className="cnav-label">Limpiar filtros</span>
+      </button>
+    </div>
+  )}
+</div>
+
       </div>
 
       {/* Contenido principal */}
-      <div className="orders-main">
-        {/* Header del contenido */}
-        <div className="orders-main-header">
-          <h1 className="main-title">Gestión de Pedidos</h1>
-          <p className="main-subtitle">
-            Mostrando {filteredOrders.length} de {orders.length} pedidos
-          </p>
-        </div>
+<div className="orders-main">
 
-        {/* Lista de pedidos */}
-        <div className="orders-grid">
-        {filteredOrders.map(order => (
-          <OrderCard
-            key={order.id}
-            pedido={order}
-            onUpdateStatus={handleStatusUpdate}
-            onViewDetails={handleViewDetails}
-            onReject={handleRejectOrder}
-            onDelete={handleDeleteOrder}
-          />
-        ))}
+
+  {/* Header tabla (variante Clean bar) */}
+  <div className="olist">
+    <div className="olist-header">
+      <div className="ohcell oh-order">Pedido / Cliente</div>
+      <div className="ohcell oh-status">Estado</div>
+      <div className="ohcell oh-meta">Entrega / Pago</div>
+      <div className="ohcell oh-qty">Ítems / Total</div>
+      <div className="ohcell oh-actions">Acciones</div>
+    </div>
+
+    <div className="olist-body">
+      {filteredOrders.map(order => (
+        <OrderRow
+          key={order.id}
+          pedido={order}
+          onUpdateStatus={handleStatusUpdate}
+          onViewDetails={handleViewDetails}
+          onReject={handleRejectOrder}
+          onDelete={handleDeleteOrder}
+        />
+      ))}
+    </div>
+
+    {filteredOrders.length === 0 && (
+      <div className="olist-empty">
+        <span className="empty-emoji">📋</span>
+        <div>No se encontraron pedidos con los filtros actuales.</div>
       </div>
-
-        {filteredOrders.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-icon">📋</div>
-            <h3>No se encontraron pedidos</h3>
-            <p>
-              {searchTerm || statusFilter !== 'todos'
-                ? 'No hay pedidos que coincidan con los filtros aplicados'
-                : 'No tienes pedidos registrados aún'
-              }
-            </p>
-          </div>
-        )}
-      </div>
-
+    )}
+  </div>
+</div>
       {/* Modal de detalles del pedido */}
       {selectedOrder && (
         <OrderModal

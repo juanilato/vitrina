@@ -159,7 +159,7 @@
 
 /* Contenido scrollable */
 .workspace-content {
-  padding: 16px;
+  padding: 5px;
   overflow: auto;
 }
 
@@ -392,4 +392,215 @@
 /* Responsive: edge un poco más angosto en móviles */
 @media (max-width: 960px){
   .hot-edge{ width: 10px; }
+}
+
+
+
+/* Botón toggle sidebar (arriba derecha) */
+.toolbar-actions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-toggle{
+  display: inline-flex;
+  align-items: end;
+  
+  padding: 5px 5px;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 12.5px;
+  
+  font-weight: 600;
+  color: #1F2937;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease, box-shadow .15s ease;
+}
+.sidebar-toggle:hover{ background: #F3F4F6; }
+.sidebar-toggle:active{ transform: translateY(1px); }
+.sidebar-toggle:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(42,91,215,.15); }
+.sidebar-toggle .toggle-text{ margin-left: 2px; }
+
+/* Colapso por clase (ya lo usabas) */
+.app-body.is-collapsed .sidebar{
+  width: 72px; /* o 0 si querés ocultarla del todo */
+}
+.app-body.is-collapsed .sidebar .cnav-user-meta{ display: none; }
+.app-body.is-collapsed .sidebar .cnav-userhint{ justify-content: center; }
+.app-body.is-collapsed .sidebar .cnav-list{ padding: 6px; }
+.app-body.is-collapsed .sidebar .cnav-item{
+  grid-template-columns: 22px;
+  justify-items: center;
+}
+.app-body.is-collapsed .sidebar .cnav-label,
+.app-body.is-collapsed .sidebar .cnav-pill{ display: none; }
+
+/* Si preferís ocultar completo: */
+/* .app-body.is-collapsed .sidebar{ width: 0; border: 0; overflow: hidden; } */
+
+
+.notif-icon-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+}
+.notif-icon-btn:hover{ background: #F3F4F6; }
+.notif-icon-btn:active{ transform: translateY(1px); }
+.notif-icon-btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(42,91,215,.15); }
+.notif-icon-btn.is-active{ border-color: #2A5BD7; }
+
+
+
+
+/* ============ TOKENS (light) ============ */
+:root {
+  --ui-bg: #ffffff;
+  --ui-text: #1f2937;          /* gris 800 */
+  --ui-muted: #6b7280;         /* gris 500 */
+  --ui-border: #e5e7eb;        /* gris 200 */
+  --ui-hover: #f3f4f6;         /* gris 100 */
+  --ui-primary: #2a5bd7;       /* azul corporativo */
+  --ui-ring: rgba(42,91,215,.15);
+  --ui-shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --ui-shadow-lg: 0 12px 40px rgba(0,0,0,.14);
+}
+
+/* ============ BOTÓN CAMPANA (toolbar) ============ */
+.notif-icon-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:36px;
+  border:1px solid var(--ui-border); background:var(--ui-bg);
+  border-radius:8px; cursor:pointer;
+  transition: background .15s ease, box-shadow .15s ease, transform .05s ease, border-color .15s ease;
+}
+.notif-icon-btn:hover{ background: var(--ui-hover); }
+.notif-icon-btn:active{ transform: translateY(1px); }
+.notif-icon-btn:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ui-ring); }
+.notif-icon-btn.is-active{ border-color: var(--ui-primary); }
+
+/* ============ PEEK OVERLAY + PANEL ============ */
+.peek-overlay{
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(17,24,39,.28);
+  display: flex; justify-content: flex-end; align-items: stretch;
+  animation: peekFade .15s ease;
+}
+@keyframes peekFade{ from{opacity:0} to{opacity:1} }
+
+.peek-panel{
+  margin-left:auto; width:min(480px, 92vw); height:100%;
+  background: var(--ui-bg);
+  border-left:1px solid var(--ui-border);
+  box-shadow: -8px 0 32px rgba(0,0,0,.18);
+  display:flex; flex-direction:column;
+  box-sizing:border-box;
+  animation: peekSlideIn .2s ease;
+}
+@keyframes peekSlideIn{ from{ transform:translateX(16px); opacity:0 } to{ transform:translateX(0); opacity:1 } }
+
+.peek-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; border-bottom:1px solid var(--ui-border);
+}
+.peek-title{
+  margin:0; font-size:14px; font-weight:600; color:var(--ui-text);
+}
+.peek-actions{ display:flex; align-items:center; gap:8px; }
+
+.peek-close{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:8px;
+  border:1px solid var(--ui-border); background:var(--ui-bg);
+  cursor:pointer; transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+}
+.peek-close:hover{ background:var(--ui-hover); }
+.peek-close:active{ transform: translateY(1px); }
+.peek-close:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ui-ring); }
+
+.peek-content{
+  flex:1; overflow:auto; padding:12px 12px 16px;
+}
+
+/* ============ MODO PEEK: APLANAR CUALQUIER DROPDOWN/POPOVER INTERNO ============ */
+.peek-content.peek-mode *,
+.peek-content.peek-mode *::before,
+.peek-content.peek-mode *::after{ box-sizing:border-box; }
+
+.peek-content.peek-mode [class*="dropdown"],
+.peek-content.peek-mode [class*="Dropdown"],
+.peek-content.peek-mode [class*="popover"],
+.peek-content.peek-mode [class*="Popover"],
+.peek-content.peek-mode [class*="menu"],
+.peek-content.peek-mode [class*="Menu"],
+.peek-content.peek-mode .cnav-dropdown,
+.peek-content.peek-mode [data-dropdown]{
+  position: static !important;
+  inset: auto !important;
+  left: auto !important; right:auto !important; top:auto !important; bottom:auto !important;
+  width: 100% !important; max-width:none !important; max-height:none !important;
+  transform:none !important; box-shadow:none !important;
+  border:0 !important; border-radius:0 !important;
+  background:transparent !important; padding:0 !important;
+}
+
+/* Si el componente trae contenedor de scroll interno, que herede del panel */
+.peek-content.peek-mode .notifications-scroll,
+.peek-content.peek-mode .dropdown-content,
+.peek-content.peek-mode .list,
+.peek-content.peek-mode .menu-content {
+  width:100% !important; max-height:none !important; overflow:visible !important;
+}
+
+/* ============ ESTILOS BASE (opcionales) PARA LISTA DE NOTIFICACIONES .nd-* ============ */
+/* Envolvé tu NotificationsDropdown con .nd-root para estas mejoras visuales */
+.nd-root{ display:flex; flex-direction:column; gap:12px; }
+
+/* Toolbar interna (filtros/acciones) */
+.nd-toolbar{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:0 2px 8px; border-bottom:1px solid var(--ui-border);
+}
+.nd-filters{ display:flex; gap:6px; flex-wrap:wrap; }
+.nd-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 10px; font-size:12.5px; font-weight:600; color:var(--ui-text);
+  background:var(--ui-bg); border:1px solid var(--ui-border); border-radius:8px;
+  cursor:pointer; transition: background .15s ease, border-color .15s ease, transform .05s ease, box-shadow .15s ease;
+}
+.nd-btn:hover{ background:var(--ui-hover); }
+.nd-btn:active{ transform: translateY(1px); }
+.nd-btn.is-primary{ border-color:var(--ui-primary); color:var(--ui-primary); }
+
+/* Lista / items */
+.nd-list{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+.nd-item{
+  display:grid; grid-template-columns: 1fr auto; gap:8px;
+  padding:10px 12px; border:1px solid var(--ui-border); border-radius:10px;
+  background:var(--ui-bg); box-shadow: var(--ui-shadow-sm);
+}
+.nd-item.unread{ border-color: color-mix(in srgb, var(--ui-primary) 30%, var(--ui-border)); background:#f8faff; }
+.nd-title{ margin:0; font-size:13.5px; font-weight:600; color:var(--ui-text); }
+.nd-meta{ margin:2px 0 0; font-size:12px; color:var(--ui-muted); }
+.nd-actions{ display:flex; align-items:center; gap:8px; }
+.nd-actions .nd-btn{ padding:6px 8px; }
+
+/* Empty state */
+.nd-empty{
+  margin-top:8px; border:1px dashed var(--ui-border); border-radius:12px; padding:16px;
+  text-align:center; color:var(--ui-muted); font-size:13px;
+}
+
+/* Responsivo */
+@media (max-width: 860px){
+  .peek-panel{ width:100%; }
+  .nd-item{ grid-template-columns: 1fr; }
+  .nd-actions{ justify-content:flex-end; }
 }

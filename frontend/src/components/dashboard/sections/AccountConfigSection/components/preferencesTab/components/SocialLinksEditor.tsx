@@ -1,6 +1,8 @@
 import React from "react";
 import { SocialKey, SocialLink } from "../../../types";
 import "./SocialLinksEditor.css";
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 const SOCIAL_OPTIONS: { key: SocialKey; label: string; placeholder: string }[] = [
   { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/tu_usuario" },
@@ -42,11 +44,19 @@ const SocialLinksEditor: React.FC<SocialLinksEditorProps> = ({
   };
 
   return (
-    <div className="social-editor">
+    <div className="social-editor card-like">
       <div className="social-header">
         <span className="social-title">{label}</span>
-        <button type="button" className="social-add" onClick={add}>
-          + Agregar
+
+        {/* Botón Agregar estilo cnav */}
+        <button
+          type="button"
+          className="cnav-chip-btn"
+          onClick={add}
+          title="Agregar enlace"
+        >
+          <span className="cnav-chip-icon"><AddIcon fontSize="small" /></span>
+          <span className="cnav-chip-label">Agregar</span>
         </button>
       </div>
 
@@ -59,10 +69,11 @@ const SocialLinksEditor: React.FC<SocialLinksEditorProps> = ({
               onChange={(e) => {
                 const opt = SOCIAL_OPTIONS.find((o) => o.key === e.target.value);
                 update(idx, {
-                  key: e.target.value,
+                  key: e.target.value as SocialKey,
                   label: opt ? opt.label : row.label,
                 });
               }}
+              aria-label="Tipo de red social"
             >
               {SOCIAL_OPTIONS.map((o) => (
                 <option key={o.key} value={o.key}>
@@ -70,13 +81,6 @@ const SocialLinksEditor: React.FC<SocialLinksEditorProps> = ({
                 </option>
               ))}
             </select>
-
-            <input
-              className="social-label"
-              value={row.label}
-              onChange={(e) => update(idx, { label: e.target.value })}
-              placeholder="Etiqueta visible"
-            />
 
             <input
               className="social-value"
@@ -87,10 +91,18 @@ const SocialLinksEditor: React.FC<SocialLinksEditorProps> = ({
                 SOCIAL_OPTIONS.find((o) => o.key === row.key)?.placeholder ||
                 "URL o @handle"
               }
+              aria-label="URL / usuario"
             />
 
-            <button type="button" className="social-remove" onClick={() => remove(idx)}>
-              ×
+            {/* Botón Eliminar estilo cnav (icon-only) */}
+            <button
+              type="button"
+              className="cnav-iconbtn cnav-iconbtn--danger"
+              onClick={() => remove(idx)}
+              title="Eliminar enlace"
+              aria-label="Eliminar enlace"
+            >
+              <RemoveIcon fontSize="small" />
             </button>
           </div>
         ))}

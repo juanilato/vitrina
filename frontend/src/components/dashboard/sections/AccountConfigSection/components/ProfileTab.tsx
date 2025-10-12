@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
 import ImageUploader from './preferencesTab/components/imageUploader';
-
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 const ProfileTab: React.FC = () => {
   const {
     empresaData,
@@ -143,22 +144,24 @@ const ProfileTab: React.FC = () => {
           </div>
 
           {/* Verification Status */}
-          <div className="verification-status">
-            <div className={`status-badge ${empresaData?.isVerified ? 'verified' : 'pending'}`}>
-              <span className="status-icon">
-                {empresaData?.isVerified ? '✅' : '⏳'}
-              </span>
-              <span className="status-text">
-                {empresaData?.isVerified ? 'Cuenta verificada' : 'Pendiente de verificación'}
-              </span>
-            </div>
-            
-            {!empresaData?.isVerified && (
-              <p className="verification-note">
-                Tu cuenta está pendiente de verificación. Revisa tu email para completar el proceso.
-              </p>
-            )}
-          </div>
+<div className="verification-status">
+  <div className={`status-badge ${empresaData?.isVerified ? 'verified' : 'pending'}`}>
+    {empresaData?.isVerified ? (
+      <CheckCircleOutlineOutlinedIcon className="inline-icon" />
+    ) : (
+      <ScheduleOutlinedIcon className="inline-icon" />
+    )}
+    <span className="status-text">
+      {empresaData?.isVerified ? 'Cuenta verificada' : 'Pendiente de verificación'}
+    </span>
+  </div>
+  {!empresaData?.isVerified && (
+    <p className="verification-note muted">
+      Tu cuenta está pendiente de verificación. Revisá tu email para completar el proceso.
+    </p>
+  )}
+</div>
+
         </div>
 
         {/* Account Info */}

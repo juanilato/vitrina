@@ -1,256 +1,129 @@
+// OrderRow.tsx
 import React, { useState } from 'react';
 import { OrderCardProps } from '../types';
 import pedidosService from '../../../../../services/pedidosService';
 
-const OrderCard: React.FC<OrderCardProps> = ({ 
-  pedido, 
-  onUpdateStatus, 
-  onViewDetails, 
+const OrderRow: React.FC<OrderCardProps> = ({
+  pedido,
+  onUpdateStatus,
+  onViewDetails,
   onReject,
-  onDelete 
+  onDelete,
 }) => {
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
+  const [showReject, setShowReject] = useState(false);
+  const [reason, setReason] = useState('');
+  if (!pedido || !pedido.id) return null;
 
-  if (!pedido || !pedido.id) {
-    return null;
-  }
+  const statusText = pedidosService.getStatusText(pedido.estado);
+  const statusColor = pedidosService.getStatusColor(pedido.estado);
+  const nextStatus = pedidosService.getNextStatus(pedido.estado, pedido.tipoEntrega);
+  const nextStatusText = pedidosService.getNextStatusText(pedido.estado, pedido.tipoEntrega);
 
-  const getStatusBadge = (estado: string) => {
-    const color = pedidosService.getStatusColor(estado);
-    const text = pedidosService.getStatusText(estado);
-    
-    return (
-      <span 
-        className="status-badge" 
-        style={{ backgroundColor: color, color: 'white' }}
-      >
-        {text}
-      </span>
-    );
-  };
+  const fmt = (d: string) =>
+    new Date(d).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getNextStatus = (currentStatus: string, tipoEntrega: 'delivery' | 'retiro') => {
-    return pedidosService.getNextStatus(currentStatus, tipoEntrega);
-  };
-
-  const getNextStatusText = (currentStatus: string, tipoEntrega: 'delivery' | 'retiro') => {
-    return pedidosService.getNextStatusText(currentStatus, tipoEntrega);
-  };
-
-  const getDeliveryTypeText = (tipoEntrega: string) => {
-    switch (tipoEntrega) {
-      case 'delivery':
-        return '🏍️ Delivery';
-      case 'retiro':
-        return '🏪 Retiro';
-      default:
-        return '❓ Desconocido';
-    }
-  };
-
-  const getPaymentTypeText = (formaPago: string) => {
-    switch (formaPago) {
-      case 'transferencia':
-        return '💳 Transferencia';
-      case 'efectivo':
-        return '💰 Efectivo';
-      default:
-        return '❓ Desconocido';
-    }
-  };
-
-  const handleRejectOrder = () => {
-    if (rejectReason.trim()) {
-      onReject?.(pedido.id, rejectReason.trim());
-      setShowRejectModal(false);
-      setRejectReason('');
-    }
-  };
-
-  const nextStatus = getNextStatus(pedido.estado, pedido.tipoEntrega);
-  const nextStatusText = getNextStatusText(pedido.estado, pedido.tipoEntrega);
+  const fmtMoney = (n?: number) =>
+    new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 2 }).format(n ?? 0);
 
   return (
-    <div className="order-card">
-      <div className="order-header">
-        <div className="order-id">
-          <span className="order-label">Pedido #</span>
-          <span className="order-value">{pedido.id.substring(0, 8).toUpperCase()}</span>
+    <>
+      <div className="olist-row">
+        {/* Columna: Pedido / Cliente */}
+        <div className="ocell ocell-order">
+          <div className="ohead">
+            <span className="oid">#{pedido.id.slice(0, 8).toUpperCase()}</span>
+            <span className="otime">{fmt(pedido.createdAt)}</span>
+          </div>
+          <div className="obody">
+            <div className="oname">{pedido.cliente?.name || 'Cliente sin nombre'}</div>
+            {pedido.cliente?.email && <div className="oemail">{pedido.cliente.email}</div>}
+          </div>
         </div>
-        {getStatusBadge(pedido.estado)}
-      </div>
-      
-      <div className="order-content">
-        <div className="order-client">
-          <h3 className="client-name">{pedido.cliente?.name || 'Cliente no disponible'}</h3>
-          <p className="client-email">{pedido.cliente?.email || ''}</p>
+
+        {/* Columna: Estado */}
+        <div className="ocell ocell-status">
+          <span className="ostate-pill" style={{ background: statusColor }}>{statusText}</span>
         </div>
-        
-        <div className="order-details">
-          <div className="order-total">
-            <span className="total-label">Total:</span>
-            <span className="total-value">${pedido.total?.toFixed(2) || '0.00'}</span>
-          </div>
 
-          {pedido.tipoEntrega === 'delivery' && (
-            <div className="order-shipping">
-              <span className="shipping-label">Envío:</span>
-              <span className="shipping-value">
-                {pedido.shippingPrice?.price
-                  ? `$${pedido.shippingPrice.price.toFixed(2)}${pedido.shippingPrice.isEstimated ? ' (estimado)' : ''}`
-                  : (pedido.shippingPrice?.message || 'A confirmar')}
-              </span>
-            </div>
-          )}
-          
-          <div className="order-items">
-            <span className="items-label">Items:</span>
-            <span className="items-value">{pedido.items?.length || 0}</span>
+        {/* Columna: Entrega / Pago */}
+        <div className="ocell ocell-meta">
+          <div className="ometa">
+            <span className="olabel">Entrega</span>
+            <span className="ovalue">{pedido.tipoEntrega === 'delivery' ? 'Delivery' : 'Retiro'}</span>
           </div>
-          
-          <div className="order-delivery">
-            <span className="delivery-label">Entrega:</span>
-            <span className="delivery-value">{getDeliveryTypeText(pedido.tipoEntrega)}</span>
+          <div className="ometa">
+            <span className="olabel">Pago</span>
+            <span className="ovalue">{pedido.formaPago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
           </div>
-          
-          <div className="order-payment">
-            <span className="payment-label">Pago:</span>
-            <span className="payment-value">{getPaymentTypeText(pedido.formaPago)}</span>
-          </div>
-          
-          <div className="order-date">
-            <span className="date-label">Creado:</span>
-            <span className="date-value">{formatDate(pedido.createdAt)}</span>
-          </div>
+        </div>
 
-          {pedido.tipoEntrega === 'delivery' && pedido.deliveryLocation && (
-            <div className="order-location">
-              <span className="location-label">Ubicación:</span>
-              <span className="location-value">{pedido.deliveryLocation.direccion}</span>
-              <button
-                className="btn-secondary view-map-btn"
-                style={{ marginLeft: 8 }}
-                onClick={() => {
-                  const { lat, lng } = pedido.deliveryLocation!;
-                  window.open(`https://www.google.com/maps?q=${lat},${lng}`,'_blank');
-                }}
-              >
-                Ver mapa
+        {/* Columna: Items / Total */}
+        <div className="ocell ocell-qty">
+          <div className="ometa">
+            <span className="olabel">Items</span>
+            <span className="ovalue">{pedido.items?.length ?? 0}</span>
+          </div>
+          <div className="ometa">
+            <span className="olabel">Total</span>
+            <span className="ovalue ostrong">{fmtMoney(pedido.total)}</span>
+          </div>
+        </div>
+
+        {/* Columna: Acciones */}
+        <div className="ocell ocell-actions">
+          <div className="oactions">
+            <button className="btn-ghost" onClick={() => onViewDetails?.(pedido)}>Detalles</button>
+            {nextStatus && (
+              <button className="btn-primary" onClick={() => onUpdateStatus?.(pedido.id, nextStatus as any)}>
+                {nextStatusText}
               </button>
-            </div>
-          )}
-
-          {pedido.estado === 'no_confirmado' && pedido.motivoRechazo && (
-            <div className="order-rejection-reason">
-              <span className="rejection-label">Motivo de rechazo:</span>
-              <span className="rejection-value">{pedido.motivoRechazo}</span>
-            </div>
-          )}
+            )}
+            {onDelete && pedido.estado === 'pendiente_confirmacion' && (
+              <button className="btn-danger" onClick={() => setShowReject(true)}>No confirmar</button>
+            )}
+          </div>
         </div>
       </div>
-      
-      <div className="order-actions">
-        <button 
-          className="btn-secondary view-btn"
-          onClick={() => onViewDetails(pedido)}
-        >
-          Ver Detalles
-        </button>
-        
-        {nextStatus && (
-          <button 
-            className="btn-primary status-btn"
-            onClick={() => onUpdateStatus(pedido.id, nextStatus as any)}
-          >
-            {nextStatusText}
-          </button>
-        )}
-        
-          {onDelete && pedido.estado === 'pendiente_confirmacion' && (
-            <button 
-              className="btn-danger delete-btn"
-              onClick={() => setShowRejectModal(true)}
-            >
-              No confirmar
-            </button>
-          )}
-      </div>
 
-      {/* Modal de no confirmación */}
-      {showRejectModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+      {/* Modal no confirmación (compacto, formal) */}
+      {showReject && (
+        <div className="modal-overlay" onClick={() => setShowReject(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">No Confirmar Pedido</h3>
-              <button 
-                className="modal-close"
-                onClick={() => {
-                  setShowRejectModal(false);
-                  setRejectReason('');
-                }}
-              >
-                ✕
-              </button>
+              <h2>No confirmar pedido</h2>
+              <button className="modal-close" onClick={() => setShowReject(false)}>×</button>
             </div>
-            
             <div className="modal-body">
               <p className="modal-description">
-                ¿Por qué no confirmas este pedido? El cliente recibirá una notificación con el motivo que ingreses.
+                Informá un motivo. El cliente será notificado con este mensaje.
               </p>
-              
               <div className="form-group">
-                <label htmlFor="reject-reason" className="form-label">
-                  Motivo de no confirmación:
-                </label>
+                <label htmlFor="reject-reason">Motivo</label>
                 <textarea
                   id="reject-reason"
-                  className="form-textarea"
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="Ej: Producto agotado, datos de pago incorrectos, dirección no válida..."
                   rows={4}
-                  maxLength={500}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Ej: producto sin stock…"
                 />
-                <div className="form-char-count">
-                  {rejectReason.length}/500 caracteres
-                </div>
+                <div className="form-hint">{reason.length}/500</div>
               </div>
             </div>
-            
-            <div className="modal-footer">
-              <button 
-                className="btn-secondary"
-                onClick={() => {
-                  setShowRejectModal(false);
-                  setRejectReason('');
-                }}
-              >
-                Cancelar
-              </button>
-              <button 
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setShowReject(false)}>Cancelar</button>
+              <button
                 className="btn-danger"
-                onClick={handleRejectOrder}
-                disabled={!rejectReason.trim()}
+                disabled={!reason.trim()}
+                onClick={() => { onReject?.(pedido.id, reason.trim()); setShowReject(false); setReason(''); }}
               >
-                No Confirmar Pedido
+                No confirmar
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
-export default OrderCard;
+export default OrderRow;

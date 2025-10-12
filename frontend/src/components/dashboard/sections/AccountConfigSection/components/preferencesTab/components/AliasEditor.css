@@ -1,25 +1,10 @@
-.alias-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.alias-editor{
+  border:1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface); padding:10px; display:grid; gap:6px;
 }
-
-.alias-label {
-  font-weight: 600;
-  color: #333;
-  font-size: 0.95rem;
+.alias-label{ font-size:12.5px; font-weight:800; color:var(--text); }
+.alias-input{
+  height:36px; padding:0 10px; border:1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font-size:13px;
 }
-
-.alias-input {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.95rem;
-  transition: all 0.15s ease;
-}
-
-.alias-input:focus {
-  border-color: #4f7cff;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(79, 124, 255, 0.15);
-}
+.alias-input:hover{ border-color: var(--primary); }

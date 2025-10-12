@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useGoogleMaps } from '../../../../../hooks/useGoogleMaps';
 import './GoogleMapsSelector.css';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
+import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
+import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 
 interface GoogleMapsSelectorProps {
   onLocationSelect: (location: {
@@ -238,21 +242,71 @@ const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
   // Mostrar error de configuración
   if (loadError && loadError.includes('not configured')) {
     return (
-      <div className="google-maps-selector">
-        <div className="maps-error">
-          <div className="error-icon">⚠️</div>
-          <h3>Google Maps no configurado</h3>
-          <p>Para usar la selección de ubicaciones con mapas, necesitas configurar la API key de Google Maps.</p>
-          <div className="error-instructions">
-            <p><strong>Pasos para configurar:</strong></p>
-            <ol>
-              <li>Obtén una API key de Google Maps en <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">Google Cloud Console</a></li>
-              <li>Habilita las APIs: Maps JavaScript API y Geocoding API</li>
-              <li>Agrega la variable <code>REACT_APP_GOOGLE_MAPS_API_KEY</code> a tu archivo .env</li>
-            </ol>
-          </div>
+<div className="google-maps-selector">
+  <div className="maps-search-container card">
+    <div className="search-input-group sidebar-search">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+        placeholder="Buscar dirección…"
+        className="sidebar-search-input"
+        disabled={!isLoaded}
+      />
+      <button
+        onClick={handleSearch}
+        disabled={!isLoaded || !searchQuery.trim()}
+        className="icon-btn"
+        title="Buscar"
+      >
+        <SearchOutlinedIcon fontSize="small" />
+      </button>
+      <button
+        onClick={getCurrentLocation}
+        disabled={!isLoaded || isGettingLocation}
+        className="icon-btn"
+        title="Usar mi ubicación"
+      >
+        <MyLocationOutlinedIcon fontSize="small" />
+      </button>
+    </div>
+
+    {selectedLocation && (
+      <div className="selected-location-info">
+        <div className="location-address">
+          <PlaceOutlinedIcon className="inline-icon" />
+          <span className="address-text">{selectedLocation.direccion}</span>
+        </div>
+        <div className="location-coordinates">
+          <MapOutlinedIcon className="inline-icon" />
+          <span className="coords-text">
+            Lat: {selectedLocation.lat.toFixed(6)}, Lng: {selectedLocation.lng.toFixed(6)}
+          </span>
         </div>
       </div>
+    )}
+  </div>
+
+  <div ref={mapRef} className="google-map bordered" style={{ height }} />
+
+  {(isLoading || !isLoaded) && (
+    <div className="map-loading">
+      <div className="loading-spinner"></div>
+      <p>{isLoading ? 'Cargando Google Maps…' : 'Inicializando mapa…'}</p>
+      <small className="muted">Esto puede tomar unos segundos</small>
+    </div>
+  )}
+
+  <div className="map-instructions card subtle">
+    <p><strong>Instrucciones:</strong></p>
+    <ul>
+      <li>Buscá una dirección</li>
+      <li>Click en el mapa para seleccionar</li>
+      <li>Arrastrá el marcador para ajustar</li>
+    </ul>
+  </div>
+</div>
     );
   }
 

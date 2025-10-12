@@ -1,151 +1,185 @@
 "use client";
-import React, { useCallback, useRef, useState } from "react";
-import Cropper from "react-easy-crop";
-import "./ImageUploader.css"; // tu CSS existente
 
-interface ImageUploaderProps {
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import Cropper from "react-easy-crop";
+import "./ImageUploader.css";
+import PhotoIcon from '@mui/icons-material/Photo';
+import { createPortal } from "react-dom";
+import { useEffect } from "react";
+type CropShape = "circle" | "rect";
+
+export interface ImageUploaderProProps {
+  label?: string;
+  description?: string;
   imageUrl?: string;
   onUpload: (file: File) => Promise<void>;
   onRemove?: () => void;
   disabled?: boolean;
-  label?: string;
-  maxSizeMB?: number;
-  /** Nueva prop: tipo de recorte */
-  cropShape?: "circle" | "rect";
-  /** Opcional: relación de aspecto (ej. 1 para cuadrado). Si no pasas nada y es circle, queda 1; si es rect y no pasas nada, es libre. */
-  aspect?: number | undefined;
+  cropShape?: CropShape;           // "circle" | "rect"
+  aspect?: number | undefined;     // ej. 1, 16/9, etc
+  width?: number;                  // ancho del preview (px)
+  height?: number;                 // alto del preview (px) (para rect)
 }
 
 type Area = { width: number; height: number; x: number; y: number };
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({
+const ImageUploader: React.FC<ImageUploaderProProps> = ({
+  label = "Imagen",
+  description,
   imageUrl,
   onUpload,
   onRemove,
   disabled = false,
-  label = "Imagen",
-  maxSizeMB = 5,
   cropShape = "rect",
-  aspect
+  aspect,
+  width = 320,
+  height = 180,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(imageUrl);
-  const [localSrc, setLocalSrc] = useState<string | null>(null); // dataURL del archivo elegido
-  const [showCropper, setShowCropper] = useState(false);
+  const [localSrc, setLocalSrc] = useState<string | null>(null);
+  const [openCrop, setOpenCrop] = useState(false);
 
-  // estados del cropper
+  // cropper state
   const [crop, setCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [areaPx, setAreaPx] = useState<Area | null>(null);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const computedAspect = useMemo(() => {
+    if (typeof aspect === "number") return aspect;
+    return cropShape === "circle" ? 1 : undefined; // círculo por defecto cuadrado
+  }, [aspect, cropShape]);
 
-    if (!file.type.startsWith("image/")) {
-      alert("Por favor selecciona un archivo de imagen válido.");
-      return;
+  useEffect(() => {
+  if (openCrop) {
+    document.body.classList.add("no-scroll");
+  } else {
+    document.body.classList.remove("no-scroll");
+  }
+  return () => document.body.classList.remove("no-scroll");
+}, [openCrop]);
+
+  // Tamaños del preview por modo
+  const boxStyle = useMemo(() => {
+    if (cropShape === "circle") {
+      const side = width; // usamos width como diámetro
+      return { width: side, height: side, borderRadius: "50%" } as React.CSSProperties;
     }
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      alert(`El archivo es demasiado grande. Máximo ${maxSizeMB}MB`);
-      return;
-    }
+    return { width, height, borderRadius: 12 } as React.CSSProperties;
+  }, [cropShape, width, height]);
 
-    // Leemos como dataURL para mostrar en el recortador
-    const reader = new FileReader();
-    reader.onload = () => {
-      setLocalSrc(reader.result as string);
-      setShowCropper(true);
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
-    };
-    reader.readAsDataURL(file);
-
-    // limpiamos el input para permitir volver a elegir el mismo archivo si se cancela
-    e.currentTarget.value = "";
-  };
-
-  const triggerUpload = () => {
+  const pickFile = () => {
     if (!disabled) fileInputRef.current?.click();
   };
 
-  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropComplete = useCallback((_a: Area, aPx: Area) => setAreaPx(aPx), []);
 
-  const handleConfirmCrop = async () => {
-    if (!localSrc || !croppedAreaPixels) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
 
+    if (!f.type.startsWith("image/")) {
+      alert("Seleccioná un archivo de imagen válido.");
+      e.currentTarget.value = "";
+      return;
+    }
+    if (f.size > 7 * 1024 * 1024) {
+      alert("El archivo es muy grande (máximo 7MB).");
+      e.currentTarget.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLocalSrc(reader.result as string);
+      setOpenCrop(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
+    reader.readAsDataURL(f);
+    e.currentTarget.value = "";
+  };
+
+  const confirmCrop = async () => {
+    if (!localSrc || !areaPx) return;
     try {
-      const blob = await getCroppedImageBlob(localSrc, croppedAreaPixels, cropShape);
-      const fileName = cropShape === "circle" ? "crop.png" : inferFileNameFromDataURL(localSrc) ?? "crop.jpg";
-      // Si es círculo exportamos PNG con transparencia
-      const mime = cropShape === "circle" ? "image/png" : (blob.type || "image/jpeg");
-      const file = new File([blob], fileName, { type: mime });
-
-      // pre-visualización local
-      const objectURL = URL.createObjectURL(blob);
-      setPreviewUrl(objectURL);
-
-      // subir al backend
+      const blob = await getCroppedBlob(localSrc, areaPx, cropShape);
+      const ext = cropShape === "circle" ? "png" : "jpg";
+      const file = new File([blob], `upload.${ext}`, { type: blob.type });
+      const objUrl = URL.createObjectURL(blob);
+      setPreviewUrl(objUrl);
       await onUpload(file);
-
-      // cerrar modal
-      setShowCropper(false);
+      setOpenCrop(false);
       setLocalSrc(null);
-    } catch (err) {
-      console.error("❌ Error al recortar:", err);
-      alert("Hubo un error al procesar el recorte.");
+    } catch (e) {
+      console.error(e);
+      alert("No se pudo procesar el recorte.");
     }
   };
 
-  const handleCancelCrop = () => {
-    setShowCropper(false);
+  const cancelCrop = () => {
+    setOpenCrop(false);
     setLocalSrc(null);
   };
 
   return (
-    <div className="image-uploader">
-      <h4>{label}</h4>
-
-      <div className="image-preview" onClick={triggerUpload} role="button" aria-label="Subir imagen">
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="Imagen subida"
-            style={cropShape === "circle" ? { borderRadius: "50%" } : undefined}
-          />
-        ) : (
-          <div className="image-placeholder">
-            <span className="icon">📷</span>
-            <span>Haz clic para subir</span>
-          </div>
-        )}
-        <div className="image-overlay">
-          <span className="overlay-icon">📷</span>
-          <span className="overlay-text">{previewUrl ? "Cambiar" : "Subir"}</span>
+    <div className="iu-card">
+      <div className="iu-head">
+        <div className="iu-titles">
+          <h4 className="iu-title">{label}</h4>
+          {description && <p className="iu-desc">{description}</p>}
+        </div>
+        <div className="iu-actions">
+          <button
+            type="button"
+            className="btn-quiet"
+            onClick={pickFile}
+            disabled={disabled}
+          >
+            {previewUrl ? "Cambiar" : "Subir imagen"}
+          </button>
+          {previewUrl && onRemove && (
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => {
+                onRemove?.();
+                setPreviewUrl(undefined);
+              }}
+              disabled={disabled}
+              title="Quitar imagen"
+            >
+              Quitar
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="image-actions">
-        <button className="btn btn-primary" onClick={triggerUpload} disabled={disabled}>
-          {previewUrl ? "Cambiar Imagen" : "Seleccionar Imagen"}
-        </button>
-        {previewUrl && onRemove && (
-          <button
-            className="btn btn-danger"
-            onClick={() => {
-              onRemove?.();
-              setPreviewUrl(undefined);
-            }}
-            disabled={disabled}
-          >
-            Eliminar Imagen
-          </button>
-        )}
+      <div className="iu-body">
+        <div
+          className={`iu-preview ${!previewUrl ? "is-empty" : ""}`}
+          style={boxStyle}
+          onClick={pickFile}
+          role="button"
+          aria-label="Elegir imagen"
+        >
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="preview"
+              style={cropShape === "circle" ? { borderRadius: "50%" } : undefined}
+            />
+          ) : (
+            <div className="iu-empty">
+              <span className="iu-empty-icon"><PhotoIcon /></span>
+      
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* input oculto */}
       <input
         ref={fileInputRef}
         type="file"
@@ -154,182 +188,124 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         style={{ display: "none" }}
       />
 
-      {showCropper && localSrc && (
-        <div className="cropper-modal">
-          <div className="cropper-dialog">
-            <div className="cropper-header">
-              <h5>Recortar {cropShape === "circle" ? "circular" : "rectangular"}</h5>
-            </div>
+      {/* modal recorte minimal */}
 
-            <div className="cropper-body">
-              <div className="cropper-container">
-                <Cropper
-                  image={localSrc}
-                  crop={crop}
-                  zoom={zoom}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={onCropComplete}
-                  cropShape={cropShape === "circle" ? "round" : "rect"}
-                  // Si no pasas aspect y es circle, usamos 1 (cuadrado). Si es rect y no pasas aspect => libre (undefined).
-                  aspect={typeof aspect === "number" ? aspect : (cropShape === "circle" ? 1 : undefined)}
-                  showGrid={true}
-                  restrictPosition={true}
-                />
-              </div>
-              <div className="cropper-controls">
-                <label htmlFor="zoom">Zoom</label>
-                <input
-                  id="zoom"
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.01}
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                />
-              </div>
-            </div>
+{openCrop && localSrc &&
+  createPortal(
+    <div className="iu-modal" role="dialog" aria-modal="true">
+      <div className="iu-dialog">
+        <div className="iu-dialog-head">
+          <h5>Recortar</h5>
+          <button className="btn-icon" onClick={cancelCrop} aria-label="Cerrar">✕</button>
+        </div>
 
-            <div className="cropper-footer">
-              <button className="btn btn-secondary" onClick={handleCancelCrop}>Cancelar</button>
-              <button className="btn btn-primary" onClick={handleConfirmCrop}>Usar recorte</button>
-            </div>
+        <div className="iu-crop-area">
+          <Cropper
+            image={localSrc}
+            crop={crop}
+            zoom={zoom}
+            onCropChange={setCrop}
+            onZoomChange={setZoom}
+            onCropComplete={onCropComplete}
+            cropShape={cropShape === "circle" ? "round" : "rect"}
+            aspect={computedAspect}
+            showGrid={false}
+            restrictPosition
+          />
+        </div>
+
+        <div className="iu-dialog-foot">
+          <div className="iu-zoom">
+            <span>Zoom</span>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+            />
+          </div>
+          <div className="iu-foot-actions">
+            <button className="btn-ghost" onClick={cancelCrop}>Cancelar</button>
+            <button className="btn-quiet" onClick={confirmCrop}>Usar recorte</button>
           </div>
         </div>
-      )}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
     </div>
   );
 };
 
 export default ImageUploader;
 
-/* =========================
-   Helpers de recorte
-========================= */
+/* ===== Helpers ===== */
+async function getCroppedBlob(src: string, area: Area, shape: CropShape): Promise<Blob> {
+  const img = await loadImage(src);
+  const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 1;
 
-/** Devuelve el nombre base del archivo si el dataURL lo incluye (algunas fuentes), si no, null */
-function inferFileNameFromDataURL(dataURL: string): string | null {
-  try {
-    const match = dataURL.match(/^data:(image\/[a-zA-Z0-9.+-]+);/);
-    if (!match) return null;
-    const mime = match[1]; // p.ej. image/jpeg
-    const ext = mime.split("/")[1]?.split("+")[0] || "jpg";
-    return `crop.${ext}`;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Recorta usando canvas según el área en píxeles.
- * Para circle crea una máscara circular y exporta PNG con transparencia.
- */
-async function getCroppedImageBlob(
-  imageSrc: string,
-  cropPixels: Area,
-  shape: "circle" | "rect"
-): Promise<Blob> {
-  const img = await loadImage(imageSrc);
-
-  // Ajustamos para HiDPI
-  const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-
-  // Si es círculo, hacemos el canvas cuadrado (lado = min(width,height)) para evitar estirar.
-  const targetWidth = cropPixels.width;
-  const targetHeight = cropPixels.height;
-
-  // Para shape circle, queremos un PNG cuadrado (lado = min(targetWidth, targetHeight))
-  const circleSide = Math.min(targetWidth, targetHeight);
+  const targetW = area.width;
+  const targetH = area.height;
 
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round((shape === "circle" ? circleSide : targetWidth) * dpr);
-  canvas.height = Math.round((shape === "circle" ? circleSide : targetHeight) * dpr);
+  if (shape === "circle") {
+    const side = Math.min(targetW, targetH);
+    canvas.width = Math.round(side * dpr);
+    canvas.height = Math.round(side * dpr);
+  } else {
+    canvas.width = Math.round(targetW * dpr);
+    canvas.height = Math.round(targetH * dpr);
+  }
 
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("No se pudo crear el contexto 2D del canvas.");
-
+  if (!ctx) throw new Error("No canvas context");
   ctx.scale(dpr, dpr);
   ctx.imageSmoothingQuality = "high";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (shape === "circle") {
-    // fondo transparente + máscara circular
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const radius = circleSide / 2;
+    const side = Math.min(targetW, targetH);
+    const r = side / 2;
     ctx.save();
     ctx.beginPath();
-    ctx.arc(radius, radius, radius, 0, Math.PI * 2);
+    ctx.arc(r, r, r, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
 
-    // Dibujar el área recortada centrada al nuevo lienzo cuadrado
-    const offsetX = (circleSide - targetWidth) / 2;
-    const offsetY = (circleSide - targetHeight) / 2;
+    const offsetX = (side - targetW) / 2;
+    const offsetY = (side - targetH) / 2;
 
-    ctx.drawImage(
-      img,
-      cropPixels.x,           // sx
-      cropPixels.y,           // sy
-      cropPixels.width,       // sWidth
-      cropPixels.height,      // sHeight
-      offsetX,                // dx
-      offsetY,                // dy
-      targetWidth,            // dWidth
-      targetHeight            // dHeight
-    );
+    ctx.drawImage(img, area.x, area.y, area.width, area.height, offsetX, offsetY, targetW, targetH);
     ctx.restore();
 
-    return new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error("Falló la exportación PNG."))),
-        "image/png",
-        1
-      );
-    });
+    return new Promise((res, rej) =>
+      canvas.toBlob((b) => (b ? res(b) : rej(new Error("export fail"))), "image/png", 1)
+    );
   }
 
-  // Rectangular: mantenemos el tamaño del recorte
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(
-    img,
-    cropPixels.x,
-    cropPixels.y,
-    cropPixels.width,
-    cropPixels.height,
-    0,
-    0,
-    targetWidth,
-    targetHeight
+  ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, targetW, targetH);
+  const mime = guessMime(src) || "image/jpeg";
+  return new Promise((res, rej) =>
+    canvas.toBlob((b) => (b ? res(b) : rej(new Error("export fail"))), mime, 0.95)
   );
-
-  // Intentamos mantener el mime de origen si es posible
-  const guessMime = guessImageMimeFromSrc(imageSrc) ?? "image/jpeg";
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("Falló la exportación del recorte."))),
-      guessMime,
-      0.95
-    );
-  });
-}
-
-function guessImageMimeFromSrc(src: string): string | null {
-  if (src.startsWith("data:image/")) {
-    const m = src.match(/^data:(image\/[a-zA-Z0-9.+-]+);/);
-    return m ? m[1] : null;
-    }
-  // si es URL/objUrl no podemos saberlo con certeza; devolvemos null
-  return null;
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    // Para dataURL no hace falta crossOrigin. Si viniera de otra fuente:
-    // img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
+    const i = new Image();
+    i.onload = () => resolve(i);
+    i.onerror = reject;
+    i.src = src;
   });
+}
+function guessMime(src: string): string | null {
+  if (src.startsWith("data:image/")) {
+    const m = src.match(/^data:(image\/[a-zA-Z0-9.+-]+);/);
+    return m ? m[1] : null;
+  }
+  return null;
 }

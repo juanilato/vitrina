@@ -11,7 +11,7 @@ interface AliasEditorProps {
 const AliasEditor: React.FC<AliasEditorProps> = ({
   value,
   onChange,
-  label = "Alias / nombre alternativo",
+  label = "Alias para transferencia",
   placeholder = "Ej: Tienda San Juan o @mipagina",
 }) => {
   return (
