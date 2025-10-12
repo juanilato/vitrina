@@ -90,79 +90,8 @@ const ProfileTab: React.FC = () => {
 
       <div className="profile-content">
         {/* Logo Section */}
-        <div className="profile-section">
-          <h3>Logo de la Empresa</h3>
-   <ImageUploader
-  imageUrl={localFormData.logo}
-  onUpload={async (file) => {
-    const logoUrl = await uploadFoto(file, false); // ya la tenés
-    setLocalFormData(prev => ({ ...prev, logo: logoUrl }));
-  }}
-  onRemove={() => setLocalFormData(prev => ({ ...prev, logo: '' }))}
-  disabled={saving}
-/>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleLogoUpload}
-            style={{ display: 'none' }}
-          />
-        </div>
 
         {/* Basic Information */}
-        <div className="profile-section">
-          <h3>Información Básica</h3>
-          
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="company-name">Nombre de la Empresa</label>
-              <input
-                id="company-name"
-                type="text"
-                value={localFormData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                disabled={!isEditing || saving}
-                className="form-input"
-                placeholder="Ingresa el nombre de tu empresa"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="company-email">Email</label>
-              <input
-                id="company-email"
-                type="email"
-                value={localFormData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                disabled={!isEditing || saving}
-                className="form-input"
-                placeholder="email@empresa.com"
-              />
-            </div>
-          </div>
-
-          {/* Verification Status */}
-<div className="verification-status">
-  <div className={`status-badge ${empresaData?.isVerified ? 'verified' : 'pending'}`}>
-    {empresaData?.isVerified ? (
-      <CheckCircleOutlineOutlinedIcon className="inline-icon" />
-    ) : (
-      <ScheduleOutlinedIcon className="inline-icon" />
-    )}
-    <span className="status-text">
-      {empresaData?.isVerified ? 'Cuenta verificada' : 'Pendiente de verificación'}
-    </span>
-  </div>
-  {!empresaData?.isVerified && (
-    <p className="verification-note muted">
-      Tu cuenta está pendiente de verificación. Revisá tu email para completar el proceso.
-    </p>
-  )}
-</div>
-
-        </div>
 
         {/* Account Info */}
         <div className="profile-section">

@@ -10,6 +10,8 @@ import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import ChargeUbicacionModule from './components/ChargeUbicacionModule';
+import GoogleMapsSelector from './components/GoogleMapsSelector';
 const AccountConfigSection: React.FC = () => {
   const {
     loading,
@@ -21,7 +23,8 @@ const AccountConfigSection: React.FC = () => {
     hasChanges,
     activeTab,
     setActiveTab,
-    resetForm
+    resetForm,
+    cargaUbicacionInicial,
   } = useAccountConfig();
 
   if (loading) {
@@ -62,10 +65,14 @@ const AccountConfigSection: React.FC = () => {
       case 'locations':
         if (!ubicacion) {
           return (
-            <div className="card empty-card">
-              <LocalShippingOutlinedIcon className="state-icon" />
-              <p className="muted">No hay ninguna ubicación configurada</p>
-            </div>
+
+
+<ChargeUbicacionModule
+  empresaId={empresaData.id}
+  onSaved={(empresaId, dto) => cargaUbicacionInicial(empresaId, dto)}
+  showRadiusPreview={false}  
+/>
+
           );
         }
         return (

@@ -11,7 +11,9 @@ import {
   CreatePrecioEnvioData,
   UpdatePrecioEnvioData,
   SocialLink,
-  UpdateEmpresaExtrasPayload
+  UpdateEmpresaExtrasPayload,
+  UbicacionData,
+  Ubicacion
 } from '../types';
 
 const normalizeSocials = (arr: SocialLink[]) =>
@@ -182,23 +184,13 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
       
       const response = await axiosInstance.post(`/empresas/${user.id}/ubicaciones`, locationData);
       
-      console.log('🏢 [FRONTEND] Respuesta del servidor:', response.data);
+
       
       // Recargar datos de la empresa
-      console.log('🏢 [FRONTEND] Recargando datos después de agregar ubicación...');
+
       await loadEmpresaData();
       
-      console.log('🏢 [FRONTEND] Datos recargados, actualizando estado...');
-      
-      // Verificar que los datos se cargaron correctamente
-      console.log('🏢 [FRONTEND] Estado actual después de recargar:', {
-        ubicacionesCount: state.formData.ubicaciones?.length || 0,
-        ubicaciones: state.formData.ubicaciones
-      });
-      
-      // Log simple para verificar
-      console.log('UBICACIONES DESPUÉS DE RECARGAR:', state.formData.ubicaciones);
-      
+
       setState(prev => ({
         ...prev,
         saving: false,
@@ -481,6 +473,27 @@ const updateEmpresaExtras = useCallback(async (payload: UpdateEmpresaExtrasPaylo
   }
 }, [loadEmpresaData]);
 
+
+
+
+const cargaUbicacionInicial = useCallback(async (empresaId: string,ubicacion: Ubicacion) => {
+
+  try {
+    // PATCH directo a tu backend (siguiendo tu convención /empresas/:id/...)
+    const { data: updated } = await axiosInstance.post<Ubicacion>(
+      `/empresas/${empresaId}/ubicaciones`,
+      {
+        ...ubicacion
+      }
+    );
+    return updated;
+    }  catch (e: any) {
+
+    await loadEmpresaData().catch(() => {});
+    throw e;
+  }
+}, [loadEmpresaData]);
+
   return {
     ...state,
     loadEmpresaData,
@@ -497,7 +510,8 @@ const updateEmpresaExtras = useCallback(async (payload: UpdateEmpresaExtrasPaylo
     updatePrecioEnvio,
     removePrecioEnvio,
     updatePreferences,
-    updateEmpresaExtras
+    updateEmpresaExtras,
+    cargaUbicacionInicial
   };
 };
 

@@ -150,6 +150,12 @@ export interface UpdateEmpresaExtrasPayload {
   redesSociales: SocialLink[];
 }
 
+export type Ubicacion = {
+  direccion: string;
+  lat: number;
+  lng: number;
+};
+
 export interface AccountConfigActions {
   loadEmpresaData: () => Promise<void>;
   updateProfile: (data: UpdateEmpresaData) => Promise<void>;
@@ -166,4 +172,5 @@ export interface AccountConfigActions {
   removePrecioEnvio: (ubicacionId: number, precioId: number) => Promise<void>;
   updatePreferences: (payload: UpdatePreferenciasPayload) => Promise<void>;
   updateEmpresaExtras: (payload: UpdateEmpresaExtrasPayload) => Promise<void>;
+  cargaUbicacionInicial: (empresaId: string,ubicacion: Ubicacion) => void;
 }
