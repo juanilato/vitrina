@@ -1,34 +1,94 @@
+.pzm-container{ display:grid; gap:10px; }
 
-.price-zone-map-container{ display:grid; }
-.map-controls{
-  padding: 12px; border-bottom:1px solid var(--border);
-  background: var(--surface); display:grid; gap:10px;
+/* Controles superiores */
+.pzm-controls{
+  border-bottom:1px solid var(--border);
+  padding: 10px 12px; background: var(--surface);
 }
-.control-section h4{ margin:0; font-size:14px; font-weight:800; color: var(--text); }
-.control-section p{ margin:2px 0 0; font-size:12.5px; color: var(--text-muted); }
-
-.controls-grid{ display:grid; grid-template-columns: 1fr 220px; gap:12px; }
-@media (max-width: 760px){ .controls-grid{ grid-template-columns:1fr; } }
-
-.radius-slider-container{ display:grid; gap:6px; }
-.slider-labels{ display:flex; justify-content:space-between; font-size:12px; color: var(--text-muted); }
-.slider-value .current-value{ font-weight:800; }
-
-.price-input{
-  width:100%; height:36px; padding:0 10px;
-  border:1px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--surface); color: var(--text);
+.pzm-row{
+  display:grid; grid-template-columns: 1fr 220px auto; gap:12px; align-items:end;
 }
-.action-buttons{ display:flex; justify-content:flex-end; gap:8px; }
-
-.map-overlay{ position:absolute; right:12px; bottom:12px; }
-.overlay-content{
-  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-md);
-  box-shadow: var(--shadow-200); padding: 10px 12px; min-width: 220px;
+@media (max-width: 900px){
+  .pzm-row{ grid-template-columns: 1fr; }
 }
-.zone-header{ display:flex; align-items:center; gap:8px; }
-.zone-header h4{ margin:0; font-size:13px; font-weight:800; }
-.zone-details{ display:grid; gap:4px; margin-top:6px; }
-.detail-row{ display:flex; justify-content:space-between; font-size:12.5px; }
-.detail-row .label{ color: var(--text-muted); font-weight:700; }
-.detail-row .value{ font-weight:800; }
+.pzm-field{ display:grid; gap:6px; }
+.pzm-label{ font-size:12px; font-weight:800; color:var(--text); }
+
+.pzm-range .range{ width:100%; }
+.pzm-range input[type="range"]{
+  -webkit-appearance:none; appearance:none; height:6px; border-radius:999px; outline:none;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary) 50%, var(--border) 50%);
+  transition: background .15s ease;
+}
+.pzm-range input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:999px;
+  background:#fff; border:3px solid var(--primary); box-shadow: var(--shadow-200);
+}
+.pzm-range input[type="range"]::-moz-range-thumb{
+  width:18px; height:18px; border-radius:999px; background:#fff; border:3px solid var(--primary);
+}
+.pzm-range .range-meta{
+  display:flex; align-items:center; justify-content:space-between; margin-top:6px;
+}
+.pzm-badge{
+  font-size:12px; font-weight:800; padding:2px 8px; border-radius:999px;
+  color:var(--primary); background: color-mix(in srgb, var(--primary) 12%, #fff);
+  border:1px solid color-mix(in srgb, var(--primary) 38%, var(--border));
+}
+
+.pzm-field-price .pzm-pricewrap{
+  display:flex; align-items:center; gap:8px; border:1px solid var(--border);
+  background: var(--surface); border-radius:12px; padding: 8px 10px;
+}
+.pzm-currency{ font-weight:800; color:var(--text-muted); }
+.pzm-price{
+  width:100%; border:none; outline:none; font-size:14px; color:var(--text); background:transparent;
+}
+.pzm-price::placeholder{ color: var(--text-muted); }
+
+.pzm-actions{ display:flex; gap:8px; justify-content:flex-end; }
+.btn-pill{ border-radius:999px; padding:10px 16px; font-weight:800; }
+
+/* Mapa */
+.pzm-map{ border-top:1px solid var(--border); position:relative; overflow:hidden; border-radius:0 0 var(--radius-lg) var(--radius-lg); }
+
+/* Chip resumen */
+
+.pzm-chip {
+  position:absolute; top:12px; left:12px;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+  background: color-mix(in srgb, var(--surface) 90%, #fff);
+  box-shadow: var(--shadow-100);
+  font-size:12.5px; font-weight:800; color:var(--text);
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+.pzm-chip:hover { box-shadow: var(--shadow-200); transform: translateY(-1px); }
+.pzm-chip .dot{ width:6px; height:6px; border-radius:999px; background:var(--primary); }
+
+
+
+/* PriceZoneMap.css - extracto relevante */
+.map-overlay{
+  position:absolute;
+  top:12px; left:12px;
+  display:flex; gap:8px; pointer-events:none;
+}
+
+.overlay-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-200);
+  padding: 10px 12px;
+  min-width: 190px;
+}
+
+.overlay-line{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px;
+  font-size: 12.5px;
+}
+
+.overlay-line .label{ color: var(--text-muted); font-weight: 700; }
+.overlay-line .value{ color: var(--text); font-weight: 800; }

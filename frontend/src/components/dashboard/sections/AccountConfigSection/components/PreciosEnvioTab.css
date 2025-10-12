@@ -1,33 +1,247 @@
-
-
-.precios-envio-tab { padding: 12px; }
-.precios-envio-content .precios-layout{
-  display:grid; grid-template-columns: 380px 1fr; gap:16px;
+/* Shell & header */
+.pe-shell { display: grid; gap: 16px; }
+.card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-100);
 }
-@media (max-width: 980px){ .precios-envio-content .precios-layout{ grid-template-columns:1fr; } }
 
-.precios-list .list-header{
-  display:flex; align-items:center; justify-content:space-between; gap:8px;
+
+
+.pe-title{ margin:0; font-size:15px; font-weight:800; color:var(--text); }
+
+.btn-pill{ border-radius:999px; padding:10px 16px; font-weight:800; }
+
+/* Layout */
+.pe-grid{ display:grid; grid-template-columns: 420px 1fr; gap:16px; }
+@media (max-width: 1100px){ .pe-grid{ grid-template-columns: 1fr; } }
+
+/* Tabla plana */
+.pe-list{ padding: 0; overflow:hidden; }
+.pe-table-wrap{ overflow:auto; }
+.pe-table{
+  width:100%; border-collapse: collapse; table-layout: fixed;
+}
+.pe-table thead th{
+  text-align:left; font-size:12px; font-weight:800; color:var(--text-muted);
+  padding:10px 12px; background: var(--surface-alt); border-bottom:1px solid var(--border);
+}
+.pe-table tbody td{
   padding:12px; border-bottom:1px solid var(--border);
-  background: linear-gradient(180deg, #fbfbfd 0%, #f1f2f5 100%);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  vertical-align: middle;
 }
-.precios-list .card{ padding:0; overflow:hidden; }
-
-.precios-grid{ display:grid; gap:10px; padding: 12px; }
-.precio-card{
-  border:1px solid var(--border); border-radius: var(--radius-md);
-  background: var(--surface); box-shadow: var(--shadow-100);
-  padding:12px; cursor:pointer; transition: background .15s, border-color .15s, box-shadow .15s;
+.pe-table tbody tr{
+  cursor:pointer; transition: background .12s ease, box-shadow .12s ease;
 }
-.precio-card:hover{ background: var(--surface-alt); border-color: var(--primary); box-shadow: var(--shadow-200); }
-.precio-card.selected{ border-color: var(--primary); box-shadow: var(--shadow-200); background:#F8FAFF; }
+.pe-table tbody tr:hover{ background:#F8FAFF; }
+.pe-table tbody tr.is-active{
+  background:#F0F6FF;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+.col-right{ text-align:right; }
+.th-actions, .col-actions{ width:74px; text-align:right; }
 
-.precio-header{ display:flex; align-items:center; justify-content:space-between; }
-.precio-actions{ display:flex; gap:8px; }
+.chip.km{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 8px; border-radius:999px; font-weight:800; font-size:12px;
+  color:var(--primary); background: color-mix(in srgb, var(--primary) 12%, #fff);
+  border:1px solid color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+.chip.price{
+  display:inline-flex; align-items:center; gap:6px; align-items: center;
+  padding:4px 8px; border-radius:999px; font-weight:800; font-size:12px;
+  color:var(--success); background: color-mix(in srgb, var(--success) 12%, #fff);
+  border:1px solid color-mix(in srgb, var(--success) 40%, var(--border));
+}
 
-.precio-details{ display:grid; grid-auto-flow: column; gap:18px; margin-top:8px; }
-.detail-item .label{ font-size:11.5px; color: var(--text-muted); font-weight:700; }
-.detail-item .value{ font-size:13px; font-weight:800; color: var(--text); }
+/* Acción eliminar sutil */
+.icon-btn.subtle{
+  width:28px; height:28px; border-radius:8px;
+  border:1px solid var(--border); background:var(--surface);
+  display:grid; place-items:center; color:var(--text-muted);
+  transition: all .15s ease;
+}
+.icon-btn.subtle:hover{ color:var(--danger); border-color:var(--danger); background:#FFF6F6; }
 
-.precio-map .card{ padding:0; overflow:hidden; }
+/* Mapa card */
+.pe-map{ padding:0; overflow:hidden; }
+.map-wrap{ position:relative; }
+.floating-save{ position:absolute; left:16px; bottom:16px; display:flex; background-color: var(--primary); border-radius:999px; box-shadow: var(--shadow-200); }
+.map-skeleton{ height:520px; display:flex; gap:10px; align-items:center; justify-content:center; }
+
+/* Utilidades */
+.center-card{ padding:22px; display:grid; place-items:center; gap:8px; }
+.loading-spinner{
+  width:20px; height:20px; border-radius:999px; border:3px solid var(--border);
+  border-top-color: var(--primary); animation: spin 1s linear infinite;
+}
+@keyframes spin{ to { transform: rotate(360deg); } }
+
+.empty-precios{ text-align:center; color:var(--text-muted); padding:24px 10px; }
+.empty-title{ margin:6px 0 2px; font-weight:800; color:var(--text); }
+.empty-description{ margin:0; }
+
+
+
+
+/* ============ HEADER ============ */
+.pe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-100);
+}
+
+.pe-header-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pe-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent, var(--primary)) 100%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.pe-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: .2px;
+}
+
+.pe-header .muted {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ============ FAB (Floating Action Button) ============ */
+.pzm-map { position: relative; }
+
+/* Evitá herencias previas: nada de full-width */
+.floating-save,
+.pzm-floating-save {
+  position: absolute !important;
+  inset: auto auto 16px 16px !important; /* top auto, right 16, bottom 16, left auto */
+  width: auto !important;
+  height: auto !important;
+  display: block !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  z-index: 6;
+  pointer-events: none; /* no bloquea el mapa */
+}
+
+/* El botón sí recibe eventos */
+.pzm-floating-save .btn-fab,
+.floating-save .btn-fab {
+  pointer-events: auto;
+}
+
+/* FAB minimal */
+.btn-fab {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+  box-shadow: var(--shadow-200);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn-fab--primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.btn-fab--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-300, 0 8px 20px rgba(0,0,0,.12));
+  background: var(--primary-600, color-mix(in srgb, var(--primary) 88%, #000));
+  border-color: var(--primary-600, color-mix(in srgb, var(--primary) 88%, #000));
+}
+.btn-fab--primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-200);
+}
+
+.btn-fab:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-100);
+}
+
+@media (max-width: 640px){
+  .pzm-floating-save,
+  .floating-save { inset: auto 12px 12px auto !important; }
+  .btn-fab { width: 42px; height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-fab { transition: none; }
+}
+
+
+.pe-header.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-100);
+}
+
+/* Más específica y con reset fuerte */
+.pe-header .pe-title,
+h2.pe-title {
+  margin: 0 !important;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text) !important;
+  letter-spacing: .2px;
+}
+
+.pe-header-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pe-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent, var(--primary)) 100%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.pe-header .muted {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
