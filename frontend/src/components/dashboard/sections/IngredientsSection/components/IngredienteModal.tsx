@@ -1,23 +1,23 @@
-// src/features/ingredientes/components/IngredienteModal.tsx (Nuevo Archivo)
-
 import React, { useEffect, useRef, useState } from 'react';
 import { IngredienteModalProps } from '../types';
-// Reutilizamos los estilos del modal de producto (pm2-*)
-import './IngredienteModal.css'; 
+import './IngredienteModal.css';
+import IconPickerModal from './IconPickerModal';
+import { DynamicMuiIcon } from './DynamicMuiIcon';
+import type { IconName } from './IconoModal';
 
 const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     nombre: ingrediente?.nombre || '',
     stockDisponible: ingrediente?.stockDisponible ?? 0,
-    unidadMedida: ingrediente?.unidadMedida || 'unidades', // Default
-    icono: ingrediente?.icono || 'Grass',
+    unidadMedida: ingrediente?.unidadMedida || 'unidades',
+    icono: (ingrediente?.icono as IconName) || 'Grass',
   });
 
   const [stockStr, setStockStr] = useState(
     ingrediente?.stockDisponible !== undefined ? String(ingrediente.stockDisponible) : ''
   );
-  
   const [saving, setSaving] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -27,7 +27,6 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // Permite solo números enteros positivos para el stock
   const isValidStockInput = (v: string) => /^\d*$/.test(v);
   const handleStockChange = (v: string) => { if (isValidStockInput(v)) setStockStr(v); };
 
@@ -39,7 +38,7 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
     try {
       const stock = parseInt(stockStr || '0', 10);
       if (isNaN(stock) || stock < 0) throw new Error('El stock no es un número válido.');
-      
+
       await onSave({ ...formData, stockDisponible: stock });
       onClose();
     } catch (err: any) {
@@ -48,8 +47,7 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
       setSaving(false);
     }
   };
-  
-  // Lista de unidades de medida comunes (se puede expandir)
+
   const unidadMedidaOptions = ['unidades', 'gramos', 'mililitros', 'litros', 'kilogramos'];
 
   return (
@@ -61,21 +59,16 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
         aria-label={ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <header className="pm2-header">
           <div className="pm2-titles">
             <h2 className="pm2-title">{ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}</h2>
-            <p className="pm2-subtitle">Define el nombre, stock y unidad de medida.</p>
+            <p className="pm2-subtitle">Define el nombre, stock, unidad de medida y su ícono.</p>
           </div>
           <button className="pm2-close" onClick={onClose} aria-label="Cerrar">×</button>
         </header>
 
-        {/* Body (Simplificado a 1 columna para ingredientes) */}
-        {/* NOTA: Adaptamos 'pm2-body' para 1 columna si no hay media/preview */}
-        <div className="pm2-body" style={{ gridTemplateColumns: '1fr' }}> 
-          {/* Form */}
+        <div className="pm2-body" style={{ gridTemplateColumns: '1fr' }}>
           <form className="pm2-form" onSubmit={submit}>
-
             <div className="pm2-field">
               <label htmlFor="pm2-nombre">Nombre *</label>
               <input
@@ -90,7 +83,6 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
             </div>
 
             <div className="pm2-row">
-              {/* Campo Stock */}
               <div className="pm2-field">
                 <label htmlFor="pm2-stock">Stock Disponible *</label>
                 <input
@@ -104,14 +96,13 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
                 />
               </div>
 
-              {/* Campo Unidad de Medida (Dropdown/Select) */}
               <div className="pm2-field">
                 <label htmlFor="pm2-unidad">Unidad de Medida *</label>
                 <select
                   id="pm2-unidad"
                   value={formData.unidadMedida}
                   onChange={(e) => setField('unidadMedida', e.target.value)}
-                  className="pm2-field-select" // Necesitarías añadir estilos para esto
+                  className="pm2-field-select"
                   required
                 >
                   {unidadMedidaOptions.map(u => (
@@ -120,20 +111,28 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
                 </select>
               </div>
             </div>
-            
-            {/* Campo Icono (Opcional, podrías usar un selector de iconos) */}
+
+            {/* Icono */}
             <div className="pm2-field">
-              <label htmlFor="pm2-icono">Ícono (Nombre MUI)</label>
-              <input
-                id="pm2-icono"
-                type="text"
-                value={formData.icono}
-                onChange={(e) => setField('icono', e.target.value)}
-                placeholder="Ej. Fastfood, Grass, Egg..."
-              />
+              <label>Ícono</label>
+              <div className="icon-row">
+                <span className="icon-chip" role="img" aria-label={`Ícono seleccionado: ${formData.icono}`}>
+                  <DynamicMuiIcon name={formData.icono} fontSize="medium" />
+                  <span className="visually-hidden">{formData.icono}</span>
+                </span>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowIconPicker(true)}
+                >
+                  {ingrediente ? 'Cambiar ícono' : 'Elegir ícono'}
+                </button>
+                {/* Valor real que viaja al back */}
+                <input type="hidden" name="icono" value={formData.icono} />
+              </div>
+              <p className="pm2-help">Se guardará el nombre del ícono MUI, y se mostrará visualmente en las listas.</p>
             </div>
-            
-            {/* Footer (sticky dentro del modal) */}
+
             <div className="pm2-actions" style={{ gridColumn: '1 / -1' }}>
               <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
                 Cancelar
@@ -143,10 +142,18 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
               </button>
             </div>
           </form>
-          
-          {/* No hay sección de media/preview para ingredientes en este modal */}
         </div>
       </section>
+
+      {/* Modal selector de íconos */}
+      <IconPickerModal
+        open={showIconPicker}
+        onClose={() => setShowIconPicker(false)}
+        onSelect={(iconName) => {
+          setField('icono', iconName);
+          setShowIconPicker(false);
+        }}
+      />
     </div>
   );
 };

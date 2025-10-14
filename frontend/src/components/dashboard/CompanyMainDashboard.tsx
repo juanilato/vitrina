@@ -10,8 +10,6 @@ import AccountConfigSection from './sections/AccountConfigSection';
 import MenuOpenOutlinedIcon from '@mui/icons-material/MenuOpenOutlined';
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import LastPageIcon from '@mui/icons-material/LastPage';
 
 import './CompanyMainDashboard.css';
 import NotificationPeek from './shared/NotificationPeek';
@@ -33,8 +31,9 @@ const CompanyMainDashboard: React.FC = () => {
   const handleLogout = () => logout();
 
   const handleSectionChange = (section: string) => {
+    setIsSideOpen(false);
     setActiveSection(section as any);
-    // ❌ Ya no forzamos cerrar el sidebar aquí
+
   };
 
   const renderContent = () => {

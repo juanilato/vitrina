@@ -145,7 +145,7 @@ model Ingrediente {
 
   // Relación con los productos que utilizan este ingrediente
   productosUsan   ProductoIngrediente[]
-
+  icono       String? 
   @@unique([empresaId, nombre])
   @@index([empresaId])
 }
