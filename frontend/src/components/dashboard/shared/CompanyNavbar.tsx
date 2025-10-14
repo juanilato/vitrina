@@ -8,7 +8,7 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-
+import DinnerDiningIcon from '@mui/icons-material/Fastfood';
 interface CompanyNavbarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
@@ -26,6 +26,7 @@ const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
     { id: 'productos', label: 'Productos', icon: <Inventory2OutlinedIcon fontSize="small" /> },
+    { id: 'ingredientes', label: 'Ingredientes', icon: <DinnerDiningIcon fontSize="small" /> },
     { id: 'pedidos', label: 'Pedidos', icon: <ReceiptLongOutlinedIcon fontSize="small" /> },
     { id: 'estadisticas', label: 'Estadísticas', icon: <InsightsOutlinedIcon fontSize="small" /> },
     { id: 'config', label: 'Configuración', icon: <SettingsOutlinedIcon fontSize="small" /> },

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
 import CompanyNavbar from './shared/CompanyNavbar';
 import ProductsSection from './sections/ProductsSection';
+import IngredientsSection from './sections/IngredientsSection';
 import OrdersSection from './sections/OrdersSection';
 import NotificationsSection from './sections/NotificationsSection';
 import AccountConfigSection from './sections/AccountConfigSection';
@@ -19,7 +20,7 @@ import NotificationsDropdown from '../common/NotificationsDropdown';
 const CompanyMainDashboard: React.FC = () => {
   const { user, logout } = useAuthOptimized();
   const [activeSection, setActiveSection] = useState<
-    'dashboard' | 'productos' | 'pedidos' | 'notificacionesDropdown' | 'notificaciones' | 'estadisticas' | 'config'
+    'dashboard' | 'productos' | 'ingredientes' | 'pedidos' | 'notificacionesDropdown' | 'notificaciones' | 'estadisticas' | 'config'
   >('dashboard');
 
   const [showNotificationsPeek, setShowNotificationsPeek] = useState(false);
@@ -40,7 +41,7 @@ const CompanyMainDashboard: React.FC = () => {
     switch (activeSection) {
       case 'productos': return <ProductsSection />;
       case 'pedidos': return <OrdersSection />;
-      case 'notificacionesDropdown':
+      case 'ingredientes': return <IngredientsSection />;
       case 'notificaciones': return <NotificationsSection />;
       case 'estadisticas': return <div className="section-placeholder">📈 Sección de Estadísticas (próximamente)</div>;
       case 'config': return <div className="tab-content"><AccountConfigSection /></div>;

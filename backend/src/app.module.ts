@@ -10,6 +10,7 @@ import { PedidosModule } from './pedidos/pedidos.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { EmpresasModule } from './empresas/empresas.module';
+import { IngredientesModule } from './ingredientes/ingredientes.module';
 
 
 @Module({
@@ -21,6 +22,7 @@ import { EmpresasModule } from './empresas/empresas.module';
     NotificationsModule,
     WebSocketModule,
     EmpresasModule,
+    IngredientesModule,
 
   ],
   controllers: [AppController],
