@@ -1,5 +1,11 @@
 import axiosInstance from '../config/axios.config';
 
+export interface ProductoIngrediente {
+  ingredienteId: string;
+  cantidadRequerida: number;
+  esExtraPermitido?: boolean;
+}
+
 export interface Producto {
   id: string;
   nombre: string;
@@ -9,6 +15,10 @@ export interface Producto {
   activo: boolean;
   createdAt?: string;
   updatedAt?: string;
+  tipoStock?: string;
+  stockIndividual?: number;
+  permiteExtras?: boolean;
+  ingredientes?: ProductoIngrediente[];
 }
 
 export interface CreateProductoDto {
@@ -18,6 +28,10 @@ export interface CreateProductoDto {
   empresaId: string;
   activo?: boolean;
   fotoUrl?: string;
+  tipoStock?: string;
+  stockIndividual?: number;
+  permiteExtras?: boolean;
+  ingredientes?: ProductoIngrediente[];
 }
 
 export interface UpdateProductoDto {
@@ -26,6 +40,10 @@ export interface UpdateProductoDto {
   precio?: number;
   activo?: boolean;
   fotoUrl?: string;
+  tipoStock?: string;
+  stockIndividual?: number;
+  permiteExtras?: boolean;
+  ingredientes?: ProductoIngrediente[];
 }
 
 class ProductosService {
@@ -197,6 +215,19 @@ class ProductosService {
         formData.append('precio', productoData.precio.toString());
         formData.append('empresaId', productoData.empresaId);
         formData.append('activo', productoData.activo?.toString() || 'true');
+        formData.append('tipoStock', productoData.tipoStock || 'individual');
+
+        if (productoData.stockIndividual !== undefined) {
+          formData.append('stockIndividual', productoData.stockIndividual.toString());
+        }
+
+        formData.append('permiteExtras', productoData.permiteExtras?.toString() || 'false');
+
+        // Serializar ingredientes como JSON
+        if (productoData.ingredientes && productoData.ingredientes.length > 0) {
+          formData.append('ingredientes', JSON.stringify(productoData.ingredientes));
+          console.log('📝 [PRODUCTOS SERVICE] Enviando ingredientes:', productoData.ingredientes);
+        }
 
         const response = await axiosInstance.post(`${this.baseURL}/create-with-image`, formData, {
           headers: {
@@ -236,6 +267,15 @@ class ProductosService {
         if (updateData.descripcion !== undefined) formData.append('descripcion', updateData.descripcion);
         if (updateData.precio !== undefined) formData.append('precio', updateData.precio.toString());
         if (updateData.activo !== undefined) formData.append('activo', updateData.activo.toString());
+        if (updateData.tipoStock !== undefined) formData.append('tipoStock', updateData.tipoStock);
+        if (updateData.stockIndividual !== undefined) formData.append('stockIndividual', updateData.stockIndividual.toString());
+        if (updateData.permiteExtras !== undefined) formData.append('permiteExtras', updateData.permiteExtras.toString());
+
+        // Serializar ingredientes como JSON
+        if (updateData.ingredientes !== undefined) {
+          formData.append('ingredientes', JSON.stringify(updateData.ingredientes));
+          console.log('✏️ [PRODUCTOS SERVICE] Actualizando ingredientes:', updateData.ingredientes);
+        }
 
         const response = await axiosInstance.patch(`${this.baseURL}/${id}/update-with-image`, formData, {
           headers: {

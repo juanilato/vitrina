@@ -1,11 +1,11 @@
-// src/features/ingredientes/hooks/useIngredientes.ts (Nuevo Archivo)
+// src/features/ingredientes/hooks/useIngredientes.ts
 
 import { useState, useEffect } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
-// Asume la existencia de este nuevo servicio
 import ingredientesService from '../../../../../services/ingredientesService'; 
-import { IngredienteWithExtras, IngredienteStats,   CreateIngredienteDto, 
-  UpdateIngredienteDto  } from '../types';
+import { IngredienteWithExtras, IngredienteStats, CreateIngredienteDto, 
+  UpdateIngredienteDto } from '../types';
+import { ProductoIngrediente } from '../../ProductsSection/types';
 
 export const useIngredientes = () => {
   const { user } = useAuthOptimized();
@@ -141,6 +141,56 @@ export const useIngredientes = () => {
     }
   };
 
+  // Funciones para manejar ingredientes en productos
+  const addIngredienteToProduct = (
+    productoIngredientes: ProductoIngrediente[],
+    ingredienteId: string,
+    cantidadRequerida: number,
+    esExtraPermitido: boolean
+  ): ProductoIngrediente[] => {
+    // Buscar el ingrediente en la lista de ingredientes disponibles
+    const ingrediente = ingredientes.find(ing => ing.id === ingredienteId);
+    
+    if (!ingrediente) {
+      throw new Error('Ingrediente no encontrado');
+    }
+
+    // Verificar si ya existe este ingrediente en el producto
+    const existeIngrediente = productoIngredientes.some(
+      pi => pi.ingredienteId === ingredienteId
+    );
+
+    if (existeIngrediente) {
+      // Actualizar la cantidad si ya existe
+      return productoIngredientes.map(pi => 
+        pi.ingredienteId === ingredienteId 
+          ? { ...pi, cantidadRequerida, esExtraPermitido } 
+          : pi
+      );
+    } else {
+      // Agregar nuevo ingrediente al producto
+      return [
+        ...productoIngredientes,
+        {
+          ingredienteId,
+          nombre: ingrediente.nombre,
+          cantidadRequerida,
+          unidadMedida: ingrediente.unidadMedida,
+          esExtraPermitido,
+          icono: ingrediente.icono
+        }
+      ];
+    }
+  };
+
+  // Función para eliminar un ingrediente del producto
+  const removeIngredienteFromProduct = (
+    productoIngredientes: ProductoIngrediente[],
+    ingredienteId: string
+  ): ProductoIngrediente[] => {
+    return productoIngredientes.filter(pi => pi.ingredienteId !== ingredienteId);
+  };
+
   return {
     ingredientes,
     loading,
@@ -149,6 +199,9 @@ export const useIngredientes = () => {
     user,
     loadIngredientes,
     handleSaveIngrediente,
-    handleDeleteIngrediente
+    handleDeleteIngrediente,
+    // Nuevas funciones para manejo de ingredientes en productos
+    addIngredienteToProduct,
+    removeIngredienteFromProduct
   };
 };

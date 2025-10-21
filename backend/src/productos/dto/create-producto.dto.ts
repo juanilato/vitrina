@@ -1,19 +1,39 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsArray, IsDecimal } from "class-validator";
+import { Type } from 'class-transformer';
+import { Decimal } from '@prisma/client/runtime/library';
+import { Transform } from 'class-transformer';
+
+export class ProductoIngredienteDto {
+    @IsString()
+    @IsNotEmpty()
+    ingredienteId: string;
+
+    @IsNumber()
+    @IsNotEmpty()
+    cantidadRequerida: number;
+
+    @IsBoolean()
+    @IsOptional()
+    esExtraPermitido?: boolean;
+}
 
 export class CreateProductoDto {
-
     // dto for product creation 
-
     @IsString()
     @IsNotEmpty()
     nombre: string;
 
     @IsString()
+    @IsOptional()
     descripcion?: string;
-
     
     @IsNotEmpty()
-    @IsNumber()
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            return parseFloat(value);
+        }
+        return value;
+    })
     precio: number;
 
     @IsNotEmpty()
@@ -22,6 +42,11 @@ export class CreateProductoDto {
 
     @IsNotEmpty()
     @IsBoolean()
+    @Transform(({ value }) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        return value;
+    })
     activo: boolean;
 
     @IsString()
@@ -31,5 +56,35 @@ export class CreateProductoDto {
     @IsString()
     @IsOptional()
     fotoPath?: string;
+
+    @IsString()
+    @IsOptional()
+    @Transform(({ value }) => value || 'individual')
+    tipoStock?: string = 'individual';
+
+    @IsNumber()
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === 'string') {
+            return parseInt(value);
+        }
+        return value;
+    })
+    stockIndividual?: number;
+
+    @IsBoolean()
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        return value || false;
+    })
+    permiteExtras?: boolean = false;
+    
+    // No incluido en la creación directa de Prisma
+    @IsOptional()
+    @IsArray()
+    @Type(() => ProductoIngredienteDto)
+    ingredientes?: ProductoIngredienteDto[];
 }
 

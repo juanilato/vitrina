@@ -1,10 +1,21 @@
-import { Producto } from '../../../../../services/productosService';
+import { Producto, ProductoIngrediente as ProductoIngredienteBase } from '../../../../../services/productosService';
+
+// Interfaz extendida para ingredientes en productos con información adicional para UI
+export interface ProductoIngrediente extends ProductoIngredienteBase {
+  nombre: string;
+  unidadMedida: string;
+  icono?: string;
+}
 
 export interface ProductWithExtras extends Producto {
   // Solo campos que existen en el backend: nombre, descripcion, precio, empresaId, activo
   // Campos adicionales para UI (opcionales)
   category?: string; // Para mostrar en UI (simulado)
   fotoUrl?: string; // Para mostrar en UI (simulado)
+  tipoStock?: string; // "individual" o "compuesto"
+  stockIndividual?: number;
+  permiteExtras?: boolean;
+  ingredientes?: ProductoIngrediente[];
 }
 
 export interface ProductModalProps {
@@ -15,6 +26,10 @@ export interface ProductModalProps {
     descripcion: string;
     precio: number;
     activo: boolean;
+    tipoStock: string;
+    stockIndividual?: number;
+    permiteExtras: boolean;
+    ingredientes?: ProductoIngrediente[];
     file?: File;
   }) => void;
   onClose: () => void;

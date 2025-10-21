@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
 import productosService, { CreateProductoDto, UpdateProductoDto } from '../../../../../services/productosService';
-import { ProductWithExtras, ProductsStats } from '../types';
+import { ProductWithExtras, ProductsStats, ProductoIngrediente } from '../types';
 
 export const useProducts = () => {
   const { user } = useAuthOptimized();
@@ -13,6 +13,20 @@ export const useProducts = () => {
     activos: 0,
     inactivos: 0
   });
+
+  // Función helper para transformar ingredientes del formato backend al frontend
+  const transformIngredientes = (ingredientes: any[] | undefined): ProductoIngrediente[] | undefined => {
+    if (!ingredientes || ingredientes.length === 0) return undefined;
+
+    return ingredientes.map((ing: any) => ({
+      ingredienteId: ing.ingredienteId,
+      nombre: ing.ingrediente?.nombre || ing.nombre || '',
+      cantidadRequerida: ing.cantidadRequerida,
+      unidadMedida: ing.ingrediente?.unidadMedida || ing.unidadMedida || '',
+      esExtraPermitido: ing.esExtraPermitido,
+      icono: ing.ingrediente?.icono || ing.icono
+    }));
+  };
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -35,7 +49,7 @@ export const useProducts = () => {
       
       // Validar que productosData sea un array
       const validProductosData = Array.isArray(productosData) ? productosData : [];
-      
+
       // Convertir productos del backend al formato del frontend
       const productsWithExtras: ProductWithExtras[] = validProductosData.map(producto => ({
         ...producto,
@@ -45,7 +59,9 @@ export const useProducts = () => {
         precio: producto.precio || 0,
         // Campos simulados para UI (no existen en backend)
         category: 'General', // Simulado
-        createdAt: producto.createdAt || new Date().toISOString()
+        createdAt: producto.createdAt || new Date().toISOString(),
+        // Ingredientes transformados
+        ingredientes: transformIngredientes(producto.ingredientes)
       }));
       
       setProducts(productsWithExtras);
@@ -68,6 +84,10 @@ export const useProducts = () => {
     descripcion: string;
     precio: number;
     activo: boolean;
+    tipoStock?: string;
+    stockIndividual?: number;
+    permiteExtras?: boolean;
+    ingredientes?: any[];
     file?: File;
   }, editingProduct?: ProductWithExtras | null) => {
     try {
@@ -80,19 +100,28 @@ export const useProducts = () => {
           descripcion: productData.descripcion,
           precio: productData.precio,
           activo: productData.activo,
+          tipoStock: productData.tipoStock,
+          stockIndividual: productData.stockIndividual,
+          permiteExtras: productData.permiteExtras,
+          ingredientes: productData.ingredientes,
         };
 
         // Usar el método que maneja automáticamente el borrado de imagen anterior
         const updatedProduct = await productosService.updateProductoWithImage(
-          editingProduct.id, 
+          editingProduct.id,
           updateData,
           productData.file
         );
 
+        // Transformar el producto actualizado al formato del frontend
+        const updatedProductWithExtras: ProductWithExtras = {
+          ...updatedProduct,
+          category: editingProduct.category,
+          ingredientes: transformIngredientes(updatedProduct.ingredientes)
+        };
+
         setProducts(products.map(p =>
-          p.id === editingProduct.id
-            ? { ...p, ...updatedProduct, category: p.category }
-            : p
+          p.id === editingProduct.id ? updatedProductWithExtras : p
         ));
       } else {
         // Crear nuevo producto
@@ -102,6 +131,10 @@ export const useProducts = () => {
           precio: productData.precio,
           empresaId: user.id,
           activo: productData.activo,
+          tipoStock: productData.tipoStock,
+          stockIndividual: productData.stockIndividual,
+          permiteExtras: productData.permiteExtras,
+          ingredientes: productData.ingredientes,
         };
 
         // Usar el método que maneja automáticamente la subida de imagen
@@ -109,6 +142,7 @@ export const useProducts = () => {
         const newProductWithExtras: ProductWithExtras = {
           ...newProduct,
           category: 'General',
+          ingredientes: transformIngredientes(newProduct.ingredientes)
         };
         setProducts([...products, newProductWithExtras]);
       }

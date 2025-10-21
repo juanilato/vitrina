@@ -27,9 +27,8 @@ export class IngredienteController {
     return this.ingredienteService.getIngredientesStats(empresaId);
   }
   @Get()
-  findAll() {
+  findAll(@Param('empresaId') empresaId: string) {
     
-    const empresaId = 'cmew8ctm800017kcs16yvqlte'; 
     return this.ingredienteService.findAll(empresaId);
   }
 

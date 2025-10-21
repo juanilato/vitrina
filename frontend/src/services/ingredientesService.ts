@@ -103,9 +103,13 @@ class IngredientesService {
     }
   }
 
+  
+
   // ** NOTA: Métodos específicos de Pedidos eliminados (getStatusColor, getStatusText, getNextStatus) **
   // Los ingredientes no tienen estados de flujo de pedidos.
 }
+
+
 
 const ingredientesService = new IngredientesService();
 export default ingredientesService;

@@ -1,14 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ProductModalProps } from '../types';
+import { ProductModalProps, ProductoIngrediente } from '../types';
+import { useIngredientes } from '../../../sections/IngredientsSection/hooks/useIngredientes';
+import ProductIngredientSection from './ProductIngredientSection';
 import './ProductModal.css';
-const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose }) => {
+
+const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     nombre: product?.nombre || '',
     descripcion: product?.descripcion || '',
     precio: product?.precio ?? 0,
     activo: product?.activo ?? true,
+    tipoStock: product?.tipoStock || 'individual',
+    stockIndividual: product?.stockIndividual ?? 0,
+    permiteExtras: product?.permiteExtras ?? false,
   });
 
+  const [ingredientesProducto, setIngredientesProducto] = useState<ProductoIngrediente[]>(
+    product?.ingredientes || []
+  );
+  
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(product?.fotoUrl ?? null);
   const [saving, setSaving] = useState(false);
@@ -16,6 +26,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
   const [precioStr, setPrecioStr] = useState(
     product?.precio !== undefined && product?.precio !== null ? String(product.precio) : ''
   );
+  const [stockStr, setStockStr] = useState(
+    product?.stockIndividual !== undefined ? String(product.stockIndividual) : '0'
+  );
+  
+  
 
   const firstInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,6 +44,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
   const isValidMoneyInput = (v: string) => /^(\d+([.]\d{0,2})?)?$/.test(v.replace(',', '.'));
   const handlePrecioChange = (v: string) => { if (isValidMoneyInput(v)) setPrecioStr(v); };
   const toNumber2 = (v: string) => Math.round(Number(v.replace(',', '.')) * 100) / 100;
+
+  const isValidNumberInput = (v: string) => /^\d*$/.test(v);
+  const handleStockChange = (v: string) => { if (isValidNumberInput(v)) setStockStr(v); };
 
   const setField = (k: string, v: any) => setFormData(p => ({ ...p, [k]: v }));
 
@@ -44,6 +62,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
 
   const openPicker = () => document.getElementById('pm2-file')?.click();
 
+  // Las funciones de manejo de ingredientes ahora están en el componente ProductIngredientSection
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -51,7 +71,21 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
       const precio = toNumber2(precioStr);
       if (!isFinite(precio)) throw new Error('El precio no es válido.');
       if (precio < 0) throw new Error('El precio no puede ser negativo.');
-      await onSave({ ...formData, precio, file: file || undefined });
+      
+      const stockIndividual = formData.tipoStock === 'individual' ? parseInt(stockStr, 10) : undefined;
+      
+      // Validar que si es stock compuesto tenga al menos un ingrediente
+      if (formData.tipoStock === 'compuesto' && ingredientesProducto.length === 0) {
+        throw new Error('Un producto con stock compuesto debe tener al menos un ingrediente.');
+      }
+      
+      await onSave({ 
+        ...formData, 
+        precio, 
+        stockIndividual,
+        ingredientes: formData.tipoStock === 'compuesto' ? ingredientesProducto : undefined,
+        file: file || undefined 
+      });
       onClose();
     } catch (err: any) {
       alert(err?.message || 'Error al guardar producto');
@@ -99,7 +133,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
                   type="text"
                   value={formData.nombre}
                   onChange={(e) => setField('nombre', e.target.value)}
-                  placeholder="Ej. Silla ergonómica"
+                  placeholder=" "
                   required
                 />
               </div>
@@ -154,6 +188,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
                   placeholder="Características, materiales, medidas…"
                 />
               </div>
+
+              {/* Componente de Gestión de Stock */}
+              <ProductIngredientSection
+                tipoStock={formData.tipoStock as 'individual' | 'compuesto'}
+                stockIndividual={parseInt(stockStr, 10) || 0}
+                permiteExtras={formData.permiteExtras}
+                ingredientesProducto={ingredientesProducto}
+                onStockChange={handleStockChange}
+                onTipoStockChange={(tipo) => setField('tipoStock', tipo)}
+                onPermiteExtrasChange={(permite) => setField('permiteExtras', permite)}
+                onIngredientesChange={setIngredientesProducto}
+              />
 
               {/* Footer (sticky dentro del modal) */}
               <div className="pm2-actions">
