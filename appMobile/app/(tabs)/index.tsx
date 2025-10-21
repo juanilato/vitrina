@@ -126,7 +126,7 @@ export default function HomeScreen() {
           <Ionicons
             name={showFilters ? 'close' : 'options-outline'}
             size={24}
-            color={colors.primary}
+            color={colors.white}
           />
         </TouchableOpacity>
       </View>
@@ -204,8 +204,9 @@ const styles = StyleSheet.create({
 
   title: {
     ...textStyles.largeTitle,
-    color: colors.text,
+    color: colors.primary,
     marginBottom: 4,
+    fontWeight: '700',
   },
 
   subtitle: {
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.secondary,
     borderRadius: 12,
   },
 
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.orange,
     borderRadius: 12,
   },
 

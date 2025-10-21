@@ -1,11 +1,20 @@
 /**
- * iOS Typography System
- * Based on SF Pro / System fonts
+ * Vitrina Typography System
+ * Based on Brandbook - Tipografías sans-serif geométricas y modernas
+ * Títulos: Montserrat Bold/SemiBold
+ * Textos: Poppins Regular / Roboto Regular
  */
 
 import { Platform } from 'react-native';
 
 export const fontFamilies = {
+  // For headings and brand elements (Montserrat-like on mobile)
+  heading: Platform.select({
+    ios: 'System',  // iOS System font is clean and geometric
+    android: 'Roboto',  // Roboto is geometric and similar to Poppins
+    default: 'System',
+  }),
+  // For body text (Poppins/Roboto-like)
   regular: Platform.select({
     ios: 'System',
     android: 'Roboto',
@@ -110,6 +119,21 @@ export const textStyles = {
     lineHeight: lineHeights.base,
     fontWeight: fontWeights.semibold,
   },
+  bodyLarge: {
+    fontSize: fontSizes.lg,
+    lineHeight: lineHeights.lg,
+    fontWeight: fontWeights.regular,
+  },
+  bodyMedium: {
+    fontSize: fontSizes.base,
+    lineHeight: lineHeights.base,
+    fontWeight: fontWeights.regular,
+  },
+  bodySmall: {
+    fontSize: fontSizes.sm,
+    lineHeight: lineHeights.sm,
+    fontWeight: fontWeights.regular,
+  },
 
   // Callout
   callout: {
@@ -133,6 +157,11 @@ export const textStyles = {
   },
 
   // Caption
+  caption: {
+    fontSize: fontSizes.xs,
+    lineHeight: lineHeights.xs,
+    fontWeight: fontWeights.regular,
+  },
   caption1: {
     fontSize: fontSizes.xs,
     lineHeight: lineHeights.xs,
@@ -142,5 +171,25 @@ export const textStyles = {
     fontSize: fontSizes.xs,
     lineHeight: lineHeights.xs,
     fontWeight: fontWeights.regular,
+  },
+
+  // Heading shortcuts
+  h1: {
+    fontSize: fontSizes['4xl'],
+    lineHeight: lineHeights['4xl'],
+    fontWeight: fontWeights.bold,
+    letterSpacing: -0.5,
+  },
+  h2: {
+    fontSize: fontSizes['3xl'],
+    lineHeight: lineHeights['3xl'],
+    fontWeight: fontWeights.bold,
+    letterSpacing: -0.4,
+  },
+  h3: {
+    fontSize: fontSizes['2xl'],
+    lineHeight: lineHeights['2xl'],
+    fontWeight: fontWeights.bold,
+    letterSpacing: -0.3,
   },
 };

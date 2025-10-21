@@ -1,14 +1,33 @@
 /**
- * iOS Modern Color Palette
- * Diseño minimalista con colores neutros
+ * Vitrina Brand Colors
+ * Based on Brandbook - Manual de Identidad Visual
+ * Paleta de colores para transmitir confianza, innovación y dinamismo
  */
 
 export const colors = {
+  // Brand colors (from Vitrina Brandbook)
+  primary: '#0A2A43',      // Azul oscuro - Color principal de marca
+  primaryLight: '#0D3354',
+  primaryDark: '#071D2F',
+
+  secondary: '#2E9D66',    // Verde - Color secundario
+  secondaryLight: '#3DB378',
+  secondaryDark: '#258652',
+
+  accent: '#007ACC',       // Azul brillante - Elementos interactivos
+  accentLight: '#1A8FDB',
+  accentDark: '#0066B3',
+
+  orange: '#F26B1D',       // Naranja - CTAs y elementos destacados
+  orangeLight: '#F4843D',
+  orangeDark: '#D85F19',
+
   // Neutrals
   white: '#FFFFFF',
   black: '#000000',
+  background: '#F9F9F9',   // Blanco del brandbook
 
-  // Grays (iOS system grays)
+  // Grays
   gray50: '#FAFAFA',
   gray100: '#F5F5F5',
   gray200: '#E5E5E5',
@@ -17,49 +36,39 @@ export const colors = {
   gray500: '#737373',
   gray600: '#525252',
   gray700: '#404040',
-  gray800: '#262626',
+  gray800: '#333333',      // Gris oscuro para texto (del brandbook)
   gray900: '#171717',
 
-  // Accent color (minimalista)
-  primary: '#2C2C2E',      // Dark gray (iOS system)
-  primaryLight: '#3A3A3C',
-  primaryDark: '#1C1C1E',
-
-  // Subtle accent
-  accent: '#5856D6',       // iOS purple
-  accentLight: '#7977E0',
-
-  // Semantic colors
-  success: '#34C759',      // iOS green
-  error: '#FF3B30',        // iOS red
-  warning: '#FF9500',      // iOS orange
-  info: '#007AFF',         // iOS blue
+  // Semantic colors (using brand colors)
+  success: '#2E9D66',      // Verde
+  error: '#DC2626',        // Red
+  warning: '#F26B1D',      // Naranja
+  info: '#007ACC',         // Azul brillante
 
   // Backgrounds
-  background: '#FFFFFF',
-  backgroundSecondary: '#F2F2F7',  // iOS grouped background
-  backgroundTertiary: '#FFFFFF',
+  backgroundSecondary: '#FFFFFF',
+  backgroundTertiary: '#F9F9F9',
 
-  // Text
-  text: '#000000',
-  textSecondary: '#3C3C43',        // iOS secondary label
-  textTertiary: '#8E8E93',         // iOS tertiary label
-  textQuaternary: '#C7C7CC',       // iOS quaternary label
+  // Text (según brandbook: textos en gris oscuro #333)
+  text: '#333333',
+  textSecondary: '#525252',
+  textTertiary: '#8E8E93',
+  textQuaternary: '#C7C7CC',
 
   // Borders
   border: '#E5E5EA',
   borderLight: '#F2F2F7',
 
   // Overlay
-  overlay: 'rgba(0, 0, 0, 0.4)',
-  overlayLight: 'rgba(0, 0, 0, 0.1)',
+  overlay: 'rgba(10, 42, 67, 0.5)',     // Using primary color
+  overlayLight: 'rgba(10, 42, 67, 0.1)',
 
   // Card
   card: '#FFFFFF',
-  cardBorder: 'rgba(0, 0, 0, 0.04)',
+  cardBorder: 'rgba(10, 42, 67, 0.04)',
 
   // Shadow
-  shadowColor: '#000000',
+  shadowColor: '#0A2A43',  // Primary color for shadows
 } as const;
 
 export type ColorName = keyof typeof colors;

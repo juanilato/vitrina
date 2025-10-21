@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "scheme": "vitrina",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -20,6 +20,9 @@
         "NSPhotoLibraryUsageDescription": "La app necesita acceso a tu galería para subir comprobantes de pago",
         "NSCameraUsageDescription": "La app necesita acceso a tu cámara para tomar fotos de comprobantes",
         "NSLocationWhenInUseUsageDescription": "La app necesita tu ubicación para calcular el envío"
+      },
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_IOS_API_KEY"
       }
     },
     "android": {
@@ -36,7 +39,12 @@
         "ACCESS_COARSE_LOCATION"
       ],
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_ANDROID_API_KEY"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -48,6 +56,18 @@
         "expo-image-picker",
         {
           "photosPermission": "La app necesita acceso a tu galería para subir comprobantes de pago"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "La app necesita tu ubicación para calcular el envío"
+        }
+      ],
+      [
+        "react-native-maps",
+        {
+          "useGoogleMaps": true
         }
       ]
     ],

@@ -9,7 +9,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacityProps,
+  View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSizes, fontWeights, borderRadius, spacing } from '../../theme';
 
 interface ButtonProps extends TouchableOpacityProps {
@@ -19,6 +21,7 @@ interface ButtonProps extends TouchableOpacityProps {
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -28,10 +31,13 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   disabled = false,
   fullWidth = false,
+  icon,
   style,
   ...props
 }) => {
   const isDisabled = disabled || loading;
+
+  const iconColor = variant === 'outline' || variant === 'ghost' ? colors.primary : colors.white;
 
   return (
     <TouchableOpacity
@@ -52,16 +58,26 @@ export const Button: React.FC<ButtonProps> = ({
           color={variant === 'outline' || variant === 'ghost' ? colors.primary : colors.white}
         />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            styles[`${variant}Text`],
-            styles[`${size}Text`],
-            isDisabled && styles.disabledText,
-          ]}
-        >
-          {title}
-        </Text>
+        <View style={styles.content}>
+          {icon && (
+            <Ionicons
+              name={icon}
+              size={size === 'sm' ? 18 : size === 'lg' ? 24 : 20}
+              color={iconColor}
+              style={styles.icon}
+            />
+          )}
+          <Text
+            style={[
+              styles.text,
+              styles[`${variant}Text`],
+              styles[`${size}Text`],
+              isDisabled && styles.disabledText,
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -75,17 +91,27 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
 
-  // Variants
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+
+  icon: {
+    marginRight: 4,
+  },
+
+  // Variants (Brandbook: naranja para CTAs, verde para secundario)
   primary: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.orange,  // Naranja - CTAs principales
   },
   secondary: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.secondary,  // Verde - Acciones secundarias
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: colors.primary,
+    borderColor: colors.primary,  // Azul oscuro para borde
   },
   ghost: {
     backgroundColor: 'transparent',

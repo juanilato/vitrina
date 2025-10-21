@@ -150,9 +150,10 @@ const styles = StyleSheet.create({
 
   name: {
     ...textStyles.headline,
-    color: colors.text,
+    color: colors.primary,
     flex: 1,
     marginRight: spacing.xs,
+    fontWeight: '600',
   },
 
   description: {
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
 
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.accent,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.md,
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
 
   categoryText: {
     ...textStyles.caption1,
-    color: colors.textSecondary,
+    color: colors.white,
     fontWeight: '600',
     textTransform: 'capitalize',
   },

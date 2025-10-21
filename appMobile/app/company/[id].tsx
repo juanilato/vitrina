@@ -19,20 +19,32 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useCompanyStore } from '../../src/hooks/useCompanyStore';
+import { useCart } from '../../src/contexts/CartContext';
 import { ProductCard } from '../../src/components/products/ProductCard';
+import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton';
 import { colors, textStyles, spacing, shadows } from '../../src/theme';
 
 export default function CompanyStoreScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { company, loading, error, refreshing, refresh } = useCompanyStore(id);
+  const { addItem, cart } = useCart();
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 
   const handleAddToCart = (productId: string) => {
-    // TODO: FASE 3 - Agregar al carrito
-    Alert.alert('Próximamente', 'El carrito se implementará en FASE 3');
-    console.log('Add to cart:', productId);
+    if (!company) return;
+
+    const product = company.products?.find((p) => p.id === productId);
+    if (!product) return;
+
+    if (!product.activo) {
+      Alert.alert('Producto no disponible', 'Este producto no está disponible en este momento');
+      return;
+    }
+
+    addItem(product, company.id, company.name, 1);
+    Alert.alert('Producto agregado', `${product.name} se agregó al carrito`);
   };
 
   const handleProductPress = (productId: string) => {
@@ -96,13 +108,18 @@ export default function CompanyStoreScreen() {
           </View>
         </View>
 
-        {/* TODO: FASE 3 - Cart button */}
         <TouchableOpacity
           style={styles.cartButton}
-          onPress={() => Alert.alert('Carrito', 'FASE 3')}
+          onPress={() => router.push('/(tabs)/cart')}
         >
           <Ionicons name="cart-outline" size={24} color={colors.text} />
-          {/* Badge de cantidad - FASE 3 */}
+          {cart.totalItems > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>
+                {cart.totalItems > 99 ? '99+' : cart.totalItems}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -144,6 +161,9 @@ export default function CompanyStoreScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
+
+      {/* Floating Cart Button */}
+      <FloatingCartButton />
     </SafeAreaView>
   );
 }
@@ -199,7 +219,8 @@ const styles = StyleSheet.create({
 
   companyName: {
     ...textStyles.headline,
-    color: colors.text,
+    color: colors.primary,
+    fontWeight: '700',
   },
 
   companyDescription: {
@@ -213,6 +234,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: spacing.sm,
+    position: 'relative',
+  },
+
+  cartBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: colors.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+
+  cartBadgeText: {
+    ...textStyles.caption2,
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 11,
   },
 
   listContent: {
@@ -226,13 +270,15 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     ...textStyles.title2,
-    color: colors.text,
+    color: colors.primary,
     marginBottom: 4,
+    fontWeight: '700',
   },
 
   productCount: {
     ...textStyles.subheadline,
-    color: colors.textSecondary,
+    color: colors.secondary,
+    fontWeight: '600',
   },
 
   emptyState: {
@@ -280,7 +326,7 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.orange,
     borderRadius: 12,
   },
 

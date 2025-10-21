@@ -22,6 +22,7 @@ export const STORAGE_KEYS = {
   TOKEN: '@vitrina_token',
   USER: '@vitrina_user',
   FCM_TOKEN: '@vitrina_fcm_token',
+  CART: '@vitrina_cart',
 } as const;
 
 // Routes

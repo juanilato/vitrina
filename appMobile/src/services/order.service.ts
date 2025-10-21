@@ -8,6 +8,7 @@ import {
   OrdersStats,
   PedidoWithDetails,
 } from '../types/order';
+import type { CompanyWithProducts } from '../types/company';
 
 export const orderService = {
   /**
@@ -59,6 +60,14 @@ export const orderService = {
       `/empresas/${empresaId}/calcular-precio-envio`,
       data
     );
+    return response.data;
+  },
+
+  /**
+   * Get company details with locations
+   */
+  async getCompanyDetails(empresaId: string): Promise<CompanyWithProducts> {
+    const response = await api.get<CompanyWithProducts>(`/public/empresas/${empresaId}`);
     return response.data;
   },
 };

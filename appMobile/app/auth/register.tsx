@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Button, Input } from '../../src/components/common';
+import { Logo } from '../../src/components/common/Logo';
 import { colors, spacing, textStyles } from '../../src/theme';
 import { useGoogleSignIn } from '../../src/hooks/useGoogleSignIn';
 
@@ -110,6 +111,11 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Logo variant="full" size={140} />
+          </View>
+
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Crear Cuenta</Text>
@@ -246,8 +252,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing['2xl'],
+    paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
+  },
+
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
   },
 
   header: {
@@ -256,8 +267,9 @@ const styles = StyleSheet.create({
 
   title: {
     ...textStyles.largeTitle,
-    color: colors.text,
+    color: colors.primary,
     marginBottom: spacing.xs,
+    fontWeight: '700',
   },
 
   subtitle: {

@@ -50,10 +50,15 @@ export interface CompanyWithProducts extends Company {
 export interface Product {
   id: string;
   nombre: string;
+  name?: string; // Alias for nombre
   descripcion: string;
+  description?: string; // Alias for descripcion
   precio: number;
+  price?: number; // Alias for precio
   activo: boolean;
+  active?: boolean; // Alias for activo
   fotoUrl?: string;
+  images?: string[]; // Alternative format
   empresaId: string;
   empresa?: Company;
   createdAt: string;

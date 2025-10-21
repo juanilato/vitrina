@@ -93,7 +93,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart((prev) => {
       const totalItems = prev.items.reduce((sum, item) => sum + item.quantity, 0);
       const subtotal = prev.items.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
+        (sum, item) => {
+          const price = item.product.precio || item.product.price || 0;
+          return sum + price * item.quantity;
+        },
         0
       );
       const total = subtotal + deliveryFee;
@@ -122,6 +125,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 text: 'Sí, vaciar',
                 style: 'destructive',
                 onPress: () => {
+                  const price = product.precio || product.price || 0;
                   setCart({
                     items: [
                       {
@@ -132,9 +136,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       },
                     ],
                     totalItems: quantity,
-                    subtotal: product.price * quantity,
+                    subtotal: price * quantity,
                     deliveryFee: 0,
-                    total: product.price * quantity,
+                    total: price * quantity,
                     companyId,
                   });
                 },

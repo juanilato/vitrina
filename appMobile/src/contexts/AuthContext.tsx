@@ -12,6 +12,8 @@ import React, {
 } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import { authService } from '../services/auth.service';
+import { notificationService } from '../services/notification.service';
+import { websocketService } from '../services/websocket.service';
 import { storage } from '../utils/storage';
 import { STORAGE_KEYS } from '../utils/constants';
 import { User, LoginRequest, RegisterRequest } from '../types/auth';
@@ -98,6 +100,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       ]);
       setToken(token);
       setUser(user);
+
+      // Inicializar notificaciones push
+      notificationService.registerForPushNotifications().catch((error) => {
+        console.error('Error registering push notifications:', error);
+      });
+
+      // Conectar WebSocket
+      websocketService.connect(token);
     } catch (error) {
       console.error('Error saving auth:', error);
       throw error;
@@ -106,6 +116,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearAuth = async () => {
     try {
+      // Desconectar WebSocket
+      websocketService.disconnect();
+
       await Promise.all([
         storage.removeItem(STORAGE_KEYS.TOKEN),
         storage.removeItem(STORAGE_KEYS.USER),
