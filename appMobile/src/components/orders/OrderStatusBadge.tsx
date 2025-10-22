@@ -12,6 +12,7 @@ import { textStyles as typography } from '../../theme/typography';
 
 export type OrderStatus =
   | 'pendiente'
+  | 'pendiente_confirmacion'
   | 'confirmado'
   | 'preparando'
   | 'en_camino'
@@ -34,6 +35,12 @@ const statusConfig: Record<OrderStatus, {
     color: colors.gray700,
     backgroundColor: colors.gray200,
     icon: 'time-outline',
+  },
+  pendiente_confirmacion: {
+    label: 'Pendiente confirmación',
+    color: colors.warning,
+    backgroundColor: '#FFF0E6',
+    icon: 'hourglass-outline',
   },
   confirmado: {
     label: 'Confirmado',
@@ -71,7 +78,16 @@ export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
   status,
   showIcon = true,
 }) => {
-  const config = statusConfig[status];
+  const config = statusConfig[status] || {
+    label: status || 'Desconocido',
+    color: colors.gray700,
+    backgroundColor: colors.gray200,
+    icon: 'help-circle-outline' as keyof typeof Ionicons.glyphMap,
+  };
+
+  if (!config) {
+    console.warn(`Unknown order status: ${status}`);
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: config.backgroundColor }]}>

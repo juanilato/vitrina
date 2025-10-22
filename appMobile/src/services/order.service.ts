@@ -9,6 +9,7 @@ import {
   PedidoWithDetails,
 } from '../types/order';
 import type { CompanyWithProducts } from '../types/company';
+import { companyService } from './company.service';
 
 export const orderService = {
   /**
@@ -22,8 +23,10 @@ export const orderService = {
   /**
    * Get all orders for current user (client)
    */
-  async getMyOrders(): Promise<PedidoWithDetails[]> {
-    const response = await api.get<PedidoWithDetails[]>('/pedidos');
+  async getMyOrders(clienteEmail: string): Promise<PedidoWithDetails[]> {
+    const response = await api.get<PedidoWithDetails[]>('/pedidos', {
+      params: { clienteEmail },
+    });
     return response.data;
   },
 
@@ -67,7 +70,6 @@ export const orderService = {
    * Get company details with locations
    */
   async getCompanyDetails(empresaId: string): Promise<CompanyWithProducts> {
-    const response = await api.get<CompanyWithProducts>(`/public/empresas/${empresaId}`);
-    return response.data;
+    return companyService.getCompanyWithProducts(empresaId);
   },
 };

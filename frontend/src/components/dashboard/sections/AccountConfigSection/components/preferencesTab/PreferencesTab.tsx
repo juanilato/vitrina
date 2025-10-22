@@ -76,8 +76,8 @@ const PreferencesTab: React.FC = () => {
 
     const payload: UpdatePreferenciasPayload = {
       empresaId: empresaData.id,
-      colorBotones: preferences.colorBotones,
-      colorFondo: preferences.colorFondo,
+      colorBotones: preferences.colorBotones || null,
+      colorFondo: preferences.colorFondo || null,
       envioDomicilio: preferences.envioDomicilio,
       dashboardFoto: preferences.dashboardFotoUrl || null,
       horarios: DAYS.flatMap(({ key }) =>
@@ -94,7 +94,10 @@ const PreferencesTab: React.FC = () => {
         })
       ),
     };
+
+    console.log('💾 [FRONTEND] Guardando preferencias:', payload);
     await updatePreferences(payload);
+    console.log('✅ [FRONTEND] Preferencias guardadas');
 
     const extras: UpdateEmpresaExtrasPayload = {
       empresaId: empresaData.id,
@@ -106,6 +109,8 @@ const PreferencesTab: React.FC = () => {
       })),
     };
 
+    console.log('💾 [FRONTEND] Guardando extras:', extras);
+
     if (typeof updateEmpresaExtras === 'function') {
       await updateEmpresaExtras(extras);
     } else {
@@ -116,6 +121,7 @@ const PreferencesTab: React.FC = () => {
       });
     }
 
+    console.log('✅ [FRONTEND] Extras guardados');
     alert('Preferencias y datos de empresa guardados');
   };
 

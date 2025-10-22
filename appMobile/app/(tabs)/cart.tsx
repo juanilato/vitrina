@@ -21,6 +21,7 @@ import { Button } from '../../src/components/common/Button';
 import { colors } from '../../src/theme/colors';
 import { spacing } from '../../src/theme/spacing';
 import { textStyles as typography } from '../../src/theme/typography';
+import { formatPrice } from '../../src/utils/formatPrice';
 
 export default function CartScreen() {
   const router = useRouter();
@@ -118,7 +119,7 @@ export default function CartScreen() {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal</Text>
             <Text style={styles.summaryValue}>
-              ${cart.subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              ${formatPrice(cart.subtotal)}
             </Text>
           </View>
 
@@ -126,7 +127,7 @@ export default function CartScreen() {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Envío</Text>
               <Text style={styles.summaryValue}>
-                ${cart.deliveryFee.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                ${formatPrice(cart.deliveryFee)}
               </Text>
             </View>
           )}
@@ -134,7 +135,7 @@ export default function CartScreen() {
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>
-              ${cart.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              ${formatPrice(cart.total)}
             </Text>
           </View>
         </View>

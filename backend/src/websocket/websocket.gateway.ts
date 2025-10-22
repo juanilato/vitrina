@@ -106,10 +106,19 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
 
   // Método para enviar notificación a un usuario específico
   async sendNotificationToUser(userId: string, notification: any) {
+    console.log(`📤 Intentando enviar notificación al usuario: ${userId}`);
+    console.log(`📋 Notificación:`, notification);
+
     const socketId = this.connectedUsers.get(userId);
+    console.log(`🔌 Usuario ${userId} conectado:`, socketId ? 'SÍ' : 'NO');
+    console.log(`👥 Usuarios conectados:`, Array.from(this.connectedUsers.keys()));
+
     if (socketId) {
       this.server.to(socketId).emit('new-notification', notification);
       this.server.to(`notifications-${userId}`).emit('new-notification', notification);
+      console.log(`✅ Notificación enviada a socket ${socketId} y room notifications-${userId}`);
+    } else {
+      console.log(`⚠️ Usuario ${userId} no conectado, notificación guardada en BD pero no enviada por WebSocket`);
     }
   }
 

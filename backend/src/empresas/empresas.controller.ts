@@ -55,8 +55,10 @@ export class EmpresasController {
     @UseGuards(JwtAuthGuard)
   @Patch(':id/extras')
   async updateExtras(@Param('id') id: string, @Body() dto: UpdateExtrasDto, @Req() req: any) {
+    console.log('📝 [UPDATE EXTRAS] Datos recibidos:', { empresaId: id, dto });
     const userId = req.user?.sub || req.user?.id; // ajustá al claim que uses
     const empresa = await this.empresasService.updateExtras(id, dto, userId);
+    console.log('✅ [UPDATE EXTRAS] Empresa actualizada exitosamente');
     return empresa; // FE espera la empresa actualizada
   }
 

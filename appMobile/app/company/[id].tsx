@@ -1,9 +1,9 @@
 /**
  * Company Store Screen
- * Muestra los productos de una empresa específica
+ * Muestra los productos de una empresa específica con todas sus preferencias
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,15 +14,21 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  ImageBackground,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCompanyStore } from '../../src/hooks/useCompanyStore';
 import { useCart } from '../../src/contexts/CartContext';
 import { ProductCard } from '../../src/components/products/ProductCard';
+import { ProductModal } from '../../src/components/products/ProductModal';
+import { BusinessHours } from '../../src/components/companies/BusinessHours';
 import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton';
-import { colors, textStyles, spacing, shadows } from '../../src/theme';
+import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
+import { Product, Agregado } from '../../src/types/company';
 
 export default function CompanyStoreScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,9 +36,16 @@ export default function CompanyStoreScreen() {
   const { company, loading, error, refreshing, refresh } = useCompanyStore(id);
   const { addItem, cart } = useCart();
 
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleAddToCart = (productId: string) => {
+  // Obtener colores personalizados de las preferencias
+  const buttonColor = useMemo(() => {
+    return company?.preferenciasWeb?.colorBotones || colors.primary;
+  }, [company]);
+
+
+  const handleQuickAddToCart = (productId: string) => {
     if (!company) return;
 
     const product = company.products?.find((p) => p.id === productId);
@@ -43,14 +56,31 @@ export default function CompanyStoreScreen() {
       return;
     }
 
+    // Si tiene agregados, abrir modal
+    if (product.agregados && product.agregados.filter((a) => a.activo).length > 0) {
+      handleProductPress(product);
+      return;
+    }
+
+    // Agregar directo sin agregados
     addItem(product, company.id, company.name, 1);
-    Alert.alert('Producto agregado', `${product.name} se agregó al carrito`);
+    Alert.alert('Producto agregado', `${product.nombre} se agregó al carrito`);
   };
 
-  const handleProductPress = (productId: string) => {
-    setSelectedProduct(productId);
-    // TODO: Abrir modal con detalles del producto
-    Alert.alert('Detalles', 'Modal de producto - FASE 3');
+  const handleProductPress = (product: Product) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  };
+
+  const handleAddToCartFromModal = (
+    quantity: number,
+    selectedAgregados: Agregado[],
+    notes: string
+  ) => {
+    if (!company || !selectedProduct) return;
+
+    addItem(selectedProduct, company.id, company.name, quantity, selectedAgregados, notes);
+    Alert.alert('Producto agregado', `${selectedProduct.nombre} se agregó al carrito`);
   };
 
   if (loading && !refreshing) {
@@ -84,43 +114,130 @@ export default function CompanyStoreScreen() {
   const activeProducts = company.products?.filter((p) => p.activo) || [];
   const inactiveProducts = company.products?.filter((p) => !p.activo) || [];
 
+  // Debug: ver qué datos llegan
+  console.log('🏢 Company data:', {
+    name: company.name,
+    logo: company.logo,
+    dashboardFoto: company.preferenciasWeb?.dashboardFoto,
+    colorBotones: company.preferenciasWeb?.colorBotones,
+    colorFondo: company.preferenciasWeb?.colorFondo,
+  });
+
+  const dashboardFoto = company.preferenciasWeb?.dashboardFoto;
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-
-        <View style={styles.headerContent}>
-          {company.logo && (
-            <Image source={{ uri: company.logo }} style={styles.logo} />
-          )}
-          <View style={styles.headerText}>
-            <Text style={styles.companyName} numberOfLines={1}>
-              {company.name}
-            </Text>
-            {company.description && (
-              <Text style={styles.companyDescription} numberOfLines={1}>
-                {company.description}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => router.push('/(tabs)/cart')}
+    <View style={styles.container}>
+      {/* Dashboard Background para toda la pantalla */}
+      {dashboardFoto && (
+        <ImageBackground
+          source={{ uri: dashboardFoto }}
+          style={styles.fullBackground}
+          resizeMode="cover"
+          blurRadius={3}
         >
-          <Ionicons name="cart-outline" size={24} color={colors.text} />
-          {cart.totalItems > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>
-                {cart.totalItems > 99 ? '99+' : cart.totalItems}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
+          <View style={styles.backgroundOverlay} />
+        </ImageBackground>
+      )}
+
+      {/* Header Moderno con Dashboard Background */}
+      <View style={styles.headerContainer}>
+        {company.preferenciasWeb?.dashboardFoto ? (
+          <ImageBackground
+            source={{ uri: company.preferenciasWeb.dashboardFoto }}
+            style={styles.headerBackground}
+            resizeMode="cover"
+          >
+            <LinearGradient
+              colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.75)']}
+              style={styles.headerGradient}
+            >
+              <SafeAreaView edges={['top']}>
+                {/* Top Bar */}
+                <View style={styles.topBar}>
+                  <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
+                    <Ionicons name="arrow-back" size={24} color={colors.white} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.cartButtonModern, { backgroundColor: buttonColor }]}
+                    onPress={() => router.push('/(tabs)/cart')}
+                  >
+                    <Ionicons name="cart-outline" size={22} color={colors.white} />
+                    {cart.totalItems > 0 && (
+                      <View style={styles.cartBadgeModern}>
+                        <Text style={styles.cartBadgeText}>
+                          {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* Company Info Centrado */}
+                <View style={styles.companyInfoContainer}>
+                  {company.logo && (
+                    <View style={styles.logoContainer}>
+                      <Image source={{ uri: company.logo }} style={styles.logoLarge} />
+                    </View>
+                  )}
+                  <Text style={styles.companyNameLarge} numberOfLines={2}>
+                    {company.name}
+                  </Text>
+                  {company.alias && (
+                    <Text style={styles.companyAliasLarge}>
+                      @{company.alias}
+                    </Text>
+                  )}
+                </View>
+              </SafeAreaView>
+            </LinearGradient>
+          </ImageBackground>
+        ) : (
+          <LinearGradient
+            colors={[buttonColor, `${buttonColor}CC`]}
+            style={styles.headerGradient}
+          >
+            <SafeAreaView edges={['top']}>
+              {/* Top Bar */}
+              <View style={styles.topBar}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
+                  <Ionicons name="arrow-back" size={24} color={colors.white} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.cartButtonModern, { backgroundColor: 'rgba(255,255,255,0.3)' }]}
+                  onPress={() => router.push('/(tabs)/cart')}
+                >
+                  <Ionicons name="cart-outline" size={22} color={colors.white} />
+                  {cart.totalItems > 0 && (
+                    <View style={styles.cartBadgeModern}>
+                      <Text style={styles.cartBadgeText}>
+                        {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {/* Company Info Centrado */}
+              <View style={styles.companyInfoContainer}>
+                {company.logo && (
+                  <View style={styles.logoContainer}>
+                    <Image source={{ uri: company.logo }} style={styles.logoLarge} />
+                  </View>
+                )}
+                <Text style={styles.companyNameLarge} numberOfLines={2}>
+                  {company.name}
+                </Text>
+                {company.alias && (
+                  <Text style={styles.companyAliasLarge}>
+                    @{company.alias}
+                  </Text>
+                )}
+              </View>
+            </SafeAreaView>
+          </LinearGradient>
+        )}
       </View>
 
       {/* Products List */}
@@ -130,17 +247,86 @@ export default function CompanyStoreScreen() {
         renderItem={({ item }) => (
           <ProductCard
             product={item}
-            onPress={() => handleProductPress(item.id)}
-            onAddToCart={() => handleAddToCart(item.id)}
+            onPress={() => handleProductPress(item)}
+            onAddToCart={() => handleQuickAddToCart(item.id)}
+            buttonColor={buttonColor}
           />
         )}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <View style={styles.listHeader}>
-            <Text style={styles.sectionTitle}>Productos</Text>
-            <Text style={styles.productCount}>
-              {activeProducts.length} disponibles
-            </Text>
+          <View>
+            {/* Business Hours */}
+            {company.preferenciasWeb?.horarios && (
+              <BusinessHours horarios={company.preferenciasWeb.horarios} />
+            )}
+
+            {/* Description */}
+            {company.description && (
+              <View style={styles.descriptionCard}>
+                <Text style={styles.description}>{company.description}</Text>
+              </View>
+            )}
+
+            {/* Social Links */}
+            {company.redesSociales && company.redesSociales.length > 0 && (
+              <View style={styles.socialLinksContainer}>
+                {company.redesSociales.map((social, index) => {
+                  const getSocialIcon = (key: string) => {
+                    const iconMap: Record<string, any> = {
+                      instagram: 'logo-instagram',
+                      facebook: 'logo-facebook',
+                      twitter: 'logo-twitter',
+                      whatsapp: 'logo-whatsapp',
+                      tiktok: 'logo-tiktok',
+                      web: 'globe-outline',
+                    };
+                    return iconMap[key.toLowerCase()] || 'link-outline';
+                  };
+
+                  const getSocialUrl = (key: string, value: string) => {
+                    const urlMap: Record<string, (v: string) => string> = {
+                      instagram: (v) => `https://instagram.com/${v.replace('@', '')}`,
+                      facebook: (v) => `https://facebook.com/${v}`,
+                      twitter: (v) => `https://twitter.com/${v.replace('@', '')}`,
+                      whatsapp: (v) => `https://wa.me/${v}`,
+                      tiktok: (v) => `https://tiktok.com/@${v.replace('@', '')}`,
+                    };
+                    return urlMap[key.toLowerCase()]?.(value) || value;
+                  };
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.socialLink}
+                      onPress={async () => {
+                        const url = getSocialUrl(social.key, social.value);
+                        const canOpen = await Linking.canOpenURL(url);
+                        if (canOpen) {
+                          await Linking.openURL(url);
+                        } else {
+                          Alert.alert('Error', 'No se pudo abrir el enlace');
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name={getSocialIcon(social.key)} size={18} color={buttonColor} />
+                      <Text style={styles.socialLinkText}>{social.value}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Products Section Header */}
+            <View style={styles.listHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="restaurant" size={24} color={buttonColor} />
+                <Text style={[styles.sectionTitle, { color: buttonColor }]}>Nuestros Productos</Text>
+              </View>
+              <Text style={styles.productCount}>
+                {activeProducts.length} disponibles
+              </Text>
+            </View>
           </View>
         }
         ListEmptyComponent={
@@ -156,22 +342,46 @@ export default function CompanyStoreScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={refresh}
-            tintColor={colors.primary}
+            tintColor={buttonColor}
           />
         }
         showsVerticalScrollIndicator={false}
       />
 
+      {/* Product Modal */}
+      <ProductModal
+        visible={modalVisible}
+        product={selectedProduct}
+        onClose={() => {
+          setModalVisible(false);
+          setSelectedProduct(null);
+        }}
+        onAddToCart={handleAddToCartFromModal}
+        buttonColor={buttonColor}
+      />
+
       {/* Floating Cart Button */}
-      <FloatingCartButton />
-    </SafeAreaView>
+      <FloatingCartButton buttonColor={buttonColor} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+
+  fullBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+
+  backgroundOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
   },
 
   loadingContainer: {
@@ -186,61 +396,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    ...shadows.sm,
   },
 
   backButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-
-  headerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  logo: {
-    width: 40,
-    height: 40,
     borderRadius: 20,
-    marginRight: spacing.sm,
-  },
-
-  headerText: {
-    flex: 1,
-  },
-
-  companyName: {
-    ...textStyles.headline,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-
-  companyDescription: {
-    ...textStyles.caption1,
-    color: colors.textSecondary,
-  },
-
-  cartButton: {
-    width: 40,
-    height: 40,
+    backgroundColor: colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: spacing.sm,
+  },
+
+  headerContainer: {
     position: 'relative',
   },
 
-  cartBadge: {
+  headerBackground: {
+    width: '100%',
+  },
+
+  headerGradient: {
+    paddingBottom: spacing.md,
+  },
+
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+  },
+
+  backButtonModern: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  cartButtonModern: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 22,
+    position: 'relative',
+    ...shadows.md,
+  },
+
+  cartBadgeModern: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: -6,
+    right: -6,
     backgroundColor: colors.error,
     borderRadius: 10,
     minWidth: 20,
@@ -259,26 +468,114 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
 
+  companyInfoContainer: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+
+  logoContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: colors.white,
+    padding: 3,
+    marginBottom: spacing.sm,
+    ...shadows.lg,
+  },
+
+  logoLarge: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+  },
+
+  companyNameLarge: {
+    ...textStyles.title1,
+    color: colors.white,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: spacing.xs / 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+
+  companyAliasLarge: {
+    ...textStyles.footnote,
+    color: colors.white,
+    fontWeight: '500',
+    opacity: 0.9,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+
   listContent: {
-    padding: spacing.lg,
+    padding: spacing.md,
     flexGrow: 1,
   },
 
-  listHeader: {
+  descriptionCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
     marginBottom: spacing.md,
+    ...shadows.sm,
+  },
+
+  description: {
+    ...textStyles.body,
+    color: colors.text,
+    lineHeight: 22,
+  },
+
+  socialLinksContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+
+  socialLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    ...shadows.sm,
+  },
+
+  socialLinkText: {
+    ...textStyles.subheadline,
+    color: colors.text,
+    fontWeight: '600',
+  },
+
+  listHeader: {
+    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
+  },
+
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: 4,
   },
 
   sectionTitle: {
     ...textStyles.title2,
-    color: colors.primary,
-    marginBottom: 4,
     fontWeight: '700',
   },
 
   productCount: {
     ...textStyles.subheadline,
-    color: colors.secondary,
-    fontWeight: '600',
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
 
   emptyState: {

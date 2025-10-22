@@ -18,6 +18,7 @@ import { CartItem as CartItemType } from '../../types/cart';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
+import { formatPrice } from '../../utils/formatPrice';
 
 interface CartItemProps {
   item: CartItemType;
@@ -91,11 +92,11 @@ export const CartItem: React.FC<CartItemProps> = ({
 
           <View style={styles.priceRow}>
             <Text style={styles.price}>
-              ${price.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              ${formatPrice(price)}
             </Text>
             {item.quantity > 1 && (
               <Text style={styles.itemTotal}>
-                Total: ${itemTotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                Total: ${formatPrice(itemTotal)}
               </Text>
             )}
           </View>

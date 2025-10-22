@@ -63,8 +63,8 @@ export interface HorarioAtencionData {
 
 export interface UpdatePreferenciasPayload {
   empresaId?: string;
-  colorBotones: string;
-  colorFondo: string;
+  colorBotones: string | null;
+  colorFondo: string | null;
   envioDomicilio: boolean;
   dashboardFoto: string | null;
   horarios: {

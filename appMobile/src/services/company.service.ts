@@ -19,7 +19,7 @@ export const companyService = {
    */
   async getCompanyById(companyId: string): Promise<Company> {
     const response = await api.get<Company>(
-      `/auth/companies/${companyId}/locations`
+      `/empresas/${companyId}`
     );
     return response.data;
   },

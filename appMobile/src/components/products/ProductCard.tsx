@@ -1,6 +1,6 @@
 /**
  * ProductCard Component
- * iOS Modern Design with subtle animations
+ * iOS Modern Design - Compact horizontal layout
  */
 
 import React from 'react';
@@ -14,28 +14,26 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Product } from '../../types/company';
 import { colors, spacing, borderRadius, shadows, textStyles } from '../../theme';
+import { formatPrice } from '../../utils/formatPrice';
 
 interface ProductCardProps {
   product: Product;
   onPress?: () => void;
   onAddToCart?: () => void;
+  buttonColor?: string;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onPress,
   onAddToCart,
+  buttonColor = colors.primary,
 }) => {
-  const formatPrice = (price: number) => {
-    return `$${price.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-  };
-
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, !product.activo && styles.inactiveContainer]}
       onPress={onPress}
       activeOpacity={0.7}
-      disabled={!product.activo}
     >
       {/* Image */}
       <View style={styles.imageContainer}>
@@ -47,47 +45,47 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           />
         ) : (
           <View style={styles.placeholder}>
-            <Ionicons name="fast-food" size={32} color={colors.textTertiary} />
+            <Ionicons name="fast-food" size={24} color={colors.textTertiary} />
           </View>
         )}
 
         {/* Status Badge */}
         {!product.activo && (
           <View style={styles.inactiveBadge}>
-            <Text style={styles.inactiveBadgeText}>No disponible</Text>
+            <Ionicons name="close-circle" size={16} color={colors.white} />
           </View>
         )}
       </View>
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.name} numberOfLines={2}>
-          {product.nombre}
-        </Text>
-
-        {product.descripcion && (
-          <Text style={styles.description} numberOfLines={2}>
-            {product.descripcion}
+        <View style={styles.textContainer}>
+          <Text style={styles.name} numberOfLines={1}>
+            {product.nombre}
           </Text>
-        )}
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.price}>{formatPrice(product.precio)}</Text>
-
-          {product.activo && onAddToCart && (
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={(e) => {
-                e.stopPropagation();
-                onAddToCart();
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="add" size={20} color={colors.white} />
-            </TouchableOpacity>
+          {product.descripcion && (
+            <Text style={styles.description} numberOfLines={1}>
+              {product.descripcion}
+            </Text>
           )}
+
+          <Text style={styles.price}>${formatPrice(product.precio)}</Text>
         </View>
+
+        {/* Add Button */}
+        {product.activo && onAddToCart && (
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: buttonColor }]}
+            onPress={(e) => {
+              e.stopPropagation();
+              onAddToCart();
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add" size={22} color={colors.white} />
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -95,16 +93,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
     backgroundColor: colors.card,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     ...shadows.sm,
   },
 
+  inactiveContainer: {
+    opacity: 0.6,
+  },
+
   imageContainer: {
-    width: '100%',
-    height: 160,
+    width: 90,
+    height: 90,
     position: 'relative',
   },
 
@@ -123,54 +126,51 @@ const styles = StyleSheet.create({
 
   inactiveBadge: {
     position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
-    backgroundColor: colors.overlay,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: borderRadius.md,
-  },
-
-  inactiveBadgeText: {
-    ...textStyles.caption1,
-    color: colors.white,
-    fontWeight: '600',
-  },
-
-  content: {
-    padding: spacing.md,
-  },
-
-  name: {
-    ...textStyles.headline,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-
-  description: {
-    ...textStyles.subheadline,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-    lineHeight: 18,
-  },
-
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
     alignItems: 'center',
   },
 
+  content: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    gap: spacing.sm,
+  },
+
+  textContainer: {
+    flex: 1,
+  },
+
+  name: {
+    ...textStyles.body,
+    color: colors.text,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+
+  description: {
+    ...textStyles.caption1,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+
   price: {
-    ...textStyles.title3,
+    ...textStyles.callout,
     color: colors.primary,
     fontWeight: '700',
   },
 
   addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,

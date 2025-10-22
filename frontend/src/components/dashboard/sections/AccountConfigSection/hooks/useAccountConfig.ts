@@ -447,11 +447,13 @@ const updateEmpresaExtras = useCallback(async (payload: UpdateEmpresaExtrasPaylo
 
   try {
     // PATCH directo a tu backend (siguiendo tu convención /empresas/:id/...)
+    const normalizedSocials = normalizeSocials(redesSociales || []);
+
     const { data: updated } = await axiosInstance.patch<EmpresaData>(
       `/empresas/${empresaId}/extras`,
       {
-        alias: alias ?? "", // 👈 string
-        redesSociales: normalizeSocials(redesSociales || []),
+        alias: alias || undefined, // 👈 undefined si está vacío
+        redesSociales: normalizedSocials.length > 0 ? normalizedSocials : [], // 👈 array vacío si no hay redes
       }
     );
 

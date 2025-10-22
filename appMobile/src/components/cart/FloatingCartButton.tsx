@@ -17,8 +17,13 @@ import { useCart } from '../../contexts/CartContext';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
+import { formatPrice } from '../../utils/formatPrice';
 
-export const FloatingCartButton: React.FC = () => {
+interface FloatingCartButtonProps {
+  buttonColor?: string;
+}
+
+export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({ buttonColor = colors.primary }) => {
   const router = useRouter();
   const { cart } = useCart();
 
@@ -33,7 +38,7 @@ export const FloatingCartButton: React.FC = () => {
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, { backgroundColor: buttonColor }]}
       onPress={handlePress}
       activeOpacity={0.8}
     >
@@ -52,7 +57,7 @@ export const FloatingCartButton: React.FC = () => {
       <View style={styles.amountContainer}>
         <Text style={styles.amountLabel}>Total</Text>
         <Text style={styles.amountValue}>
-          ${cart.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+          ${formatPrice(cart.total)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -66,13 +71,12 @@ const styles = StyleSheet.create({
     right: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.orange,  // Naranja para CTAs
     borderRadius: 30,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     ...Platform.select({
       ios: {
-        shadowColor: colors.primary,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -86,7 +90,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.secondary,  // Verde para icono
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -116,7 +120,7 @@ const styles = StyleSheet.create({
   },
   amountLabel: {
     ...typography.caption,
-    color: colors.gray300,
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 11,
   },
   amountValue: {

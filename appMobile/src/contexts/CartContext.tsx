@@ -6,7 +6,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
-import { Product } from '../types/company';
+import { Product, Agregado } from '../types/company';
 import { CartItem, Cart, CheckoutData, DeliveryType, PaymentMethod } from '../types/cart';
 import { STORAGE_KEYS } from '../utils/constants';
 
@@ -15,7 +15,7 @@ interface CartContextData {
   loading: boolean;
 
   // Cart operations
-  addItem: (product: Product, companyId: string, companyName: string, quantity?: number) => void;
+  addItem: (product: Product, companyId: string, companyName: string, quantity?: number, agregados?: Agregado[], notes?: string) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   updateItemNotes: (productId: string, notes: string) => void;
@@ -94,8 +94,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const totalItems = prev.items.reduce((sum, item) => sum + item.quantity, 0);
       const subtotal = prev.items.reduce(
         (sum, item) => {
-          const price = item.product.precio || item.product.price || 0;
-          return sum + price * item.quantity;
+          // Convertir precio a número (puede venir como string del backend)
+          const priceRaw = item.product.precio || item.product.price || 0;
+          const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+
+          // Calcular precio con agregados
+          const agregadosPrice = item.agregados?.reduce(
+            (sum, agregado) => {
+              const agregadoPrecio = typeof agregado.precio === 'string'
+                ? parseFloat(agregado.precio)
+                : agregado.precio;
+              return sum + agregadoPrecio;
+            },
+            0
+          ) || 0;
+
+          return sum + (price + agregadosPrice) * item.quantity;
         },
         0
       );
@@ -112,7 +126,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addItem = useCallback(
-    (product: Product, companyId: string, companyName: string, quantity: number = 1) => {
+    (product: Product, companyId: string, companyName: string, quantity: number = 1, agregados?: Agregado[], notes?: string) => {
       setCart((prev) => {
         // Check if cart has items from a different company
         if (prev.companyId && prev.companyId !== companyId) {
@@ -125,7 +139,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 text: 'Sí, vaciar',
                 style: 'destructive',
                 onPress: () => {
-                  const price = product.precio || product.price || 0;
+                  const priceRaw = product.precio || product.price || 0;
+                  const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+
+                  const agregadosPrice = agregados?.reduce((sum, a) => {
+                    const aPrecio = typeof a.precio === 'string' ? parseFloat(a.precio) : a.precio;
+                    return sum + aPrecio;
+                  }, 0) || 0;
+
+                  const itemTotal = (price + agregadosPrice) * quantity;
+
                   setCart({
                     items: [
                       {
@@ -133,12 +156,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         quantity,
                         companyId,
                         companyName,
+                        agregados,
+                        notes,
                       },
                     ],
                     totalItems: quantity,
-                    subtotal: price * quantity,
+                    subtotal: itemTotal,
                     deliveryFee: 0,
-                    total: price * quantity,
+                    total: itemTotal,
                     companyId,
                   });
                 },
@@ -148,9 +173,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return prev;
         }
 
-        // Check if product already exists in cart
+        // Con agregados o notas, siempre agregar como item nuevo (no combinar)
+        if (agregados && agregados.length > 0) {
+          return {
+            ...prev,
+            items: [
+              ...prev.items,
+              {
+                product,
+                quantity,
+                companyId,
+                companyName,
+                agregados,
+                notes,
+              },
+            ],
+            companyId: prev.companyId || companyId,
+          };
+        }
+
+        // Check if product already exists in cart (sin agregados)
         const existingItemIndex = prev.items.findIndex(
-          (item) => item.product.id === product.id
+          (item) => item.product.id === product.id && (!item.agregados || item.agregados.length === 0)
         );
 
         if (existingItemIndex > -1) {

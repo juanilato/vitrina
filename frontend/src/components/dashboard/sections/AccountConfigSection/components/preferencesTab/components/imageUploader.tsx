@@ -102,19 +102,31 @@ const ImageUploader: React.FC<ImageUploaderProProps> = ({
   };
 
   const confirmCrop = async () => {
-    if (!localSrc || !areaPx) return;
+    if (!localSrc || !areaPx) {
+      console.error('❌ Missing localSrc or areaPx:', { localSrc, areaPx });
+      return;
+    }
     try {
+      console.log('🔄 Starting crop process...', { cropShape, areaPx });
       const blob = await getCroppedBlob(localSrc, areaPx, cropShape);
+      console.log('✅ Blob created:', { size: blob.size, type: blob.type });
+
       const ext = cropShape === "circle" ? "png" : "jpg";
       const file = new File([blob], `upload.${ext}`, { type: blob.type });
+      console.log('📁 File created:', { name: file.name, size: file.size });
+
       const objUrl = URL.createObjectURL(blob);
       setPreviewUrl(objUrl);
+
+      console.log('📤 Uploading file...');
       await onUpload(file);
+      console.log('✅ Upload successful!');
+
       setOpenCrop(false);
       setLocalSrc(null);
     } catch (e) {
-      console.error(e);
-      alert("No se pudo procesar el recorte.");
+      console.error('❌ Error in confirmCrop:', e);
+      alert("No se pudo procesar el recorte: " + (e instanceof Error ? e.message : 'Error desconocido'));
     }
   };
 
@@ -245,60 +257,99 @@ export default ImageUploader;
 
 /* ===== Helpers ===== */
 async function getCroppedBlob(src: string, area: Area, shape: CropShape): Promise<Blob> {
-  const img = await loadImage(src);
-  const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 1;
+  try {
+    console.log('🖼️ Loading image...', { src: src.substring(0, 50) });
+    const img = await loadImage(src);
+    console.log('✅ Image loaded:', { width: img.width, height: img.height });
 
-  const targetW = area.width;
-  const targetH = area.height;
+    const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 1;
+    console.log('📐 DPR:', dpr);
 
-  const canvas = document.createElement("canvas");
-  if (shape === "circle") {
-    const side = Math.min(targetW, targetH);
-    canvas.width = Math.round(side * dpr);
-    canvas.height = Math.round(side * dpr);
-  } else {
-    canvas.width = Math.round(targetW * dpr);
-    canvas.height = Math.round(targetH * dpr);
+    const targetW = area.width;
+    const targetH = area.height;
+    console.log('🎯 Target dimensions:', { targetW, targetH, area });
+
+    const canvas = document.createElement("canvas");
+    if (shape === "circle") {
+      const side = Math.min(targetW, targetH);
+      canvas.width = Math.round(side * dpr);
+      canvas.height = Math.round(side * dpr);
+      console.log('⭕ Circle crop - Canvas size:', { width: canvas.width, height: canvas.height });
+    } else {
+      canvas.width = Math.round(targetW * dpr);
+      canvas.height = Math.round(targetH * dpr);
+      console.log('▭ Rect crop - Canvas size:', { width: canvas.width, height: canvas.height });
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No se pudo obtener contexto del canvas");
+
+    ctx.scale(dpr, dpr);
+    ctx.imageSmoothingQuality = "high";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (shape === "circle") {
+      const side = Math.min(targetW, targetH);
+      const r = side / 2;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(r, r, r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+
+      const offsetX = (side - targetW) / 2;
+      const offsetY = (side - targetH) / 2;
+
+      ctx.drawImage(img, area.x, area.y, area.width, area.height, offsetX, offsetY, targetW, targetH);
+      ctx.restore();
+
+      console.log('🎨 Drawing circle image to canvas...');
+      return new Promise((res, rej) => {
+        canvas.toBlob((b) => {
+          if (b) {
+            console.log('✅ Circle blob created:', b.size, 'bytes');
+            res(b);
+          } else {
+            console.error('❌ Failed to create circle blob');
+            rej(new Error("No se pudo exportar la imagen circular"));
+          }
+        }, "image/png", 1);
+      });
+    }
+
+    console.log('🎨 Drawing rect image to canvas...');
+    ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, targetW, targetH);
+    const mime = guessMime(src) || "image/jpeg";
+    console.log('📝 MIME type:', mime);
+
+    return new Promise((res, rej) => {
+      canvas.toBlob((b) => {
+        if (b) {
+          console.log('✅ Rect blob created:', b.size, 'bytes');
+          res(b);
+        } else {
+          console.error('❌ Failed to create rect blob');
+          rej(new Error("No se pudo exportar la imagen"));
+        }
+      }, mime, 0.95);
+    });
+  } catch (error) {
+    console.error('❌ Error in getCroppedBlob:', error);
+    throw error;
   }
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("No canvas context");
-  ctx.scale(dpr, dpr);
-  ctx.imageSmoothingQuality = "high";
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (shape === "circle") {
-    const side = Math.min(targetW, targetH);
-    const r = side / 2;
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(r, r, r, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.clip();
-
-    const offsetX = (side - targetW) / 2;
-    const offsetY = (side - targetH) / 2;
-
-    ctx.drawImage(img, area.x, area.y, area.width, area.height, offsetX, offsetY, targetW, targetH);
-    ctx.restore();
-
-    return new Promise((res, rej) =>
-      canvas.toBlob((b) => (b ? res(b) : rej(new Error("export fail"))), "image/png", 1)
-    );
-  }
-
-  ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, targetW, targetH);
-  const mime = guessMime(src) || "image/jpeg";
-  return new Promise((res, rej) =>
-    canvas.toBlob((b) => (b ? res(b) : rej(new Error("export fail"))), mime, 0.95)
-  );
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const i = new Image();
-    i.onload = () => resolve(i);
-    i.onerror = reject;
+    i.onload = () => {
+      console.log('✅ Image loaded successfully');
+      resolve(i);
+    };
+    i.onerror = (e) => {
+      console.error('❌ Failed to load image:', e);
+      reject(new Error('No se pudo cargar la imagen'));
+    };
     i.src = src;
   });
 }

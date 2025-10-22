@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useCart } from '../src/contexts/CartContext';
 import { Button } from '../src/components/common/Button';
-import { LocationPicker } from '../src/components/common/LocationPicker';
+import { SimpleLocationPicker } from '../src/components/common/SimpleLocationPicker';
 import { orderService } from '../src/services/order.service';
 import { shippingService } from '../src/services/shipping.service';
 import { colors } from '../src/theme/colors';
@@ -135,10 +135,27 @@ export default function CheckoutScreen() {
     }
   };
 
-  const handleDeliveryTypeChange = (type: DeliveryType) => {
+  const handleDeliveryTypeChange = async (type: DeliveryType) => {
     setDeliveryTypeLocal(type);
     setDeliveryType(type);
-    calculateDeliveryFee();
+
+    if (type === 'pickup') {
+      setDeliveryFee(0);
+      setShippingPrice({ price: 0, isEstimated: false, message: 'Retiro en local' });
+    } else {
+      // Solo calcular si hay ubicación
+      if (deliveryLocation) {
+        await calculateDeliveryFee(deliveryLocation);
+      } else {
+        const defaultFee = 500;
+        setDeliveryFee(defaultFee);
+        setShippingPrice({
+          price: defaultFee,
+          isEstimated: true,
+          message: 'Precio estimado. Selecciona tu ubicación para el precio exacto.'
+        });
+      }
+    }
   };
 
   const handlePaymentMethodChange = (method: PaymentMethod) => {
@@ -217,24 +234,41 @@ export default function CheckoutScreen() {
 
     try {
       // Prepare order data
-      const orderData = {
+      const orderData: any = {
         empresaId: cart.companyId!,
         items: cart.items.map((item) => ({
           productoId: item.product.id,
-          cantidad: item.quantity,
-          precioUnitario: item.product.price,
-          notas: item.notes,
+          cantidad: Number(item.quantity), // Asegurar que sea número
+          precio: Number(item.product.price || item.product.precio), // Asegurar que sea número
         })),
         tipoEntrega: deliveryType,
-        direccionEntrega: deliveryType === 'delivery' ? address : undefined,
-        referenciaEntrega: deliveryType === 'delivery' ? reference : undefined,
-        metodoPago: paymentMethod,
-        comprobanteTransferencia: paymentMethod === 'transferencia' ? receiptImage : undefined,
-        notas: notes,
-        subtotal: cart.subtotal,
-        costoEnvio: cart.deliveryFee,
-        total: cart.total,
+        formaPago: paymentMethod,
       };
+
+      // Solo agregar transferenciaFoto si existe
+      if (paymentMethod === 'transferencia' && receiptImage) {
+        orderData.transferenciaFoto = receiptImage;
+      }
+
+      // Agregar deliveryLocation solo si hay ubicación seleccionada
+      if (deliveryType === 'delivery' && deliveryLocation) {
+        orderData.deliveryLocation = {
+          direccion: String(deliveryLocation.direccion),
+          lat: Number(deliveryLocation.lat),
+          lng: Number(deliveryLocation.lng),
+        };
+      }
+
+      // Agregar shippingPrice solo si se calculó
+      if (shippingPrice) {
+        orderData.shippingPrice = {
+          price: shippingPrice.price !== null ? Number(shippingPrice.price) : null,
+          isEstimated: Boolean(shippingPrice.isEstimated),
+          message: String(shippingPrice.message),
+        };
+      }
+
+      console.log('📦 Enviando pedido:', JSON.stringify(orderData, null, 2));
 
       // Create order
       const order = await orderService.createOrder(orderData);
@@ -254,11 +288,25 @@ export default function CheckoutScreen() {
         ]
       );
     } catch (error: any) {
-      console.error('Error creating order:', error);
-      Alert.alert(
-        'Error',
-        error.response?.data?.message || 'No se pudo crear el pedido. Por favor intenta nuevamente.'
-      );
+      console.error('❌ Error creating order:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+
+      let errorMessage = 'No se pudo crear el pedido. Por favor intenta nuevamente.';
+
+      if (error.response?.data) {
+        // Si hay mensaje de validación específico
+        if (error.response.data.message) {
+          if (Array.isArray(error.response.data.message)) {
+            errorMessage = error.response.data.message.join('\n');
+          } else {
+            errorMessage = error.response.data.message;
+          }
+        }
+        console.error('📋 Detalles del error:', JSON.stringify(error.response.data, null, 2));
+      }
+
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -330,7 +378,7 @@ export default function CheckoutScreen() {
                 Delivery
               </Text>
               <Text style={styles.optionSubtitle}>
-                ${calculateDeliveryFee().toLocaleString('es-AR')}
+                ${(cart.deliveryFee || 500).toLocaleString('es-AR')}
               </Text>
             </TouchableOpacity>
 
@@ -562,7 +610,7 @@ export default function CheckoutScreen() {
       </View>
 
       {/* Location Picker Modal */}
-      <LocationPicker
+      <SimpleLocationPicker
         visible={showLocationPicker}
         onClose={() => setShowLocationPicker(false)}
         onSelectLocation={handleLocationSelected}

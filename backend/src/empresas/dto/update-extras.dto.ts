@@ -13,8 +13,9 @@ export class UpdateExtrasDto {
   @IsString()
   alias?: string;
 
+  @IsOptional() // <-- Hacer opcional el array también
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SocialLinkDto)
-  redesSociales!: SocialLinkDto[];
+  redesSociales?: SocialLinkDto[]; // <-- Añadir ? para que sea opcional
 }

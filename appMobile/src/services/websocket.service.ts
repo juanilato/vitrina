@@ -15,11 +15,13 @@ class WebSocketService {
    */
   connect(token: string): void {
     if (this.socket?.connected) {
-      console.log('WebSocket already connected');
+      console.log('✅ WebSocket already connected');
       return;
     }
 
-    console.log('Connecting to WebSocket...');
+    console.log('🔌 Connecting to WebSocket...');
+    console.log('🔗 API URL:', API_URL);
+    console.log('🎫 Token (primeros 20 chars):', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
 
     this.socket = io(API_URL, {
       auth: {
@@ -33,18 +35,24 @@ class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('WebSocket connected');
+      console.log('✅ WebSocket connected successfully!');
+      console.log('🆔 Socket ID:', this.socket?.id);
       this.isConnected = true;
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('WebSocket disconnected:', reason);
+      console.log('❌ WebSocket disconnected. Reason:', reason);
       this.isConnected = false;
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      console.error('❌ WebSocket connection error:', error.message);
+      console.error('Error details:', error);
       this.isConnected = false;
+    });
+
+    this.socket.on('error', (error) => {
+      console.error('❌ WebSocket error event:', error);
     });
   }
 
@@ -83,9 +91,10 @@ class WebSocketService {
 
   /**
    * Escuchar evento de nueva notificación
+   * Backend emite 'new-notification' (en inglés)
    */
   onNewNotification(callback: (data: any) => void): void {
-    this.socket?.on('nueva-notificacion', callback);
+    this.socket?.on('new-notification', callback);
   }
 
   /**
@@ -112,12 +121,13 @@ class WebSocketService {
 
   /**
    * Remover listener de nueva notificación
+   * Backend emite 'new-notification' (en inglés)
    */
   offNewNotification(callback?: (data: any) => void): void {
     if (callback) {
-      this.socket?.off('nueva-notificacion', callback);
+      this.socket?.off('new-notification', callback);
     } else {
-      this.socket?.off('nueva-notificacion');
+      this.socket?.off('new-notification');
     }
   }
 

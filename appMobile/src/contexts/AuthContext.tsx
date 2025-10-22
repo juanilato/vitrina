@@ -84,6 +84,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(storedUser);
+
+        // IMPORTANTE: Reconectar WebSocket con el token guardado
+        console.log('🔄 Reconectando WebSocket con token guardado...');
+        websocketService.connect(storedToken);
+
+        // Inicializar notificaciones push
+        notificationService.registerForPushNotifications().catch((error) => {
+          console.error('Error registering push notifications:', error);
+        });
       }
     } catch (error) {
       console.error('Error loading stored auth:', error);

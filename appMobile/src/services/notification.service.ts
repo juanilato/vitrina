@@ -104,8 +104,19 @@ export const notificationService = {
       }
 
       // Obtener token de Expo
+      // NOTA: Comentado temporalmente - requiere configurar projectId en app.json
+      // Para habilitar, configura "extra.eas.projectId" en app.json
+      // const token = await Notifications.getExpoPushTokenAsync({
+      //   projectId: 'your-project-id',
+      // });
+
+      // Por ahora, retornar null para no bloquear la app
+      console.log('⚠️ Push notifications deshabilitadas - requiere configurar Expo projectId');
+      return null;
+
+      /* CÓDIGO ORIGINAL (descomentar cuando configures projectId):
       const token = await Notifications.getExpoPushTokenAsync({
-        projectId: 'your-project-id', // TODO: Reemplazar con tu proyecto ID de Expo
+        projectId: 'your-project-id',
       });
 
       // Configurar canal para Android
@@ -125,6 +136,7 @@ export const notificationService = {
       await this.registerDeviceToken(token.data);
 
       return token.data;
+      */
     } catch (error) {
       console.error('Error registering for push notifications:', error);
       return null;

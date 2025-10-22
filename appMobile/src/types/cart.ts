@@ -2,13 +2,14 @@
  * Cart Types
  */
 
-import { Product } from './company';
+import { Product, Agregado } from './company';
 
 export interface CartItem {
   product: Product;
   quantity: number;
   companyId: string;
   companyName: string;
+  agregados?: Agregado[];
   notes?: string;
 }
 

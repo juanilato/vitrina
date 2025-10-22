@@ -299,6 +299,7 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
   // register de la empresa
   async registerEmpresa(registerEmpresaDto: RegisterEmpresaDto) {
     // extrae data de la empresa DTO
+    console.log(registerEmpresaDto, "DTO");
     const { email, name, password, logo } = registerEmpresaDto;
 
 
@@ -536,8 +537,15 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
           
           isVerified: true,
           createdAt: true,
-          updatedAt: true
+          updatedAt: true,
+        preferenciasWeb: {
+                    select: {
+                     
+                      dashboardFoto: true,
+               
+                    },
         },
+      },
         orderBy: {
           createdAt: 'desc'
         }

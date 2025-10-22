@@ -15,16 +15,33 @@ export interface Ubicacion {
   updatedAt: string;
 }
 
-export interface Preferencias {
-  id: string;
-  colorPrimario?: string;
-  colorSecundario?: string;
-  logo?: string;
-  bannerImagen?: string;
-  descripcionCorta?: string;
+export enum DayOfWeek {
+  LUN = 'LUN',
+  MAR = 'MAR',
+  MIE = 'MIE',
+  JUE = 'JUE',
+  VIE = 'VIE',
+  SAB = 'SAB',
+  DOM = 'DOM',
+}
+
+export interface HorarioAtencion {
+  id: number;
   empresaId: string;
-  createdAt: string;
-  updatedAt: string;
+  day: DayOfWeek;
+  slotIndex: number;
+  abreMin: number;
+  cierraMin: number;
+  cerrado: boolean;
+}
+
+export interface Preferencias {
+  empresaId: string;
+  colorBotones?: string;
+  colorFondo?: string;
+  envioDomicilio: boolean;
+  dashboardFoto?: string;
+  horarios?: HorarioAtencion[];
 }
 
 export interface Company {
@@ -37,6 +54,13 @@ export interface Company {
   rating?: number;
   reviewCount?: number;
   isVerified?: boolean;
+  alias?: string;
+  redesSociales?: {
+    key: string;
+    label: string;
+    value: string;
+  }[];
+  ubicacion?: Ubicacion;
   ubicaciones?: Ubicacion[];
   preferenciasWeb?: Preferencias;
   createdAt: string;
@@ -45,6 +69,14 @@ export interface Company {
 
 export interface CompanyWithProducts extends Company {
   products?: Product[];
+}
+
+export interface Agregado {
+  id: string;
+  nombre: string;
+  precio: number;
+  activo: boolean;
+  productoId: string;
 }
 
 export interface Product {
@@ -61,6 +93,7 @@ export interface Product {
   images?: string[]; // Alternative format
   empresaId: string;
   empresa?: Company;
+  agregados?: Agregado[];
   createdAt: string;
   updatedAt: string;
 }
