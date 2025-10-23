@@ -2,14 +2,20 @@
  * Cart Types
  */
 
-import { Product, Agregado } from './company';
+import { Product, Agregado, ProductoIngrediente } from './company';
+
+export interface CartIngredienteExtra {
+  productoIngrediente: ProductoIngrediente;
+  cantidad: number; // Cantidad de este ingrediente extra añadido
+}
 
 export interface CartItem {
   product: Product;
   quantity: number;
   companyId: string;
   companyName: string;
-  agregados?: Agregado[];
+  agregados?: Agregado[]; // Deprecated - mantener por compatibilidad
+  ingredientesExtras?: CartIngredienteExtra[]; // Nuevo sistema de ingredientes
   notes?: string;
 }
 

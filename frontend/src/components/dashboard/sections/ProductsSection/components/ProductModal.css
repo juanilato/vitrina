@@ -9,6 +9,7 @@
 
 .pm2-dialog{
   width: min(900px, 92vw);
+  height:80%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -162,4 +163,159 @@
   border-radius: 14px;
   box-shadow: var(--shadow-300);
   object-fit: contain; background:#000;
+}
+
+/* ====== Ingredientes Extras Section ====== */
+.pm2-section{ margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.pm2-section-title{
+  font-size: 15px; font-weight: 800; color: var(--text);
+  margin: 0 0 12px 0; letter-spacing: .2px;
+}
+
+.pm2-ingredients-section{ display: grid; gap: 14px; margin-top: 12px; }
+.pm2-ingredients-add{
+  display: grid; gap: 12px;
+  padding: 14px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.pm2-extra-fields{
+  padding: 10px 0;
+  border-top: 1px dashed var(--border);
+  margin-top: 8px;
+}
+
+.pm2-button-group{
+  display: flex; gap: 8px; align-items: center;
+}
+
+/* Lista de ingredientes */
+.pm2-ingredients-list{ margin-top: 16px; }
+.pm2-ingredients-list h4{
+  font-size: 13px; font-weight: 800; color: var(--text-muted);
+  margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: .5px;
+}
+
+.pm2-ingredients{
+  list-style: none; padding: 0; margin: 0;
+  display: grid; gap: 8px;
+}
+
+.pm2-ingredient-item{
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all .15s ease;
+}
+
+.pm2-ingredient-item.editing{
+  background: #eef3ff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.pm2-ingredient-item:hover{
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  box-shadow: var(--shadow-100);
+}
+
+.pm2-ingredient-icon{
+  font-size: 24px;
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: var(--surface-alt);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.pm2-ingredient-info{ flex: 1; min-width: 0; }
+
+.pm2-ingredient-details{ display: grid; gap: 4px; }
+
+.pm2-ingredient-row{
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pm2-ingredient-name{
+  font-size: 13.5px; font-weight: 700; color: var(--text);
+}
+
+.pm2-ingredient-qty{
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  padding: 2px 8px;
+  background: var(--surface-alt);
+  border-radius: 6px;
+}
+
+.pm2-ingredient-extra-info{
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.pm2-ingredient-extra-badge{
+  font-size: 10px; font-weight: 800;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+
+.pm2-ingredient-price{
+  font-size: 12px; font-weight: 700;
+  color: #16a34a;
+}
+
+.pm2-ingredient-limits{
+  font-size: 11px; font-weight: 600;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.pm2-ingredient-actions{
+  display: flex; gap: 4px;
+  flex-shrink: 0;
+}
+
+.pm2-ingredient-edit,
+.pm2-ingredient-remove{
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 14px;
+  display: grid; place-items: center;
+  transition: all .15s ease;
+}
+
+.pm2-ingredient-edit:hover{
+  background: #eef3ff;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.pm2-ingredient-remove{
+  font-size: 20px;
+  line-height: 1;
+  color: #b91c1c;
+}
+
+.pm2-ingredient-remove:hover{
+  background: #fff5f5;
+  border-color: #ef4444;
+  transform: translateY(-1px);
+}
+
+.pm2-empty-message{
+  font-size: 13px; color: var(--text-muted);
+  text-align: center; padding: 20px;
+  font-style: italic;
 }

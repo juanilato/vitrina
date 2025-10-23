@@ -24,6 +24,9 @@ export const useProducts = () => {
       cantidadRequerida: ing.cantidadRequerida,
       unidadMedida: ing.ingrediente?.unidadMedida || ing.unidadMedida || '',
       esExtraPermitido: ing.esExtraPermitido,
+      precioExtra: ing.precioExtra,
+      minimoExtra: ing.minimoExtra,
+      maximoExtra: ing.maximoExtra,
       icono: ing.ingrediente?.icono || ing.icono
     }));
   };

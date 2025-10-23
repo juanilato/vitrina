@@ -32,20 +32,23 @@ export class ProductosService {
     // Si hay ingredientes, crear las relaciones ProductoIngrediente
     if (ingredientes && Array.isArray(ingredientes) && ingredientes.length > 0) {
       console.log('📝 [PRODUCTOS SERVICE] Procesando ingredientes:', ingredientes);
-      
+
       await Promise.all(
         ingredientes.map(async (ing: any) => {
           if (!ing.ingredienteId) {
             console.error('❌ [PRODUCTOS SERVICE] Error: ingredienteId no definido', ing);
             return;
           }
-          
+
           await this.prisma.productoIngrediente.create({
             data: {
               productoId: producto.id,
               ingredienteId: ing.ingredienteId,
               cantidadRequerida: ing.cantidadRequerida || 1,
               esExtraPermitido: ing.esExtraPermitido || false,
+              precioExtra: ing.precioExtra || null,
+              minimoExtra: ing.minimoExtra || null,
+              maximoExtra: ing.maximoExtra || null,
             },
           });
         })
@@ -63,7 +66,15 @@ export class ProductosService {
       where: { empresaId: id },
       include: {
         ingredientes: {
-          include: {
+          select: {
+            id: true,
+            productoId: true,
+            ingredienteId: true,
+            cantidadRequerida: true,
+            esExtraPermitido: true,
+            precioExtra: true,
+            minimoExtra: true,
+            maximoExtra: true,
             ingrediente: {
               select: {
                 id: true,
@@ -83,7 +94,7 @@ export class ProductosService {
   async findByEmpresa(empresaId: string) {
     try {
       const productos = await this.prisma.productos.findMany({
-        where: { 
+        where: {
           empresaId,
           // Solo productos activos para clientes
           activo: true
@@ -95,6 +106,27 @@ export class ProductosService {
               name: true,
               email: true,
               isVerified: true
+            }
+          },
+          ingredientes: {
+            select: {
+              id: true,
+              productoId: true,
+              ingredienteId: true,
+              cantidadRequerida: true,
+              esExtraPermitido: true,
+              precioExtra: true,
+              minimoExtra: true,
+              maximoExtra: true,
+              ingrediente: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  unidadMedida: true,
+                  icono: true,
+                  stockDisponible: true
+                }
+              }
             }
           }
         },
@@ -156,6 +188,9 @@ export class ProductosService {
                 ingredienteId: ing.ingredienteId,
                 cantidadRequerida: ing.cantidadRequerida,
                 esExtraPermitido: ing.esExtraPermitido || false,
+                precioExtra: ing.precioExtra || null,
+                minimoExtra: ing.minimoExtra || null,
+                maximoExtra: ing.maximoExtra || null,
               },
             });
           })

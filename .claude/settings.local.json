@@ -4,7 +4,12 @@
       "Bash(npm install:*)",
       "Bash(npx expo prebuild:*)",
       "Bash(npx expo start --clear)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npm run start:dev:*)",
+      "Bash(node test-ingredientes.js:*)",
+      "Bash(node test-api-productos.js:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

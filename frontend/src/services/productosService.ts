@@ -4,6 +4,9 @@ export interface ProductoIngrediente {
   ingredienteId: string;
   cantidadRequerida: number;
   esExtraPermitido?: boolean;
+  precioExtra?: number;
+  minimoExtra?: number;
+  maximoExtra?: number;
 }
 
 export interface Producto {

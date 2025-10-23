@@ -79,6 +79,27 @@ export interface Agregado {
   productoId: string;
 }
 
+export interface Ingrediente {
+  id: string;
+  nombre: string;
+  empresaId: string;
+  stockDisponible: number;
+  unidadMedida: string;
+  icono?: string;
+}
+
+export interface ProductoIngrediente {
+  id: number;
+  productoId: string;
+  ingredienteId: string;
+  ingrediente: Ingrediente;
+  cantidadRequerida: number;
+  esExtraPermitido: boolean;
+  precioExtra?: number | string;
+  minimoExtra?: number;
+  maximoExtra?: number;
+}
+
 export interface Product {
   id: string;
   nombre: string;
@@ -94,6 +115,8 @@ export interface Product {
   empresaId: string;
   empresa?: Company;
   agregados?: Agregado[];
+  ingredientes?: ProductoIngrediente[];
+  permiteExtras?: boolean;
   createdAt: string;
   updatedAt: string;
 }

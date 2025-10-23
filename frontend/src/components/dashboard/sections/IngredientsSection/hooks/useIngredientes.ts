@@ -146,11 +146,14 @@ export const useIngredientes = () => {
     productoIngredientes: ProductoIngrediente[],
     ingredienteId: string,
     cantidadRequerida: number,
-    esExtraPermitido: boolean
+    esExtraPermitido: boolean,
+    precioExtra?: number,
+    minimoExtra?: number,
+    maximoExtra?: number
   ): ProductoIngrediente[] => {
     // Buscar el ingrediente en la lista de ingredientes disponibles
     const ingrediente = ingredientes.find(ing => ing.id === ingredienteId);
-    
+
     if (!ingrediente) {
       throw new Error('Ingrediente no encontrado');
     }
@@ -162,9 +165,16 @@ export const useIngredientes = () => {
 
     if (existeIngrediente) {
       // Actualizar la cantidad si ya existe
-      return productoIngredientes.map(pi => 
-        pi.ingredienteId === ingredienteId 
-          ? { ...pi, cantidadRequerida, esExtraPermitido } 
+      return productoIngredientes.map(pi =>
+        pi.ingredienteId === ingredienteId
+          ? {
+              ...pi,
+              cantidadRequerida,
+              esExtraPermitido,
+              precioExtra,
+              minimoExtra,
+              maximoExtra
+            }
           : pi
       );
     } else {
@@ -177,6 +187,9 @@ export const useIngredientes = () => {
           cantidadRequerida,
           unidadMedida: ingrediente.unidadMedida,
           esExtraPermitido,
+          precioExtra,
+          minimoExtra,
+          maximoExtra,
           icono: ingrediente.icono
         }
       ];

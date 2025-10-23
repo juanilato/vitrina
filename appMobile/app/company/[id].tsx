@@ -29,6 +29,7 @@ import { BusinessHours } from '../../src/components/companies/BusinessHours';
 import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton';
 import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { Product, Agregado } from '../../src/types/company';
+import { CartIngredienteExtra } from '../../src/types/cart';
 
 export default function CompanyStoreScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -56,13 +57,16 @@ export default function CompanyStoreScreen() {
       return;
     }
 
-    // Si tiene agregados, abrir modal
-    if (product.agregados && product.agregados.filter((a) => a.activo).length > 0) {
+    // Si tiene agregados o ingredientes extras, abrir modal
+    const hasAgregados = product.agregados && product.agregados.filter((a) => a.activo).length > 0;
+    const hasIngredientesExtras = product.ingredientes && product.ingredientes.filter((pi) => pi.esExtraPermitido).length > 0;
+
+    if (hasAgregados || hasIngredientesExtras) {
       handleProductPress(product);
       return;
     }
 
-    // Agregar directo sin agregados
+    // Agregar directo sin agregados ni ingredientes extras
     addItem(product, company.id, company.name, 1);
     Alert.alert('Producto agregado', `${product.nombre} se agregó al carrito`);
   };
@@ -75,11 +79,12 @@ export default function CompanyStoreScreen() {
   const handleAddToCartFromModal = (
     quantity: number,
     selectedAgregados: Agregado[],
-    notes: string
+    notes: string,
+    ingredientesExtras?: CartIngredienteExtra[]
   ) => {
     if (!company || !selectedProduct) return;
 
-    addItem(selectedProduct, company.id, company.name, quantity, selectedAgregados, notes);
+    addItem(selectedProduct, company.id, company.name, quantity, selectedAgregados, notes, ingredientesExtras);
     Alert.alert('Producto agregado', `${selectedProduct.nombre} se agregó al carrito`);
   };
 
@@ -318,15 +323,7 @@ export default function CompanyStoreScreen() {
             )}
 
             {/* Products Section Header */}
-            <View style={styles.listHeader}>
-              <View style={styles.sectionTitleContainer}>
-                <Ionicons name="restaurant" size={24} color={buttonColor} />
-                <Text style={[styles.sectionTitle, { color: buttonColor }]}>Nuestros Productos</Text>
-              </View>
-              <Text style={styles.productCount}>
-                {activeProducts.length} disponibles
-              </Text>
-            </View>
+
           </View>
         }
         ListEmptyComponent={

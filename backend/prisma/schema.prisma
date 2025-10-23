@@ -163,11 +163,15 @@ model ProductoIngrediente {
   // Cantidad de este ingrediente que se requiere para UNA unidad del producto.
   // Ej: 200 (gramos) de 'Carne' para 1 'Hamburguesa Clásica'.
   cantidadRequerida Float
- 
+
 
   // Indica si este ingrediente puede ser añadido como un extra por el cliente (si 'Productos.permiteExtras' es true)
   esExtraPermitido Boolean @default(false)
 
+  // Campos para extras: precio, mínimo y máximo cuando se permite como extra
+  precioExtra     Decimal? @db.Decimal(12, 2) // Precio adicional cuando se agrega como extra
+  minimoExtra     Int?     @default(1)         // Cantidad mínima cuando se agrega (null = 1)
+  maximoExtra     Int?                         // Cantidad máxima permitida (null = sin límite)
 
   @@unique([productoId, ingredienteId])
   @@index([productoId])
