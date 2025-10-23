@@ -19,6 +19,7 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 import { formatPrice } from '../../utils/formatPrice';
+import { RenderIngredientIcon } from '../../utils/ingredientIcons';
 
 interface CartItemProps {
   item: CartItemType;
@@ -61,8 +62,19 @@ export const CartItem: React.FC<CartItemProps> = ({
     }
   };
 
-  const price = item.product.precio || item.product.price || 0;
-  const itemTotal = price * item.quantity;
+  // Parsear precio base del producto correctamente
+  const priceRaw = item.product.precio || item.product.price || 0;
+  const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+
+  // Calcular precio con ingredientes extras
+  const ingredientesExtrasPrice = item.ingredientesExtras?.reduce((sum, ie) => {
+    const precioExtra = ie.productoIngrediente.precioExtra;
+    const precio = typeof precioExtra === 'string' ? parseFloat(precioExtra) : (precioExtra || 0);
+    return sum + (precio * ie.cantidad);
+  }, 0) || 0;
+
+  const pricePerUnit = price + ingredientesExtrasPrice;
+  const itemTotal = pricePerUnit * item.quantity;
   const productName = item.product.nombre || item.product.name || 'Producto';
   const productDescription = item.product.descripcion || item.product.description;
   const productImage = item.product.fotoUrl || (item.product.images && item.product.images[0]);
@@ -92,7 +104,7 @@ export const CartItem: React.FC<CartItemProps> = ({
 
           <View style={styles.priceRow}>
             <Text style={styles.price}>
-              ${formatPrice(price)}
+              ${formatPrice(pricePerUnit)}
             </Text>
             {item.quantity > 1 && (
               <Text style={styles.itemTotal}>
@@ -102,6 +114,43 @@ export const CartItem: React.FC<CartItemProps> = ({
           </View>
         </View>
       </View>
+
+      {/* Ingredientes Extras */}
+      {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
+        <View style={styles.extrasSection}>
+          <Text style={styles.extrasSectionTitle}>Extras agregados:</Text>
+          {item.ingredientesExtras.map((ingredienteExtra, index) => {
+            const precioExtra = ingredienteExtra.productoIngrediente.precioExtra;
+            const precio = typeof precioExtra === 'string' ? parseFloat(precioExtra) : (precioExtra || 0);
+            return (
+              <View key={`${ingredienteExtra.productoIngrediente.id}-${index}`} style={styles.extraItem}>
+                <RenderIngredientIcon
+                  name={ingredienteExtra.productoIngrediente.ingrediente.icono}
+                  size={18}
+                />
+                <Text style={styles.extraName}>
+                  {ingredienteExtra.productoIngrediente.ingrediente.nombre}
+                </Text>
+                <Text style={styles.extraQuantity}>x{ingredienteExtra.cantidad}</Text>
+                <Text style={styles.extraPrice}>
+                  +${formatPrice(precio * ingredienteExtra.cantidad)}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
+      {/* Notas del producto */}
+      {item.notes && (
+        <View style={styles.productNotesSection}>
+          <View style={styles.productNotesHeader}>
+            <Ionicons name="document-text" size={16} color={colors.gray600} />
+            <Text style={styles.productNotesTitle}>Nota:</Text>
+          </View>
+          <Text style={styles.productNotesText}>{item.notes}</Text>
+        </View>
+      )}
 
       {/* Quantity Controls */}
       <View style={styles.controls}>
@@ -288,5 +337,81 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     color: colors.gray900,
     textAlignVertical: 'top',
+  },
+
+  // Ingredientes extras
+  extrasSection: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray100,
+  },
+
+  extrasSectionTitle: {
+    ...typography.bodySmall,
+    color: colors.gray600,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+
+  extraItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.gray50,
+    borderRadius: 6,
+    marginBottom: spacing.xs,
+  },
+
+  extraName: {
+    ...typography.bodySmall,
+    color: colors.gray700,
+    flex: 1,
+  },
+
+  extraQuantity: {
+    ...typography.bodySmall,
+    color: colors.gray600,
+    fontWeight: '600',
+  },
+
+  extraPrice: {
+    ...typography.bodySmall,
+    color: colors.orange,
+    fontWeight: '600',
+    minWidth: 60,
+    textAlign: 'right',
+  },
+
+  // Notas del producto
+  productNotesSection: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray100,
+  },
+
+  productNotesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+
+  productNotesTitle: {
+    ...typography.bodySmall,
+    color: colors.gray600,
+    fontWeight: '600',
+  },
+
+  productNotesText: {
+    ...typography.bodySmall,
+    color: colors.gray700,
+    backgroundColor: colors.gray50,
+    padding: spacing.sm,
+    borderRadius: 6,
+    lineHeight: 18,
   },
 });

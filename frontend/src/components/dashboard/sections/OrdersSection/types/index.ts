@@ -4,6 +4,11 @@ export interface ItemPedido {
   productoId: string;
   cantidad: number;
   precio: number;
+  notas?: string;
+  ingredientesExtras?: Array<{
+    productoIngredienteId: number;
+    cantidad: number;
+  }>;
   producto?: {
     id: string;
     nombre: string;
@@ -19,6 +24,12 @@ export interface Pedido {
   tipoEntrega: 'delivery' | 'retiro';
   formaPago: 'transferencia' | 'efectivo';
   motivoRechazo?: string;
+  direccion?: string;
+  lat?: number;
+  lng?: number;
+  subtotal?: number;
+  costoEnvio?: number;
+  total?: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,10 +1,8 @@
 /**
- * ProductModal Component
- * Modal detallado del producto con ingredientes extras
- * Estilo iOS moderno
+ * ProductModal - Versión moderna y estética
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,13 +12,26 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+  Animated,
+  Easing,
+  Dimensions,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { Product, Agregado, ProductoIngrediente } from '../../types/company';
+import { Product, Agregado } from '../../types/company';
 import { CartIngredienteExtra } from '../../types/cart';
-import { colors, spacing, borderRadius, shadows, textStyles } from '../../theme';
+import { colors, spacing, borderRadius, textStyles } from '../../theme';
 import { formatPrice } from '../../utils/formatPrice';
+import { RenderIngredientIcon } from '../../utils/ingredientIcons';
+
+const { width } = Dimensions.get('window');
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface ProductModalProps {
   visible: boolean;
@@ -35,6 +46,28 @@ interface ProductModalProps {
   buttonColor?: string;
 }
 
+/**
+ * Hook de animación numérica fluida
+ */
+const useAnimatedNumber = (value: number, duration = 300) => {
+  const animated = useRef(new Animated.Value(value)).current;
+  const [display, setDisplay] = useState(value);
+
+  useEffect(() => {
+    Animated.timing(animated, {
+      toValue: value,
+      duration,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+
+    const listener = animated.addListener(({ value }) => setDisplay(value));
+    return () => animated.removeListener(listener);
+  }, [value]);
+
+  return display;
+};
+
 export const ProductModal: React.FC<ProductModalProps> = ({
   visible,
   product,
@@ -42,352 +75,262 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onAddToCart,
   buttonColor = colors.primary,
 }) => {
-  console.log(product, "PRODUCTO");
   const [quantity, setQuantity] = useState(1);
-  const [selectedAgregados, setSelectedAgregados] = useState<Set<string>>(new Set());
   const [ingredienteQuantities, setIngredienteQuantities] = useState<Map<number, number>>(new Map());
   const [notes, setNotes] = useState('');
+  const [extrasVisible, setExtrasVisible] = useState(true);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const calculateTotal = () => {
+    if (!product) return 0;
+    let total = product.precio * quantity;
+    if (product.ingredientes) {
+      product.ingredientes.forEach((pi) => {
+        const qty = ingredienteQuantities.get(pi.id) || 0;
+        if (qty > 0 && pi.precioExtra) {
+          const precio =
+            typeof pi.precioExtra === 'string' ? parseFloat(pi.precioExtra) : pi.precioExtra;
+          total += precio * qty * quantity;
+        }
+      });
+    }
+    return total;
+  };
+
+  const total = calculateTotal();
+  const animatedPrice = useAnimatedNumber(total, 350);
+
+  // Animación de rebote al cambiar el precio
+  useEffect(() => {
+    Animated.sequence([
+      Animated.spring(scaleAnim, { toValue: 1.1, useNativeDriver: true, tension: 100 }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 3, useNativeDriver: true }),
+    ]).start();
+  }, [total]);
 
   if (!product) return null;
 
-  const toggleAgregado = (agregadoId: string) => {
-    const newSet = new Set(selectedAgregados);
-    if (newSet.has(agregadoId)) {
-      newSet.delete(agregadoId);
-    } else {
-      newSet.add(agregadoId);
-    }
-    setSelectedAgregados(newSet);
+  const toggleExtras = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExtrasVisible((prev) => !prev);
   };
+
+  const ingredientesExtras = product.ingredientes?.filter((pi) => pi.esExtraPermitido) || [];
 
   const updateIngredienteQuantity = (ingredienteId: number, delta: number, max?: number) => {
     const newMap = new Map(ingredienteQuantities);
     const currentQty = newMap.get(ingredienteId) || 0;
     const newQty = Math.max(0, currentQty + delta);
-
-    // Aplicar máximo si existe
-    const finalQty = max !== undefined && max > 0 ? Math.min(newQty, max) : newQty;
-
-    if (finalQty === 0) {
-      newMap.delete(ingredienteId);
-    } else {
-      newMap.set(ingredienteId, finalQty);
-    }
+    const finalQty = max ? Math.min(newQty, max) : newQty;
+    if (finalQty === 0) newMap.delete(ingredienteId);
+    else newMap.set(ingredienteId, finalQty);
     setIngredienteQuantities(newMap);
   };
 
-  const calculateTotal = () => {
-    let total = product.precio * quantity;
-
-    // Precio de agregados (sistema antiguo - mantener compatibilidad)
-    if (product.agregados) {
-      product.agregados.forEach((agregado) => {
-        if (selectedAgregados.has(agregado.id)) {
-          total += agregado.precio * quantity;
-        }
-      });
-    }
-
-    // Precio de ingredientes extras (sistema nuevo)
+  const handleAdd = () => {
+    const extras: CartIngredienteExtra[] = [];
     if (product.ingredientes) {
-      product.ingredientes.forEach((prodIngrediente) => {
-        const qty = ingredienteQuantities.get(prodIngrediente.id) || 0;
-        if (qty > 0 && prodIngrediente.precioExtra) {
-          const precioExtra = typeof prodIngrediente.precioExtra === 'string'
-            ? parseFloat(prodIngrediente.precioExtra)
-            : prodIngrediente.precioExtra;
-          total += precioExtra * qty * quantity;
-        }
+      product.ingredientes.forEach((pi) => {
+        const qty = ingredienteQuantities.get(pi.id) || 0;
+        if (qty > 0) extras.push({ productoIngrediente: pi, cantidad: qty });
       });
     }
-
-    return total;
-  };
-
-  const handleAddToCart = () => {
-    const agregadosArray = product.agregados?.filter((a) => selectedAgregados.has(a.id)) || [];
-
-    // Construir array de ingredientes extras
-    const ingredientesExtras: CartIngredienteExtra[] = [];
-    if (product.ingredientes) {
-      product.ingredientes.forEach((prodIngrediente) => {
-        const qty = ingredienteQuantities.get(prodIngrediente.id) || 0;
-        if (qty > 0) {
-          ingredientesExtras.push({
-            productoIngrediente: prodIngrediente,
-            cantidad: qty,
-          });
-        }
-      });
-    }
-
-    onAddToCart(quantity, agregadosArray, notes, ingredientesExtras);
-
-    // Reset state
+    onAddToCart(quantity, [], notes, extras);
     setQuantity(1);
-    setSelectedAgregados(new Set());
     setIngredienteQuantities(new Map());
     setNotes('');
     onClose();
   };
 
-  const handleClose = () => {
-    // Reset state
-    setQuantity(1);
-    setSelectedAgregados(new Set());
-    setIngredienteQuantities(new Map());
-    setNotes('');
-    onClose();
+  const updateQuantity = (delta: number) => {
+    setQuantity((prev) => Math.max(1, prev + delta));
   };
-
-  const activeAgregados = product.agregados?.filter((a) => a.activo) || [];
-  const ingredientesExtrasPermitidos = product.ingredientes?.filter((pi) => pi.esExtraPermitido) || [];
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <BlurView intensity={20} style={StyleSheet.absoluteFill} tint="dark">
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={handleClose}
-          />
-        </BlurView>
-
+        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
         <View style={styles.modalContainer}>
-          {/* Header */}
+          {/* Header con botón cerrar */}
           <View style={styles.header}>
             <View style={styles.dragHandle} />
             <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleClose}
+              style={[styles.closeButton, { backgroundColor: 'rgba(0,0,0,0.1)' }]}
+              onPress={onClose}
               activeOpacity={0.7}
             >
-              <Ionicons name="close" size={28} color={colors.text} />
+              <Ionicons name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
 
           <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
           >
-            {/* Image */}
+            {/* Imagen del producto */}
             <View style={styles.imageContainer}>
               {product.fotoUrl ? (
-                <Image
-                  source={{ uri: product.fotoUrl }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: product.fotoUrl }} style={styles.image} resizeMode="cover" />
               ) : (
                 <View style={styles.placeholder}>
-                  <Ionicons name="fast-food" size={64} color={colors.textTertiary} />
+                  <Ionicons name="fast-food" size={80} color={colors.textTertiary} />
                 </View>
               )}
+              {/* Gradiente en la parte inferior de la imagen */}
+              <View style={styles.imageGradient} />
             </View>
 
-            {/* Content */}
+            {/* Contenido */}
             <View style={styles.content}>
-              {/* Name & Price */}
+              {/* Título y Precio */}
               <View style={styles.titleSection}>
-                <Text style={styles.name}>{product.nombre}</Text>
-                <Text style={styles.basePrice}>${formatPrice(product.precio)}</Text>
-              </View>
-
-              {/* Description */}
-              {product.descripcion && (
-                <Text style={styles.description}>{product.descripcion}</Text>
-              )}
-
-              {/* Ingredientes Extras */}
-              {ingredientesExtrasPermitidos.length > 0 && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="restaurant" size={20} color={buttonColor} />
-                    <Text style={[styles.sectionTitle, { color: buttonColor }]}>
-                      Ingredientes extras
+                <View style={styles.titleRow}>
+                  <Text style={styles.productName}>{product.nombre}</Text>
+                  <View style={[styles.priceTag, { backgroundColor: `${buttonColor}15` }]}>
+                    <Text style={[styles.priceTagText, { color: buttonColor }]}>
+                      ${formatPrice(product.precio)}
                     </Text>
                   </View>
-                  <View style={styles.ingredientesList}>
-                    {ingredientesExtrasPermitidos.map((prodIngrediente) => {
-                      const qty = ingredienteQuantities.get(prodIngrediente.id) || 0;
-                      const precioExtra = prodIngrediente.precioExtra
-                        ? typeof prodIngrediente.precioExtra === 'string'
-                          ? parseFloat(prodIngrediente.precioExtra)
-                          : prodIngrediente.precioExtra
-                        : 0;
-
-                      return (
-                        <View
-                          key={prodIngrediente.id}
-                          style={[
-                            styles.ingredienteItem,
-                            qty > 0 && {
-                              backgroundColor: `${buttonColor}15`,
-                              borderColor: buttonColor
-                            }
-                          ]}
-                        >
-                          <View style={styles.ingredienteInfo}>
-                            {prodIngrediente.ingrediente.icono && (
-                              <Text style={styles.ingredienteIcon}>
-                                {prodIngrediente.ingrediente.icono}
-                              </Text>
-                            )}
-                            <View style={styles.ingredienteTextContainer}>
-                              <Text style={styles.ingredienteName}>
-                                {prodIngrediente.ingrediente.nombre}
-                              </Text>
-                              <Text style={[styles.ingredientePrice, { color: buttonColor }]}>
-                                +${formatPrice(precioExtra)}
-                              </Text>
-                            </View>
-                          </View>
-
-                          <View style={styles.ingredienteControls}>
-                            <TouchableOpacity
-                              style={[
-                                styles.ingredienteButton,
-                               
-                              ]}
-                              onPress={() => updateIngredienteQuantity(prodIngrediente.id, -1, prodIngrediente.maximoExtra || undefined)}
-                              disabled={qty === 0}
-                              activeOpacity={0.7}
-                            >
-                              <Ionicons
-                                name="remove"
-                                size={18}
-                                color={qty === 0 ? colors.textTertiary : buttonColor}
-                              />
-                            </TouchableOpacity>
-
-                            <Text style={styles.ingredienteQuantity}>{qty}</Text>
-
-                            <TouchableOpacity
-                    
-                              onPress={() => updateIngredienteQuantity(prodIngrediente.id, 1, prodIngrediente.maximoExtra || undefined)}
-                              disabled={prodIngrediente.maximoExtra !== undefined && prodIngrediente.maximoExtra > 0 && qty >= prodIngrediente.maximoExtra}
-                              activeOpacity={0.7}
-                            >
-                              <Ionicons
-                                name="add"
-                                size={18}
-                                color={prodIngrediente.maximoExtra && qty >= prodIngrediente.maximoExtra ? colors.textTertiary : buttonColor}
-                              />
-                            </TouchableOpacity>
-                          </View>
-
-                          {prodIngrediente.maximoExtra && prodIngrediente.maximoExtra > 0 && (
-                            <Text style={styles.ingredienteMaxText}>
-                              Máx: {prodIngrediente.maximoExtra}
-                            </Text>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </View>
                 </View>
-              )}
-
-              {/* Agregados (sistema antiguo - mantener compatibilidad) */}
-              {activeAgregados.length > 0 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Agregados opcionales</Text>
-                  <View style={styles.agregadosList}>
-                    {activeAgregados.map((agregado) => (
-                      <TouchableOpacity
-                        key={agregado.id}
-                        style={[
-                          styles.agregadoItem,
-                          selectedAgregados.has(agregado.id) && styles.agregadoItemSelected,
-                        ]}
-                        onPress={() => toggleAgregado(agregado.id)}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.agregadoContent}>
-                          <View
-                            style={[
-                              styles.checkbox,
-                              selectedAgregados.has(agregado.id) && styles.checkboxSelected,
-                            ]}
-                          >
-                            {selectedAgregados.has(agregado.id) && (
-                              <Ionicons name="checkmark" size={16} color={colors.white} />
-                            )}
-                          </View>
-                          <Text style={styles.agregadoName}>{agregado.nombre}</Text>
-                        </View>
-                        <Text style={styles.agregadoPrice}>
-                          +${formatPrice(agregado.precio)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {/* Notes */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Notas especiales</Text>
-                <TextInput
-                  style={styles.notesInput}
-                  placeholder="Ej: Sin cebolla, extra salsa..."
-                  placeholderTextColor={colors.textTertiary}
-                  value={notes}
-                  onChangeText={setNotes}
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                />
+                {product.descripcion && (
+                  <Text style={styles.description}>{product.descripcion}</Text>
+                )}
               </View>
 
-              {/* Quantity */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Cantidad</Text>
-                <View style={styles.quantityContainer}>
+              {/* Cantidad */}
+              <View style={styles.quantitySection}>
+                <Text style={styles.sectionLabel}>Cantidad</Text>
+                <View style={styles.quantityControls}>
                   <TouchableOpacity
-                    style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
-                    onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    activeOpacity={0.7}
+                    style={[styles.quantityButton, { borderColor: buttonColor }]}
+                    onPress={() => updateQuantity(-1)}
+                    disabled={quantity === 1}
                   >
                     <Ionicons
                       name="remove"
                       size={20}
-                      color={quantity <= 1 ? colors.textTertiary : colors.text}
+                      color={quantity === 1 ? colors.textTertiary : buttonColor}
                     />
                   </TouchableOpacity>
                   <Text style={styles.quantityText}>{quantity}</Text>
                   <TouchableOpacity
-                    style={styles.quantityButton}
-                    onPress={() => setQuantity(quantity + 1)}
-                    activeOpacity={0.7}
+                    style={[styles.quantityButton, { borderColor: buttonColor }]}
+                    onPress={() => updateQuantity(1)}
                   >
-                    <Ionicons name="add" size={20} color={colors.text} />
+                    <Ionicons name="add" size={20} color={buttonColor} />
                   </TouchableOpacity>
                 </View>
+              </View>
+
+              {/* Extras */}
+              {ingredientesExtras.length > 0 && (
+                <View style={styles.extrasSection}>
+                  <TouchableOpacity onPress={toggleExtras} style={styles.extrasHeader}>
+                    <View style={styles.extrasHeaderLeft}>
+                      <Ionicons name="add-circle" size={20} color={buttonColor} />
+                      <Text style={styles.sectionLabel}>Agregar extras</Text>
+                    </View>
+                    <Ionicons
+                      name={extrasVisible ? 'chevron-up' : 'chevron-down'}
+                      size={20}
+                      color={colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+
+                  {extrasVisible && (
+                    <View style={styles.extrasList}>
+                      {ingredientesExtras.map((pi) => {
+                        const qty = ingredienteQuantities.get(pi.id) || 0;
+                        const precioExtra =
+                          typeof pi.precioExtra === 'string'
+                            ? parseFloat(pi.precioExtra)
+                            : pi.precioExtra || 0;
+                        return (
+                          <View key={pi.id} style={styles.extraItem}>
+                            <View style={styles.extraLeft}>
+                              <View style={[styles.iconContainer, { backgroundColor: `${buttonColor}10` }]}>
+                                <RenderIngredientIcon name={pi.ingrediente.icono} size={24} />
+                              </View>
+                              <View style={styles.extraInfo}>
+                                <Text style={styles.extraName}>{pi.ingrediente.nombre}</Text>
+                                <Text style={[styles.extraPrice, { color: buttonColor }]}>
+                                  +${formatPrice(precioExtra)}
+                                </Text>
+                              </View>
+                            </View>
+
+                            <View style={styles.extraControls}>
+                              <TouchableOpacity
+                                onPress={() => updateIngredienteQuantity(pi.id, -1)}
+                                disabled={qty === 0}
+                                style={styles.extraButton}
+                              >
+                                <Ionicons
+                                  name="remove-circle"
+                                  size={28}
+                                  color={qty === 0 ? colors.textTertiary : buttonColor}
+                                />
+                              </TouchableOpacity>
+                              <Text style={styles.extraQty}>{qty}</Text>
+                              <TouchableOpacity
+                                onPress={() =>
+                                  updateIngredienteQuantity(pi.id, 1, pi.maximoExtra || undefined)
+                                }
+                                disabled={pi.maximoExtra !== undefined && qty >= (pi.maximoExtra || 0)}
+                                style={styles.extraButton}
+                              >
+                                <Ionicons
+                                  name="add-circle"
+                                  size={28}
+                                  color={
+                                    pi.maximoExtra && qty >= pi.maximoExtra
+                                      ? colors.textTertiary
+                                      : buttonColor
+                                  }
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Notas */}
+              <View style={styles.notesSection}>
+                <Text style={styles.sectionLabel}>Notas adicionales</Text>
+                <TextInput
+                  style={styles.notesInput}
+                  placeholder="Ej: Sin cebolla, sin picante..."
+                  placeholderTextColor={colors.textTertiary}
+                  multiline
+                  value={notes}
+                  onChangeText={setNotes}
+                  maxLength={200}
+                />
               </View>
             </View>
           </ScrollView>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={[styles.addToCartButton, { backgroundColor: buttonColor }]}
-              onPress={handleAddToCart}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="cart" size={22} color={colors.white} />
-              <Text style={styles.addToCartText}>
-                Agregar ${formatPrice(calculateTotal())}
-              </Text>
-            </TouchableOpacity>
+          {/* Footer - Botón agregar */}
+          <View style={[styles.footer, { borderTopColor: colors.border }]}>
+            <Animated.View style={{ transform: [{ scale: scaleAnim }], flex: 1 }}>
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: buttonColor }]}
+                onPress={handleAdd}
+                activeOpacity={0.85}
+              >
+                <View style={styles.addButtonContent}>
+                  <Ionicons name="cart" size={22} color="#fff" />
+                  <Text style={styles.addText}>Agregar al carrito</Text>
+                  <View style={styles.totalBadge}>
+                    <Text style={styles.totalText}>${formatPrice(animatedPrice)}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
           </View>
         </View>
       </View>
@@ -399,325 +342,287 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-
   modalContainer: {
     backgroundColor: colors.card,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    height: '88%',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    height: '92%',
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 8,
   },
-
   header: {
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
     position: 'relative',
   },
-
   dragHandle: {
     width: 40,
-    height: 5,
-    borderRadius: 3,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: colors.border,
-    opacity: 0.4,
-    marginBottom: spacing.xs,
+    opacity: 0.3,
   },
-
   closeButton: {
     position: 'absolute',
-    top: spacing.xs,
     right: spacing.lg,
+    top: spacing.sm,
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 5,
+    shadowRadius: 4,
+    elevation: 3,
   },
-
-  scrollView: {
-    flex: 1,
-  },
-
   scrollContent: {
-    paddingBottom: spacing.lg,
+    paddingBottom: 140,
   },
 
+  // Imagen
   imageContainer: {
     width: '100%',
-    height: 180,
+    height: 280,
+    position: 'relative',
     backgroundColor: colors.backgroundSecondary,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    overflow: 'hidden',
   },
-
   image: {
     width: '100%',
     height: '100%',
   },
-
   placeholder: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.backgroundSecondary,
+  },
+  imageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.3))',
   },
 
+  // Contenido
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
   },
 
+  // Título y precio
   titleSection: {
-    marginBottom: spacing.sm,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  name: {
-    ...textStyles.largeTitle,
-    color: colors.text,
-    fontWeight: '700',
-    flex: 1,
-  },
-
-  basePrice: {
-    ...textStyles.title2,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-
-  description: {
-    ...textStyles.body,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: spacing.md,
-  },
-
-  section: {
     marginBottom: spacing.lg,
   },
-
-  sectionHeader: {
+  titleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: spacing.xs,
   },
-
-  sectionTitle: {
-    ...textStyles.headline,
+  productName: {
+    flex: 1,
+    fontSize: 26,
+    fontWeight: '800',
     color: colors.text,
-    fontWeight: '600',
+    letterSpacing: -0.5,
+    lineHeight: 32,
   },
-
-  /** 🔸 Ingredientes extras compactos y modernos */
-  ingredientesList: {
-    gap: spacing.xs,
-  },
-
-  ingredienteItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
+  priceTag: {
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.backgroundSecondary,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    marginLeft: spacing.sm,
+  },
+  priceTagText: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  description: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
   },
 
-  ingredienteInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: spacing.sm,
+  // Cantidad
+  quantitySection: {
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-
-  ingredienteIcon: {
-    fontSize: 22,
-  },
-
-  ingredienteTextContainer: {
-    flex: 1,
-  },
-
-  ingredienteName: {
-    ...textStyles.callout,
-    color: colors.text,
-    fontWeight: '500',
-  },
-
-  ingredientePrice: {
-    ...textStyles.footnote,
-    color: colors.primary,
+  sectionLabel: {
+    fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
-
-  ingredienteControls: {
+  quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    justifyContent: 'center',
+    gap: spacing.lg,
   },
-
-  ingredienteButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.card,
+  quantityButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  quantityText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    minWidth: 40,
+    textAlign: 'center',
   },
 
-  ingredienteQuantity: {
-    ...textStyles.callout,
+  // Extras
+  extrasSection: {
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  extrasHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  extrasHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  extrasList: {
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  extraItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+  },
+  extraLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flex: 1,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  extraInfo: {
+    flex: 1,
+  },
+  extraName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  extraPrice: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  extraControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  extraButton: {
+    padding: 4,
+  },
+  extraQty: {
+    fontSize: 16,
+    fontWeight: '700',
     color: colors.text,
     minWidth: 24,
     textAlign: 'center',
   },
 
-  ingredienteMaxText: {
-    ...textStyles.caption1,
-    color: colors.textTertiary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: spacing.xs,
+  // Notas
+  notesSection: {
+    marginBottom: spacing.sm,
   },
-
-  /** 🔸 Agregados minimalistas */
-  agregadosList: {
-    gap: spacing.xs,
-  },
-
-  agregadoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-
-  agregadoItemSelected: {
-    backgroundColor: `${colors.primary}10`,
-    borderColor: colors.primary,
-  },
-
-  agregadoContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  checkboxSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-
-  agregadoName: {
-    ...textStyles.body,
-    color: colors.text,
-  },
-
-  agregadoPrice: {
-    ...textStyles.footnote,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-
-  /** 🔸 Notas */
   notesInput: {
-    ...textStyles.body,
     backgroundColor: colors.backgroundSecondary,
     borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    minHeight: 70,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     color: colors.text,
+    fontSize: 15,
+    minHeight: 80,
+    maxHeight: 120,
+    textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
-  /** 🔸 Cantidad */
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.md,
-  },
-
-  quantityButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.backgroundSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  quantityButtonDisabled: {
-    opacity: 0.4,
-  },
-
-  quantityText: {
-    ...textStyles.title2,
-    color: colors.text,
-    fontWeight: '700',
-    minWidth: 40,
-    textAlign: 'center',
-  },
-
-  /** 🔸 Footer */
+  // Footer
   footer: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: spacing.lg,
     backgroundColor: colors.card,
+    borderTopWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 5,
   },
-
-  addToCartButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
+  addButton: {
     borderRadius: borderRadius.xl,
-    gap: spacing.sm,
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    paddingVertical: spacing.md + 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
-
-  addToCartText: {
-    ...textStyles.headline,
-    color: colors.white,
+  addButtonContent: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  addText: {
+    fontSize: 17,
     fontWeight: '700',
+    color: '#fff',
+    letterSpacing: -0.3,
+  },
+  totalBadge: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 4,
+    borderRadius: borderRadius.md,
+  },
+  totalText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: -0.3,
   },
 });

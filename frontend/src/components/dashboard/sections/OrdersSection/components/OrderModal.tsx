@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { OrderModalProps } from '../types';
 import pedidosService from '../../../../../services/pedidosService';
 
-const OrderModal: React.FC<OrderModalProps> = ({ 
-  pedido, 
-  onClose, 
-  onUpdateStatus 
+const OrderModal: React.FC<OrderModalProps> = ({
+  pedido,
+  onClose,
+  onUpdateStatus
 }) => {
   const [transferenciaFoto, setTransferenciaFoto] = useState<string | null>(null);
   const [loadingFoto, setLoadingFoto] = useState(false);
@@ -13,14 +13,12 @@ const OrderModal: React.FC<OrderModalProps> = ({
 
   const loadTransferenciaFoto = useCallback(async () => {
     if (!pedido) return;
-    
+
     setLoadingFoto(true);
     try {
       const foto = await pedidosService.getTransferenciaFoto(pedido.id);
-      
       if (foto) {
         setTransferenciaFoto(foto.base64);
-      } else {
       }
     } catch (error) {
       console.error('Error cargando foto de transferencia:', error);
@@ -29,14 +27,10 @@ const OrderModal: React.FC<OrderModalProps> = ({
     }
   }, [pedido]);
 
-  // Cargar foto de transferencia si el pedido es de transferencia
   useEffect(() => {
     if (!pedido) return;
-    
-    
     if (pedido.formaPago === 'transferencia') {
       loadTransferenciaFoto();
-    } else {
     }
   }, [pedido, loadTransferenciaFoto]);
 
@@ -44,7 +38,6 @@ const OrderModal: React.FC<OrderModalProps> = ({
 
   const downloadFoto = () => {
     if (!transferenciaFoto) return;
-    
     const link = document.createElement('a');
     link.href = transferenciaFoto;
     link.download = `comprobante_transferencia_${pedido.id}.jpg`;
@@ -56,10 +49,10 @@ const OrderModal: React.FC<OrderModalProps> = ({
   const getStatusBadge = (estado: string) => {
     const color = pedidosService.getStatusColor(estado);
     const text = pedidosService.getStatusText(estado);
-    
+
     return (
-      <span 
-        className="status-badge" 
+      <span
+        className="status-badge"
         style={{ backgroundColor: color, color: 'white' }}
       >
         {text}
@@ -77,38 +70,8 @@ const OrderModal: React.FC<OrderModalProps> = ({
     });
   };
 
-  const getNextStatus = (currentStatus: string, tipoEntrega: 'delivery' | 'retiro') => {
-    return pedidosService.getNextStatus(currentStatus, tipoEntrega);
-  };
-
-  const getNextStatusText = (currentStatus: string, tipoEntrega: 'delivery' | 'retiro') => {
-    return pedidosService.getNextStatusText(currentStatus, tipoEntrega);
-  };
-
-  const getDeliveryTypeText = (tipoEntrega: string) => {
-    switch (tipoEntrega) {
-      case 'delivery':
-        return '🚚 Delivery';
-      case 'retiro':
-        return '🏪 Retiro';
-      default:
-        return '❓ Desconocido';
-    }
-  };
-
-  const getPaymentTypeText = (formaPago: string) => {
-    switch (formaPago) {
-      case 'transferencia':
-        return '💳 Transferencia';
-      case 'efectivo':
-        return '💰 Efectivo';
-      default:
-        return '❓ Desconocido';
-    }
-  };
-
-  const nextStatus = getNextStatus(pedido.estado, pedido.tipoEntrega);
-  const nextStatusText = getNextStatusText(pedido.estado, pedido.tipoEntrega);
+  const nextStatus = pedidosService.getNextStatus(pedido.estado, pedido.tipoEntrega);
+  const nextStatusText = pedidosService.getNextStatusText(pedido.estado, pedido.tipoEntrega);
 
   const handleStatusUpdate = () => {
     if (nextStatus && onUpdateStatus) {
@@ -119,185 +82,286 @@ const OrderModal: React.FC<OrderModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content order-modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Detalles del Pedido</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+      <div className="modal-content order-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+        {/* Header */}
+        <div style={{
+          padding: '20px 24px',
+          borderBottom: '1px solid #e5e7eb',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+              Pedido #{pedido.id.substring(0, 8).toUpperCase()}
+            </h2>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280' }}>
+              {formatDate(pedido.createdAt)}
+            </p>
+          </div>
+          <button
+            className="modal-close"
+            onClick={onClose}
+            style={{
+              background: '#f3f4f6',
+              border: 'none',
+              borderRadius: '8px',
+              width: '32px',
+              height: '32px',
+              fontSize: '20px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            ×
+          </button>
         </div>
-        
-        <div className="modal-body">
-          {/* Información del pedido */}
-          <div className="order-info-section">
-            <div className="order-info-header">
-              <div className="order-id-large">
-                <span className="order-label">Pedido #</span>
-                <span className="order-value">{pedido.id.substring(0, 8).toUpperCase()}</span>
-              </div>
-              {getStatusBadge(pedido.estado)}
+
+        {/* Body */}
+        <div style={{ padding: '24px', maxHeight: '70vh', overflowY: 'auto' }}>
+          {/* Estado */}
+          <div style={{ marginBottom: '24px' }}>
+            {getStatusBadge(pedido.estado)}
+          </div>
+
+          {/* Info Cliente */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+              👤 Cliente
             </div>
-            
-            <div className="order-meta">
-              <div className="meta-item">
-                <span className="meta-label">Creado:</span>
-                <span className="meta-value">{formatDate(pedido.createdAt)}</span>
-              </div>
-              {pedido.updatedAt !== pedido.createdAt && (
-                <div className="meta-item">
-                  <span className="meta-label">Actualizado:</span>
-                  <span className="meta-value">{formatDate(pedido.updatedAt)}</span>
-                </div>
-              )}
+            <div style={{ fontSize: '14px', color: '#111827', marginBottom: '4px' }}>
+              {pedido.cliente?.name || 'No disponible'}
+            </div>
+            <div style={{ fontSize: '13px', color: '#6b7280' }}>
+              {pedido.cliente?.email || 'No disponible'}
             </div>
           </div>
 
-          {/* Información del cliente */}
-          <div className="client-info-section">
-            <h3>Información del Cliente</h3>
-            <div className="client-details">
-              <div className="client-item">
-                <span className="client-label">Nombre:</span>
-                <span className="client-value">{pedido.cliente?.name || 'No disponible'}</span>
+          {/* Info Entrega y Pago */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+              📦 Entrega y Pago
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Tipo de entrega</div>
+                <div style={{ fontSize: '14px', color: '#111827' }}>
+                  {pedido.tipoEntrega === 'delivery' ? '🚚 Delivery' : '🏪 Retiro'}
+                </div>
               </div>
-              <div className="client-item">
-                <span className="client-label">Email:</span>
-                <span className="client-value">{pedido.cliente?.email || 'No disponible'}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Forma de pago</div>
+                <div style={{ fontSize: '14px', color: '#111827' }}>
+                  {pedido.formaPago === 'transferencia' ? '💳 Transferencia' : '💰 Efectivo'}
+                </div>
               </div>
             </div>
+
+            {/* Botones de acción */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+              {pedido.tipoEntrega === 'delivery' && pedido.lat && pedido.lng && (
+                <button
+                  onClick={() => {
+                    window.open(`https://www.google.com/maps?q=${pedido.lat},${pedido.lng}`, '_blank');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 16px',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                   Ver ubicación
+                </button>
+              )}
+
+              {pedido.formaPago === 'transferencia' && transferenciaFoto && (
+                <button
+                  onClick={() => setShowFotoModal(true)}
+                  style={{
+                    flex: 1,
+                    padding: '10px 16px',
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                   Ver comprobante
+                </button>
+              )}
+            </div>
+
+            {pedido.direccion && (
+              <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Dirección</div>
+                <div style={{ fontSize: '13px', color: '#111827' }}>{pedido.direccion}</div>
+              </div>
+            )}
           </div>
 
-          {/* Información de entrega y pago */}
-          <div className="delivery-payment-section">
-            <h3>Información de Entrega y Pago</h3>
-            <div className="delivery-payment-details">
-              <div className="delivery-payment-item">
-                <span className="delivery-payment-label">Tipo de Entrega:</span>
-                <span className="delivery-payment-value">{getDeliveryTypeText(pedido.tipoEntrega)}</span>
-              </div>
-              <div className="delivery-payment-item">
-                <span className="delivery-payment-label">Forma de Pago:</span>
-                <span className="delivery-payment-value">{getPaymentTypeText(pedido.formaPago)}</span>
-              </div>
-              {pedido.tipoEntrega === 'delivery' && pedido.deliveryLocation && (
-                <div className="delivery-payment-item">
-                  <span className="delivery-payment-label">Ubicación:</span>
-            
-                  <button 
-                    className="btn-secondary"
-                    style={{ marginLeft: 8 }}
-                    onClick={() => {
-                      const { lat, lng } = pedido.deliveryLocation!;
-                      window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
-                    }}
-                  >
-                    Ver mapa
-                  </button>
+          {/* Lista de Items */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+              🛒 Detalles del Pedido
+            </div>
+
+            {pedido.items?.map((item, index) => (
+              <div key={item.id}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  paddingBottom: '12px',
+                  marginBottom: '12px',
+                  borderBottom: index < pedido.items!.length - 1 ? '1px solid #e5e7eb' : 'none'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', color: '#111827', fontWeight: '500', marginBottom: '4px' }}>
+                      {item.producto?.nombre || 'Producto no disponible'}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                      {item.cantidad} × ${item.precio.toFixed(2)}
+                    </div>
+                    {item.notas && (
+                      <div style={{
+                        marginTop: '8px',
+                        padding: '8px',
+                        backgroundColor: '#fef3c7',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        color: '#92400e',
+                        fontStyle: 'italic'
+                      }}>
+                        💬 "{item.notas}"
+                      </div>
+                    )}
+                  </div>
+                  <div style={{
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    marginLeft: '12px'
+                  }}>
+                    ${(item.precio * item.cantidad).toFixed(2)}
+                  </div>
                 </div>
-              )}
-              {pedido.tipoEntrega === 'delivery' && (
-                <div className="delivery-payment-item">
-                  <span className="delivery-payment-label">Envío:</span>
-                  <span className="delivery-payment-value">
-                    {pedido.shippingPrice?.price
-                      ? `$${pedido.shippingPrice.price.toFixed(2)}${pedido.shippingPrice.isEstimated ? ' (estimado)' : ''}`
-                      : (pedido.shippingPrice?.message || 'A confirmar')}
+              </div>
+            ))}
+
+            {/* Totales */}
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e5e7eb' }}>
+              {pedido.subtotal !== undefined && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ color: '#6b7280' }}>Subtotal</span>
+                  <span style={{ color: '#111827', fontWeight: '500' }}>
+                    ${pedido.subtotal.toFixed(2)}
                   </span>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Foto de transferencia */}
-          {pedido.formaPago === 'transferencia' && (
-            <div className="transferencia-foto-section">
-              <h3>Comprobante de Transferencia</h3>
-              <div className="transferencia-foto-container">
-                {loadingFoto ? (
-                  <div className="foto-loading">
-                    <div className="loading-spinner"></div>
-                    <span>Cargando comprobante...</span>
-                  </div>
-                ) : transferenciaFoto ? (
-                  <div className="foto-preview-section">
-                    <div className="foto-preview-wrapper">
-                      <img 
-                        src={transferenciaFoto} 
-                        alt="Comprobante de Transferencia" 
-                        className="foto-preview-image"
-                        onClick={() => setShowFotoModal(true)}
-                      />
-                    </div>
-                    <div className="foto-actions">
-                      <button 
-                        className="btn-secondary foto-action-btn"
-                        onClick={() => setShowFotoModal(true)}
-                      >
-                        Ver Completa
-                      </button>
-                      <button 
-                        className="btn-primary foto-action-btn"
-                        onClick={downloadFoto}
-                      >
-                        Descargar
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="foto-not-found">
-                    <span className="foto-icon">📷</span>
-                    <span>No se encontró comprobante de transferencia</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Items del pedido */}
-          <div className="items-section">
-            <h3>Items del Pedido</h3>
-            <div className="items-list">
-              {pedido.items?.map((item) => (
-                <div key={item.id} className="item-row">
-                  <div className="item-info">
-                    <span className="item-name">{item.producto?.nombre || 'Producto no disponible'}</span>
-                    <span className="item-quantity">Cantidad: {item.cantidad}</span>
-                  </div>
-                  <div className="item-pricing">
-                    <span className="item-price">${item.precio.toFixed(2)} c/u</span>
-                    <span className="item-total">${(item.precio * item.cantidad).toFixed(2)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="order-total-section">
-              <div className="total-row">
-                <span className="total-label">Total del Pedido:</span>
-                <span className="total-amount">${pedido.total?.toFixed(2) || '0.00'}</span>
-              </div>
-              {pedido.tipoEntrega === 'delivery' && (
-                <div className="total-row">
-                  <span className="total-label">Envío:</span>
-                  <span className="total-amount">
-                    {pedido.shippingPrice?.price
-                      ? `$${pedido.shippingPrice.price.toFixed(2)}`
-                      : (pedido.shippingPrice?.message || 'A confirmar')}
+              {pedido.costoEnvio !== undefined && pedido.costoEnvio > 0 && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px',
+                  fontSize: '14px'
+                }}>
+                  <span style={{ color: '#6b7280' }}>Envío</span>
+                  <span style={{ color: '#111827', fontWeight: '500' }}>
+                    ${pedido.costoEnvio.toFixed(2)}
                   </span>
                 </div>
               )}
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                paddingTop: '12px',
+                borderTop: '1px solid #e5e7eb',
+                fontSize: '16px'
+              }}>
+                <span style={{ color: '#111827', fontWeight: '600' }}>Total</span>
+                <span style={{ color: '#3b82f6', fontWeight: '700', fontSize: '18px' }}>
+                  ${(pedido.total || 0).toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="modal-actions">
-          <button type="button" className="btn-secondary" onClick={onClose}>
+        {/* Footer */}
+        <div style={{
+          padding: '16px 24px',
+          borderTop: '1px solid #e5e7eb',
+          display: 'flex',
+          gap: '12px',
+          justifyContent: 'flex-end'
+        }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onClose}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
             Cerrar
           </button>
-          
+
           {nextStatus && onUpdateStatus && (
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn-primary"
               onClick={handleStatusUpdate}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
             >
               {nextStatusText}
             </button>
@@ -311,7 +375,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
           <div className="foto-modal-content" onClick={e => e.stopPropagation()}>
             <div className="foto-modal-header">
               <h3>Comprobante de Transferencia</h3>
-              <button 
+              <button
                 className="foto-modal-close"
                 onClick={() => setShowFotoModal(false)}
               >
@@ -319,20 +383,20 @@ const OrderModal: React.FC<OrderModalProps> = ({
               </button>
             </div>
             <div className="foto-modal-body">
-              <img 
-                src={transferenciaFoto} 
-                alt="Comprobante de Transferencia" 
+              <img
+                src={transferenciaFoto}
+                alt="Comprobante de Transferencia"
                 className="foto-modal-image"
               />
             </div>
             <div className="foto-modal-actions">
-              <button 
+              <button
                 className="btn-primary"
                 onClick={downloadFoto}
               >
                 Descargar
               </button>
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={() => setShowFotoModal(false)}
               >

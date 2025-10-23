@@ -210,6 +210,17 @@ model Pedido {
   tipoEntrega String    @default("delivery")
   formaPago  String     @default("transferencia")
   motivoRechazo String?
+
+  // Ubicación del pedido (para delivery)
+  direccion  String?
+  lat        Float?
+  lng        Float?
+
+  // Costos del pedido
+  subtotal   Decimal?   @db.Decimal(12, 2) // Total de productos sin envío
+  costoEnvio Decimal?   @db.Decimal(12, 2) // Costo de envío calculado
+  total      Decimal?   @db.Decimal(12, 2) // Total final (subtotal + envío)
+
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
@@ -232,9 +243,15 @@ model ItemPedido {
   producto   Productos  @relation(fields: [productoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   cantidad   Int
-  precio     Decimal    @db.Decimal(12, 2) 
+  precio     Decimal    @db.Decimal(12, 2)
 
-  @@unique([pedidoId, productoId]) 
+  // Notas específicas para este item del pedido
+  notas      String?
+
+  // Ingredientes extras agregados al producto (JSON)
+  // Estructura: [{ productoIngredienteId: number, cantidad: number }]
+  ingredientesExtras Json?
+
   @@index([pedidoId])
   @@index([productoId])
 }

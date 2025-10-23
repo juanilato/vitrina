@@ -9,7 +9,9 @@
       "Bash(npm run start:dev:*)",
       "Bash(node test-ingredientes.js:*)",
       "Bash(node test-api-productos.js:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

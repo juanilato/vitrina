@@ -1,7 +1,18 @@
 import { IsString, IsArray, IsNotEmpty, IsNumber, IsPositive, ValidateNested, IsIn, IsOptional, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
-// creación de pedido 
+// DTO para ingredientes extras en el item
+export class IngredienteExtraDto {
+  @IsNumber()
+  @IsPositive()
+  productoIngredienteId: number;
+
+  @IsNumber()
+  @IsPositive()
+  cantidad: number;
+}
+
+// creación de pedido
 export class CreateItemPedidoDto {
   @IsString()
   @IsNotEmpty()
@@ -14,9 +25,19 @@ export class CreateItemPedidoDto {
   @IsNumber()
   @IsPositive()
   precio: number;
+
+  @IsOptional()
+  @IsString()
+  notas?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => IngredienteExtraDto)
+  ingredientesExtras?: IngredienteExtraDto[];
 }
 
-export class DeliveryLocationDto {
+export class UbicacionPedidoDto {
   @IsString()
   @IsNotEmpty()
   direccion: string;
@@ -26,18 +47,6 @@ export class DeliveryLocationDto {
 
   @IsNumber()
   lng: number;
-}
-
-export class ShippingPriceDto {
-  @IsOptional()
-  @IsNumber()
-  price: number | null;
-
-  @IsBoolean()
-  isEstimated: boolean;
-
-  @IsString()
-  message: string;
 }
 
 export class CreatePedidoDto {
@@ -66,11 +75,6 @@ export class CreatePedidoDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => DeliveryLocationDto)
-  deliveryLocation?: DeliveryLocationDto;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => ShippingPriceDto)
-  shippingPrice?: ShippingPriceDto;
+  @Type(() => UbicacionPedidoDto)
+  ubicacion?: UbicacionPedidoDto; // Ubicación de entrega si es delivery
 }

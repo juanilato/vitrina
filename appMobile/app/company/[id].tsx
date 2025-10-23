@@ -30,7 +30,7 @@ import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton
 import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { Product, Agregado } from '../../src/types/company';
 import { CartIngredienteExtra } from '../../src/types/cart';
-
+import { Animated, Easing } from 'react-native';
 export default function CompanyStoreScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -74,6 +74,32 @@ export default function CompanyStoreScreen() {
   const handleProductPress = (product: Product) => {
     setSelectedProduct(product);
     setModalVisible(true);
+  };
+    const iconCount = company?.redesSociales?.length || 0;
+    const iconWidth = 20; // ancho aproximado de cada botón + gap
+    const totalMenuWidth = iconCount * iconWidth;
+
+  const [socialMenuOpen, setSocialMenuOpen] = useState(false);
+  const slideAnim = useState(new Animated.Value(0))[0]; // controla el desplazamiento vertical del logo/título
+  const fadeAnim = useState(new Animated.Value(0))[0]; // controla opacidad del menú
+
+  const toggleSocialMenu = () => {
+    const toValue = socialMenuOpen ? 0 : 1;
+    setSocialMenuOpen(!socialMenuOpen);
+
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue,
+        duration: 400,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   const handleAddToCartFromModal = (
@@ -179,21 +205,110 @@ export default function CompanyStoreScreen() {
                 </View>
 
                 {/* Company Info Centrado */}
-                <View style={styles.companyInfoContainer}>
-                  {company.logo && (
-                    <View style={styles.logoContainer}>
-                      <Image source={{ uri: company.logo }} style={styles.logoLarge} />
-                    </View>
-                  )}
-                  <Text style={styles.companyNameLarge} numberOfLines={2}>
-                    {company.name}
-                  </Text>
-                  {company.alias && (
-                    <Text style={styles.companyAliasLarge}>
-                      @{company.alias}
-                    </Text>
-                  )}
-                </View>
+<Animated.View
+  style={[
+    styles.companyInfoContainer,
+    {
+      transform: [
+        {
+          translateY: slideAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, -60], // se eleva 30px cuando se abre el menú
+          }),
+        },
+      ],
+    },
+  ]}
+>
+  {company.logo && (
+    <View style={styles.logoContainer}>
+      <Image source={{ uri: company.logo }} style={styles.logoLarge} />
+    </View>
+  )}
+  <Text style={styles.companyNameLarge} numberOfLines={2}>
+    {company.name}
+  </Text>
+
+</Animated.View>
+
+{/* Botón de menú de redes */}
+<TouchableOpacity
+  onPress={toggleSocialMenu}
+  style={styles.socialMenuButton}
+  activeOpacity={0.8}
+>
+  <Ionicons
+    name={socialMenuOpen ? 'close' :'ellipsis-horizontal'}
+    size={15}
+    color={colors.white}
+  />
+</TouchableOpacity>
+
+{/* Menú lateral de redes */}
+<Animated.View
+  style={[
+    styles.socialMenuContainer,
+    {
+      opacity: fadeAnim,
+    
+      right: spacing.md + totalMenuWidth, // ✅ acá se aplica dinámicamente
+    
+      transform: [
+        {
+          translateX: fadeAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [totalMenuWidth, 0], // entra desde el costado derecho
+          }),
+        },
+      ],
+    },
+  ]}
+>
+  {company.redesSociales?.map((social, index) => {
+    const getSocialIcon = (key: string) => {
+      const iconMap: Record<string, any> = {
+        instagram: 'logo-instagram',
+        facebook: 'logo-facebook',
+        twitter: 'logo-twitter',
+        whatsapp: 'logo-whatsapp',
+        tiktok: 'logo-tiktok',
+        web: 'globe-outline',
+      };
+      return iconMap[key.toLowerCase()] || 'link-outline';
+    };
+
+    const getSocialUrl = (key: string, value: string) => {
+      const urlMap: Record<string, (v: string) => string> = {
+        instagram: (v) => `https://instagram.com/${v.replace('@', '')}`,
+        facebook: (v) => `https://facebook.com/${v}`,
+        twitter: (v) => `https://twitter.com/${v.replace('@', '')}`,
+        whatsapp: (v) => `https://wa.me/${v}`,
+        tiktok: (v) => `https://tiktok.com/@${v.replace('@', '')}`,
+      };
+      return urlMap[key.toLowerCase()]?.(value) || value;
+    };
+
+    return (
+      <TouchableOpacity
+        key={index}
+        onPress={async () => {
+          const url = getSocialUrl(social.key, social.value);
+          const canOpen = await Linking.canOpenURL(url);
+          if (canOpen) await Linking.openURL(url);
+          else Alert.alert('Error', 'No se pudo abrir el enlace');
+        }}
+        style={styles.socialMenuIcon}
+        activeOpacity={0.8}
+      >
+        <Ionicons
+          name={getSocialIcon(social.key)}
+          size={22}
+          color={colors.white}
+        />
+      </TouchableOpacity>
+    );
+  })}
+</Animated.View>
               </SafeAreaView>
             </LinearGradient>
           </ImageBackground>
@@ -261,9 +376,11 @@ export default function CompanyStoreScreen() {
         ListHeaderComponent={
           <View>
             {/* Business Hours */}
-            {company.preferenciasWeb?.horarios && (
-              <BusinessHours horarios={company.preferenciasWeb.horarios} />
-            )}
+{company.preferenciasWeb?.horarios && (
+  <BusinessHours horarios={company.preferenciasWeb.horarios} />
+)}
+
+
 
             {/* Description */}
             {company.description && (
@@ -272,55 +389,6 @@ export default function CompanyStoreScreen() {
               </View>
             )}
 
-            {/* Social Links */}
-            {company.redesSociales && company.redesSociales.length > 0 && (
-              <View style={styles.socialLinksContainer}>
-                {company.redesSociales.map((social, index) => {
-                  const getSocialIcon = (key: string) => {
-                    const iconMap: Record<string, any> = {
-                      instagram: 'logo-instagram',
-                      facebook: 'logo-facebook',
-                      twitter: 'logo-twitter',
-                      whatsapp: 'logo-whatsapp',
-                      tiktok: 'logo-tiktok',
-                      web: 'globe-outline',
-                    };
-                    return iconMap[key.toLowerCase()] || 'link-outline';
-                  };
-
-                  const getSocialUrl = (key: string, value: string) => {
-                    const urlMap: Record<string, (v: string) => string> = {
-                      instagram: (v) => `https://instagram.com/${v.replace('@', '')}`,
-                      facebook: (v) => `https://facebook.com/${v}`,
-                      twitter: (v) => `https://twitter.com/${v.replace('@', '')}`,
-                      whatsapp: (v) => `https://wa.me/${v}`,
-                      tiktok: (v) => `https://tiktok.com/@${v.replace('@', '')}`,
-                    };
-                    return urlMap[key.toLowerCase()]?.(value) || value;
-                  };
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.socialLink}
-                      onPress={async () => {
-                        const url = getSocialUrl(social.key, social.value);
-                        const canOpen = await Linking.canOpenURL(url);
-                        if (canOpen) {
-                          await Linking.openURL(url);
-                        } else {
-                          Alert.alert('Error', 'No se pudo abrir el enlace');
-                        }
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name={getSocialIcon(social.key)} size={18} color={buttonColor} />
-                      <Text style={styles.socialLinkText}>{social.value}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
 
             {/* Products Section Header */}
 
@@ -394,7 +462,86 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
+socialChipContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
 
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+    ...shadows.sm,
+  },
+
+  socialChipLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  socialChipText: {
+    ...textStyles.subheadline,
+    color: colors.text,
+    fontWeight: '600',
+  },
+
+  socialChipIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+    socialFloatingContainer: {
+    position: 'absolute',
+    bottom: spacing.xs, // separación inferior
+    left: spacing.xs, // separación del borde derecho
+    flexDirection: 'row',
+    gap: 10,
+  },
+  socialMenuButton: {
+    position: 'absolute',
+    bottom: spacing.md,
+    right: spacing.md,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 22,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+
+  socialMenuContainer: {
+    position: 'absolute',
+    bottom: spacing.md,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+
+  socialMenuIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+
+  socialIconFloating: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)', // fondo translúcido elegante
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -580,6 +727,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing['4xl'],
+  },
+  socialIconsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  socialIconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: colors.white,
   },
 
   emptyTitle: {

@@ -18,9 +18,16 @@ export class PedidosService {
   // crea pedido
   async create(createPedidoDto: CreatePedidoDto): Promise<PedidoWithItems> {
     try {
-      // Verificar que la empresa existe
+      // Verificar que la empresa existe y obtener ubicación
       const empresa = await this.prisma.empresa.findUnique({
-        where: { id: createPedidoDto.empresaId }
+        where: { id: createPedidoDto.empresaId },
+        include: {
+          ubicacion: {
+            include: {
+              preciosEnvio: true
+            }
+          }
+        }
       });
       if (!empresa) {
         throw new NotFoundException('Empresa no encontrada');
@@ -34,13 +41,20 @@ export class PedidosService {
         throw new NotFoundException('Cliente no encontrado');
       }
 
-      // Verificar que todos los productos existen y pertenecen a la empresa
+      // Verificar que todos los productos existen y obtener ingredientes
       const productIds = createPedidoDto.items.map(item => item.productoId);
       const productos = await this.prisma.productos.findMany({
         where: {
           id: { in: productIds },
           empresaId: createPedidoDto.empresaId,
           activo: true
+        },
+        include: {
+          ingredientes: {
+            include: {
+              ingrediente: true
+            }
+          }
         }
       });
 
@@ -48,19 +62,93 @@ export class PedidosService {
         throw new BadRequestException('Algunos productos no existen o no están activos');
       }
 
+      // Calcular subtotal (precio de productos + ingredientes extras)
+      let subtotal = 0;
+      const itemsConPrecios = [];
+
+      for (const item of createPedidoDto.items) {
+        const producto = productos.find(p => p.id === item.productoId);
+        if (!producto) continue;
+
+        // Precio base del producto
+        let precioUnitario = parseFloat(producto.precio.toString());
+
+        // Agregar precio de ingredientes extras
+        if (item.ingredientesExtras && item.ingredientesExtras.length > 0) {
+          for (const extra of item.ingredientesExtras) {
+            const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
+              where: { id: extra.productoIngredienteId }
+            });
+
+            if (productoIngrediente && productoIngrediente.precioExtra) {
+              const precioExtra = parseFloat(productoIngrediente.precioExtra.toString());
+              precioUnitario += precioExtra * extra.cantidad;
+            }
+          }
+        }
+
+        const precioTotalItem = precioUnitario * item.cantidad;
+        subtotal += precioTotalItem;
+
+        itemsConPrecios.push({
+          ...item,
+          precioCalculado: precioUnitario
+        });
+      }
+
+      // Calcular costo de envío si es delivery
+      let costoEnvio = 0;
+      if (createPedidoDto.tipoEntrega === 'delivery' && createPedidoDto.ubicacion && empresa.ubicacion) {
+        // Calcular distancia usando fórmula de Haversine
+        const lat1 = empresa.ubicacion.lat;
+        const lon1 = empresa.ubicacion.lng;
+        const lat2 = createPedidoDto.ubicacion.lat;
+        const lon2 = createPedidoDto.ubicacion.lng;
+
+        const R = 6371; // Radio de la Tierra en km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a =
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distanciaKm = R * c;
+
+        // Buscar precio de envío según distancia
+        const preciosEnvio = empresa.ubicacion.preciosEnvio;
+        if (preciosEnvio && preciosEnvio.length > 0) {
+          // Ordenar por distancia ascendente
+          const preciosOrdenados = preciosEnvio.sort((a, b) => a.distancia - b.distancia);
+
+          // Encontrar el precio correspondiente a la distancia
+          const precioEnvio = preciosOrdenados.find(pe => distanciaKm <= pe.distancia);
+
+          if (precioEnvio) {
+            costoEnvio = parseFloat(precioEnvio.precio.toString());
+          } else {
+            // Si supera todas las distancias, usar el precio más alto
+            const ultimoPrecio = preciosOrdenados[preciosOrdenados.length - 1];
+            costoEnvio = parseFloat(ultimoPrecio.precio.toString());
+          }
+        }
+      }
+
+      const totalFinal = subtotal + costoEnvio;
+
       // Manejar foto de transferencia si existe
       let transferenciaFotoFileName: string | null = null;
-      
+
       if (createPedidoDto.transferenciaFoto && createPedidoDto.formaPago === 'transferencia') {
         transferenciaFotoFileName = await this.tempPhotoService.saveTempPhoto(
-          'temp_' + Date.now(), // ID temporal, se actualizará después
+          'temp_' + Date.now(),
           createPedidoDto.transferenciaFoto
         );
       }
 
       // Crear el pedido con sus items en una transacción
       const pedido = await this.prisma.$transaction(async (prisma) => {
-        // Crear el pedido
+        // Crear el pedido con todos los datos calculados
         const newPedido = await prisma.pedido.create({
           data: {
             clienteId: createPedidoDto.clienteId,
@@ -68,6 +156,12 @@ export class PedidosService {
             estado: 'pendiente_confirmacion',
             tipoEntrega: createPedidoDto.tipoEntrega,
             formaPago: createPedidoDto.formaPago,
+            direccion: createPedidoDto.ubicacion?.direccion || null,
+            lat: createPedidoDto.ubicacion?.lat || null,
+            lng: createPedidoDto.ubicacion?.lng || null,
+            subtotal: subtotal,
+            costoEnvio: costoEnvio,
+            total: totalFinal,
           }
         });
 
@@ -77,20 +171,21 @@ export class PedidosService {
           const newFileName = transferenciaFotoFileName.replace('temp_', `transferencia_${newPedido.id}_`);
           const oldPath = this.tempPhotoService.getTempPhotoPath(transferenciaFotoFileName);
           const newPath = this.tempPhotoService.getTempPhotoPath(newFileName);
-          
-          // Renombrar archivo
+
           if (fs.existsSync(oldPath)) {
             fs.renameSync(oldPath, newPath);
             transferenciaFotoFileName = newFileName;
           }
         }
 
-        // Crear los items del pedido
-        const itemsData = createPedidoDto.items.map(item => ({
+        // Crear los items del pedido con precios calculados
+        const itemsData = itemsConPrecios.map(item => ({
           pedidoId: newPedido.id,
           productoId: item.productoId,
           cantidad: item.cantidad,
-          precio: item.precio,
+          precio: item.precioCalculado, // Precio ya calculado con extras
+          notas: item.notas || null,
+          ingredientesExtras: item.ingredientesExtras ? JSON.stringify(item.ingredientesExtras) : null,
         }));
 
         await prisma.itemPedido.createMany({
@@ -101,21 +196,17 @@ export class PedidosService {
       });
 
       const pedidoCompleto = await this.findOne(pedido.id);
-      
+
       // Crear notificaciones
       try {
-        const { deliveryLocation, shippingPrice } = createPedidoDto as any;
         const notifications = await this.notificationsService.createOrderNotification(
           pedidoCompleto.id,
           pedidoCompleto.clienteId,
           pedidoCompleto.empresaId,
           pedidoCompleto.cliente.name,
           empresa.name,
-          pedidoCompleto.total,
-          {
-            deliveryLocation,
-            shippingPrice
-          }
+          parseFloat(pedidoCompleto.total.toString()),
+          {}
         );
 
         // Enviar notificaciones por WebSocket
@@ -207,6 +298,12 @@ export class PedidosService {
         tipoEntrega: pedido.tipoEntrega,
         formaPago: pedido.formaPago,
         motivoRechazo: pedido.motivoRechazo,
+        direccion: pedido.direccion,
+        lat: pedido.lat,
+        lng: pedido.lng,
+        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
+        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
+        total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         empresa: pedido.empresa,
@@ -216,15 +313,14 @@ export class PedidosService {
           productoId: item.productoId,
           cantidad: item.cantidad,
           precio: parseFloat(item.precio.toString()), // Convert Decimal to number
+          notas: item.notas || undefined,
+          ingredientesExtras: item.ingredientesExtras ? JSON.parse(JSON.stringify(item.ingredientesExtras)) : undefined,
           producto: {
             id: item.producto.id,
             nombre: item.producto.nombre,
             precio: parseFloat(item.producto.precio.toString()), // Convert Decimal to number
           }
         })),
-        total: pedido.ItemPedido.reduce((sum, item) =>
-          sum + (parseFloat(item.precio.toString()) * item.cantidad), 0
-        ),
       }));
     } catch (error) {
       throw new BadRequestException('Error al obtener pedidos del cliente');
@@ -259,55 +355,38 @@ export class PedidosService {
         orderBy: { createdAt: 'desc' }
       });
 
-      // Enriquecer con extras (deliveryLocation, shippingPrice) desde la notificación de creación
-      const enriched = await Promise.all(pedidos.map(async (pedido) => {
-        const noti = await this.prisma.notificacion.findFirst({
-          where: {
-            tipo: 'pedido_creado',
-            metadata: {
-              path: ['pedidoId'],
-              equals: pedido.id,
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-          select: { metadata: true },
-        });
-
-        const deliveryLocation = (noti?.metadata as any)?.deliveryLocation || undefined;
-        const shippingPrice = (noti?.metadata as any)?.shippingPrice || undefined;
-
-        return {
-          id: pedido.id,
-          clienteId: pedido.clienteId,
-          empresaId: pedido.empresaId,
-          estado: pedido.estado,
-          tipoEntrega: pedido.tipoEntrega,
-          formaPago: pedido.formaPago,
-          motivoRechazo: pedido.motivoRechazo,
-          createdAt: pedido.createdAt,
-          updatedAt: pedido.updatedAt,
-          cliente: pedido.cliente,
-          items: pedido.ItemPedido.map(item => ({
-            id: item.id,
-            pedidoId: item.pedidoId,
-            productoId: item.productoId,
-            cantidad: item.cantidad,
-            precio: parseFloat(item.precio.toString()),
-            producto: {
-              id: item.producto.id,
-              nombre: item.producto.nombre,
-              precio: parseFloat(item.producto.precio.toString())
-            }
-          })),
-          total: pedido.ItemPedido.reduce((sum, item) => 
-            sum + (parseFloat(item.precio.toString()) * item.cantidad), 0
-          ),
-          deliveryLocation,
-          shippingPrice,
-        } as any;
+      return pedidos.map((pedido) => ({
+        id: pedido.id,
+        clienteId: pedido.clienteId,
+        empresaId: pedido.empresaId,
+        estado: pedido.estado,
+        tipoEntrega: pedido.tipoEntrega,
+        formaPago: pedido.formaPago,
+        motivoRechazo: pedido.motivoRechazo,
+        direccion: pedido.direccion,
+        lat: pedido.lat,
+        lng: pedido.lng,
+        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
+        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
+        total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
+        createdAt: pedido.createdAt,
+        updatedAt: pedido.updatedAt,
+        cliente: pedido.cliente,
+        items: pedido.ItemPedido.map(item => ({
+          id: item.id,
+          pedidoId: item.pedidoId,
+          productoId: item.productoId,
+          cantidad: item.cantidad,
+          precio: parseFloat(item.precio.toString()),
+          notas: item.notas || undefined,
+          ingredientesExtras: item.ingredientesExtras ? JSON.parse(JSON.stringify(item.ingredientesExtras)) : undefined,
+          producto: {
+            id: item.producto.id,
+            nombre: item.producto.nombre,
+            precio: parseFloat(item.producto.precio.toString())
+          }
+        })),
       }));
-
-      return enriched as any;
     } catch (error) {
       console.error('Error obteniendo pedidos:', error);
       throw error;
@@ -345,22 +424,6 @@ export class PedidosService {
         throw new NotFoundException('Pedido no encontrado');
       }
 
-      // Extraer extras desde notificación de creación
-      const noti = await this.prisma.notificacion.findFirst({
-        where: {
-          tipo: 'pedido_creado',
-          metadata: {
-            path: ['pedidoId'],
-            equals: pedido.id,
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { metadata: true },
-      });
-
-      const deliveryLocation = (noti?.metadata as any)?.deliveryLocation || undefined;
-      const shippingPrice = (noti?.metadata as any)?.shippingPrice || undefined;
-
       return {
         id: pedido.id,
         clienteId: pedido.clienteId,
@@ -369,6 +432,12 @@ export class PedidosService {
         tipoEntrega: pedido.tipoEntrega,
         formaPago: pedido.formaPago,
         motivoRechazo: pedido.motivoRechazo,
+        direccion: pedido.direccion,
+        lat: pedido.lat,
+        lng: pedido.lng,
+        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
+        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
+        total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -378,17 +447,14 @@ export class PedidosService {
           productoId: item.productoId,
           cantidad: item.cantidad,
           precio: parseFloat(item.precio.toString()),
+          notas: item.notas || undefined,
+          ingredientesExtras: item.ingredientesExtras ? JSON.parse(JSON.stringify(item.ingredientesExtras)) : undefined,
           producto: {
             id: item.producto.id,
             nombre: item.producto.nombre,
             precio: parseFloat(item.producto.precio.toString())
           }
         })),
-        total: pedido.ItemPedido.reduce((sum, item) => 
-          sum + (parseFloat(item.precio.toString()) * item.cantidad), 0
-        ),
-        deliveryLocation,
-        shippingPrice,
       } as any;
     } catch (error) {
       console.error('Error obteniendo pedido:', error);

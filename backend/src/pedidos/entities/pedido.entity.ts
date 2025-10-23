@@ -6,6 +6,12 @@ export class Pedido {
   tipoEntrega: string;
   formaPago: string;
   motivoRechazo?: string;
+  direccion?: string;
+  lat?: number;
+  lng?: number;
+  subtotal?: number;
+  costoEnvio?: number;
+  total?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +22,11 @@ export class ItemPedido {
   productoId: string;
   cantidad: number;
   precio: number;
+  notas?: string;
+  ingredientesExtras?: Array<{
+    productoIngredienteId: number;
+    cantidad: number;
+  }>;
   producto?: {
     id: string;
     nombre: string;
@@ -29,16 +40,5 @@ export class PedidoWithItems extends Pedido {
     id: string;
     name: string;
     email: string;
-  };
-  total?: number;
-  deliveryLocation?: {
-    direccion: string;
-    lat: number;
-    lng: number;
-  };
-  shippingPrice?: {
-    price: number | null;
-    isEstimated: boolean;
-    message: string;
   };
 }

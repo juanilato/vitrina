@@ -236,11 +236,28 @@ export default function CheckoutScreen() {
       // Prepare order data
       const orderData: any = {
         empresaId: cart.companyId!,
-        items: cart.items.map((item) => ({
-          productoId: item.product.id,
-          cantidad: Number(item.quantity), // Asegurar que sea número
-          precio: Number(item.product.price || item.product.precio), // Asegurar que sea número
-        })),
+        items: cart.items.map((item) => {
+          const itemData: any = {
+            productoId: item.product.id,
+            cantidad: Number(item.quantity), // Asegurar que sea número
+            precio: Number(item.product.price || item.product.precio), // Asegurar que sea número
+          };
+
+          // Agregar notas si existen
+          if (item.notes && item.notes.trim()) {
+            itemData.notas = item.notes.trim();
+          }
+
+          // Agregar ingredientes extras si existen
+          if (item.ingredientesExtras && item.ingredientesExtras.length > 0) {
+            itemData.ingredientesExtras = item.ingredientesExtras.map(ie => ({
+              productoIngredienteId: ie.productoIngrediente.id,
+              cantidad: ie.cantidad,
+            }));
+          }
+
+          return itemData;
+        }),
         tipoEntrega: deliveryType,
         formaPago: paymentMethod,
       };
@@ -250,21 +267,12 @@ export default function CheckoutScreen() {
         orderData.transferenciaFoto = receiptImage;
       }
 
-      // Agregar deliveryLocation solo si hay ubicación seleccionada
+      // Agregar ubicación solo si es delivery y hay ubicación seleccionada
       if (deliveryType === 'delivery' && deliveryLocation) {
-        orderData.deliveryLocation = {
+        orderData.ubicacion = {
           direccion: String(deliveryLocation.direccion),
           lat: Number(deliveryLocation.lat),
           lng: Number(deliveryLocation.lng),
-        };
-      }
-
-      // Agregar shippingPrice solo si se calculó
-      if (shippingPrice) {
-        orderData.shippingPrice = {
-          price: shippingPrice.price !== null ? Number(shippingPrice.price) : null,
-          isEstimated: Boolean(shippingPrice.isEstimated),
-          message: String(shippingPrice.message),
         };
       }
 
