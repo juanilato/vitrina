@@ -500,12 +500,12 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
     // firma los tokens
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        expiresIn: jwtConfig.expiresIn,
+        expiresIn: jwtConfig.expiresIn as any,
         issuer: jwtConfig.issuer,
         audience: jwtConfig.audience,
       }),
       this.jwtService.signAsync(payload, {
-        expiresIn: jwtConfig.refreshExpiresIn,
+       expiresIn: jwtConfig.expiresIn as any,
         issuer: jwtConfig.issuer,
         audience: jwtConfig.audience,
       })

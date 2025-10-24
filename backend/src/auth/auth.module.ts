@@ -15,7 +15,7 @@ import { VerificationModule } from '../verification/verification.module';
     JwtModule.register({
       secret: jwtConfig.secret,
       signOptions: {
-        expiresIn: Number(jwtConfig.expiresIn) || jwtConfig.expiresIn,
+        expiresIn: (Number(jwtConfig.expiresIn) || jwtConfig.expiresIn) as any,
         issuer: jwtConfig.issuer,
         audience: jwtConfig.audience,
       },
