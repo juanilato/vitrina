@@ -12,9 +12,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Replace with your Google OAuth Client IDs
 const GOOGLE_CLIENT_ID = {
-  android: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
-  ios: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
-  web: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+  android: "process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!",
+  ios: "594374983119-fim5bq8eo4o2nn919cgl9d7cml4qvohn.apps.googleusercontent.com",
+  web: "process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!",
 };
 
 export const useGoogleSignIn = () => {
