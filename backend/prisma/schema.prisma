@@ -39,7 +39,38 @@ model Empresa {
   preferenciasWeb Preferencias?
   productos   Productos[]
   Pedidos     Pedido[]
+  repartidores  EmpresaRepartidor[]
 }
+
+model Repartidor {
+  id              String            @id @default(cuid())
+  name          String
+  email          String    @unique
+  telefono        String?
+  password        String
+  codigoVinculo   String    @unique
+  empresas         EmpresaRepartidor[]
+  pedidos          Pedido[]
+  isVerified  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model EmpresaRepartidor {
+  id          Int       @id @default(autoincrement())
+  empresaId   String
+  repartidorId String
+  estado      VinculoEstado @default(PENDIENTE)
+  empresa     Empresa   @relation(fields: [empresaId], references: [id])
+  repartidor  Repartidor @relation(fields: [repartidorId], references: [id])
+}
+
+enum VinculoEstado {
+  PENDIENTE
+  ACEPTADO
+  RECHAZADO
+}
+
 enum DayOfWeek {
   LUN
   MAR
@@ -227,6 +258,8 @@ model Pedido {
   ItemPedido ItemPedido[]
   Mensajes   Mensaje[]
 
+  repartidorId    String?
+  repartidor      Repartidor?  @relation(fields: [repartidorId], references: [id])
   @@index([clienteId])
   @@index([empresaId])
   @@index([estado, createdAt])

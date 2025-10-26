@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, Request, Get, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterClienteDto, RegisterEmpresaDto } from './dto/register.dto';
+import { RegisterClienteDto, RegisterEmpresaDto, RegisterRepartidorDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/token.dto';
 import { VerifyCodeDto, ResendCodeDto } from './dto/verification.dto';
@@ -36,6 +36,11 @@ export class AuthController {
     return this.authService.registerEmpresa(registerEmpresaDto);
   }
 
+    // registro de una empresa
+    @Post('register/repartidor')
+    async registerRepartidor(@Body() registerRepartidorDto: RegisterRepartidorDto) {
+    return this.authService.registerRepartidor(registerRepartidorDto);
+    }
 
   
   @Post('google/register')

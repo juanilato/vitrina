@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, BadRequestException, ConflictExcepti
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterClienteDto, RegisterEmpresaDto } from './dto/register.dto';
+import { RegisterClienteDto, RegisterEmpresaDto, RegisterRepartidorDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { TokenResponseDto, TokenPayloadDto } from './dto/token.dto';
 import { VerifyCodeDto, VerificationResponseDto } from './dto/verification.dto';
@@ -53,9 +53,14 @@ export class AuthService {
     }
 
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      user = await this.prisma.repartidor.findUnique({
+        where:{ email }
+      });
+      userType = 'repartidor';
     }
-
+    if (!user) {
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
     // Verificar que la cuenta esté verificada
     if (!user.isVerified) {
       throw new UnauthorizedException('Cuenta no verificada. Por favor verifica tu email antes de iniciar sesión.');
@@ -338,6 +343,75 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
       name,
       password: hashedPassword,
       logo,
+    };
+
+
+    // Generar código de verificación
+    const code = await this.verificationService.generateVerificationCode(email, 'empresa');
+    // Guardar datos del usuario pendiente en la tabla de verificación con el código generado
+    const verificationRecord = await this.prisma.verificationCode.create({
+      data: {
+        email,
+        code,
+        userType: 'empresa',
+        expiresAt: new Date(Date.now() + 1 * 60 * 1000),
+        isUsed: false,
+        pendingUserData: JSON.stringify(pendingData),
+      },
+    });
+
+
+
+    // Enviar email de verificación
+    await this.verificationService.sendVerificationEmail(email, name, 'empresa');
+
+    return {
+      message: 'Código de verificación enviado. Por favor verifica tu email para completar el registro.',
+      email,
+      userType: 'empresa'
+    };
+  }
+
+    async registerRepartidor(registerRepartidor: RegisterRepartidorDto) {
+    // extrae data de la empresa DTO
+   
+    const { email, name, password } = registerRepartidor;
+
+
+
+    // Verificar si el email ya existe
+    const existingUser = await this.prisma.empresa.findUnique({
+      where: { email }
+    });
+
+    if (existingUser) {
+      throw new ConflictException('El email ya está registrado');
+    }
+
+    // Verificar si ya hay un código de verificación pendiente
+    const existingCode = await this.prisma.verificationCode.findFirst({
+      where: {
+        email,
+        userType: 'repartidor',
+        isUsed: false,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (existingCode) {
+      throw new ConflictException('Ya se envió un código de verificación. Por favor espera 1 minuto o solicita uno nuevo.');
+    }
+
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+
+    // Preparar datos del usuario pendiente
+    const pendingData = {
+      name,
+      password: hashedPassword,
     };
 
 

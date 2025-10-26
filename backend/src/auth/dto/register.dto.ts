@@ -18,6 +18,23 @@ export class RegisterClienteDto {
   type?: string;
 }
 
+export class RegisterRepartidorDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(2)
+  name: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+}
+
 // DTO para el registro de una empresa
 export class RegisterEmpresaDto {
   @IsEmail()
