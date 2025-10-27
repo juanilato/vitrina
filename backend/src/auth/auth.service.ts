@@ -372,74 +372,95 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
     };
   }
 
-    async registerRepartidor(registerRepartidor: RegisterRepartidorDto) {
-    // extrae data de la empresa DTO
-   
-    const { email, name, password } = registerRepartidor;
+async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
+  const { email, name, password } = registerRepartidorDto;
 
+  // 🔍 Verificar si el email ya existe en repartidores
+  const existingUser = await this.prisma.repartidor.findUnique({
+    where: { email },
+  });
 
-
-    // Verificar si el email ya existe
-    const existingUser = await this.prisma.empresa.findUnique({
-      where: { email }
-    });
-
-    if (existingUser) {
-      throw new ConflictException('El email ya está registrado');
-    }
-
-    // Verificar si ya hay un código de verificación pendiente
-    const existingCode = await this.prisma.verificationCode.findFirst({
-      where: {
-        email,
-        userType: 'repartidor',
-        isUsed: false,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-    });
-
-    if (existingCode) {
-      throw new ConflictException('Ya se envió un código de verificación. Por favor espera 1 minuto o solicita uno nuevo.');
-    }
-
-    // Encriptar la contraseña
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-
-    // Preparar datos del usuario pendiente
-    const pendingData = {
-      name,
-      password: hashedPassword,
-    };
-
-
-    // Generar código de verificación
-    const code = await this.verificationService.generateVerificationCode(email, 'empresa');
-    // Guardar datos del usuario pendiente en la tabla de verificación con el código generado
-    const verificationRecord = await this.prisma.verificationCode.create({
-      data: {
-        email,
-        code,
-        userType: 'empresa',
-        expiresAt: new Date(Date.now() + 1 * 60 * 1000),
-        isUsed: false,
-        pendingUserData: JSON.stringify(pendingData),
-      },
-    });
-
-
-
-    // Enviar email de verificación
-    await this.verificationService.sendVerificationEmail(email, name, 'empresa');
-
-    return {
-      message: 'Código de verificación enviado. Por favor verifica tu email para completar el registro.',
-      email,
-      userType: 'empresa'
-    };
+  if (existingUser) {
+    throw new ConflictException('El email ya está registrado');
   }
+
+  // 🔍 Verificar si ya hay un código pendiente
+  const existingCode = await this.prisma.verificationCode.findFirst({
+    where: {
+      email,
+      userType: 'repartidor',
+      isUsed: false,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  if (existingCode) {
+    throw new ConflictException(
+      'Ya se envió un código de verificación. Espera 1 minuto o solicita uno nuevo.'
+    );
+  }
+
+  // 🔐 Encriptar la contraseña
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // 🧩 Generar un código de vinculación único
+  let codigoVinculo: string;
+  let isUnique = false;
+
+  while (!isUnique) {
+    // genera algo como "A7Z9K3"
+    codigoVinculo = [...Array(6)]
+      .map(() => Math.random().toString(36).charAt(2).toUpperCase())
+      .join('');
+
+    // verifica si ya existe ese código en algún repartidor
+    const existingCodigo = await this.prisma.repartidor.findFirst({
+      where: { codigoVinculo },
+    });
+
+    if (!existingCodigo) {
+      isUnique = true;
+    }
+  }
+
+  // 💾 Preparar datos del usuario pendiente
+  const pendingData = {
+    email,
+    name,
+    password: hashedPassword,
+    codigoVinculo,
+  };
+
+  // 🔢 Generar código de verificación temporal (para email)
+  const code = await this.verificationService.generateVerificationCode(
+    email,
+    'repartidor'
+  );
+
+  // 🗄️ Guardar el registro de verificación
+  await this.prisma.verificationCode.create({
+    data: {
+      email,
+      code,
+      userType: 'repartidor',
+      expiresAt: new Date(Date.now() + 1 * 60 * 1000),
+      isUsed: false,
+      pendingUserData: JSON.stringify(pendingData),
+    },
+  });
+
+  // 📧 Enviar email
+  await this.verificationService.sendVerificationEmail(email, name, 'repartidor');
+
+  // ✅ Respuesta
+  return {
+    message: 'Código de verificación enviado. Por favor verifica tu email para completar el registro.',
+    email,
+    userType: 'repartidor',
+    codigoVinculo,
+  };
+}
+
 
   // verificación de codigo
   async verifyCode(verifyCodeDto: VerifyCodeDto): Promise<VerificationResponseDto> {

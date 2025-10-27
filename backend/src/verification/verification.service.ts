@@ -6,6 +6,7 @@ type PendingUser = {
   name: string;
   password: string;
   logo?: string;
+  codigoVinculo?: string;
 };
 @Injectable()
 export class VerificationService {
@@ -84,7 +85,7 @@ async createVerificationRecord(
             isVerified: true,
           },
         });
-      } else {
+      } else if(userType === 'empresa') {
         await this.prisma.empresa.create({
           data: {
             email,
@@ -94,6 +95,16 @@ async createVerificationRecord(
             isVerified: true,
           },
         });
+      }else{
+        await this.prisma.repartidor.create({
+           data: {
+            email,
+            name: userData.name,
+            password: userData.password,
+            codigoVinculo: userData.codigoVinculo,
+            isVerified: true,
+          },
+        })
       }
     }
 
@@ -105,7 +116,7 @@ async createVerificationRecord(
   }
 
   // envia mail de verificación 
-  async sendVerificationEmail(email: string, userName: string, userType: 'cliente' | 'empresa'): Promise<void> {
+  async sendVerificationEmail(email: string, userName: string, userType: 'cliente' | 'empresa' | 'repartidor'): Promise<void> {
     // Buscar el código pendiente más reciente
     const verificationCode = await this.prisma.verificationCode.findFirst({
       where: {
@@ -126,7 +137,7 @@ async createVerificationRecord(
   }
 
   // envío de mensaje de bienvenida, (email service)
-  async sendWelcomeEmail(email: string, userName: string, userType: 'cliente' | 'empresa'): Promise<void> {
+  async sendWelcomeEmail(email: string, userName: string, userType: 'cliente' | 'empresa' | 'repartidor'): Promise<void> {
     await this.emailService.sendWelcomeEmail(email, userName, userType);
   }
 

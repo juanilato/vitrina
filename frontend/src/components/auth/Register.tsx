@@ -13,7 +13,7 @@ const Register: React.FC = () => {
     name: '',
     password: '',
     confirmPassword: '',
-    type: 'empresa' as 'cliente' | 'empresa',
+    type: 'empresa' as 'cliente' | 'empresa' | 'repartidor',
     logo: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +21,7 @@ const Register: React.FC = () => {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [registeredUser, setRegisteredUser] = useState<{
     email: string;
-    type: 'cliente' | 'empresa';
+    type: 'cliente' | 'empresa' | 'repartidor';
   } | null>(null);
   
   const { register, error, user, googleRegister } = useAuth();
@@ -153,6 +153,7 @@ const Register: React.FC = () => {
                       >
                         <option value="empresa">Empresa</option>
                         <option value="cliente">Cliente</option>
+                        <option value="repartidor">Repartidor</option>
                       </select>
                     </div>
                   </div>
@@ -165,7 +166,7 @@ const Register: React.FC = () => {
                         className="form-input"
                         value={formData.name}
                         onChange={handleInputChange}
-                        placeholder={formData.type === 'empresa' ? 'Company Name' : 'Full Name'}
+                        placeholder={formData.type === 'empresa' ? 'Nombre de Empresa' : 'Nombre Completo'}
                         required
                         disabled={isLoading}
                       />

@@ -6,7 +6,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  type: 'cliente' | 'empresa';
+  type: 'cliente' | 'empresa' | 'repartidor';
   logo?: string;
 }
 
@@ -19,14 +19,14 @@ interface AuthContextType {
   error: string | null;
   debugToken: () => void;
   googleLogin: (idToken: string) => Promise<void>;
-  googleRegister: (idToken: string, type: 'cliente' | 'empresa') => Promise<void>; // 👉 NUEVO
+  googleRegister: (idToken: string, type: 'cliente' | 'empresa' | 'repartidor') => Promise<void>; // 👉 NUEVO
 }
 
 interface RegisterData {
   email: string;
   name: string;
   password: string;
-  type: 'cliente' | 'empresa';
+  type: 'cliente' | 'empresa' | 'repartidor';
   logo?: string;
 }
 
@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const googleRegister = async (idToken: string, type: 'cliente' | 'empresa') => { // 👉 NUEVO
+  const googleRegister = async (idToken: string, type: 'cliente' | 'empresa' | 'repartidor') => { // 👉 NUEVO
     try {
       setLoading(true);
       setError(null);
@@ -140,9 +140,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const endpoint =
-        userData.type === 'cliente' ? '/auth/register/cliente' : '/auth/register/empresa';
-      const logo = userData.type === 'cliente' ? undefined : userData.logo;
+      const endpoint = `auth/register/${userData.type}`;
+      const logo = (userData.type === 'cliente' || userData.type === 'repartidor' )? undefined : userData.logo;
       const { data } = await axiosInstance.post(endpoint, { ...userData, logo });
       return data;
     } catch (err: any) {

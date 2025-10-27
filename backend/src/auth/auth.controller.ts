@@ -33,6 +33,7 @@ export class AuthController {
   // registro de una empresa
   @Post('register/empresa')
   async registerEmpresa(@Body() registerEmpresaDto: RegisterEmpresaDto) {
+  
     return this.authService.registerEmpresa(registerEmpresaDto);
   }
 

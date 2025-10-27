@@ -5,7 +5,7 @@ interface VerificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
-  userType: 'cliente' | 'empresa';
+  userType: 'cliente' | 'empresa' | 'repartidor';
   onVerificationSuccess: () => void;
 }
 
