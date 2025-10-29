@@ -11,6 +11,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { EmpresasModule } from './empresas/empresas.module';
 import { IngredientesModule } from './ingredientes/ingredientes.module';
+import { RepartidoresModule } from './repartidores/repartidores.module';
 
 
 @Module({
@@ -23,7 +24,7 @@ import { IngredientesModule } from './ingredientes/ingredientes.module';
     WebSocketModule,
     EmpresasModule,
     IngredientesModule,
-
+    RepartidoresModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

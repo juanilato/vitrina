@@ -135,4 +135,43 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
       this.server.to(`notifications-${userId}`).emit('notification-count-update', { count });
     }
   }
+
+  // Método para enviar nueva solicitud de vinculación al repartidor
+  async sendNuevaSolicitudVinculacion(repartidorId: string, data: any) {
+    console.log(`📤 [WS] Enviando nueva solicitud de vinculación al repartidor: ${repartidorId}`);
+    const socketId = this.connectedUsers.get(repartidorId);
+    if (socketId) {
+      this.server.to(socketId).emit('nueva_solicitud_vinculacion', data);
+      console.log(`✅ [WS] Solicitud de vinculación enviada`);
+    } else {
+      console.log(`⚠️ [WS] Repartidor ${repartidorId} no conectado`);
+    }
+  }
+
+  // Método para enviar actualización de vinculación a la empresa
+  async sendVinculacionActualizada(empresaId: string, data: any) {
+    console.log(`📤 [WS] Enviando actualización de vinculación a empresa: ${empresaId}`);
+    const socketId = this.connectedUsers.get(empresaId);
+    if (socketId) {
+      this.server.to(socketId).emit('vinculacion_actualizada', data);
+      console.log(`✅ [WS] Actualización de vinculación enviada`);
+    } else {
+      console.log(`⚠️ [WS] Empresa ${empresaId} no conectada`);
+    }
+  }
+
+  // Método para enviar pedido asignado al repartidor (no puede rechazarlo)
+  async sendPedidoAsignadoARepartidor(repartidorId: string, data: any) {
+    console.log(`📤 [WS] Enviando pedido asignado al repartidor: ${repartidorId}`);
+    console.log(`📋 [WS] Datos del pedido:`, data);
+
+    const socketId = this.connectedUsers.get(repartidorId);
+    if (socketId) {
+      // Evento global que el repartidor debe escuchar obligatoriamente
+      this.server.to(socketId).emit('pedido_asignado', data);
+      console.log(`✅ [WS] Pedido asignado enviado al repartidor`);
+    } else {
+      console.log(`⚠️ [WS] Repartidor ${repartidorId} no conectado, pedido guardado en BD`);
+    }
+  }
 }

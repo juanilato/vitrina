@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
 import ClientDashboard from '../client';
 import CompanyMainDashboard from './CompanyMainDashboard';
+import RepartidorMainDashboard from './RepartidorMainDashboard';
 import './DashboardRouter.css';
 
 /**
@@ -9,7 +10,7 @@ import './DashboardRouter.css';
  * basado en el tipo de usuario autenticado
  */
 const DashboardRouter: React.FC = () => {
-  const { user, isCompany, isClient } = useAuthOptimized();
+  const { user, isCompany, isClient, isRepartidor } = useAuthOptimized();
 
   // Loading state
   if (!user) {
@@ -30,6 +31,10 @@ const DashboardRouter: React.FC = () => {
 
   if (isClient) {
     return <ClientDashboard />;
+  }
+
+  if (isRepartidor) {
+    return <RepartidorMainDashboard />;
   }
 
   // Fallback - shouldn't happen with proper auth

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrderModalProps } from '../types';
 import pedidosService from '../../../../../services/pedidosService';
+import AsignarRepartidorModal from './AsignarRepartidorModal';
 
 const OrderModal: React.FC<OrderModalProps> = ({
   pedido,
@@ -10,6 +11,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
   const [transferenciaFoto, setTransferenciaFoto] = useState<string | null>(null);
   const [loadingFoto, setLoadingFoto] = useState(false);
   const [showFotoModal, setShowFotoModal] = useState(false);
+  const [showAsignarRepartidor, setShowAsignarRepartidor] = useState(false);
 
   const loadTransferenciaFoto = useCallback(async () => {
     if (!pedido) return;
@@ -335,27 +337,35 @@ const OrderModal: React.FC<OrderModalProps> = ({
           borderTop: '1px solid #e5e7eb',
           display: 'flex',
           gap: '12px',
-          justifyContent: 'flex-end'
+          justifyContent: 'space-between'
         }}>
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={onClose}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            Cerrar
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {pedido.tipoEntrega === 'delivery' && pedido.estado === 'esperando_delivery' && !pedido.repartidorId && (
+              <button
+                type="button"
+                className="btn-accent"
+                onClick={() => setShowAsignarRepartidor(true)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                🚴 Asignar Repartidor
+              </button>
+            )}
+          </div>
 
-          {nextStatus && onUpdateStatus && (
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button
               type="button"
-              className="btn-primary"
-              onClick={handleStatusUpdate}
+              className="btn-secondary"
+              onClick={onClose}
               style={{
                 padding: '10px 20px',
                 borderRadius: '8px',
@@ -363,9 +373,25 @@ const OrderModal: React.FC<OrderModalProps> = ({
                 fontWeight: '500'
               }}
             >
-              {nextStatusText}
+              Cerrar
             </button>
-          )}
+
+            {nextStatus && onUpdateStatus && (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleStatusUpdate}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                {nextStatusText}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -405,6 +431,20 @@ const OrderModal: React.FC<OrderModalProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal para asignar repartidor */}
+      {showAsignarRepartidor && (
+        <AsignarRepartidorModal
+          pedidoId={pedido.id}
+          empresaId={pedido.empresaId}
+          onClose={() => setShowAsignarRepartidor(false)}
+          onSuccess={() => {
+            if (onUpdateStatus) {
+              window.location.reload();
+            }
+          }}
+        />
       )}
     </div>
   );

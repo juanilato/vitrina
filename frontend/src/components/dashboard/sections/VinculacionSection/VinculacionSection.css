@@ -1,0 +1,323 @@
+.vinculacion-section {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.vinculacion-header {
+  margin-bottom: 2rem;
+}
+
+.vinculacion-header .header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.vinculacion-header h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ws-status {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.ws-status.connected {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.ws-status.disconnected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.vinculacion-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-100);
+}
+
+.vinculacion-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.header-icon {
+  color: var(--primary);
+  font-size: 2rem;
+}
+
+.vinculacion-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(42, 91, 215, 0.1);
+}
+
+.input-hint {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-600);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+}
+
+.alert-error {
+  background: #fee;
+  color: #c33;
+  border: 1px solid #fcc;
+}
+
+.alert-success {
+  background: #efe;
+  color: #3c3;
+  border: 1px solid #cfc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alert-success.with-animation {
+  animation: slideIn 0.3s ease-out;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.empresas-list h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: var(--surface-alt);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.empresas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.empresa-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.empresa-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-200);
+}
+
+.empresa-card.aceptado {
+  border-left: 4px solid var(--success);
+}
+
+.empresa-card.pendiente {
+  border-left: 4px solid #f59e0b;
+}
+
+.empresa-card.rechazado {
+  border-left: 4px solid #ef4444;
+  opacity: 0.7;
+}
+
+.empresa-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.estado-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.estado-icon.aceptado {
+  color: var(--success);
+}
+
+.estado-icon.pendiente {
+  color: #f59e0b;
+}
+
+.estado-icon.rechazado {
+  color: #ef4444;
+}
+
+.empresa-info h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+}
+
+.empresa-email {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.empresa-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.estado-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.estado-badge.aceptado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.estado-badge.pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.estado-badge.rechazado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.empresa-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn-aceptar, .btn-rechazar {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-aceptar {
+  background: var(--success);
+  color: white;
+}
+
+.btn-aceptar:hover:not(:disabled) {
+  background: #1d8c4f;
+}
+
+.btn-rechazar {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-rechazar:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-aceptar:disabled, .btn-rechazar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

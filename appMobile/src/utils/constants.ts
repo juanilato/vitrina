@@ -10,7 +10,7 @@ import Constants from 'expo-constants';
 // - iOS Simulator: usa localhost
 // - Dispositivo físico/Expo Go: usa la IP de tu PC (ej: 192.168.1.100)
 export const API_URL = __DEV__
-  ? 'http://192.168.101.38:3001'  // Tu IP para dispositivo físico/Expo Go (iPhone)
+  ? 'http://192.168.101.100:3001'  // Tu IP para dispositivo físico/Expo Go (iPhone)
   // ? 'http://10.0.2.2:3001'  // Android Emulator
   // ? 'http://localhost:3001'  // iOS Simulator
   : 'https://your-production-api.com';

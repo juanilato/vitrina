@@ -12,6 +12,9 @@ import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutli
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ChargeUbicacionModule from './components/ChargeUbicacionModule';
 import GoogleMapsSelector from './components/GoogleMapsSelector';
+import MopedIcon from '@mui/icons-material/Moped';
+import RepartidoresTab from './components/RepartidoresTab';
+
 const AccountConfigSection: React.FC = () => {
   const {
     loading,
@@ -53,8 +56,10 @@ const AccountConfigSection: React.FC = () => {
   const tabs = [
     { id: 'profile',     label: 'Perfil',            icon: <PersonOutlineOutlinedIcon fontSize="small" /> },
     { id: 'locations',   label: 'Precios Envío',     icon: <LocalShippingOutlinedIcon fontSize="small" /> },
+    { id: 'delivery', label: 'Repartidores',  icon: <MopedIcon fontSize="small" /> },
     { id: 'security',    label: 'Seguridad',         icon: <LockOutlinedIcon fontSize="small" /> },
     { id: 'preferences', label: 'Preferencias Web',  icon: <TuneOutlinedIcon fontSize="small" /> },
+
   ] as const;
 
   const renderActiveTab = () => {
@@ -91,6 +96,8 @@ const AccountConfigSection: React.FC = () => {
         return <SecurityTab />;
       case 'preferences':
         return <PreferencesTab />;
+      case 'delivery':
+        return <RepartidoresTab />;
       default:
         return <ProfileTab />;
     }

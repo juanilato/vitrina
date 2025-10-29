@@ -724,14 +724,14 @@ export class PedidosService {
       const fs = require('fs');
       const path = require('path');
       const tempDir = this.tempPhotoService['tempDir'];
-      
+
       if (!fs.existsSync(tempDir)) {
         return false;
       }
 
       const files = fs.readdirSync(tempDir);
       const fotoFile = files.find(file => file.startsWith(`transferencia_${pedidoId}_`));
-      
+
       if (!fotoFile) {
         return false;
       }
@@ -740,6 +740,285 @@ export class PedidosService {
     } catch (error) {
       console.error('Error eliminando foto de transferencia:', error);
       return false;
+    }
+  }
+
+  /**
+   * Asigna un repartidor a un pedido
+   * El repartidor recibe notificación automática via WebSocket
+   */
+  async asignarRepartidor(pedidoId: string, repartidorId: string, empresaId: string): Promise<PedidoWithItems> {
+    try {
+      // Verificar que el pedido existe y pertenece a la empresa
+      const pedido = await this.prisma.pedido.findUnique({
+        where: { id: pedidoId },
+        include: {
+          cliente: { select: { id: true, name: true, email: true } },
+          empresa: { select: { id: true, name: true } }
+        }
+      });
+
+      if (!pedido) {
+        throw new NotFoundException('Pedido no encontrado');
+      }
+
+      if (pedido.empresaId !== empresaId) {
+        throw new BadRequestException('No tienes permiso para asignar repartidores a este pedido');
+      }
+
+      // Verificar que el repartidor existe y está vinculado a la empresa
+      const repartidor = await this.prisma.repartidor.findUnique({
+        where: { id: repartidorId }
+      });
+
+      if (!repartidor) {
+        throw new NotFoundException('Repartidor no encontrado');
+      }
+
+      const vinculacion = await this.prisma.empresaRepartidor.findFirst({
+        where: {
+          empresaId,
+          repartidorId,
+          estado: 'ACEPTADO'
+        }
+      });
+
+      if (!vinculacion) {
+        throw new BadRequestException('El repartidor no está vinculado con tu empresa');
+      }
+
+      // Actualizar el pedido con el repartidor asignado y cambiar estado
+      await this.prisma.pedido.update({
+        where: { id: pedidoId },
+        data: {
+          repartidorId,
+          estado: 'esperando_delivery' // Estado cuando se asigna repartidor
+        }
+      });
+
+      const pedidoActualizado = await this.findOne(pedidoId);
+
+      // Enviar notificación al repartidor via WebSocket (no puede rechazarla)
+      try {
+        const notificationData = {
+          tipo: 'pedido_asignado',
+          titulo: 'Nuevo Pedido Asignado',
+          mensaje: `${pedido.empresa.name} te ha asignado un nuevo pedido`,
+          pedidoId: pedidoId,
+          empresaId: empresaId,
+          empresaNombre: pedido.empresa.name,
+          clienteNombre: pedido.cliente.name,
+          direccion: pedido.direccion,
+          total: parseFloat(pedido.total.toString()),
+          tipoEntrega: pedido.tipoEntrega,
+          icono: '🛵'
+        };
+
+        // Enviar notificación via WebSocket global
+        await this.webSocketGateway.sendPedidoAsignadoARepartidor(repartidorId, notificationData);
+
+        // También crear notificación en BD para persistencia
+        await this.notificationsService.create({
+          userId: repartidorId,
+          userType: 'repartidor',
+          titulo: 'Nuevo Pedido Asignado',
+          mensaje: `${pedido.empresa.name} te ha asignado un nuevo pedido de $${parseFloat(pedido.total.toString()).toFixed(2)}`,
+          tipo: 'pedido_asignado',
+          metadata: notificationData
+        });
+
+      } catch (notificationError) {
+        console.error('Error enviando notificación al repartidor:', notificationError);
+      }
+
+      return pedidoActualizado;
+    } catch (error) {
+      console.error('Error asignando repartidor:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Marca el pedido como "en_camino" (solo repartidor)
+   * Notifica a la empresa y al cliente
+   */
+  async marcarEnCamino(pedidoId: string, repartidorId: string): Promise<PedidoWithItems> {
+    try {
+      // Verificar que el pedido existe y está asignado al repartidor
+      const pedido = await this.prisma.pedido.findUnique({
+        where: { id: pedidoId },
+        include: {
+          cliente: { select: { id: true, name: true } },
+          empresa: { select: { id: true, name: true } },
+          repartidor: { select: { id: true, name: true } }
+        }
+      });
+
+      if (!pedido) {
+        throw new NotFoundException('Pedido no encontrado');
+      }
+
+      if (pedido.repartidorId !== repartidorId) {
+        throw new BadRequestException('Este pedido no está asignado a ti');
+      }
+
+      if (pedido.estado !== 'esperando_delivery') {
+        throw new BadRequestException('El pedido no está en estado esperando_delivery');
+      }
+
+      // Actualizar estado a en_camino
+      await this.prisma.pedido.update({
+        where: { id: pedidoId },
+        data: { estado: 'en_camino' }
+      });
+
+      const pedidoActualizado = await this.findOne(pedidoId);
+
+      // Enviar notificaciones a empresa y cliente
+      try {
+        // Notificación a la empresa
+        const notificationEmpresa = await this.notificationsService.create({
+          userId: pedido.empresaId,
+          userType: 'empresa',
+          titulo: 'Pedido en Camino',
+          mensaje: `${pedido.repartidor.name} está en camino con el pedido #${pedidoId.slice(-8)}`,
+          tipo: 'pedido_en_camino',
+          metadata: {
+            pedidoId,
+            repartidorId,
+            repartidorNombre: pedido.repartidor.name,
+            clienteNombre: pedido.cliente.name,
+            icono: '🚗'
+          }
+        });
+
+        await this.webSocketGateway.sendNotificationToUser(pedido.empresaId, notificationEmpresa);
+
+        // Notificación al cliente
+        const notificationCliente = await this.notificationsService.create({
+          userId: pedido.clienteId,
+          userType: 'cliente',
+          titulo: 'Tu Pedido Está en Camino',
+          mensaje: `${pedido.repartidor.name} está en camino con tu pedido de ${pedido.empresa.name}`,
+          tipo: 'pedido_en_camino',
+          metadata: {
+            pedidoId,
+            empresaId: pedido.empresaId,
+            empresaNombre: pedido.empresa.name,
+            repartidorNombre: pedido.repartidor.name,
+            icono: '🚗'
+          }
+        });
+
+        await this.webSocketGateway.sendNotificationToUser(pedido.clienteId, notificationCliente);
+
+        // Actualizar contadores
+        const empresaUnreadCount = await this.notificationsService.countUnreadByUser(pedido.empresaId, 'empresa');
+        const clienteUnreadCount = await this.notificationsService.countUnreadByUser(pedido.clienteId, 'cliente');
+
+        await this.webSocketGateway.sendNotificationCountUpdate(pedido.empresaId, empresaUnreadCount);
+        await this.webSocketGateway.sendNotificationCountUpdate(pedido.clienteId, clienteUnreadCount);
+
+      } catch (notificationError) {
+        console.error('Error enviando notificaciones de en_camino:', notificationError);
+      }
+
+      return pedidoActualizado;
+    } catch (error) {
+      console.error('Error marcando pedido en camino:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Marca el pedido como "entregado" (solo repartidor)
+   * Notifica a la empresa y al cliente
+   */
+  async marcarEntregado(pedidoId: string, repartidorId: string): Promise<PedidoWithItems> {
+    try {
+      // Verificar que el pedido existe y está asignado al repartidor
+      const pedido = await this.prisma.pedido.findUnique({
+        where: { id: pedidoId },
+        include: {
+          cliente: { select: { id: true, name: true } },
+          empresa: { select: { id: true, name: true } },
+          repartidor: { select: { id: true, name: true } }
+        }
+      });
+
+      if (!pedido) {
+        throw new NotFoundException('Pedido no encontrado');
+      }
+
+      if (pedido.repartidorId !== repartidorId) {
+        throw new BadRequestException('Este pedido no está asignado a ti');
+      }
+
+      if (pedido.estado !== 'en_camino') {
+        throw new BadRequestException('El pedido no está en estado en_camino');
+      }
+
+      // Actualizar estado a entregado
+      await this.prisma.pedido.update({
+        where: { id: pedidoId },
+        data: { estado: 'entregado' }
+      });
+
+      const pedidoActualizado = await this.findOne(pedidoId);
+
+      // Enviar notificaciones a empresa y cliente
+      try {
+        // Notificación a la empresa
+        const notificationEmpresa = await this.notificationsService.create({
+          userId: pedido.empresaId,
+          userType: 'empresa',
+          titulo: 'Pedido Entregado',
+          mensaje: `${pedido.repartidor.name} ha entregado el pedido #${pedidoId.slice(-8)} a ${pedido.cliente.name}`,
+          tipo: 'pedido_entregado',
+          metadata: {
+            pedidoId,
+            repartidorId,
+            repartidorNombre: pedido.repartidor.name,
+            clienteNombre: pedido.cliente.name,
+            icono: '✅'
+          }
+        });
+
+        await this.webSocketGateway.sendNotificationToUser(pedido.empresaId, notificationEmpresa);
+
+        // Notificación al cliente
+        const notificationCliente = await this.notificationsService.create({
+          userId: pedido.clienteId,
+          userType: 'cliente',
+          titulo: 'Pedido Entregado',
+          mensaje: `Tu pedido de ${pedido.empresa.name} ha sido entregado. ¡Que lo disfrutes!`,
+          tipo: 'pedido_entregado',
+          metadata: {
+            pedidoId,
+            empresaId: pedido.empresaId,
+            empresaNombre: pedido.empresa.name,
+            repartidorNombre: pedido.repartidor.name,
+            icono: '✅'
+          }
+        });
+
+        await this.webSocketGateway.sendNotificationToUser(pedido.clienteId, notificationCliente);
+
+        // Actualizar contadores
+        const empresaUnreadCount = await this.notificationsService.countUnreadByUser(pedido.empresaId, 'empresa');
+        const clienteUnreadCount = await this.notificationsService.countUnreadByUser(pedido.clienteId, 'cliente');
+
+        await this.webSocketGateway.sendNotificationCountUpdate(pedido.empresaId, empresaUnreadCount);
+        await this.webSocketGateway.sendNotificationCountUpdate(pedido.clienteId, clienteUnreadCount);
+
+      } catch (notificationError) {
+        console.error('Error enviando notificaciones de entregado:', notificationError);
+      }
+
+      return pedidoActualizado;
+    } catch (error) {
+      console.error('Error marcando pedido como entregado:', error);
+      throw error;
     }
   }
 }

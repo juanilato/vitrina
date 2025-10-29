@@ -31,6 +31,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       user = await this.prisma.empresa.findUnique({
         where: { id: payload.sub }
       });
+    } else if (payload.type === 'repartidor') {
+      user = await this.prisma.repartidor.findUnique({
+        where: { id: payload.sub }
+      });
     }
 
     if (!user) {

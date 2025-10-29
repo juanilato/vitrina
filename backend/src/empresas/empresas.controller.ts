@@ -294,4 +294,26 @@ export class EmpresasController {
   async debugPreciosEnvio(@Param('id') id: string) {
     return this.empresasService.debugPreciosEnvio(id);
   }
+
+  // Gestión de Repartidores
+  @Post(':id/vincular-repartidor')
+  async vincularRepartidor(
+    @Param('id') id: string,
+    @Body() body: { codigo: string },
+  ) {
+    return this.empresasService.vincularRepartidor(id, body.codigo);
+  }
+
+  @Get(':id/repartidores')
+  async getRepartidores(@Param('id') id: string) {
+    return this.empresasService.getRepartidores(id);
+  }
+
+  @Delete(':id/repartidor/:repartidorId')
+  async eliminarVinculacion(
+    @Param('id') id: string,
+    @Param('repartidorId') repartidorId: string,
+  ) {
+    return this.empresasService.eliminarVinculacion(id, repartidorId);
+  }
 }

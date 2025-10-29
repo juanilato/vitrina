@@ -27,7 +27,8 @@ export const useAuthOptimized = () => {
     userName: context.user?.name,
     userEmail: context.user?.email,
     isCompany: context.user?.type === 'empresa',
-    isClient: context.user?.type === 'cliente'
+    isClient: context.user?.type === 'cliente',
+    isRepartidor: context.user?.type === 'repartidor'
   }), [
     context.user,
     context.login,

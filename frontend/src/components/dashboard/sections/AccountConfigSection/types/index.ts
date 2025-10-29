@@ -141,7 +141,7 @@ export interface AccountConfigState {
   empresaData: EmpresaData | null;
   formData: AccountConfigFormData;
   hasChanges: boolean;
-  activeTab: 'profile' | 'locations' | 'security' | 'preferences';
+  activeTab: 'profile' | 'locations' | 'security' | 'preferences' | 'delivery';
 }
 
 export interface UpdateEmpresaExtrasPayload {

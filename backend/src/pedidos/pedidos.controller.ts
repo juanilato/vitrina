@@ -117,4 +117,32 @@ export class PedidosController {
     }
     return foto;
   }
+
+  // asigna un repartidor a un pedido
+  @Post(':id/asignar-repartidor')
+  @Roles('empresa')
+  @HttpCode(HttpStatus.OK)
+  async asignarRepartidor(
+    @Param('id') id: string,
+    @Body() body: { repartidorId: string },
+    @Request() req
+  ) {
+    return this.pedidosService.asignarRepartidor(id, body.repartidorId, req.user.id);
+  }
+
+  // cambia el estado del pedido a "en_camino" (solo repartidor)
+  @Patch(':id/en-camino')
+  @Roles('repartidor')
+  @HttpCode(HttpStatus.OK)
+  async marcarEnCamino(@Param('id') id: string, @Request() req) {
+    return this.pedidosService.marcarEnCamino(id, req.user.id);
+  }
+
+  // cambia el estado del pedido a "entregado" (solo repartidor)
+  @Patch(':id/entregado')
+  @Roles('repartidor')
+  @HttpCode(HttpStatus.OK)
+  async marcarEntregado(@Param('id') id: string, @Request() req) {
+    return this.pedidosService.marcarEntregado(id, req.user.id);
+  }
 }

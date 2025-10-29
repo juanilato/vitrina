@@ -1,17 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)",
-      "Bash(npx expo prebuild:*)",
-      "Bash(npx expo start --clear)",
-      "Bash(cat:*)",
-      "Bash(npx prisma migrate:*)",
       "Bash(npm run start:dev:*)",
-      "Bash(node test-ingredientes.js:*)",
-      "Bash(node test-api-productos.js:*)",
-      "Bash(curl:*)",
+      "Bash(dir:*)",
+      "Bash(npx nest --version)",
+      "Bash(npm install:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(taskkill:*)"
+      "Bash(curl:*)",
+      "Bash(ipconfig:*)"
     ],
     "deny": [],
     "ask": []

@@ -13,12 +13,14 @@ import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
 import { UpdateExtrasDto } from './dto/update-extras.dto';
+import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class EmpresasService {
   constructor(
     private prisma: PrismaService,
-    private supabase: SupabaseService
+    private supabase: SupabaseService,
+    private wsGateway: NotificationsWebSocketGateway,
   ) {}
 
 async findOne(id: string) {
@@ -862,5 +864,121 @@ async uploadDashboard(id: string, file: Express.Multer.File) {
       totalUbicaciones: result.length,
       ubicaciones: result,
     };
+  }
+
+  // Gestión de Repartidores
+  async vincularRepartidor(empresaId: string, codigo: string) {
+    console.log('🔗 [VINCULAR REPARTIDOR] Iniciando vinculación:', { empresaId, codigo });
+
+    // Buscar la empresa
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+      select: { id: true, name: true },
+    });
+
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    // Buscar el repartidor por código de vinculación
+    const repartidor = await this.prisma.repartidor.findUnique({
+      where: { codigoVinculo: codigo },
+    });
+
+    if (!repartidor) {
+      throw new NotFoundException('Código de vinculación inválido');
+    }
+
+    // Verificar si ya existe una vinculación
+    const vinculacionExistente = await this.prisma.empresaRepartidor.findFirst({
+      where: {
+        empresaId,
+        repartidorId: repartidor.id,
+      },
+    });
+
+    if (vinculacionExistente) {
+      throw new BadRequestException('Este repartidor ya está vinculado con tu empresa');
+    }
+
+    // Crear la vinculación con estado PENDIENTE
+    const vinculacion = await this.prisma.empresaRepartidor.create({
+      data: {
+        empresaId,
+        repartidorId: repartidor.id,
+        estado: 'PENDIENTE',
+      },
+    });
+
+    console.log('✅ [VINCULAR REPARTIDOR] Vinculación creada exitosamente:', vinculacion);
+
+    // Enviar evento WebSocket al repartidor
+    console.log('🔔 [EMPRESA] Enviando notificación de nueva solicitud al repartidor:', repartidor.id);
+    await this.wsGateway.sendNuevaSolicitudVinculacion(repartidor.id, {
+      empresaId: empresa.id,
+      empresaName: empresa.name,
+      vinculacionId: vinculacion.id,
+    });
+
+    return {
+      message: 'Solicitud de vinculación enviada. Esperando confirmación del repartidor.',
+      vinculacion,
+    };
+  }
+
+  async getRepartidores(empresaId: string) {
+    console.log('📋 [GET REPARTIDORES] Obteniendo repartidores de empresa:', empresaId);
+
+    const vinculaciones = await this.prisma.empresaRepartidor.findMany({
+      where: { empresaId },
+      include: {
+        repartidor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            telefono: true,
+          },
+        },
+      },
+    });
+
+    const repartidores = vinculaciones.map((vinculacion) => ({
+      id: vinculacion.repartidor.id,
+      name: vinculacion.repartidor.name,
+      email: vinculacion.repartidor.email,
+      telefono: vinculacion.repartidor.telefono,
+      estado: vinculacion.estado,
+      vinculacionId: vinculacion.id,
+    }));
+
+    console.log('✅ [GET REPARTIDORES] Repartidores obtenidos:', repartidores.length);
+
+    return repartidores;
+  }
+
+  async eliminarVinculacion(empresaId: string, repartidorId: string) {
+    console.log('🗑️ [ELIMINAR VINCULACION] Eliminando vinculación:', { empresaId, repartidorId });
+
+    // Buscar la vinculación
+    const vinculacion = await this.prisma.empresaRepartidor.findFirst({
+      where: {
+        empresaId,
+        repartidorId,
+      },
+    });
+
+    if (!vinculacion) {
+      throw new NotFoundException('Vinculación no encontrada');
+    }
+
+    // Eliminar la vinculación
+    await this.prisma.empresaRepartidor.delete({
+      where: { id: vinculacion.id },
+    });
+
+    console.log('✅ [ELIMINAR VINCULACION] Vinculación eliminada exitosamente');
+
+    return { message: 'Vinculación eliminada exitosamente' };
   }
 }
