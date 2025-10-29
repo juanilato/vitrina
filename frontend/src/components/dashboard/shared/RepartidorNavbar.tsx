@@ -5,9 +5,10 @@ import './CompanyNavbar.css';
 
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 
 interface RepartidorNavbarProps {
   activeSection: string;
@@ -18,6 +19,7 @@ interface RepartidorNavbarProps {
 const RepartidorNavbar: React.FC<RepartidorNavbarProps> = ({
   activeSection,
   onSectionChange,
+  onLogout,
 }) => {
   const { user } = useAuthOptimized();
 
@@ -26,7 +28,7 @@ const RepartidorNavbar: React.FC<RepartidorNavbarProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <DashboardOutlinedIcon fontSize="small" /> },
     { id: 'vinculacion', label: 'Vinculación', icon: <BusinessOutlinedIcon fontSize="small" /> },
-    { id: 'pedidos_disponibles', label: 'Pedidos Disponibles', icon: <ShoppingBagOutlinedIcon fontSize="small" /> },
+    { id: 'pedidos_disponibles', label: 'Pedidos Disponibles', icon: <LocalShippingOutlinedIcon fontSize="small" /> },
     { id: 'mis_pedidos', label: 'Mis Pedidos', icon: <AssignmentOutlinedIcon fontSize="small" /> },
     { id: 'config', label: 'Configuración', icon: <SettingsOutlinedIcon fontSize="small" /> },
   ];
@@ -45,6 +47,15 @@ const RepartidorNavbar: React.FC<RepartidorNavbarProps> = ({
           </button>
         ))}
       </nav>
+
+      {onLogout && (
+        <div className="cnav-footer">
+          <button className="cnav-item cnav-logout" onClick={onLogout}>
+            <span className="cnav-icon"><LogoutOutlinedIcon fontSize="small" /></span>
+            <span className="cnav-label">Cerrar Sesión</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

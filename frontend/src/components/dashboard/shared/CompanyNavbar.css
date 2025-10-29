@@ -182,6 +182,32 @@
 @keyframes peekSlideIn{ from { transform: translateX(16px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
 @keyframes peekFade{ from { opacity: 0 } to { opacity: 1 } }
 
+/* Footer del navbar (logout, etc.) */
+.cnav-footer {
+  margin-top: auto;
+  padding: 8px;
+  border-top: 1px solid var(--nav-border);
+}
+
+.cnav-logout {
+  border-color: #fee2e2;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.cnav-logout:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.cnav-logout .cnav-icon {
+  color: #dc2626;
+}
+
+.cnav-logout:hover .cnav-icon {
+  color: #991b1b;
+}
+
 /* ===== Móvil ===== */
 @media (max-width: 860px) {
   .cnav-dropdown {

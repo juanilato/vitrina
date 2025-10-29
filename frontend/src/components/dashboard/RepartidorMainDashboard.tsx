@@ -74,6 +74,15 @@ const RepartidorMainDashboard: React.FC = () => {
         </div>
 
         <div className={`app-body ${!isSideOpen ? 'is-collapsed' : ''}`}>
+          {/* Overlay para cerrar sidebar en mobile */}
+          {!isSideOpen && (
+            <div
+              className="sidebar-overlay"
+              onClick={() => setIsSideOpen(true)}
+              aria-hidden="true"
+            />
+          )}
+
           {/* Sidebar */}
           <aside className="sidebar">
             <div className="cnav-userhint" title={user.email}>
