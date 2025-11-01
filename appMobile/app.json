@@ -50,7 +50,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-       "expo-maps",
       "expo-router",
       "expo-notifications",
       [

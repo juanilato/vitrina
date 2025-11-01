@@ -19,6 +19,7 @@ export interface SavedLocation {
 }
 
 export interface CreateLocationDto {
+  clienteId: string | undefined;
   nombre: string;
   direccion: string;
   lat: number;

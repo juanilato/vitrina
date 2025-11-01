@@ -25,4 +25,7 @@ export class CreateUbicacionDto {
   @IsOptional()
   @IsBoolean()
   esPrincipal?: boolean;
+
+  @IsString()
+  clienteId!: string;
 }

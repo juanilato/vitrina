@@ -38,22 +38,32 @@ export class UbicacionesClienteService {
   /**
    * Crear nueva ubicación
    */
-  async create(clienteId: string, createUbicacionDto: CreateUbicacionDto) {
-    // Si esta ubicación será principal, quitar la principal anterior
-    if (createUbicacionDto.esPrincipal) {
-      await this.prisma.ubicacionCliente.updateMany({
-        where: { clienteId, esPrincipal: true },
-        data: { esPrincipal: false },
-      });
-    }
+async create(clienteId: string, createUbicacionDto: CreateUbicacionDto) {
 
-    return this.prisma.ubicacionCliente.create({
-      data: {
-        ...createUbicacionDto,
-        clienteId,
-      },
+  
+  // Si esta ubicación será principal, quitar la principal anterior
+  if (createUbicacionDto.esPrincipal) {
+    await this.prisma.ubicacionCliente.updateMany({
+      where: { clienteId, esPrincipal: true },
+      data: { esPrincipal: false },
     });
   }
+
+  return this.prisma.ubicacionCliente.create({
+    data: {
+      nombre: createUbicacionDto.nombre,
+      direccion: createUbicacionDto.direccion,
+      lat: createUbicacionDto.lat,
+      lng: createUbicacionDto.lng,
+      referencia: createUbicacionDto.referencia ?? "Sin referencia",
+      esPrincipal: createUbicacionDto.esPrincipal ?? false,
+      // ✅ Relación correcta
+      cliente: {
+        connect: { id: createUbicacionDto.clienteId },
+      },
+    },
+  });
+}
 
   /**
    * Actualizar ubicación existente

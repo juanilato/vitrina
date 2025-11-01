@@ -11,7 +11,10 @@
       "Bash(npx prisma migrate:*)",
       "Bash(npx nest:*)",
       "Bash(npx expo:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(taskkill:*)",
+      "Bash(timeout /t 5)"
     ],
     "deny": [],
     "ask": []

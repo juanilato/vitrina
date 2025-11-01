@@ -14,16 +14,19 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useCart } from '../src/contexts/CartContext';
+import { useLocation } from '../src/contexts/LocationContext';
 import { Button } from '../src/components/common/Button';
 import { SimpleLocationPicker } from '../src/components/common/SimpleLocationPicker';
 import { orderService } from '../src/services/order.service';
 import { shippingService } from '../src/services/shipping.service';
+import { locationService, SavedLocation } from '../src/services/location.service';
 import { colors } from '../src/theme/colors';
 import { spacing } from '../src/theme/spacing';
 import { textStyles as typography } from '../src/theme/typography';
@@ -45,6 +48,8 @@ export default function CheckoutScreen() {
     clearCheckoutData,
   } = useCart();
 
+  const { selectedLocation, locations } = useLocation();
+
   const [deliveryType, setDeliveryTypeLocal] = useState<DeliveryType>(
     checkoutData?.deliveryType || 'delivery'
   );
@@ -59,9 +64,26 @@ export default function CheckoutScreen() {
   );
   const [loading, setLoading] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [showAddressSelector, setShowAddressSelector] = useState(false);
+  const [selectedSavedLocation, setSelectedSavedLocation] = useState<SavedLocation | null>(selectedLocation);
   const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocation | null>(null);
   const [shippingPrice, setShippingPrice] = useState<ShippingPriceResponse | null>(null);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
+
+  // Calcular precio automáticamente si hay ubicación seleccionada del dashboard
+  React.useEffect(() => {
+    if (selectedLocation && deliveryType === 'delivery') {
+      const location: DeliveryLocation = {
+        direccion: selectedLocation.direccion,
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+      };
+      setDeliveryLocation(location);
+      setAddress(selectedLocation.direccion);
+      setReference(selectedLocation.referencia || '');
+      calculateDeliveryFee(location);
+    }
+  }, [selectedLocation]);
 
   // Calculate delivery fee based on location and company settings
   const calculateDeliveryFee = async (location?: DeliveryLocation) => {
@@ -360,58 +382,80 @@ export default function CheckoutScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Delivery Type Selection */}
+        {/* Delivery Type Selection - Estilo Toggle Moderno */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tipo de entrega</Text>
-          <View style={styles.optionsRow}>
+          <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[
-                styles.optionCard,
-                deliveryType === 'delivery' && styles.optionCardActive,
+                styles.toggleOption,
+                styles.toggleOptionLeft,
+                deliveryType === 'delivery' && styles.toggleOptionActive,
               ]}
               onPress={() => handleDeliveryTypeChange('delivery')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <Ionicons
-                name="bicycle"
-                size={32}
-                color={deliveryType === 'delivery' ? colors.accent : colors.gray400}
-              />
-              <Text
-                style={[
-                  styles.optionTitle,
-                  deliveryType === 'delivery' && styles.optionTitleActive,
-                ]}
-              >
-                Delivery
-              </Text>
-              <Text style={styles.optionSubtitle}>
-                ${(cart.deliveryFee || 500).toLocaleString('es-AR')}
-              </Text>
+              <View style={styles.toggleIconContainer}>
+                <Ionicons
+                  name="bicycle"
+                  size={24}
+                  color={deliveryType === 'delivery' ? colors.white : colors.gray600}
+                />
+              </View>
+              <View style={styles.toggleTextContainer}>
+                <Text
+                  style={[
+                    styles.toggleLabel,
+                    deliveryType === 'delivery' && styles.toggleLabelActive,
+                  ]}
+                >
+                  Delivery
+                </Text>
+                <Text
+                  style={[
+                    styles.toggleSubtext,
+                    deliveryType === 'delivery' && styles.toggleSubtextActive,
+                  ]}
+                >
+                  ${(cart.deliveryFee || 500).toLocaleString('es-AR')}
+                </Text>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
-                styles.optionCard,
-                deliveryType === 'pickup' && styles.optionCardActive,
+                styles.toggleOption,
+                styles.toggleOptionRight,
+                deliveryType === 'pickup' && styles.toggleOptionActive,
               ]}
               onPress={() => handleDeliveryTypeChange('pickup')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <Ionicons
-                name="bag-handle"
-                size={32}
-                color={deliveryType === 'pickup' ? colors.accent : colors.gray400}
-              />
-              <Text
-                style={[
-                  styles.optionTitle,
-                  deliveryType === 'pickup' && styles.optionTitleActive,
-                ]}
-              >
-                Retiro
-              </Text>
-              <Text style={styles.optionSubtitle}>Gratis</Text>
+              <View style={styles.toggleIconContainer}>
+                <Ionicons
+                  name="bag-handle"
+                  size={24}
+                  color={deliveryType === 'pickup' ? colors.white : colors.gray600}
+                />
+              </View>
+              <View style={styles.toggleTextContainer}>
+                <Text
+                  style={[
+                    styles.toggleLabel,
+                    deliveryType === 'pickup' && styles.toggleLabelActive,
+                  ]}
+                >
+                  Retiro
+                </Text>
+                <Text
+                  style={[
+                    styles.toggleSubtext,
+                    deliveryType === 'pickup' && styles.toggleSubtextActive,
+                  ]}
+                >
+                  Gratis
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -421,91 +465,138 @@ export default function CheckoutScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Dirección de entrega</Text>
 
-            <TouchableOpacity
-              style={styles.mapButton}
-              onPress={handleSelectLocation}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="map" size={20} color={colors.accent} />
-              <Text style={styles.mapButtonText}>Seleccionar en el mapa</Text>
-            </TouchableOpacity>
+            {/* Mostrar ubicación actual si hay una seleccionada */}
+            {deliveryLocation && (
+              <View style={styles.selectedAddressCard}>
+                <View style={styles.addressIconContainer}>
+                  <Ionicons name="location" size={24} color={colors.primary} />
+                </View>
+                <View style={styles.addressInfo}>
+                  <Text style={styles.addressText}>{address}</Text>
+                  {reference && <Text style={styles.referenceText}>{reference}</Text>}
+                  {shippingPrice && (
+                    <View style={styles.priceRow}>
+                      <Text style={styles.shippingLabel}>Envío: </Text>
+                      <Text style={styles.shippingPrice}>
+                        ${shippingPrice.price.toLocaleString('es-AR')}
+                      </Text>
+                      {shippingPrice.isEstimated && (
+                        <View style={styles.estimatedChip}>
+                          <Text style={styles.estimatedChipText}>Est.</Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={styles.changeButton}
+                  onPress={() => setShowAddressSelector(true)}
+                >
+                  <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+                </TouchableOpacity>
+              </View>
+            )}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Dirección completa"
-              value={address}
-              onChangeText={setAddress}
-              placeholderTextColor={colors.gray400}
-            />
+            {/* Selector de direcciones guardadas */}
+            {!deliveryLocation && locations.length > 0 && (
+              <View style={styles.savedAddressesList}>
+                <Text style={styles.savedAddressesTitle}>Tus direcciones guardadas</Text>
+                {locations.map((loc) => (
+                  <TouchableOpacity
+                    key={loc.id}
+                    style={styles.savedAddressCard}
+                    onPress={async () => {
+                      const location: DeliveryLocation = {
+                        direccion: loc.direccion,
+                        lat: loc.lat,
+                        lng: loc.lng,
+                      };
+                      setDeliveryLocation(location);
+                      setAddress(loc.direccion);
+                      setReference(loc.referencia || '');
+                      setSelectedSavedLocation(loc);
+                      await calculateDeliveryFee(location);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.savedAddressIcon}>
+                      <Ionicons name="location-outline" size={20} color={colors.primary} />
+                    </View>
+                    <View style={styles.savedAddressInfo}>
+                      <Text style={styles.savedAddressName}>{loc.nombre}</Text>
+                      <Text style={styles.savedAddressText} numberOfLines={1}>
+                        {loc.direccion}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Referencia (opcional)"
-              value={reference}
-              onChangeText={setReference}
-              placeholderTextColor={colors.gray400}
-            />
+            {/* Botón para seleccionar en mapa */}
+
           </View>
         )}
 
-        {/* Payment Method */}
+        {/* Payment Method - Estilo Toggle Moderno */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Forma de pago</Text>
-          <View style={styles.optionsColumn}>
+          <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[
-                styles.paymentOption,
-                paymentMethod === 'efectivo' && styles.paymentOptionActive,
+                styles.toggleOption,
+                styles.toggleOptionLeft,
+                paymentMethod === 'efectivo' && styles.toggleOptionActive,
               ]}
               onPress={() => handlePaymentMethodChange('efectivo')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <View style={styles.paymentOptionLeft}>
+              <View style={styles.toggleIconContainer}>
                 <Ionicons
                   name="cash"
                   size={24}
-                  color={paymentMethod === 'efectivo' ? colors.accent : colors.gray600}
+                  color={paymentMethod === 'efectivo' ? colors.white : colors.gray600}
                 />
+              </View>
+              <View style={styles.toggleTextContainer}>
                 <Text
                   style={[
-                    styles.paymentOptionText,
-                    paymentMethod === 'efectivo' && styles.paymentOptionTextActive,
+                    styles.toggleLabel,
+                    paymentMethod === 'efectivo' && styles.toggleLabelActive,
                   ]}
                 >
                   Efectivo
                 </Text>
               </View>
-              {paymentMethod === 'efectivo' && (
-                <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
-              )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
-                styles.paymentOption,
-                paymentMethod === 'transferencia' && styles.paymentOptionActive,
+                styles.toggleOption,
+                styles.toggleOptionRight,
+                paymentMethod === 'transferencia' && styles.toggleOptionActive,
               ]}
               onPress={() => handlePaymentMethodChange('transferencia')}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              <View style={styles.paymentOptionLeft}>
+              <View style={styles.toggleIconContainer}>
                 <Ionicons
                   name="card"
                   size={24}
-                  color={paymentMethod === 'transferencia' ? colors.accent : colors.gray600}
+                  color={paymentMethod === 'transferencia' ? colors.white : colors.gray600}
                 />
+              </View>
+              <View style={styles.toggleTextContainer}>
                 <Text
                   style={[
-                    styles.paymentOptionText,
-                    paymentMethod === 'transferencia' && styles.paymentOptionTextActive,
+                    styles.toggleLabel,
+                    paymentMethod === 'transferencia' && styles.toggleLabelActive,
                   ]}
                 >
                   Transferencia
                 </Text>
               </View>
-              {paymentMethod === 'transferencia' && (
-                <Ionicons name="checkmark-circle" size={24} color={colors.accent} />
-              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -624,6 +715,80 @@ export default function CheckoutScreen() {
         onSelectLocation={handleLocationSelected}
         initialLocation={deliveryLocation ? { lat: deliveryLocation.lat, lng: deliveryLocation.lng } : undefined}
       />
+
+      {/* Address Selector Modal */}
+      <Modal
+        visible={showAddressSelector}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAddressSelector(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Seleccionar dirección</Text>
+              <TouchableOpacity onPress={() => setShowAddressSelector(false)}>
+                <Ionicons name="close" size={24} color={colors.gray900} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+              {/* Lista de direcciones guardadas */}
+              {locations.map((loc) => (
+                <TouchableOpacity
+                  key={loc.id}
+                  style={[
+                    styles.modalAddressCard,
+                    selectedSavedLocation?.id === loc.id && styles.modalAddressCardActive,
+                  ]}
+                  onPress={async () => {
+                    const location: DeliveryLocation = {
+                      direccion: loc.direccion,
+                      lat: loc.lat,
+                      lng: loc.lng,
+                    };
+                    setDeliveryLocation(location);
+                    setAddress(loc.direccion);
+                    setReference(loc.referencia || '');
+                    setSelectedSavedLocation(loc);
+                    setShowAddressSelector(false);
+                    await calculateDeliveryFee(location);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.modalAddressIcon}>
+                    <Ionicons
+                      name={selectedSavedLocation?.id === loc.id ? "checkmark-circle" : "location-outline"}
+                      size={24}
+                      color={selectedSavedLocation?.id === loc.id ? colors.primary : colors.gray600}
+                    />
+                  </View>
+                  <View style={styles.modalAddressInfo}>
+                    <Text style={styles.modalAddressName}>{loc.nombre}</Text>
+                    <Text style={styles.modalAddressText}>{loc.direccion}</Text>
+                    {loc.referencia && (
+                      <Text style={styles.modalAddressReference}>{loc.referencia}</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+
+              {/* Botón para agregar nueva dirección */}
+              <TouchableOpacity
+                style={styles.addNewAddressButton}
+                onPress={() => {
+                  setShowAddressSelector(false);
+                  setShowLocationPicker(true);
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
+                <Text style={styles.addNewAddressText}>Agregar nueva dirección</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -916,5 +1081,299 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 2,
+  },
+
+  // Estilos para Toggle Moderno (Tipo de entrega y Forma de pago)
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.gray200,
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+
+  toggleOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 10,
+    backgroundColor: 'transparent',
+    gap: spacing.sm,
+  },
+
+  toggleOptionLeft: {
+    // Específico para el botón izquierdo si se necesita
+  },
+
+  toggleOptionRight: {
+    // Específico para el botón derecho si se necesita
+  },
+
+  toggleOptionActive: {
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+
+  toggleIconContainer: {
+    // Contenedor del ícono
+  },
+
+  toggleTextContainer: {
+    alignItems: 'center',
+  },
+
+  toggleLabel: {
+    ...typography.bodyMedium,
+    color: colors.gray700,
+    fontWeight: '600',
+  },
+
+  toggleLabelActive: {
+    color: colors.white,
+  },
+
+  toggleSubtext: {
+    ...typography.bodySmall,
+    color: colors.gray600,
+    marginTop: 2,
+  },
+
+  toggleSubtextActive: {
+    color: colors.white,
+    opacity: 0.9,
+  },
+
+  // Estilos para dirección seleccionada
+  selectedAddressCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  addressIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+
+  addressInfo: {
+    flex: 1,
+  },
+
+  addressText: {
+    ...typography.bodyMedium,
+    color: colors.gray900,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+
+  referenceText: {
+    ...typography.bodySmall,
+    color: colors.gray600,
+    marginBottom: spacing.xs,
+  },
+
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
+
+  shippingLabel: {
+    ...typography.bodySmall,
+    color: colors.gray600,
+  },
+
+  shippingPrice: {
+    ...typography.bodySmall,
+    color: colors.primary,
+    fontWeight: '700',
+  },
+
+  estimatedChip: {
+    backgroundColor: colors.accent + '20',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: spacing.xs,
+  },
+
+  estimatedChipText: {
+    ...typography.caption,
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  changeButton: {
+    padding: spacing.sm,
+    marginLeft: spacing.sm,
+  },
+
+  // Estilos para lista de direcciones guardadas
+  savedAddressesList: {
+    marginBottom: spacing.md,
+  },
+
+  savedAddressesTitle: {
+    ...typography.bodyMedium,
+    color: colors.gray700,
+    fontWeight: '600',
+    marginBottom: spacing.sm,
+  },
+
+  savedAddressCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+  },
+
+  savedAddressIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+
+  savedAddressInfo: {
+    flex: 1,
+  },
+
+  savedAddressName: {
+    ...typography.bodyMedium,
+    color: colors.gray900,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+
+  savedAddressText: {
+    ...typography.bodySmall,
+    color: colors.gray600,
+  },
+
+  // Estilos para Modal de selección de direcciones
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+
+  modalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+    paddingBottom: spacing.xl,
+  },
+
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray200,
+  },
+
+  modalTitle: {
+    ...typography.h3,
+    color: colors.gray900,
+    fontWeight: '700',
+  },
+
+  modalScrollView: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+
+  modalAddressCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.gray200,
+  },
+
+  modalAddressCardActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '08',
+  },
+
+  modalAddressIcon: {
+    marginRight: spacing.md,
+  },
+
+  modalAddressInfo: {
+    flex: 1,
+  },
+
+  modalAddressName: {
+    ...typography.bodyLarge,
+    color: colors.gray900,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+
+  modalAddressText: {
+    ...typography.bodyMedium,
+    color: colors.gray700,
+    marginBottom: 2,
+  },
+
+  modalAddressReference: {
+    ...typography.bodySmall,
+    color: colors.gray500,
+    fontStyle: 'italic',
+  },
+
+  addNewAddressButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary + '10',
+    borderRadius: 12,
+    padding: spacing.md,
+    marginTop: spacing.md,
+    gap: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+  },
+
+  addNewAddressText: {
+    ...typography.bodyMedium,
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
