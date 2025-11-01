@@ -145,4 +145,12 @@ export class PedidosController {
   async marcarEntregado(@Param('id') id: string, @Request() req) {
     return this.pedidosService.marcarEntregado(id, req.user.id);
   }
+
+  // obtiene información del mapa de un pedido (ubicación local, cliente, repartidor)
+  @Get(':id/mapa')
+  @Roles('empresa', 'cliente', 'repartidor')
+  @HttpCode(HttpStatus.OK)
+  async obtenerDatosMapa(@Param('id') id: string) {
+    return this.pedidosService.obtenerDatosMapa(id);
+  }
 }

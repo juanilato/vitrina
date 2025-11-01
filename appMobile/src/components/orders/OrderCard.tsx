@@ -97,7 +97,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         <View style={styles.totalSection}>
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalAmount}>
-            ${order.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+            ${(order.total || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
           </Text>
         </View>
 

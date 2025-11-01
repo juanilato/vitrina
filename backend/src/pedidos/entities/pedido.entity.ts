@@ -9,6 +9,9 @@ export class Pedido {
   direccion?: string;
   lat?: number;
   lng?: number;
+  repartidorLat?: number;
+  repartidorLng?: number;
+  repartidorUltActualizacion?: Date;
   subtotal?: number;
   costoEnvio?: number;
   total?: number;

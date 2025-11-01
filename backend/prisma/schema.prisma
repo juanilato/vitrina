@@ -269,6 +269,11 @@ model Pedido {
   lat        Float?
   lng        Float?
 
+  // Ubicación en tiempo real del repartidor
+  repartidorLat    Float?     // Última latitud reportada del repartidor
+  repartidorLng    Float?     // Última longitud reportada del repartidor
+  repartidorUltActualizacion DateTime? // Última vez que se actualizó la ubicación
+
   // Costos del pedido
   subtotal   Decimal?   @db.Decimal(12, 2) // Total de productos sin envío
   costoEnvio Decimal?   @db.Decimal(12, 2) // Costo de envío calculado

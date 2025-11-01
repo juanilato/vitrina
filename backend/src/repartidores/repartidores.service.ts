@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../../prisma/prisma.service';
 import { VincularEmpresaDto } from './dto/vincular-empresa.dto';
 import { UpdateEstadoPedidoDto } from './dto/update-estado-pedido.dto';
+import { UpdateUbicacionRepartidorDto } from './dto/update-ubicacion-repartidor.dto';
 import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
@@ -274,6 +275,11 @@ export class RepartidoresService {
       clienteName: p.cliente.name,
       tipoEntrega: p.tipoEntrega,
       direccion: p.direccion || '',
+      lat: p.lat,
+      lng: p.lng,
+      repartidorLat: p.repartidorLat,
+      repartidorLng: p.repartidorLng,
+      repartidorUltActualizacion: p.repartidorUltActualizacion,
       total: p.total ? parseFloat(p.total.toString()) : 0,
       estado: p.estado,
       createdAt: p.createdAt,
@@ -307,6 +313,74 @@ export class RepartidoresService {
     });
 
     return { message: 'Estado actualizado correctamente', estado: dto.estado };
+  }
+
+  /**
+   * Actualizar la ubicación del repartidor en tiempo real
+   * Solo permite actualizar si el pedido está en estado 'en_camino'
+   */
+  async updateUbicacionRepartidor(
+    repartidorId: string,
+    pedidoId: string,
+    dto: UpdateUbicacionRepartidorDto
+  ) {
+    // Verificar que el pedido existe y pertenece al repartidor
+    const pedido = await this.prisma.pedido.findUnique({
+      where: { id: pedidoId },
+      include: {
+        cliente: { select: { id: true } },
+        empresa: { select: { id: true } }
+      }
+    });
+
+    if (!pedido) {
+      throw new NotFoundException('Pedido no encontrado');
+    }
+
+    if (pedido.repartidorId !== repartidorId) {
+      throw new ForbiddenException('Este pedido no te pertenece');
+    }
+
+    // Solo permitir actualizar ubicación si el pedido está en camino
+    if (pedido.estado !== 'en_camino') {
+      throw new BadRequestException('Solo puedes compartir tu ubicación cuando el pedido está en camino');
+    }
+
+    // Actualizar ubicación del repartidor en el pedido
+    const pedidoActualizado = await this.prisma.pedido.update({
+      where: { id: pedidoId },
+      data: {
+        repartidorLat: dto.lat,
+        repartidorLng: dto.lng,
+        repartidorUltActualizacion: new Date()
+      }
+    });
+
+    // Enviar actualización por WebSocket a cliente y empresa
+    const ubicacionData = {
+      pedidoId,
+      lat: dto.lat,
+      lng: dto.lng,
+      timestamp: pedidoActualizado.repartidorUltActualizacion
+    };
+
+    try {
+      await this.wsGateway.sendUbicacionRepartidorUpdate(
+        pedido.clienteId,
+        pedido.empresaId,
+        ubicacionData
+      );
+    } catch (error) {
+      console.error('Error enviando actualización de ubicación por WebSocket:', error);
+      // No lanzar error para no interrumpir la actualización
+    }
+
+    return {
+      message: 'Ubicación actualizada correctamente',
+      lat: dto.lat,
+      lng: dto.lng,
+      timestamp: pedidoActualizado.repartidorUltActualizacion
+    };
   }
 }
 

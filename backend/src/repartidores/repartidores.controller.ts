@@ -3,6 +3,7 @@ import { RepartidoresService } from './repartidores.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { VincularEmpresaDto } from './dto/vincular-empresa.dto';
 import { UpdateEstadoPedidoDto } from './dto/update-estado-pedido.dto';
+import { UpdateUbicacionRepartidorDto } from './dto/update-ubicacion-repartidor.dto';
 
 @Controller('repartidores')
 @UseGuards(JwtAuthGuard)
@@ -46,6 +47,15 @@ export class RepartidoresController {
     @Body() dto: UpdateEstadoPedidoDto,
   ) {
     return this.repartidoresService.updateEstadoPedido(req.user.id, pedidoId, dto);
+  }
+
+  @Patch('pedidos/:id/ubicacion')
+  async updateUbicacionRepartidor(
+    @Request() req,
+    @Param('id') pedidoId: string,
+    @Body() dto: UpdateUbicacionRepartidorDto,
+  ) {
+    return this.repartidoresService.updateUbicacionRepartidor(req.user.id, pedidoId, dto);
   }
 }
 

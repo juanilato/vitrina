@@ -174,4 +174,28 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
       console.log(`⚠️ [WS] Repartidor ${repartidorId} no conectado, pedido guardado en BD`);
     }
   }
+
+  // Método para enviar actualización de ubicación del repartidor al cliente y empresa
+  async sendUbicacionRepartidorUpdate(clienteId: string, empresaId: string, data: any) {
+    console.log(`📍 [WS] Enviando actualización de ubicación del repartidor`);
+    console.log(`👤 Cliente: ${clienteId}, 🏢 Empresa: ${empresaId}`);
+
+    // Enviar al cliente
+    const clienteSocketId = this.connectedUsers.get(clienteId);
+    if (clienteSocketId) {
+      this.server.to(clienteSocketId).emit('repartidor_ubicacion_update', data);
+      console.log(`✅ [WS] Ubicación enviada al cliente ${clienteId}`);
+    } else {
+      console.log(`⚠️ [WS] Cliente ${clienteId} no conectado`);
+    }
+
+    // Enviar a la empresa
+    const empresaSocketId = this.connectedUsers.get(empresaId);
+    if (empresaSocketId) {
+      this.server.to(empresaSocketId).emit('repartidor_ubicacion_update', data);
+      console.log(`✅ [WS] Ubicación enviada a la empresa ${empresaId}`);
+    } else {
+      console.log(`⚠️ [WS] Empresa ${empresaId} no conectada`);
+    }
+  }
 }

@@ -301,6 +301,9 @@ export class PedidosService {
         direccion: pedido.direccion,
         lat: pedido.lat,
         lng: pedido.lng,
+        repartidorLat: pedido.repartidorLat,
+        repartidorLng: pedido.repartidorLng,
+        repartidorUltActualizacion: pedido.repartidorUltActualizacion,
         subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
         total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
@@ -366,6 +369,9 @@ export class PedidosService {
         direccion: pedido.direccion,
         lat: pedido.lat,
         lng: pedido.lng,
+        repartidorLat: pedido.repartidorLat,
+        repartidorLng: pedido.repartidorLng,
+        repartidorUltActualizacion: pedido.repartidorUltActualizacion,
         subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
         total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
@@ -435,6 +441,9 @@ export class PedidosService {
         direccion: pedido.direccion,
         lat: pedido.lat,
         lng: pedido.lng,
+        repartidorLat: pedido.repartidorLat,
+        repartidorLng: pedido.repartidorLng,
+        repartidorUltActualizacion: pedido.repartidorUltActualizacion,
         subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
         total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
@@ -1018,6 +1027,61 @@ export class PedidosService {
       return pedidoActualizado;
     } catch (error) {
       console.error('Error marcando pedido como entregado:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene los datos del mapa para un pedido específico
+   * Incluye: ubicación del local, ubicación del cliente, ubicación del repartidor (si está en camino)
+   */
+  async obtenerDatosMapa(pedidoId: string) {
+    try {
+      const pedido = await this.prisma.pedido.findUnique({
+        where: { id: pedidoId },
+        include: {
+          empresa: {
+            include: {
+              ubicacion: true
+            }
+          }
+        }
+      });
+
+      if (!pedido) {
+        throw new NotFoundException('Pedido no encontrado');
+      }
+
+      const response = {
+        pedidoId: pedido.id,
+        estado: pedido.estado,
+        tipoEntrega: pedido.tipoEntrega,
+
+        // Ubicación del local/empresa
+        ubicacionLocal: pedido.empresa.ubicacion ? {
+          lat: pedido.empresa.ubicacion.lat,
+          lng: pedido.empresa.ubicacion.lng,
+          direccion: pedido.empresa.ubicacion.direccion
+        } : null,
+
+        // Ubicación de entrega del cliente
+        ubicacionCliente: pedido.lat && pedido.lng ? {
+          lat: pedido.lat,
+          lng: pedido.lng,
+          direccion: pedido.direccion
+        } : null,
+
+        // Ubicación del repartidor (solo si el pedido está en camino)
+        ubicacionRepartidor: pedido.estado === 'en_camino' && pedido.repartidorLat && pedido.repartidorLng ? {
+          lat: pedido.repartidorLat,
+          lng: pedido.repartidorLng,
+          ultimaActualizacion: pedido.repartidorUltActualizacion
+        } : null
+      };
+
+      return response;
+    } catch (error) {
+      console.error('Error obteniendo datos del mapa:', error);
       throw error;
     }
   }
