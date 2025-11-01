@@ -13,15 +13,19 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useCompanies, SortBy } from '../../src/hooks/useCompanies';
 import { CompanyCard } from '../../src/components/companies/CompanyCard';
 import { SearchBar } from '../../src/components/common';
 import { colors, textStyles, spacing } from '../../src/theme';
+import { useLocation } from '../../src/contexts/LocationContext';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const {
     companies,
     loading,
@@ -37,7 +41,9 @@ export default function HomeScreen() {
     categories,
   } = useCompanies();
 
+  const { selectedLocation, locations, setSelectedLocation } = useLocation();
   const [showFilters, setShowFilters] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   const renderSortOption = (option: SortBy, label: string) => (
     <TouchableOpacity
@@ -102,6 +108,26 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Location Selector */}
+      <TouchableOpacity
+        style={styles.locationSelector}
+        onPress={() => setShowLocationModal(true)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.locationLeft}>
+          <View style={styles.locationIconContainer}>
+            <Ionicons name="location" size={20} color={colors.primary} />
+          </View>
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationLabel}>Entregar en</Text>
+            <Text style={styles.locationName} numberOfLines={1}>
+              {selectedLocation ? selectedLocation.nombre : 'Selecciona una ubicación'}
+            </Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Empresas</Text>
@@ -186,6 +212,86 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      {/* Location Selection Modal */}
+      <Modal
+        visible={showLocationModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowLocationModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecciona tu ubicación</Text>
+              <TouchableOpacity
+                onPress={() => setShowLocationModal(false)}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color={colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.locationsList}>
+              {locations.map((location) => (
+                <TouchableOpacity
+                  key={location.id}
+                  style={[
+                    styles.locationItem,
+                    selectedLocation?.id === location.id && styles.locationItemSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedLocation(location);
+                    setShowLocationModal(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.locationItemLeft}>
+                    <Ionicons
+                      name={selectedLocation?.id === location.id ? 'radio-button-on' : 'radio-button-off'}
+                      size={24}
+                      color={selectedLocation?.id === location.id ? colors.primary : colors.textTertiary}
+                    />
+                    <View style={styles.locationItemInfo}>
+                      <Text style={styles.locationItemName}>{location.nombre}</Text>
+                      <Text style={styles.locationItemAddress} numberOfLines={2}>
+                        {location.direccion}
+                      </Text>
+                      {location.referencia && (
+                        <Text style={styles.locationItemReference}>{location.referencia}</Text>
+                      )}
+                    </View>
+                  </View>
+                  {location.esPrincipal && (
+                    <View style={styles.principalBadge}>
+                      <Text style={styles.principalBadgeText}>Principal</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+
+              {locations.length === 0 && (
+                <View style={styles.emptyLocations}>
+                  <Ionicons name="location-outline" size={48} color={colors.textTertiary} />
+                  <Text style={styles.emptyLocationsText}>No tienes ubicaciones guardadas</Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.addLocationButton}
+              onPress={() => {
+                setShowLocationModal(false);
+                router.push('/locations');
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
+              <Text style={styles.addLocationButtonText}>Agregar nueva ubicación</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -194,6 +300,151 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+
+  // Location Selector Styles
+  locationSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  locationLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  locationIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  locationTextContainer: {
+    flex: 1,
+  },
+  locationLabel: {
+    ...textStyles.caption1,
+    color: colors.textSecondary,
+    marginBottom: 2,
+  },
+  locationName: {
+    ...textStyles.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+    paddingBottom: spacing.xl,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    ...textStyles.headline,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  modalCloseButton: {
+    padding: spacing.xs,
+  },
+  locationsList: {
+    maxHeight: 400,
+  },
+  locationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  locationItemSelected: {
+    backgroundColor: colors.primary + '08',
+  },
+  locationItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  locationItemInfo: {
+    marginLeft: spacing.md,
+    flex: 1,
+  },
+  locationItemName: {
+    ...textStyles.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  locationItemAddress: {
+    ...textStyles.subheadline,
+    color: colors.textSecondary,
+  },
+  locationItemReference: {
+    ...textStyles.caption1,
+    color: colors.textTertiary,
+    marginTop: 2,
+  },
+  principalBadge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  principalBadgeText: {
+    ...textStyles.caption2,
+    color: colors.white,
+    fontWeight: '600',
+  },
+  emptyLocations: {
+    alignItems: 'center',
+    paddingVertical: spacing['2xl'],
+  },
+  emptyLocationsText: {
+    ...textStyles.subheadline,
+    color: colors.textTertiary,
+    marginTop: spacing.md,
+  },
+  addLocationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.primary + '15',
+    borderRadius: 12,
+  },
+  addLocationButtonText: {
+    ...textStyles.body,
+    color: colors.primary,
+    fontWeight: '600',
   },
 
   header: {

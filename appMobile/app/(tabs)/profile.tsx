@@ -92,11 +92,11 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => Alert.alert('Próximamente', 'Direcciones guardadas')}
-              activeOpacity={0.7}
-            >
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => router.push('/locations')}
+                activeOpacity={0.7}
+              >
               <View style={styles.menuLeft}>
                 <View style={[styles.menuIcon, { backgroundColor: '#FF9500' + '15' }]}>
                   <Ionicons name="location-outline" size={20} color="#FF9500" />

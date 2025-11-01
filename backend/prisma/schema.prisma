@@ -21,6 +21,28 @@ model Cliente {
   updatedAt   DateTime  @updatedAt
 
   Pedidos     Pedido[]
+  ubicaciones UbicacionCliente[]
+}
+
+// ——— Ubicaciones guardadas del cliente ———
+model UbicacionCliente {
+  id          Int       @id @default(autoincrement())
+  clienteId   String
+  cliente     Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  nombre      String    // "Casa", "Trabajo", etc.
+  direccion   String
+  lat         Float
+  lng         Float
+  referencia  String?   // Piso, depto, timbre, etc.
+
+  esPrincipal Boolean   @default(false) // Ubicación por defecto
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([clienteId])
+  @@index([clienteId, esPrincipal])
 }
 
 // ——— Cuenta empresa ———

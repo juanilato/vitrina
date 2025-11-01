@@ -12,6 +12,7 @@ import { WebSocketModule } from './websocket/websocket.module';
 import { EmpresasModule } from './empresas/empresas.module';
 import { IngredientesModule } from './ingredientes/ingredientes.module';
 import { RepartidoresModule } from './repartidores/repartidores.module';
+import { UbicacionesClienteModule } from './ubicaciones-cliente/ubicaciones-cliente.module';
 
 
 @Module({
@@ -25,6 +26,7 @@ import { RepartidoresModule } from './repartidores/repartidores.module';
     EmpresasModule,
     IngredientesModule,
     RepartidoresModule,
+    UbicacionesClienteModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

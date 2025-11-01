@@ -7,6 +7,7 @@ import { Stack } from 'expo-router';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { CartProvider } from '../src/contexts/CartContext';
 import { NotificationsProvider, useNotifications } from '../src/contexts/NotificationsContext';
+import { LocationProvider } from '../src/contexts/LocationContext';
 import { NotificationPopup } from '../src/components/notifications';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -47,11 +48,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <AuthProvider>
-        <NotificationsProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
-        </NotificationsProvider>
+        <LocationProvider>
+          <NotificationsProvider>
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
+          </NotificationsProvider>
+        </LocationProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

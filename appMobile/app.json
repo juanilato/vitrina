@@ -50,6 +50,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+       "expo-maps",
       "expo-router",
       "expo-notifications",
       [
@@ -62,12 +63,6 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "La app necesita tu ubicación para calcular el envío"
-        }
-      ],
-      [
-        "react-native-maps",
-        {
-          "useGoogleMaps": true
         }
       ]
     ],
