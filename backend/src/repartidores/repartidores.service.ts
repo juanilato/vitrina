@@ -359,8 +359,8 @@ export class RepartidoresService {
     // Enviar actualización por WebSocket a cliente y empresa
     const ubicacionData = {
       pedidoId,
-      lat: dto.lat,
-      lng: dto.lng,
+      latitud: dto.lat,
+      longitud: dto.lng,
       timestamp: pedidoActualizado.repartidorUltActualizacion
     };
 

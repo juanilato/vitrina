@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '../../../../config/axios.config';
 import { useWebSocket } from '../../../../hooks/useWebSocket';
 import './RepartidorOrdersSection.css';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 
 interface MiPedido {
   id: string;
@@ -21,8 +22,11 @@ const RepartidorOrdersSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
+  const [trackingPedidoId, setTrackingPedidoId] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { on, off, isConnected } = useWebSocket({
+  const { on, off, isConnected, emit } = useWebSocket({
     autoConnect: true,
   });
 
@@ -72,15 +76,105 @@ const RepartidorOrdersSection: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected]); // Solo depende de isConnected. on/off son estables
 
+  // Función para iniciar el tracking GPS
+  const iniciarTracking = (pedidoId: string) => {
+    if (!navigator.geolocation) {
+      setLocationError('Tu navegador no soporta geolocalización');
+      return;
+    }
+
+    setTrackingPedidoId(pedidoId);
+    setLocationError(null);
+
+    // Enviar ubicación inmediatamente
+    enviarUbicacion(pedidoId);
+
+    // Configurar envío periódico cada 10 segundos
+    locationIntervalRef.current = setInterval(() => {
+      enviarUbicacion(pedidoId);
+    }, 10000);
+  };
+
+  // Función para detener el tracking GPS
+  const detenerTracking = () => {
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current);
+      locationIntervalRef.current = null;
+    }
+    setTrackingPedidoId(null);
+    setLocationError(null);
+  };
+
+  // Función para enviar la ubicación actual
+  const enviarUbicacion = (pedidoId: string) => {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          // Enviar al backend vía HTTP (ahora con el ID del pedido en la ruta)
+          await axiosInstance.patch(`/repartidores/pedidos/${pedidoId}/ubicacion`, {
+            lat: latitude,
+            lng: longitude,
+          });
+
+          // Emitir vía WebSocket para actualización en tiempo real
+          emit('actualizar_ubicacion_repartidor', {
+            pedidoId,
+            latitud: latitude,
+            longitud: longitude,
+          });
+
+          console.log(`[GPS] Ubicación enviada: ${latitude}, ${longitude}`);
+        } catch (err: any) {
+          console.error('[GPS] Error al enviar ubicación:', err);
+          setLocationError('Error al enviar ubicación');
+        }
+      },
+      (error) => {
+        console.error('[GPS] Error al obtener ubicación:', error);
+        setLocationError('Error al obtener ubicación GPS');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+  };
+
   const handleActualizarEstado = async (pedidoId: string, nuevoEstado: string) => {
     try {
-      await axiosInstance.patch(`/repartidores/pedidos/${pedidoId}/estado`, { estado: nuevoEstado });
-      window.alert('Estado actualizado correctamente');
+      // Si está marcando como "en_camino", usar el endpoint específico
+      if (nuevoEstado === 'en_camino') {
+        await axiosInstance.patch(`/pedidos/${pedidoId}/en-camino`);
+        window.alert('Pedido marcado como en camino. Iniciando tracking GPS...');
+        iniciarTracking(pedidoId);
+      }
+      // Si está marcando como "entregado", usar el endpoint específico
+      else if (nuevoEstado === 'entregado') {
+        await axiosInstance.patch(`/pedidos/${pedidoId}/entregado`);
+        window.alert('Pedido marcado como entregado');
+        detenerTracking();
+      }
+      // Para otros estados, usar el endpoint genérico
+      else {
+        await axiosInstance.patch(`/repartidores/pedidos/${pedidoId}/estado`, { estado: nuevoEstado });
+        window.alert('Estado actualizado correctamente');
+      }
+
       cargarMisPedidos();
     } catch (err: any) {
       window.alert(err?.response?.data?.message || 'Error al actualizar el estado');
     }
   };
+
+  // Cleanup al desmontar el componente
+  useEffect(() => {
+    return () => {
+      detenerTracking();
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -123,6 +217,20 @@ const RepartidorOrdersSection: React.FC = () => {
         <div className="alert alert-info with-animation">
           <NotificationsActiveIcon className="alert-icon" />
           {notification}
+        </div>
+      )}
+
+      {trackingPedidoId && (
+        <div className="alert alert-success with-animation">
+          <LocationOnIcon className="alert-icon" />
+          GPS Activo - Enviando ubicación cada 10 segundos
+        </div>
+      )}
+
+      {locationError && (
+        <div className="alert alert-error with-animation">
+          <span className="alert-icon">⚠️</span>
+          {locationError}
         </div>
       )}
 

@@ -1044,7 +1044,8 @@ export class PedidosService {
             include: {
               ubicacion: true
             }
-          }
+          },
+          repartidor: true
         }
       });
 
@@ -1052,32 +1053,34 @@ export class PedidosService {
         throw new NotFoundException('Pedido no encontrado');
       }
 
-      const response = {
-        pedidoId: pedido.id,
-        estado: pedido.estado,
-        tipoEntrega: pedido.tipoEntrega,
+      // Formato compatible con la app mobile
+      const response: any = {};
 
-        // Ubicación del local/empresa
-        ubicacionLocal: pedido.empresa.ubicacion ? {
-          lat: pedido.empresa.ubicacion.lat,
-          lng: pedido.empresa.ubicacion.lng,
-          direccion: pedido.empresa.ubicacion.direccion
-        } : null,
+      // Ubicación de la empresa
+      if (pedido.empresa?.ubicacion) {
+        response.empresa = {
+          latitud: pedido.empresa.ubicacion.lat,
+          longitud: pedido.empresa.ubicacion.lng,
+          name: pedido.empresa.name
+        };
+      }
 
-        // Ubicación de entrega del cliente
-        ubicacionCliente: pedido.lat && pedido.lng ? {
-          lat: pedido.lat,
-          lng: pedido.lng,
-          direccion: pedido.direccion
-        } : null,
+      // Ubicación del cliente
+      if (pedido.lat && pedido.lng) {
+        response.cliente = {
+          latitud: pedido.lat,
+          longitud: pedido.lng
+        };
+      }
 
-        // Ubicación del repartidor (solo si el pedido está en camino)
-        ubicacionRepartidor: pedido.estado === 'en_camino' && pedido.repartidorLat && pedido.repartidorLng ? {
-          lat: pedido.repartidorLat,
-          lng: pedido.repartidorLng,
-          ultimaActualizacion: pedido.repartidorUltActualizacion
-        } : null
-      };
+      // Ubicación del repartidor (solo si el pedido está en camino)
+      if (pedido.estado === 'en_camino' && pedido.repartidorLat && pedido.repartidorLng) {
+        response.repartidor = {
+          latitud: pedido.repartidorLat,
+          longitud: pedido.repartidorLng,
+          nombre: pedido.repartidor ? "" : undefined
+        };
+      }
 
       return response;
     } catch (error) {

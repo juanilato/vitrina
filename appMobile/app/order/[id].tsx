@@ -21,16 +21,18 @@ import { orderService } from '../../src/services/order.service';
 import { PedidoWithDetails } from '../../src/types/order';
 import { OrderStatusBadge } from '../../src/components/orders/OrderStatusBadge';
 import { OrderTimeline } from '../../src/components/orders/OrderTimeline';
+import { DeliveryTrackingMap } from '../../src/components/orders/DeliveryTrackingMap';
 import { colors } from '../../src/theme/colors';
 import { spacing } from '../../src/theme/spacing';
 import { textStyles as typography } from '../../src/theme/typography';
 
 export default function OrderDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, showMap } = useLocalSearchParams<{ id: string; showMap?: string }>();
   const router = useRouter();
   const [order, setOrder] = useState<PedidoWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mapVisible, setMapVisible] = useState(showMap === 'true');
 
   useEffect(() => {
     fetchOrder();
@@ -132,6 +134,20 @@ export default function OrderDetailScreen() {
             updatedAt={order.updatedAt}
           />
         </View>
+
+        {/* Track Delivery Button */}
+        {order.estado === 'en_camino' && order.tipoEntrega === 'delivery' && (
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.trackButton}
+              onPress={() => setMapVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="map" size={24} color={colors.white} />
+              <Text style={styles.trackButtonText}>Ver en el mapa</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Company Info */}
         <View style={styles.section}>
@@ -263,6 +279,13 @@ export default function OrderDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Delivery Tracking Map */}
+      <DeliveryTrackingMap
+        pedidoId={id}
+        visible={mapVisible}
+        onClose={() => setMapVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -523,6 +546,22 @@ const styles = StyleSheet.create({
   totalValue: {
     ...typography.h3,
     color: colors.primary,
+    fontWeight: '700',
+  },
+
+  trackButton: {
+    backgroundColor: colors.orange,
+    borderRadius: 12,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+
+  trackButtonText: {
+    ...typography.bodyLarge,
+    color: colors.white,
     fontWeight: '700',
   },
 });

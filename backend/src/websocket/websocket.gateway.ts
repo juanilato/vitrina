@@ -19,7 +19,7 @@ interface AuthenticatedSocket extends Socket {
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: true, // Permitir todos los orígenes en desarrollo
     credentials: true,
   },
 })
@@ -175,6 +175,22 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
     }
   }
 
+  // Handler para cuando el repartidor actualiza su ubicación
+  @SubscribeMessage('actualizar_ubicacion_repartidor')
+  async handleActualizarUbicacionRepartidor(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { pedidoId: string; latitud: number; longitud: number },
+  ) {
+    console.log(`📍 [WS] Repartidor ${client.userId} actualizó ubicación para pedido ${data.pedidoId}`);
+
+    // Emitir a todos los clientes y empresas interesadas en este pedido
+    this.server.emit('ubicacion_repartidor_actualizada', {
+      pedidoId: data.pedidoId,
+      latitud: data.latitud,
+      longitud: data.longitud,
+    });
+  }
+
   // Método para enviar actualización de ubicación del repartidor al cliente y empresa
   async sendUbicacionRepartidorUpdate(clienteId: string, empresaId: string, data: any) {
     console.log(`📍 [WS] Enviando actualización de ubicación del repartidor`);
@@ -183,7 +199,7 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
     // Enviar al cliente
     const clienteSocketId = this.connectedUsers.get(clienteId);
     if (clienteSocketId) {
-      this.server.to(clienteSocketId).emit('repartidor_ubicacion_update', data);
+      this.server.to(clienteSocketId).emit('ubicacion_repartidor_actualizada', data);
       console.log(`✅ [WS] Ubicación enviada al cliente ${clienteId}`);
     } else {
       console.log(`⚠️ [WS] Cliente ${clienteId} no conectado`);
@@ -192,7 +208,7 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
     // Enviar a la empresa
     const empresaSocketId = this.connectedUsers.get(empresaId);
     if (empresaSocketId) {
-      this.server.to(empresaSocketId).emit('repartidor_ubicacion_update', data);
+      this.server.to(empresaSocketId).emit('ubicacion_repartidor_actualizada', data);
       console.log(`✅ [WS] Ubicación enviada a la empresa ${empresaId}`);
     } else {
       console.log(`⚠️ [WS] Empresa ${empresaId} no conectada`);

@@ -72,6 +72,18 @@
   border: 1px solid #93c5fd;
 }
 
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
 .alert.with-animation {
   animation: slideIn 0.3s ease-out;
 }

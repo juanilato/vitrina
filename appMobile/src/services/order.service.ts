@@ -72,4 +72,12 @@ export const orderService = {
   async getCompanyDetails(empresaId: string): Promise<CompanyWithProducts> {
     return companyService.getCompanyWithProducts(empresaId);
   },
+
+  /**
+   * Get map data for delivery tracking
+   */
+  async getMapData(pedidoId: string) {
+    const response = await api.get(`/pedidos/${pedidoId}/mapa`);
+    return response.data;
+  },
 };

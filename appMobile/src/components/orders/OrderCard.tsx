@@ -24,6 +24,11 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
     router.push(`/order/${order.id}` as any);
   };
 
+  const handleTrackDelivery = (e: any) => {
+    e.stopPropagation();
+    router.push(`/order/${order.id}?showMap=true` as any);
+  };
+
   const formatDate = (date: string | Date) => {
     const d = new Date(date);
     return d.toLocaleDateString('es-AR', {
@@ -91,6 +96,21 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
           </Text>
         )}
       </View>
+
+      {/* En camino indicator */}
+      {order.estado === 'en_camino' && order.tipoEntrega === 'delivery' && (
+        <TouchableOpacity
+          style={styles.trackingBanner}
+          onPress={handleTrackDelivery}
+          activeOpacity={0.7}
+        >
+          <View style={styles.trackingContent}>
+            <Ionicons name="location" size={20} color={colors.white} />
+            <Text style={styles.trackingText}>Tu pedido está en camino</Text>
+          </View>
+          <Ionicons name="map" size={20} color={colors.white} />
+        </TouchableOpacity>
+      )}
 
       {/* Footer */}
       <View style={styles.footer}>
@@ -234,5 +254,27 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray50,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  trackingBanner: {
+    backgroundColor: colors.orange,
+    borderRadius: 8,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  trackingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  trackingText: {
+    ...typography.bodyMedium,
+    color: colors.white,
+    fontWeight: '600',
   },
 });

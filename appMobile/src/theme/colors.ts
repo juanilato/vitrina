@@ -41,6 +41,7 @@ export const colors = {
 
   // Semantic colors (using brand colors)
   success: '#2E9D66',      // Verde
+  green50: '#ECFDF5',      // Verde claro para fondos
   error: '#DC2626',        // Red
   warning: '#F26B1D',      // Naranja
   info: '#007ACC',         // Azul brillante
