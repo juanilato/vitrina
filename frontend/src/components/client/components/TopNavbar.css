@@ -1,0 +1,258 @@
+/* TopNavbar.css - Professional Web App Navigation */
+
+.top-navbar {
+  background: var(--vitrina-surface);
+  border-bottom: 1px solid var(--vitrina-border-light);
+  box-shadow: 0 2px 8px rgba(10, 42, 67, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: var(--vitrina-z-sticky);
+  width: 100%;
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  height: 64px;
+}
+
+/* Left Side - Location Button */
+.location-btn {
+  transition: all var(--vitrina-transition-fast);
+}
+
+.location-btn:hover {
+  background: var(--vitrina-primary) !important;
+  color: var(--vitrina-white);
+}
+
+.location-btn:hover .navbar-icon {
+  color: var(--vitrina-white);
+}
+
+/* Center - Logo and Location */
+.navbar-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 16px;
+}
+
+.navbar-logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--vitrina-primary);
+  letter-spacing: -0.5px;
+  margin: 0;
+  line-height: 1;
+}
+
+.navbar-location-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--vitrina-text-tertiary);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* Right Side - Action Buttons */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Icon Buttons */
+.navbar-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--vitrina-radius);
+  background: var(--vitrina-background);
+  color: var(--vitrina-text-secondary);
+  cursor: pointer;
+  transition: all var(--vitrina-transition-fast);
+}
+
+.navbar-icon-btn:hover {
+  background: var(--vitrina-border);
+  color: var(--vitrina-text-primary);
+}
+
+.navbar-icon-btn:active {
+  transform: scale(0.95);
+}
+
+.navbar-icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+/* Search Bar - Expandable */
+.navbar-search-container {
+  padding: 0 20px 12px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.navbar-search-bar {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--vitrina-background);
+  border: 1px solid var(--vitrina-border);
+  border-radius: var(--vitrina-radius-md);
+  transition: all var(--vitrina-transition-fast);
+}
+
+.navbar-search-bar:focus-within {
+  border-color: var(--vitrina-primary);
+  box-shadow: 0 0 0 3px rgba(10, 42, 67, 0.1);
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--vitrina-text-tertiary);
+  flex-shrink: 0;
+}
+
+.navbar-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--vitrina-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.navbar-search-input::placeholder {
+  color: var(--vitrina-text-tertiary);
+}
+
+.search-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--vitrina-text-tertiary);
+  cursor: pointer;
+  transition: color var(--vitrina-transition-fast);
+}
+
+.search-clear-btn:hover {
+  color: var(--vitrina-text-primary);
+}
+
+.search-clear-btn .navbar-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) {
+  .navbar-container {
+    padding: 14px 32px;
+    height: 70px;
+  }
+
+  .navbar-logo {
+    font-size: 22px;
+  }
+
+  .navbar-location-text {
+    font-size: 12px;
+    max-width: 300px;
+  }
+
+  .navbar-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .navbar-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .navbar-right {
+    gap: 10px;
+  }
+}
+
+/* Desktop Styles */
+@media (min-width: 1024px) {
+  .navbar-container {
+    padding: 16px 40px;
+  }
+
+  .navbar-center {
+    gap: 4px;
+  }
+
+  .navbar-logo {
+    font-size: 24px;
+  }
+
+  .navbar-location-text {
+    font-size: 13px;
+  }
+
+  .navbar-right {
+    gap: 12px;
+  }
+}
+
+/* Dark mode support (future) */
+@media (prefers-color-scheme: dark) {
+  .top-navbar {
+    background: var(--vitrina-surface);
+    border-bottom-color: var(--vitrina-border-dark);
+  }
+
+  .navbar-icon-btn {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .navbar-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .navbar-search-bar {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--vitrina-border-dark);
+  }
+}

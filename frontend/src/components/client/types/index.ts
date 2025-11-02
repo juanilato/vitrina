@@ -9,7 +9,15 @@ export interface Company {
   rating?: number;
   reviewCount?: number;
   isVerified?: boolean;
-  ubicaciones?:Array<{
+  alias?: string;
+  ubicacion?: {
+    id: number;
+    direccion: string;
+    ciudad: string;
+    lat: number;
+    lng: number;
+  };
+  ubicaciones?: Array<{
     id: number;
     direccion: string;
     lat: number;
@@ -53,6 +61,9 @@ export interface CartItem {
   quantity: number;
   companyId: string;
   companyName: string;
+  notes?: string;
+  agregados?: any[]; // Para compatibilidad con sistema antiguo
+  ingredientesExtras?: any[]; // Para sistema nuevo de ingredientes
 }
 
 export interface Cart {

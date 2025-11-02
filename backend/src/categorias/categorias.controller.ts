@@ -40,4 +40,13 @@ export class CategoriasController {
   findAllSubcategories() {
     return this.categoriasService.findAllSubcategories();
   }
+
+  /**
+   * GET /subcategorias/:id/empresas
+   * Obtener empresas de una subcategoría específica
+   */
+  @Get('subcategorias/:id/empresas')
+  findCompaniesBySubcategory(@Param('id') id: string) {
+    return this.categoriasService.findCompaniesBySubcategory(id);
+  }
 }

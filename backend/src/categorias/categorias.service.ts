@@ -64,4 +64,29 @@ export class CategoriasService {
       ],
     });
   }
+
+  /**
+   * Obtener empresas de una subcategoría específica
+   */
+  async findCompaniesBySubcategory(subcategoryId: string) {
+    // Obtener empresas que tienen esta subcategoría en sus categorías seleccionadas
+    return this.prisma.empresa.findMany({
+      where: {
+        subcategorias: {
+          some: {
+            subcategoriaId: subcategoryId,
+          },
+        },
+      },
+      include: {
+        categoria: true,
+        subcategorias: {
+          include: {
+            subcategoria: true,
+          },
+        },
+        preferenciasWeb: true,
+      },
+    });
+  }
 }

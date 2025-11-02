@@ -1,0 +1,35 @@
+/* CategoriesGrid.css */
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Responsive para tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Responsive para desktop */
+@media (min-width: 1025px) {
+  .categories-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 24px;
+  }
+}
+
+/* Mobile pequeño */
+@media (max-width: 480px) {
+  .categories-grid {
+    gap: 10px;
+    padding: 12px;
+  }
+}

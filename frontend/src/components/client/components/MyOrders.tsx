@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthOptimized } from '../../../hooks/useAuthOptimized';
 import axiosInstance from '../../../config/axios.config';
+import { OrderCard, Order as OrderCardType, OrderStatus } from './OrderCard';
 
 interface OrderItem {
   id: string;
@@ -19,7 +20,10 @@ interface Order {
   clienteNombre: string;
   clienteEmail: string;
   empresaId: string;
-  estado: 'pendiente' | 'en_proceso' | 'finalizado';
+  estado: OrderStatus;
+  tipoEntrega?: 'delivery' | 'retiro';
+  formaPago?: 'transferencia' | 'efectivo';
+  direccionEntrega?: string;
   createdAt: string;
   updatedAt: string;
   ItemPedido: OrderItem[];
@@ -27,6 +31,7 @@ interface Order {
     id: string;
     name: string;
     email: string;
+    logo?: string;
   };
 }
 
@@ -35,7 +40,7 @@ const MyOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pendiente' | 'en_proceso' | 'finalizado'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
 
   useEffect(() => {
     loadOrders();
@@ -62,36 +67,17 @@ const MyOrders: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(price);
-  };
-
-  const getStatusColor = (status: string) => {
+  const getStatusLabel = (status: OrderStatus) => {
     switch (status) {
-      case 'pendiente': return '#f59e0b';
-      case 'en_proceso': return '#3b82f6';
-      case 'finalizado': return '#10b981';
-      default: return '#6b7280';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pendiente': return '⏳';
-      case 'en_proceso': return '⚙️';
-      case 'finalizado': return '✅';
-      default: return '📋';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pendiente': return 'Pendiente';
+      case 'pendiente_confirmacion': return 'Pendiente confirmación';
+      case 'confirmado': return 'Confirmado';
       case 'en_proceso': return 'En Proceso';
-      case 'finalizado': return 'Finalizado';
+      case 'esperando_delivery': return 'Esperando delivery';
+      case 'en_camino': return 'En camino';
+      case 'entregado': return 'Entregado';
+      case 'esperando_retiro': return 'Esperando retiro';
+      case 'no_confirmado': return 'No confirmado';
+      case 'cancelado': return 'Cancelado';
       default: return status;
     }
   };
@@ -103,9 +89,12 @@ const MyOrders: React.FC = () => {
 
   const stats = {
     total: orders.length,
-    pendientes: orders.filter(o => o.estado === 'pendiente').length,
+    pendienteConfirmacion: orders.filter(o => o.estado === 'pendiente_confirmacion').length,
+    confirmado: orders.filter(o => o.estado === 'confirmado').length,
     enProceso: orders.filter(o => o.estado === 'en_proceso').length,
-    finalizados: orders.filter(o => o.estado === 'finalizado').length,
+    enCamino: orders.filter(o => o.estado === 'en_camino').length,
+    entregado: orders.filter(o => o.estado === 'entregado').length,
+    noConfirmado: orders.filter(o => o.estado === 'no_confirmado').length,
   };
 
   if (loading) {
@@ -161,33 +150,47 @@ const MyOrders: React.FC = () => {
       {/* Filters */}
       <div className="orders-filters">
         <div className="filter-buttons">
-          <button 
+          <button
             className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
             <span className="filter-icon">📊</span>
             Todos ({stats.total})
           </button>
-          <button 
-            className={`filter-btn ${statusFilter === 'pendiente' ? 'active' : ''}`}
-            onClick={() => setStatusFilter('pendiente')}
+          <button
+            className={`filter-btn ${statusFilter === 'pendiente_confirmacion' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('pendiente_confirmacion')}
           >
             <span className="filter-icon">⏳</span>
-            Pendientes ({stats.pendientes})
+            Pendientes ({stats.pendienteConfirmacion})
           </button>
-          <button 
+          <button
+            className={`filter-btn ${statusFilter === 'confirmado' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('confirmado')}
+          >
+            <span className="filter-icon">✓</span>
+            Confirmados ({stats.confirmado})
+          </button>
+          <button
             className={`filter-btn ${statusFilter === 'en_proceso' ? 'active' : ''}`}
             onClick={() => setStatusFilter('en_proceso')}
           >
-            <span className="filter-icon">⚙️</span>
+            <span className="filter-icon">👨‍🍳</span>
             En Proceso ({stats.enProceso})
           </button>
-          <button 
-            className={`filter-btn ${statusFilter === 'finalizado' ? 'active' : ''}`}
-            onClick={() => setStatusFilter('finalizado')}
+          <button
+            className={`filter-btn ${statusFilter === 'en_camino' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('en_camino')}
+          >
+            <span className="filter-icon">🏍️</span>
+            En Camino ({stats.enCamino})
+          </button>
+          <button
+            className={`filter-btn ${statusFilter === 'entregado' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('entregado')}
           >
             <span className="filter-icon">✅</span>
-            Finalizados ({stats.finalizados})
+            Entregados ({stats.entregado})
           </button>
         </div>
       </div>
@@ -216,75 +219,30 @@ const MyOrders: React.FC = () => {
               const total = order.ItemPedido.reduce(
                 (sum, item) => sum + (item.precio * item.cantidad), 0
               );
-              
-              return (
-                <div key={order.id} className="order-card">
-                  {/* Order Header */}
-                  <div className="order-header">
-                    <div className="order-id">
-                      <span className="id-label">Pedido</span>
-                      <span className="id-value">#{order.id.slice(-8).toUpperCase()}</span>
-                    </div>
-                    <div 
-                      className="order-status"
-                      style={{ 
-                        backgroundColor: `${getStatusColor(order.estado)}20`,
-                        color: getStatusColor(order.estado),
-                        border: `1px solid ${getStatusColor(order.estado)}40`
-                      }}
-                    >
-                      <span className="status-icon">{getStatusIcon(order.estado)}</span>
-                      <span className="status-text">{getStatusLabel(order.estado)}</span>
-                    </div>
-                  </div>
 
-                  {/* Order Company */}
-                  {order.empresa && (
-                    <div className="order-company">
-                      <span className="company-label">Empresa:</span>
-                      <span className="company-name">{order.empresa.name}</span>
-                    </div>
-                  )}
+              // Transformar el pedido al formato que espera OrderCard
+              const orderCardData: OrderCardType = {
+                id: order.id,
+                clienteId: order.clienteNombre,
+                empresaId: order.empresaId,
+                estado: order.estado,
+                tipoEntrega: order.tipoEntrega || 'retiro',
+                formaPago: order.formaPago || 'efectivo',
+                createdAt: order.createdAt,
+                updatedAt: order.updatedAt,
+                items: order.ItemPedido.map(item => ({
+                  id: item.id,
+                  productoId: item.productoId,
+                  cantidad: item.cantidad,
+                  precio: item.precio,
+                  producto: item.producto
+                })),
+                empresa: order.empresa,
+                total: total,
+                direccionEntrega: order.direccionEntrega
+              };
 
-                  {/* Order Items */}
-                  <div className="order-items">
-                    <h4 className="items-title">Productos ({order.ItemPedido.length})</h4>
-                    <div className="items-list">
-                      {order.ItemPedido.map((item) => (
-                        <div key={item.id} className="order-item">
-                          <div className="item-info">
-                            <span className="item-name">{item.producto.nombre}</span>
-                            <span className="item-quantity">x{item.cantidad}</span>
-                          </div>
-                          <div className="item-price">
-                            {formatPrice(item.precio * item.cantidad)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Order Total */}
-                  <div className="order-total">
-                    <div className="total-label">Total:</div>
-                    <div className="total-amount">{formatPrice(total)}</div>
-                  </div>
-
-                  {/* Order Date */}
-                  <div className="order-date">
-                    <span className="date-icon">📅</span>
-                    <span className="date-text">
-                      Realizado el {new Date(order.createdAt).toLocaleDateString('es-AR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </div>
-                </div>
-              );
+              return <OrderCard key={order.id} order={orderCardData} />;
             })}
           </div>
         )}

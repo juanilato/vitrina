@@ -1,10 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { useClientDashboard } from './hooks/useClientDashboard';
-import { CompanyExplorer, CartSummary, MyOrders } from './components';
+import {
+  CompanyExplorer,
+  CartSummary,
+  MyOrders,
+  BottomNav,
+  HomeView,
+  CategoryView,
+  SubcategoryCompaniesView,
+  TopNavbar,
+  LocationsDropdown
+} from './components';
 import { CheckoutFormData, Company } from './types';
 import NotificationsDropdown from '../common/NotificationsDropdown';
 import { ThemeProvider } from '../../colors';
 import './ClientDashboard.css';
+import './ClientDashboardMobile.css';
+
+type TabView = 'home' | 'cart' | 'orders' | 'notifications' | 'profile';
+type NavigationView = 'home' | 'category' | 'subcategory' | 'companies';
+
+interface NavigationState {
+  view: NavigationView;
+  categoryId?: string;
+  categoryName?: string;
+  subcategoryId?: string;
+  subcategoryName?: string;
+}
 
 const ClientDashboard: React.FC = () => {
   const {
@@ -19,15 +41,20 @@ const ClientDashboard: React.FC = () => {
     updateCartQuantity,
     removeFromCart,
     createOrder,
-    navigateToCompanies,
-    navigateToCart,
-    navigateToMyOrders,
-    updateSearch,
-    updateCategoryFilter,
-    updateSortBy,
+    navigateToCart: oldNavigateToCart,
+    navigateToMyOrders: oldNavigateToMyOrders,
   } = useClientDashboard();
 
+  const [activeTab, setActiveTab] = useState<TabView>('home');
+  const [navigationState, setNavigationState] = useState<NavigationState>({
+    view: 'home',
+  });
   const [cartCompanyData, setCartCompanyData] = useState<Company | null>(null);
+
+  // Locations state
+  const [showLocationsDropdown, setShowLocationsDropdown] = useState(false);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
 
   // Load company details for cart items
   useEffect(() => {
@@ -47,13 +74,93 @@ const ClientDashboard: React.FC = () => {
   }, [cart.items, loadCompanyDetails]);
 
   const handleCheckout = async (companyId: string, formData: CheckoutFormData): Promise<void> => {
-    
-    
     const success = await createOrder(companyId, formData);
     if (success) {
       alert('¡Pedido creado exitosamente! La empresa será notificada.');
+      setActiveTab('orders');
     }
   };
+
+  // Navigation handlers
+  const handleTabChange = (tab: TabView) => {
+    setActiveTab(tab);
+    if (tab === 'home') {
+      setNavigationState({ view: 'home' });
+    } else if (tab === 'cart') {
+      oldNavigateToCart();
+    } else if (tab === 'orders') {
+      oldNavigateToMyOrders();
+    }
+  };
+
+  const handleCategoryClick = (categoryId: string, categoryName: string) => {
+    setNavigationState({
+      view: 'category',
+      categoryId,
+      categoryName,
+    });
+  };
+
+  const handleSubcategoryClick = (subcategoryId: string, subcategoryName: string) => {
+    setNavigationState({
+      ...navigationState,
+      view: 'subcategory',
+      subcategoryId,
+      subcategoryName,
+    });
+  };
+
+  const handleBackToHome = () => {
+    setNavigationState({ view: 'home' });
+  };
+
+  const handleBackToCategory = () => {
+    setNavigationState({
+      view: 'category',
+      categoryId: navigationState.categoryId,
+      categoryName: navigationState.categoryName,
+    });
+  };
+
+  // Location handlers
+  const handleLocationClick = () => {
+    setShowLocationsDropdown(!showLocationsDropdown);
+  };
+
+  const handleSelectLocation = (location: any) => {
+    setSelectedLocation(location);
+    setShowLocationsDropdown(false);
+  };
+
+  const handleAddLocation = () => {
+    setShowLocationsDropdown(false);
+    alert('Funcionalidad de agregar ubicación próximamente');
+  };
+
+  // Load user locations (mock data for now)
+  useEffect(() => {
+    if (user) {
+      // TODO: Replace with actual API call
+      const mockLocations = [
+        {
+          id: 1,
+          nombre: 'Casa',
+          direccion: 'Av. Principal 123, Ciudad',
+          referencia: 'Edificio azul',
+          esPrincipal: true,
+        },
+        {
+          id: 2,
+          nombre: 'Trabajo',
+          direccion: 'Calle Secundaria 456, Ciudad',
+          referencia: 'Oficina 301',
+          esPrincipal: false,
+        },
+      ];
+      setLocations(mockLocations);
+      setSelectedLocation(mockLocations.find(loc => loc.esPrincipal) || mockLocations[0]);
+    }
+  }, [user]);
 
   // Early return if user is not loaded
   if (!user) {
@@ -67,91 +174,35 @@ const ClientDashboard: React.FC = () => {
     );
   }
 
-  return (
-    <ThemeProvider companySlug="default">
-      <div className="client-dashboard">
-      {/* Header */}
-      <header className="client-header">
-        <div className="header-container">
-          {/* Logo and Brand */}
-          <div className="header-brand">
-            <img 
-              src="/vitrina-logo.png" 
-              alt="VITRINA" 
-              className="header-logo"
+  // Render main content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home':
+        if (navigationState.view === 'home') {
+          return <HomeView onCategoryClick={handleCategoryClick} />;
+        } else if (navigationState.view === 'category') {
+          return (
+            <CategoryView
+              categoryId={navigationState.categoryId!}
+              categoryName={navigationState.categoryName!}
+              onSubcategoryClick={handleSubcategoryClick}
+              onBack={handleBackToHome}
             />
-            <span className="brand-title">Vitrina</span>
-          </div>
-
-          {/* User Section */}
-          <div className="header-user">
-          <div className="notifications-container">
-              <NotificationsDropdown />
-            </div>
-            <div className="user-info-card">
-     
-              <span className="user-name">{user.name}</span>
-            </div>
-            
-            {/* Notificaciones */}
-    
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation Bar */}
-      <nav className="main-navbar">
-        <div className="navbar-container">
-          <button 
-            className={`navbar-btn ${state.view === 'companies' ? 'active' : ''}`}
-            onClick={navigateToCompanies}
-          >
-            <span className="navbar-icon">🔍</span>
-            <span className="navbar-label">EXPLORAR</span>
-          </button>
-          
-          <button 
-            className={`navbar-btn ${state.view === 'my-orders' ? 'active' : ''}`}
-            onClick={navigateToMyOrders}
-          >
-            <span className="navbar-icon">📋</span>
-            <span className="navbar-label">MIS PEDIDOS</span>
-          </button>
-          
-
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="client-main">
-        {error && (
-          <div className="error-banner">
-            <span className="error-icon">⚠️</span>
-            <span className="error-message">{error}</span>
-            <button 
-              className="error-close"
-              onClick={() => window.location.reload()}
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
-        <div className="main-container">
-          {state.view === 'companies' && (
-            <CompanyExplorer
-              companies={companies}
-              state={state}
-              loading={loading}
-              onViewCompany={navigateToCompanyStore}
-              onUpdateSearch={updateSearch}
-              onUpdateCategoryFilter={updateCategoryFilter}
-              onUpdateSortBy={updateSortBy}
+          );
+        } else if (navigationState.view === 'subcategory') {
+          return (
+            <SubcategoryCompaniesView
+              subcategoryId={navigationState.subcategoryId!}
+              subcategoryName={navigationState.subcategoryName!}
+              onBack={handleBackToCategory}
             />
-          )}
+          );
+        }
+        break;
 
-
-          {state.view === 'cart' && (
+      case 'cart':
+        return (
+          <div className="tab-content">
             <CartSummary
               cart={cart}
               onUpdateQuantity={updateCartQuantity}
@@ -163,31 +214,129 @@ const ClientDashboard: React.FC = () => {
                 ubicaciones: cartCompanyData.ubicaciones || []
               } : undefined}
             />
-          )}
+          </div>
+        );
 
-          {state.view === 'my-orders' && (
+      case 'orders':
+        return (
+          <div className="tab-content">
             <MyOrders />
-          )}
-        </div>
-      </main>
+          </div>
+        );
 
-      {/* Floating Cart Button (when not in cart view) */}
-      {state.view !== 'cart' && cart.totalItems > 0 && (
-        <button 
-          className="floating-cart-btn"
-          onClick={navigateToCart}
-          title="Ver carrito"
-        >
-          <span className="cart-icon">🛒</span>
-          <span className="cart-count">{cart.totalItems}</span>
-          <span className="cart-total">
-            {new Intl.NumberFormat('es-AR', {
-              style: 'currency',
-              currency: 'ARS'
-            }).format(cart.totalAmount)}
-          </span>
-        </button>
-      )}
+      case 'notifications':
+        return (
+          <div className="tab-content">
+            <div className="notifications-view">
+              <div className="view-header">
+                <h1 className="view-title">Notificaciones</h1>
+              </div>
+              <div className="notifications-content">
+                <NotificationsDropdown />
+                <p className="coming-soon">Vista de notificaciones completa próximamente</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'profile':
+        return (
+          <div className="tab-content">
+            <div className="profile-view">
+              <div className="profile-header">
+                <div className="profile-avatar">
+                  {user.name?.charAt(0).toUpperCase() || '👤'}
+                </div>
+                <h2 className="profile-name">{user.name}</h2>
+                <p className="profile-email">{user.email}</p>
+              </div>
+              <div className="profile-menu">
+                <button className="profile-menu-item" onClick={() => setActiveTab('orders')}>
+                  <span className="menu-icon">📋</span>
+                  <span className="menu-label">Mis Pedidos</span>
+                  <span className="menu-arrow">→</span>
+                </button>
+                <button className="profile-menu-item">
+                  <span className="menu-icon">📍</span>
+                  <span className="menu-label">Direcciones</span>
+                  <span className="menu-arrow">→</span>
+                </button>
+                <button className="profile-menu-item">
+                  <span className="menu-icon">💳</span>
+                  <span className="menu-label">Métodos de Pago</span>
+                  <span className="menu-arrow">→</span>
+                </button>
+                <button className="profile-menu-item">
+                  <span className="menu-icon">⚙️</span>
+                  <span className="menu-label">Configuración</span>
+                  <span className="menu-arrow">→</span>
+                </button>
+                <div className="profile-divider"></div>
+                <button className="profile-menu-item">
+                  <span className="menu-icon">❓</span>
+                  <span className="menu-label">Ayuda y Soporte</span>
+                  <span className="menu-arrow">→</span>
+                </button>
+                <button className="profile-menu-item danger">
+                  <span className="menu-icon">🚪</span>
+                  <span className="menu-label">Cerrar Sesión</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <ThemeProvider companySlug="default">
+      <div className="client-dashboard client-dashboard-mobile">
+        {/* Top Navigation */}
+        <TopNavbar
+          onLocationClick={handleLocationClick}
+          selectedLocation={selectedLocation?.nombre}
+          onSearchClick={() => console.log('Search clicked')}
+          onMenuClick={() => setActiveTab('profile')}
+        />
+
+        {/* Locations Dropdown */}
+        <LocationsDropdown
+          isOpen={showLocationsDropdown}
+          onClose={() => setShowLocationsDropdown(false)}
+          locations={locations}
+          selectedLocation={selectedLocation}
+          onSelectLocation={handleSelectLocation}
+          onAddLocation={handleAddLocation}
+        />
+
+        {error && (
+          <div className="error-banner">
+            <span className="error-icon">⚠️</span>
+            <span className="error-message">{error}</span>
+            <button
+              className="error-close"
+              onClick={() => window.location.reload()}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Main Content Area */}
+        <main className="client-main-mobile">
+          {renderContent()}
+        </main>
+
+        {/* Bottom Navigation */}
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          cartItemsCount={cart.totalItems}
+          unreadNotifications={0}
+        />
       </div>
     </ThemeProvider>
   );

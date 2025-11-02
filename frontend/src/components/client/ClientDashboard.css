@@ -1,25 +1,26 @@
-/* Client Dashboard Styles - VITRINA Professional */
+/* Client Dashboard Styles - VITRINA Professional Web App */
 
 /* ===== COMPANY THEME VARIABLES ===== */
 /* Estas variables se aplicarán dinámicamente desde el hook useCompanyTheme */
 :root {
-  --company-primary: #007AFF;
-  --company-secondary: #475569;
-  --company-background: #f8f9fa;
+  --company-primary: #0A2A43;
+  --company-secondary: #2E9D66;
+  --company-background: #F9F9F9;
   --company-surface: #ffffff;
   --company-text: #333333;
-  --company-text-secondary: #666666;
-  --company-border: #e9ecef;
-  --company-success: #10b981;
+  --company-text-secondary: #525252;
+  --company-border: #E5E5EA;
+  --company-success: #2E9D66;
 }
 
 /* ===== MAIN LAYOUT ===== */
 .client-dashboard {
   min-height: 100vh;
-  background: #f8f9fa;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--vitrina-background);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   display: flex;
   flex-direction: column;
+  color: var(--vitrina-text-primary);
 }
 
 /* ===== HEADER ===== */

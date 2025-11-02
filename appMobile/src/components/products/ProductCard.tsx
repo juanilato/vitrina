@@ -21,6 +21,7 @@ interface ProductCardProps {
   onPress?: () => void;
   onAddToCart?: () => void;
   buttonColor?: string;
+  showExtrasIndicator?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -28,7 +29,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onPress,
   onAddToCart,
   buttonColor = colors.primary,
+  showExtrasIndicator = true,
 }) => {
+  const hasExtras = product.agregados && product.agregados.length > 0;
+  const hasIngredients = product.ingredientes && product.ingredientes.length > 0;
+  const hasCustomizations = hasExtras || hasIngredients;
+
   return (
     <TouchableOpacity
       style={[styles.container, !product.activo && styles.inactiveContainer]}
@@ -65,12 +71,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </Text>
 
           {product.descripcion && (
-            <Text style={styles.description} numberOfLines={1}>
+            <Text style={styles.description} numberOfLines={2}>
               {product.descripcion}
             </Text>
           )}
 
-          <Text style={styles.price}>${formatPrice(product.precio)}</Text>
+          <View style={styles.bottomRow}>
+            <Text style={styles.price}>${formatPrice(product.precio)}</Text>
+
+            {/* Customization Indicator */}
+            {showExtrasIndicator && hasCustomizations && (
+              <View style={styles.customizationBadge}>
+                <Ionicons name="options-outline" size={12} color={colors.primary} />
+                <Text style={styles.customizationText}>Personalizable</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Add Button */}
@@ -158,13 +174,38 @@ const styles = StyleSheet.create({
   description: {
     ...textStyles.caption1,
     color: colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: 6,
+    lineHeight: 16,
+  },
+
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
 
   price: {
     ...textStyles.callout,
     color: colors.primary,
     fontWeight: '700',
+  },
+
+  customizationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+    gap: 3,
+  },
+
+  customizationText: {
+    ...textStyles.caption2,
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 10,
   },
 
   addButton: {

@@ -6,22 +6,15 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { OrderStatus } from '../../types/order';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 
-export type OrderStatus =
-  | 'pendiente'
-  | 'pendiente_confirmacion'
-  | 'confirmado'
-  | 'preparando'
-  | 'en_camino'
-  | 'entregado'
-  | 'cancelado';
-
 interface OrderStatusBadgeProps {
   status: OrderStatus;
   showIcon?: boolean;
+  size?: 'small' | 'medium';
 }
 
 const statusConfig: Record<OrderStatus, {
@@ -30,12 +23,6 @@ const statusConfig: Record<OrderStatus, {
   backgroundColor: string;
   icon: keyof typeof Ionicons.glyphMap;
 }> = {
-  pendiente: {
-    label: 'Pendiente',
-    color: colors.gray700,
-    backgroundColor: colors.gray200,
-    icon: 'time-outline',
-  },
   pendiente_confirmacion: {
     label: 'Pendiente confirmación',
     color: colors.warning,
@@ -44,32 +31,50 @@ const statusConfig: Record<OrderStatus, {
   },
   confirmado: {
     label: 'Confirmado',
-    color: colors.accent,  // Azul brillante
+    color: colors.accent,
     backgroundColor: '#E5F4FF',
     icon: 'checkmark-circle-outline',
   },
-  preparando: {
-    label: 'Preparando',
-    color: colors.orange,  // Naranja
-    backgroundColor: '#FFF0E6',
+  en_proceso: {
+    label: 'En Proceso',
+    color: colors.primary,
+    backgroundColor: '#E8EEF3',
     icon: 'restaurant-outline',
+  },
+  esperando_delivery: {
+    label: 'Esperando Delivery',
+    color: '#8B5CF6',
+    backgroundColor: '#EDE9FE',
+    icon: 'person-outline',
   },
   en_camino: {
     label: 'En camino',
-    color: colors.primary,  // Azul oscuro
-    backgroundColor: '#E8EEF3',
+    color: '#06B6D4',
+    backgroundColor: '#CFFAFE',
     icon: 'bicycle-outline',
   },
   entregado: {
     label: 'Entregado',
-    color: colors.success,  // Verde
+    color: colors.success,
     backgroundColor: '#E8F5EE',
     icon: 'checkmark-done-circle-outline',
   },
-  cancelado: {
-    label: 'Cancelado',
+  esperando_retiro: {
+    label: 'Listo para Retiro',
+    color: '#7C3AED',
+    backgroundColor: '#EDE9FE',
+    icon: 'bag-check-outline',
+  },
+  no_confirmado: {
+    label: 'No Confirmado',
     color: colors.error,
     backgroundColor: '#FFE5E5',
+    icon: 'close-circle-outline',
+  },
+  cancelado: {
+    label: 'Cancelado',
+    color: colors.gray700,
+    backgroundColor: colors.gray200,
     icon: 'close-circle-outline',
   },
 };
@@ -77,6 +82,7 @@ const statusConfig: Record<OrderStatus, {
 export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
   status,
   showIcon = true,
+  size = 'medium',
 }) => {
   const config = statusConfig[status] || {
     label: status || 'Desconocido',
@@ -85,16 +91,30 @@ export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
     icon: 'help-circle-outline' as keyof typeof Ionicons.glyphMap,
   };
 
-  if (!config) {
+  if (!statusConfig[status]) {
     console.warn(`Unknown order status: ${status}`);
   }
 
+  const isSmall = size === 'small';
+
   return (
-    <View style={[styles.container, { backgroundColor: config.backgroundColor }]}>
+    <View style={[
+      styles.container,
+      { backgroundColor: config.backgroundColor },
+      isSmall && styles.containerSmall,
+    ]}>
       {showIcon && (
-        <Ionicons name={config.icon} size={16} color={config.color} />
+        <Ionicons
+          name={config.icon}
+          size={isSmall ? 14 : 16}
+          color={config.color}
+        />
       )}
-      <Text style={[styles.text, { color: config.color }]}>
+      <Text style={[
+        styles.text,
+        { color: config.color },
+        isSmall && styles.textSmall,
+      ]}>
         {config.label}
       </Text>
     </View>
@@ -111,9 +131,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'flex-start',
   },
+  containerSmall: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 4,
+    gap: 4,
+  },
   text: {
     ...typography.caption1,
     fontWeight: '600',
     fontSize: 12,
+  },
+  textSmall: {
+    fontSize: 10,
   },
 });

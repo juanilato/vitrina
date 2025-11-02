@@ -24,7 +24,13 @@
       "Bash(move \"(tabs)\\notifications.tsx\" \"notifications.tsx\")",
       "Bash(move \"(tabs)\\profile.tsx\" \"profile.tsx\")",
       "Bash(nul)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(tree:*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm run clean:*)",
+      "Bash(if exist .expo rmdir /s /q .expo)",
+      "Bash(rd /s /q .expo 2)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

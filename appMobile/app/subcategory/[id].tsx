@@ -3,7 +3,7 @@
  * Muestra empresas filtradas por subcategoría
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -17,35 +17,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCompanies } from '../../src/hooks/useCompanies';
+import { useSubcategoryCompanies } from '../../src/hooks/useSubcategoryCompanies';
 import { CompanyCard } from '../../src/components/companies/CompanyCard';
 import { colors, textStyles, spacing } from '../../src/theme';
 
 export default function SubcategoryScreen() {
   const router = useRouter();
   const { id, categoryId, name, categoryName } = useLocalSearchParams();
-  const {
-    companies,
-    loading,
-    error,
-    refreshing,
-    refresh,
-  } = useCompanies();
 
-  // Filtrar empresas por categoría y subcategoría
-  const filteredCompanies = useMemo(() => {
-    return companies.filter((company) => {
-      const matchesCategory = company.categoriaId === categoryId;
+  // Si id es 'all', usar el hook de todas las empresas, sino usar el hook de subcategoría
+  const allCompaniesHook = useCompanies();
+  const subcategoryHook = useSubcategoryCompanies(id !== 'all' ? id : undefined);
 
-      // Si id es 'all', mostrar todas las empresas de la categoría
-      if (id === 'all') {
-        return matchesCategory;
-      }
-
-      // De lo contrario, filtrar por subcategoría
-      const matchesSubcategory = company.subcategoriaId === id;
-      return matchesCategory && matchesSubcategory;
-    });
-  }, [companies, categoryId, id]);
+  // Determinar qué hook usar según el id
+  const isAllCompanies = id === 'all';
+  const companies = isAllCompanies
+    ? allCompaniesHook.allCompanies.filter((c) => c.categoriaId === categoryId)
+    : subcategoryHook.companies;
+  const loading = isAllCompanies ? allCompaniesHook.loading : subcategoryHook.loading;
+  const error = isAllCompanies ? allCompaniesHook.error : subcategoryHook.error;
+  const refreshing = isAllCompanies ? allCompaniesHook.refreshing : subcategoryHook.refreshing;
+  const refresh = isAllCompanies ? allCompaniesHook.refresh : subcategoryHook.refresh;
 
   const renderEmptyState = () => {
     if (loading) return null;
@@ -83,7 +75,7 @@ export default function SubcategoryScreen() {
         <View style={styles.headerCenter}>
           <Text style={styles.title}>{name}</Text>
           <Text style={styles.subtitle}>
-            {categoryName} • {filteredCompanies.length} {filteredCompanies.length === 1 ? 'empresa' : 'empresas'}
+            {categoryName} • {companies.length} {companies.length === 1 ? 'empresa' : 'empresas'}
           </Text>
         </View>
 
@@ -97,7 +89,7 @@ export default function SubcategoryScreen() {
         </View>
       ) : (
         <FlatList
-          data={filteredCompanies}
+          data={companies}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <CompanyCard company={item} />}
           contentContainerStyle={styles.listContent}

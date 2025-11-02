@@ -1,16 +1,17 @@
 /* ===== VARIABLES CSS GLOBALES ===== */
 
 :root {
-  /* Colores Primarios */
-  --vitrina-primary: #667eea;
-  --vitrina-secondary: #764ba2;
-  --vitrina-accent: #f093fb;
-  
-  /* Colores de Texto */
+  /* Colores Primarios - Mobile App Theme */
+  --vitrina-primary: #0A2A43;        /* Azul oscuro - Color principal */
+  --vitrina-secondary: #2E9D66;      /* Verde - Acciones secundarias */
+  --vitrina-accent: #007ACC;         /* Azul brillante - Elementos interactivos */
+  --vitrina-orange: #F26B1D;         /* Naranja - CTAs y destacados */
+
+  /* Colores de Texto - Mobile App Theme */
   --vitrina-text: #1a202c;           /* Texto principal más oscuro */
   --vitrina-text-primary: #1a202c;   /* Texto principal más oscuro */
   --vitrina-text-secondary: #2d3748; /* Texto secundario más oscuro */
-  --vitrina-text-tertiary: #4a5568;  /* Texto terciario más oscuro */
+  --vitrina-text-tertiary: #8E8E93;  /* Texto terciario más claro (iOS style) */
   --vitrina-text-quaternary: #718096;
   
   /* Colores de Fondo */
@@ -21,12 +22,12 @@
   --vitrina-dark: #1a202c;
   --vitrina-gray: #6b7280;
   
-  /* Colores de Estado */
-  --vitrina-success: #10b981;
-  --vitrina-warning: #f59e0b;
-  --vitrina-danger: #ef4444;
-  --vitrina-error: #ef4444;
-  --vitrina-info: #3b82f6;
+  /* Colores de Estado - Mobile App Theme */
+  --vitrina-success: #2E9D66;        /* Verde */
+  --vitrina-warning: #F26B1D;        /* Naranja */
+  --vitrina-danger: #DC2626;         /* Rojo */
+  --vitrina-error: #DC2626;          /* Rojo */
+  --vitrina-info: #007ACC;           /* Azul */
   
   /* Colores de Borde */
   --vitrina-border: #e2e8f0;

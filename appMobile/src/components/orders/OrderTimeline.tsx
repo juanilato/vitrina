@@ -6,10 +6,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { OrderStatus, TipoEntrega } from '../../types/order';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
-import type { OrderStatus } from './OrderStatusBadge';
 
 interface TimelineStep {
   status: OrderStatus;
@@ -17,42 +17,63 @@ interface TimelineStep {
   icon: keyof typeof Ionicons.glyphMap;
 }
 
-const timelineSteps: TimelineStep[] = [
-  { status: 'pendiente', label: 'Pedido realizado', icon: 'receipt' },
-  { status: 'confirmado', label: 'Confirmado', icon: 'checkmark-circle' },
-  { status: 'preparando', label: 'En preparación', icon: 'restaurant' },
-  { status: 'en_camino', label: 'En camino', icon: 'bicycle' },
-  { status: 'entregado', label: 'Entregado', icon: 'checkmark-done-circle' },
-];
+const getTimelineSteps = (tipoEntrega: TipoEntrega): TimelineStep[] => {
+  const deliverySteps: TimelineStep[] = [
+    { status: 'pendiente_confirmacion', label: 'Pedido realizado', icon: 'receipt' },
+    { status: 'confirmado', label: 'Confirmado', icon: 'checkmark-circle' },
+    { status: 'en_proceso', label: 'En preparación', icon: 'restaurant' },
+    { status: 'esperando_delivery', label: 'Esperando delivery', icon: 'person' },
+    { status: 'en_camino', label: 'En camino', icon: 'bicycle' },
+    { status: 'entregado', label: 'Entregado', icon: 'checkmark-done-circle' },
+  ];
+
+  const pickupSteps: TimelineStep[] = [
+    { status: 'pendiente_confirmacion', label: 'Pedido realizado', icon: 'receipt' },
+    { status: 'confirmado', label: 'Confirmado', icon: 'checkmark-circle' },
+    { status: 'en_proceso', label: 'En preparación', icon: 'restaurant' },
+    { status: 'esperando_retiro', label: 'Listo para retiro', icon: 'bag-check' },
+    { status: 'entregado', label: 'Retirado', icon: 'checkmark-done-circle' },
+  ];
+
+  return tipoEntrega === 'delivery' ? deliverySteps : pickupSteps;
+};
 
 interface OrderTimelineProps {
   currentStatus: OrderStatus;
+  tipoEntrega: TipoEntrega;
   createdAt: string | Date;
   updatedAt?: string | Date;
 }
 
 export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   currentStatus,
+  tipoEntrega,
   createdAt,
   updatedAt,
 }) => {
-  // Si el pedido está cancelado, mostramos un timeline diferente
-  if (currentStatus === 'cancelado') {
+  // Si el pedido está cancelado o no confirmado, mostramos un timeline diferente
+  if (currentStatus === 'cancelado' || currentStatus === 'no_confirmado') {
+    const isCancelled = currentStatus === 'cancelado';
     return (
       <View style={styles.container}>
         <View style={styles.cancelledContainer}>
           <View style={styles.cancelledIconContainer}>
             <Ionicons name="close-circle" size={48} color={colors.error} />
           </View>
-          <Text style={styles.cancelledTitle}>Pedido cancelado</Text>
+          <Text style={styles.cancelledTitle}>
+            {isCancelled ? 'Pedido cancelado' : 'Pedido no confirmado'}
+          </Text>
           <Text style={styles.cancelledSubtitle}>
-            Este pedido fue cancelado
+            {isCancelled
+              ? 'Este pedido fue cancelado'
+              : 'El pedido no fue confirmado por el negocio'}
           </Text>
         </View>
       </View>
     );
   }
 
+  const timelineSteps = getTimelineSteps(tipoEntrega);
   const currentStepIndex = timelineSteps.findIndex((step) => step.status === currentStatus);
 
   return (
