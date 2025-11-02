@@ -15,13 +15,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useCart } from '../../src/contexts/CartContext';
-import { CartItem } from '../../src/components/cart/CartItem';
-import { Button } from '../../src/components/common/Button';
-import { colors } from '../../src/theme/colors';
-import { spacing } from '../../src/theme/spacing';
-import { textStyles as typography } from '../../src/theme/typography';
-import { formatPrice } from '../../src/utils/formatPrice';
+import { useCart } from '../src/contexts/CartContext';
+import { CartItem } from '../src/components/cart/CartItem';
+import { Button } from '../src/components/common/Button';
+import { colors } from '../src/theme/colors';
+import { spacing } from '../src/theme/spacing';
+import { textStyles as typography } from '../src/theme/typography';
+import { formatPrice } from '../src/utils/formatPrice';
 
 export default function CartScreen() {
   const router = useRouter();

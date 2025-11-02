@@ -44,6 +44,18 @@ export interface Preferencias {
   horarios?: HorarioAtencion[];
 }
 
+export interface Categoria {
+  id: string;
+  nombre: string;
+  icono?: string;
+}
+
+export interface Subcategoria {
+  id: string;
+  nombre: string;
+  icono?: string;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -63,6 +75,10 @@ export interface Company {
   ubicacion?: Ubicacion;
   ubicaciones?: Ubicacion[];
   preferenciasWeb?: Preferencias;
+  categoriaId?: string;
+  subcategoriaId?: string;
+  categoria?: Categoria;
+  subcategoria?: Subcategoria;
   createdAt: string;
   updatedAt: string;
 }

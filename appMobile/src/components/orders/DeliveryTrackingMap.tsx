@@ -70,17 +70,38 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
     const handleUbicacionActualizada = (data: any) => {
       if (data.pedidoId === pedidoId) {
-        console.log('[Map] Ubicación del repartidor actualizada:', data);
+        console.log('[Map] 📍 Ubicación del repartidor actualizada via WebSocket');
+        console.log('[Map] 📍 Datos recibidos:', JSON.stringify(data, null, 2));
+        console.log('[Map] 📍 Latitud:', data.latitud, 'Longitud:', data.longitud);
+
+        // Validar que las coordenadas sean válidas
+        const lat = parseFloat(data.latitud);
+        const lng = parseFloat(data.longitud);
+
+        if (isNaN(lat) || isNaN(lng)) {
+          console.error('[Map] ❌ Coordenadas inválidas recibidas:', { lat, lng });
+          return;
+        }
+
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          console.error('[Map] ❌ Coordenadas fuera de rango:', { lat, lng });
+          return;
+        }
+
         setMapData((prev) => {
           if (!prev) return null;
-          return {
+
+          const newMapData = {
             ...prev,
             repartidor: {
-              latitud: data.latitud,
-              longitud: data.longitud,
+              latitud: lat,
+              longitud: lng,
               nombre: prev.repartidor?.nombre,
             },
           };
+
+          console.log('[Map] 📍 MapData actualizado:', JSON.stringify(newMapData.repartidor, null, 2));
+          return newMapData;
         });
       }
     };
@@ -144,6 +165,9 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
       setLoading(true);
       setError(null);
       const data = await orderService.getMapData(pedidoId);
+
+      console.log('[Map] 📍 Datos iniciales del mapa recibidos:', JSON.stringify(data, null, 2));
+
       setMapData(data);
 
       // Calcular región inicial centrada entre los puntos
@@ -151,7 +175,12 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
         const latitudes = [data.cliente.latitud, data.empresa.latitud];
         const longitudes = [data.cliente.longitud, data.empresa.longitud];
 
+        console.log('[Map] 📍 Coordenadas iniciales:');
+        console.log('[Map] 📍 Cliente:', data.cliente.latitud, data.cliente.longitud);
+        console.log('[Map] 📍 Empresa:', data.empresa.latitud, data.empresa.longitud);
+
         if (data.repartidor) {
+          console.log('[Map] 📍 Repartidor:', data.repartidor.latitud, data.repartidor.longitud);
           latitudes.push(data.repartidor.latitud);
           longitudes.push(data.repartidor.longitud);
         }
@@ -161,6 +190,13 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
         const latDelta = Math.max(...latitudes) - Math.min(...latitudes);
         const lngDelta = Math.max(...longitudes) - Math.min(...longitudes);
 
+        console.log('[Map] 📍 Región calculada:', {
+          centerLat,
+          centerLng,
+          latDelta: latDelta * 1.5 || 0.01,
+          lngDelta: lngDelta * 1.5 || 0.01,
+        });
+
         setRegion({
           latitude: centerLat,
           longitude: centerLng,
@@ -169,7 +205,7 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
         });
       }
     } catch (err: any) {
-      console.error('[Map] Error al cargar datos del mapa:', err);
+      console.error('[Map] ❌ Error al cargar datos del mapa:', err);
       setError(err.response?.data?.message || 'Error al cargar el mapa');
     } finally {
       setLoading(false);

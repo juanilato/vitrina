@@ -109,7 +109,12 @@ const RepartidorOrdersSection: React.FC = () => {
   const enviarUbicacion = (pedidoId: string) => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
+
+        console.log(`📍 [GPS] Ubicación obtenida del navegador:`);
+        console.log(`📍 [GPS] - Latitud: ${latitude}`);
+        console.log(`📍 [GPS] - Longitud: ${longitude}`);
+        console.log(`📍 [GPS] - Precisión: ${accuracy} metros`);
 
         try {
           // Enviar al backend vía HTTP (ahora con el ID del pedido en la ruta)
@@ -118,6 +123,8 @@ const RepartidorOrdersSection: React.FC = () => {
             lng: longitude,
           });
 
+          console.log(`📍 [GPS] Ubicación enviada al backend via HTTP`);
+
           // Emitir vía WebSocket para actualización en tiempo real
           emit('actualizar_ubicacion_repartidor', {
             pedidoId,
@@ -125,14 +132,14 @@ const RepartidorOrdersSection: React.FC = () => {
             longitud: longitude,
           });
 
-          console.log(`[GPS] Ubicación enviada: ${latitude}, ${longitude}`);
+          console.log(`📍 [GPS] Ubicación enviada via WebSocket con latitud=${latitude}, longitud=${longitude}`);
         } catch (err: any) {
-          console.error('[GPS] Error al enviar ubicación:', err);
+          console.error('❌ [GPS] Error al enviar ubicación:', err);
           setLocationError('Error al enviar ubicación');
         }
       },
       (error) => {
-        console.error('[GPS] Error al obtener ubicación:', error);
+        console.error('❌ [GPS] Error al obtener ubicación:', error);
         setLocationError('Error al obtener ubicación GPS');
       },
       {

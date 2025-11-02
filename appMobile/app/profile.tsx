@@ -15,10 +15,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { colors, spacing } from '../../src/theme';
-import { textStyles as typography } from '../../src/theme/typography';
-import { useAuth } from '../../src/contexts/AuthContext';
-import { useOrders } from '../../src/hooks/useOrders';
+import { colors, spacing } from '../src/theme';
+import { textStyles as typography } from '../src/theme/typography';
+import { useAuth } from '../src/contexts/AuthContext';
+import { useOrders } from '../src/hooks/useOrders';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();

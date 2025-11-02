@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
 import { UpdateExtrasDto } from './dto/update-extras.dto';
+import { UpdateCategoriasDto } from './dto/update-categorias.dto';
 import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
@@ -30,7 +31,13 @@ async findOne(id: string) {
       ubicacion: true,
       preferenciasWeb: {
         include: {
-          horarios: true, // 👈 agregás esto
+          horarios: true,
+        },
+      },
+      categoria: true,
+      subcategorias: {
+        include: {
+          subcategoria: true,
         },
       },
     },
@@ -47,14 +54,17 @@ async findOne(id: string) {
     hasUbicacion: !!empresa.ubicacion,
     hasPreferencias: !!empresa.preferenciasWeb,
     horariosCount: empresa.preferenciasWeb?.horarios?.length ?? 0,
+    categoriaId: empresa.categoriaId,
+    subcategoriasCount: empresa.subcategorias?.length ?? 0,
   });
 
   // Remover la contraseña del objeto de respuesta y renombrar ubicacion a ubicaciones
-  const { password, ubicacion, ...empresaSinPassword } = empresa as any;
+  const { password, ubicacion, subcategorias, ...empresaSinPassword } = empresa as any;
 
   return {
     ...empresaSinPassword,
     ubicaciones: ubicacion ? [ubicacion] : [],
+    subcategorias: subcategorias?.map((es: any) => es.subcategoria) || [],
   };
 }
   async update(id: string, updateEmpresaDto: UpdateEmpresaDto) {
@@ -980,5 +990,112 @@ async uploadDashboard(id: string, file: Express.Multer.File) {
     console.log('✅ [ELIMINAR VINCULACION] Vinculación eliminada exitosamente');
 
     return { message: 'Vinculación eliminada exitosamente' };
+  }
+
+  // Categorías y Subcategorías
+  async updateCategorias(empresaId: string, updateCategoriasDto: UpdateCategoriasDto) {
+    console.log('📂 [UPDATE CATEGORIAS] Actualizando categorías:', { empresaId, ...updateCategoriasDto });
+
+    // Verificar que la empresa existe
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
+
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    // Si se proporciona categoriaId, verificar que existe
+    if (updateCategoriasDto.categoriaId) {
+      const categoria = await this.prisma.categoria.findUnique({
+        where: { id: updateCategoriasDto.categoriaId },
+      });
+
+      if (!categoria) {
+        throw new NotFoundException('Categoría no encontrada');
+      }
+    }
+
+    // Si se proporcionan subcategorías, verificar que existen y pertenecen a la categoría
+    if (updateCategoriasDto.subcategoriaIds && updateCategoriasDto.subcategoriaIds.length > 0) {
+      const subcategorias = await this.prisma.subcategoria.findMany({
+        where: {
+          id: { in: updateCategoriasDto.subcategoriaIds },
+        },
+      });
+
+      if (subcategorias.length !== updateCategoriasDto.subcategoriaIds.length) {
+        throw new BadRequestException('Una o más subcategorías no fueron encontradas');
+      }
+
+      // Verificar que todas las subcategorías pertenecen a la categoría seleccionada
+      if (updateCategoriasDto.categoriaId) {
+        const subcategoriaInvalida = subcategorias.find(
+          (sub) => sub.categoriaId !== updateCategoriasDto.categoriaId
+        );
+
+        if (subcategoriaInvalida) {
+          throw new BadRequestException(
+            `La subcategoría ${subcategoriaInvalida.nombre} no pertenece a la categoría seleccionada`
+          );
+        }
+      }
+    }
+
+    // Usar transacción para actualizar categoría y subcategorías
+    return this.prisma.$transaction(async (tx) => {
+      // Actualizar categoría de la empresa
+      await tx.empresa.update({
+        where: { id: empresaId },
+        data: {
+          categoriaId: updateCategoriasDto.categoriaId || null,
+        },
+      });
+
+      // Eliminar todas las subcategorías anteriores
+      await tx.empresaSubcategoria.deleteMany({
+        where: { empresaId },
+      });
+
+      // Agregar las nuevas subcategorías
+      if (updateCategoriasDto.subcategoriaIds && updateCategoriasDto.subcategoriaIds.length > 0) {
+        await tx.empresaSubcategoria.createMany({
+          data: updateCategoriasDto.subcategoriaIds.map((subcategoriaId) => ({
+            empresaId,
+            subcategoriaId,
+          })),
+        });
+      }
+
+      // Retornar la empresa actualizada con sus relaciones
+      const empresaActualizada = await tx.empresa.findUnique({
+        where: { id: empresaId },
+        include: {
+          categoria: true,
+          subcategorias: {
+            include: {
+              subcategoria: true,
+            },
+          },
+          ubicacion: true,
+          preferenciasWeb: {
+            include: {
+              horarios: true,
+            },
+          },
+        },
+      });
+
+      console.log('✅ [UPDATE CATEGORIAS] Categorías actualizadas exitosamente');
+
+      // Transformar la respuesta para que sea consistente con findOne
+      const { password, ubicacion, subcategorias, ...empresaSinPassword } = empresaActualizada as any;
+
+      return {
+        ...empresaSinPassword,
+        ubicaciones: ubicacion ? [ubicacion] : [],
+        subcategorias: subcategorias.map((es: any) => es.subcategoria),
+      };
+    });
   }
 }

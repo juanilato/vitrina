@@ -8,6 +8,7 @@ import { AuthProvider } from '../src/contexts/AuthContext';
 import { CartProvider } from '../src/contexts/CartContext';
 import { NotificationsProvider, useNotifications } from '../src/contexts/NotificationsContext';
 import { LocationProvider } from '../src/contexts/LocationContext';
+import { AppDataProvider } from '../src/contexts/AppDataContext';
 import { NotificationPopup } from '../src/components/notifications';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -25,9 +26,15 @@ function AppContent() {
           contentStyle: { backgroundColor: '#FFFFFF' },
         }}
       >
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="cart" />
+        <Stack.Screen name="orders" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="auth" />
         <Stack.Screen name="company/[id]" />
+        <Stack.Screen name="category/[id]" />
+        <Stack.Screen name="subcategory/[id]" />
         <Stack.Screen name="order/[id]" />
         <Stack.Screen name="checkout" />
       </Stack>
@@ -47,15 +54,17 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.container}>
-      <AuthProvider>
-        <LocationProvider>
+      <AppDataProvider>
+        <AuthProvider>
           <NotificationsProvider>
-            <CartProvider>
-              <AppContent />
-            </CartProvider>
+            <LocationProvider>
+              <CartProvider>
+                <AppContent />
+              </CartProvider>
+            </LocationProvider>
           </NotificationsProvider>
-        </LocationProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </AppDataProvider>
     </GestureHandlerRootView>
   );
 }

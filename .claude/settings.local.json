@@ -16,7 +16,15 @@
       "Bash(taskkill:*)",
       "Bash(timeout /t 5)",
       "Bash(npm run build:*)",
-      "Bash(npx kill-port:*)"
+      "Bash(npx kill-port:*)",
+      "Bash(npm run prisma:seed:*)",
+      "Bash(cat:*)",
+      "Bash(move \"(tabs)\\cart.tsx\" \"cart.tsx\")",
+      "Bash(move \"(tabs)\\orders.tsx\" \"orders.tsx\")",
+      "Bash(move \"(tabs)\\notifications.tsx\" \"notifications.tsx\")",
+      "Bash(move \"(tabs)\\profile.tsx\" \"profile.tsx\")",
+      "Bash(nul)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

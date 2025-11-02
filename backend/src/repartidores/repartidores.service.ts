@@ -347,6 +347,9 @@ export class RepartidoresService {
     }
 
     // Actualizar ubicación del repartidor en el pedido
+    console.log(`📍 [Ubicación] Actualizando ubicación del repartidor para pedido ${pedidoId}`);
+    console.log(`📍 [Ubicación] Coordenadas recibidas: lat=${dto.lat}, lng=${dto.lng}`);
+
     const pedidoActualizado = await this.prisma.pedido.update({
       where: { id: pedidoId },
       data: {
@@ -363,6 +366,8 @@ export class RepartidoresService {
       longitud: dto.lng,
       timestamp: pedidoActualizado.repartidorUltActualizacion
     };
+
+    console.log(`📍 [Ubicación] Datos a enviar por WebSocket:`, ubicacionData);
 
     try {
       await this.wsGateway.sendUbicacionRepartidorUpdate(

@@ -37,6 +37,30 @@ export interface PreferenciasWebData {
   dashboardFoto: string | null;
   horarios: HorarioAtencionData[];
 }
+// --- Categorías y Subcategorías ---
+export interface CategoriaData {
+  id: string;
+  nombre: string;
+  icono?: string;
+  orden: number;
+  activo: boolean;
+  subcategorias?: SubcategoriaData[];
+}
+
+export interface SubcategoriaData {
+  id: string;
+  nombre: string;
+  categoriaId: string;
+  icono?: string;
+  orden: number;
+  activo: boolean;
+}
+
+export interface UpdateCategoriasPayload {
+  categoriaId?: string;
+  subcategoriaIds?: string[];
+}
+
 // --- Datos de la empresa ---
 export interface EmpresaData {
   id: string;
@@ -47,9 +71,12 @@ export interface EmpresaData {
   createdAt: string;
   updatedAt: string;
   ubicaciones: UbicacionData[];
-  preferenciasWeb?: PreferenciasWebData | null; 
-  alias?: string;               
-  redesSociales?: SocialLink[]; 
+  preferenciasWeb?: PreferenciasWebData | null;
+  alias?: string;
+  redesSociales?: SocialLink[];
+  categoriaId?: string;
+  categoria?: CategoriaData;
+  subcategorias?: SubcategoriaData[];
 }
 export interface HorarioAtencionData {
   id: number;
@@ -141,7 +168,7 @@ export interface AccountConfigState {
   empresaData: EmpresaData | null;
   formData: AccountConfigFormData;
   hasChanges: boolean;
-  activeTab: 'profile' | 'locations' | 'security' | 'preferences' | 'delivery';
+  activeTab: 'profile' | 'locations' | 'security' | 'preferences' | 'delivery' | 'categories';
 }
 
 export interface UpdateEmpresaExtrasPayload {
@@ -172,5 +199,7 @@ export interface AccountConfigActions {
   removePrecioEnvio: (ubicacionId: number, precioId: number) => Promise<void>;
   updatePreferences: (payload: UpdatePreferenciasPayload) => Promise<void>;
   updateEmpresaExtras: (payload: UpdateEmpresaExtrasPayload) => Promise<void>;
-  cargaUbicacionInicial: (empresaId: string,ubicacion: Ubicacion) => void;
+  cargaUbicacionInicial: (empresaId: string, ubicacion: Ubicacion) => void;
+  getCategorias: () => Promise<CategoriaData[]>;
+  updateCategorias: (payload: UpdateCategoriasPayload) => Promise<void>;
 }

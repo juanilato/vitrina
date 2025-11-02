@@ -26,6 +26,7 @@ import { UpdatePrecioEnvioDto } from './dto/update-precio-envio.dto';
 import { CalcularPrecioEnvioDto } from './dto/calcular-precio-envio.dto';
 import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
 import { UpdateExtrasDto } from './dto/update-extras.dto';
+import { UpdateCategoriasDto } from './dto/update-categorias.dto';
 @Controller('empresas')
 @UseGuards(JwtAuthGuard)
 export class EmpresasController {
@@ -315,5 +316,14 @@ export class EmpresasController {
     @Param('repartidorId') repartidorId: string,
   ) {
     return this.empresasService.eliminarVinculacion(id, repartidorId);
+  }
+
+  // Categorías y Subcategorías
+  @Patch(':id/categorias')
+  async updateCategorias(
+    @Param('id') id: string,
+    @Body() updateCategoriasDto: UpdateCategoriasDto,
+  ) {
+    return this.empresasService.updateCategorias(id, updateCategoriasDto);
   }
 }

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
 import axiosInstance from '../../../../../config/axios.config';
-import { 
-  AccountConfigState, 
-  AccountConfigActions, 
-  EmpresaData, 
-  UpdateEmpresaData, 
+import {
+  AccountConfigState,
+  AccountConfigActions,
+  EmpresaData,
+  UpdateEmpresaData,
   UpdateUbicacionData,
   PrecioEnvioData,
   CreatePrecioEnvioData,
@@ -13,7 +13,9 @@ import {
   SocialLink,
   UpdateEmpresaExtrasPayload,
   UbicacionData,
-  Ubicacion
+  Ubicacion,
+  CategoriaData,
+  UpdateCategoriasPayload
 } from '../types';
 
 const normalizeSocials = (arr: SocialLink[]) =>
@@ -496,6 +498,47 @@ const cargaUbicacionInicial = useCallback(async (empresaId: string,ubicacion: Ub
   }
 }, [loadEmpresaData]);
 
+// Obtener categorías
+const getCategorias = useCallback(async (): Promise<CategoriaData[]> => {
+  try {
+    const response = await axiosInstance.get('/categorias');
+    return response.data;
+  } catch (error: any) {
+    console.error('Error al cargar categorías:', error);
+    throw error;
+  }
+}, []);
+
+// Actualizar categorías y subcategorías
+const updateCategorias = useCallback(async (payload: UpdateCategoriasPayload) => {
+  if (!user?.id) return;
+
+  setState(prev => ({ ...prev, saving: true, error: null, success: null }));
+
+  try {
+    const response = await axiosInstance.patch(`/empresas/${user.id}/categorias`, payload);
+    const updatedEmpresa: EmpresaData = response.data;
+
+    setState(prev => ({
+      ...prev,
+      saving: false,
+      empresaData: updatedEmpresa,
+      success: 'Categorías actualizadas exitosamente'
+    }));
+
+    setTimeout(() => {
+      setState(prev => ({ ...prev, success: null }));
+    }, 3000);
+  } catch (error: any) {
+    console.error('Error al actualizar categorías:', error);
+    setState(prev => ({
+      ...prev,
+      saving: false,
+      error: error.response?.data?.message || 'Error al actualizar categorías'
+    }));
+  }
+}, [user?.id]);
+
   return {
     ...state,
     loadEmpresaData,
@@ -513,7 +556,9 @@ const cargaUbicacionInicial = useCallback(async (empresaId: string,ubicacion: Ub
     removePrecioEnvio,
     updatePreferences,
     updateEmpresaExtras,
-    cargaUbicacionInicial
+    cargaUbicacionInicial,
+    getCategorias,
+    updateCategorias
   };
 };
 

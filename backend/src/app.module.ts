@@ -13,6 +13,7 @@ import { EmpresasModule } from './empresas/empresas.module';
 import { IngredientesModule } from './ingredientes/ingredientes.module';
 import { RepartidoresModule } from './repartidores/repartidores.module';
 import { UbicacionesClienteModule } from './ubicaciones-cliente/ubicaciones-cliente.module';
+import { CategoriasModule } from './categorias/categorias.module';
 
 
 @Module({
@@ -27,6 +28,7 @@ import { UbicacionesClienteModule } from './ubicaciones-cliente/ubicaciones-clie
     IngredientesModule,
     RepartidoresModule,
     UbicacionesClienteModule,
+    CategoriasModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

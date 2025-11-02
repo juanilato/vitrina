@@ -1075,11 +1075,15 @@ export class PedidosService {
 
       // Ubicación del repartidor (solo si el pedido está en camino)
       if (pedido.estado === 'en_camino' && pedido.repartidorLat && pedido.repartidorLng) {
+        console.log(`📍 [Mapa] Datos del repartidor: lat=${pedido.repartidorLat}, lng=${pedido.repartidorLng}`);
+
         response.repartidor = {
           latitud: pedido.repartidorLat,
           longitud: pedido.repartidorLng,
           nombre: pedido.repartidor ? "" : undefined
         };
+      } else {
+        console.log(`📍 [Mapa] Repartidor no disponible. Estado: ${pedido.estado}, Lat: ${pedido.repartidorLat}, Lng: ${pedido.repartidorLng}`);
       }
 
       return response;

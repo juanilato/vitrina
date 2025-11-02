@@ -1,11 +1,13 @@
 /**
  * Location Context
  * Contexto para manejar la ubicación seleccionada del usuario
+ * Usa AppDataContext para las ubicaciones guardadas
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { locationService, SavedLocation } from '../services/location.service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSavedLocations } from './AppDataContext';
 
 interface LocationContextType {
   selectedLocation: SavedLocation | null;
@@ -14,6 +16,8 @@ interface LocationContextType {
   setSelectedLocation: (location: SavedLocation | null) => void;
   loadLocations: () => Promise<void>;
   refreshLocations: () => Promise<void>;
+  deleteLocation: (locationId: number) => Promise<void>;
+  setMainLocation: (locationId: number) => Promise<void>;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -21,10 +25,10 @@ const LocationContext = createContext<LocationContextType | undefined>(undefined
 const SELECTED_LOCATION_KEY = '@vitrina_selected_location';
 
 export function LocationProvider({ children }: { children: ReactNode }) {
+  const { savedLocations, loading: savedLocationsLoading, refresh: refreshSavedLocations } = useSavedLocations();
   const [selectedLocation, setSelectedLocationState] = useState<SavedLocation | null>(null);
-  const [locations, setLocations] = useState<SavedLocation[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [locations, setLocations] = useState<SavedLocation[]>([]);
   // Cargar ubicación guardada al iniciar
   useEffect(() => {
     loadInitialLocation();
@@ -103,6 +107,26 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteLocation = async (locationId: number) => {
+    try {
+      await locationService.delete(locationId);
+      await loadLocations();
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      throw error;
+    }
+  };
+
+  const setMainLocation = async (locationId: number) => {
+    try {
+      await locationService.setAsPrincipal(locationId);
+      await loadLocations();
+    } catch (error) {
+      console.error('Error setting main location:', error);
+      throw error;
+    }
+  };
+
   return (
     <LocationContext.Provider
       value={{
@@ -112,6 +136,8 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         setSelectedLocation,
         loadLocations,
         refreshLocations,
+        deleteLocation,
+        setMainLocation,
       }}
     >
       {children}

@@ -15,10 +15,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useOrders } from '../../src/hooks/useOrders';
-import { OrderCard } from '../../src/components/orders/OrderCard';
-import { colors, spacing } from '../../src/theme';
-import { textStyles as typography } from '../../src/theme/typography';
+import { useOrders } from '../src/hooks/useOrders';
+import { OrderCard } from '../src/components/orders/OrderCard';
+import { colors, spacing } from '../src/theme';
+import { textStyles as typography } from '../src/theme/typography';
 
 type FilterOption = 'all' | 'active' | 'completed' | 'cancelled';
 

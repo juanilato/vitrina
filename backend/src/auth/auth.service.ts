@@ -631,10 +631,28 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
           name: true,
           email: true,
           logo: true,
-          
           isVerified: true,
           createdAt: true,
           updatedAt: true,
+          categoriaId: true,
+          categoria: {
+            select: {
+              id: true,
+              nombre: true,
+              icono: true,
+            },
+          },
+          subcategorias: {
+            select: {
+              subcategoria: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  icono: true,
+                },
+              },
+            },
+          },
         preferenciasWeb: {
                     select: {
                      

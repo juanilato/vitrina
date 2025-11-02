@@ -45,23 +45,77 @@ model UbicacionCliente {
   @@index([clienteId, esPrincipal])
 }
 
+// ——— Categorías y Subcategorías ———
+model Categoria {
+  id            String        @id @default(cuid())
+  nombre        String        @unique
+  icono         String?       // Emoji o nombre de icono
+  orden         Int           @default(0)
+  activo        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  subcategorias Subcategoria[]
+  empresas      Empresa[]
+
+  @@index([activo, orden])
+}
+
+model Subcategoria {
+  id            String     @id @default(cuid())
+  nombre        String
+  categoriaId   String
+  categoria     Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  icono         String?    // Emoji o nombre de icono
+  orden         Int        @default(0)
+  activo        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  empresas      EmpresaSubcategoria[]
+
+  @@unique([categoriaId, nombre])
+  @@index([categoriaId, activo, orden])
+}
+
+// ——— Relación muchos a muchos entre Empresa y Subcategoria ———
+model EmpresaSubcategoria {
+  id              Int          @id @default(autoincrement())
+  empresaId       String
+  subcategoriaId  String
+  empresa         Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  subcategoria    Subcategoria @relation(fields: [subcategoriaId], references: [id], onDelete: Cascade)
+  createdAt       DateTime     @default(now())
+
+  @@unique([empresaId, subcategoriaId])
+  @@index([empresaId])
+  @@index([subcategoriaId])
+}
+
 // ——— Cuenta empresa ———
 model Empresa {
   id          String     @id @default(cuid())
   email       String     @unique
   name        String
   password    String
-  logo        String?    
+  logo        String?
   ubicacion   Ubicacion?
   isVerified  Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  alias         String?          
-  redesSociales Json?      
+  alias         String?
+  redesSociales Json?
   preferenciasWeb Preferencias?
   productos   Productos[]
   Pedidos     Pedido[]
   repartidores  EmpresaRepartidor[]
+
+  // Relación con categorías y subcategorías
+  categoriaId     String?
+  categoria       Categoria?              @relation(fields: [categoriaId], references: [id])
+  subcategorias   EmpresaSubcategoria[]   // Relación muchos a muchos con subcategorías
+
+  @@index([categoriaId])
 }
 
 model Repartidor {
