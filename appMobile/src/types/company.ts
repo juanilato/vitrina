@@ -78,7 +78,7 @@ export interface Company {
   categoriaId?: string;
   subcategoriaId?: string;
   categoria?: Categoria;
-  subcategoria?: Subcategoria;
+  subcategorias?: Subcategoria[];
   createdAt: string;
   updatedAt: string;
 }

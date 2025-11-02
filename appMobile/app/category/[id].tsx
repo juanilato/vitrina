@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCompanies } from '../../src/hooks/useCompanies';
+import { useCategories } from '../../src/contexts/AppDataContext';
 import { colors, textStyles, spacing } from '../../src/theme';
 
 const { width } = Dimensions.get('window');
@@ -37,36 +38,43 @@ interface Subcategoria {
 export default function CategoryScreen() {
   const router = useRouter();
   const { id, name } = useLocalSearchParams();
-  const {
-    companies,
-    loading,
-    error,
-    refreshing,
-    refresh,
-  } = useCompanies();
-
+  const { categories, loading: categoriesLoading, refresh: refreshCategories } = useCategories();
+  const { companies, loading: companiesLoading } = useCompanies();
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Obtener subcategorías únicas de las empresas filtradas por categoría
+  // Obtener la categoría actual y sus subcategorías del contexto
+  const currentCategory = useMemo(() => {
+    return categories.find((c) => c.id === id);
+  }, [categories, id]);
+
+  // Obtener subcategorías desde el contexto de categorías
   const subcategories = useMemo(() => {
+    if (!currentCategory?.subcategorias) return [];
+
     const companiesInCategory = companies.filter((c) => c.categoriaId === id);
 
-    const subs = companiesInCategory
-      .map((c) => c.subcategoria)
-      .filter((s): s is NonNullable<typeof s> => !!s && !!s.id);
-
-    const uniqueSubs = Array.from(
-      new Map(subs.map((s) => [s.id, s])).values()
-    );
-
     // Contar empresas por subcategoría
-    const subsWithCount: Subcategoria[] = uniqueSubs.map((sub) => ({
+    const subsWithCount: Subcategoria[] = currentCategory.subcategorias.map((sub) => ({
       ...sub,
-      companiesCount: companiesInCategory.filter((c) => c.subcategoriaId === sub.id).length,
+      companiesCount: companiesInCategory.filter((c) =>
+        (c.subcategorias || []).some((s) => s.id === sub.id)
+      ).length,
     }));
 
+    console.log('[CategoryScreen] Subcategorías cargadas desde contexto:', subsWithCount.length);
     return subsWithCount;
-  }, [companies, id]);
+  }, [currentCategory, companies, id]);
+
+  const loading = categoriesLoading || companiesLoading;
+  const error = null;
+
+  // Refresh handler
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshCategories();
+    setRefreshing(false);
+  };
 
   // Filtrar subcategorías por búsqueda
   const filteredSubcategories = useMemo(() => {
@@ -210,7 +218,7 @@ export default function CategoryScreen() {
             : 'Esta categoría no tiene subcategorías disponibles'}
         </Text>
         {error && (
-          <TouchableOpacity onPress={() => refresh()} style={styles.retryButton}>
+          <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
             <Text style={styles.retryButtonText}>Reintentar</Text>
           </TouchableOpacity>
         )}
@@ -256,7 +264,7 @@ export default function CategoryScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={refresh}
+              onRefresh={handleRefresh}
               tintColor={colors.primary}
             />
           }
