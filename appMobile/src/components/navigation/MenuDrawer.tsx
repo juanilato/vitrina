@@ -77,24 +77,16 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ visible, onClose }) => {
     },
     {
       icon: 'person',
-      label: 'Mi Perfil',
+      label: 'Perfil',
       route: '/profile',
     },
-    {
-      icon: 'settings',
-      label: 'Configuración',
-      route: '/settings',
-    },
+
     {
       divider: true,
       icon: 'ellipse',
       label: '',
     },
-    {
-      icon: 'help-circle',
-      label: 'Ayuda',
-      route: '/help',
-    },
+
     {
       icon: 'log-out',
       label: 'Cerrar Sesión',

@@ -1,6 +1,6 @@
 /**
- * Category Subcategories Screen
- * Muestra subcategorías con cards modernas y buscador
+ * Category Companies Screen with Horizontal Subcategory Filter
+ * Muestra empresas con filtro horizontal de subcategorías tipo toast
  */
 
 import React, { useState, useMemo } from 'react';
@@ -14,134 +14,161 @@ import {
   ActivityIndicator,
   TextInput,
   Dimensions,
+  ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCompanies } from '../../src/hooks/useCompanies';
-import { useCategories } from '../../src/contexts/AppDataContext';
+import { useCategoryById } from '../../src/hooks/useCategoryById';
 import { colors, textStyles, spacing } from '../../src/theme';
 
 const { width } = Dimensions.get('window');
-const CARD_MARGIN = spacing.md;
-const NUM_COLUMNS = 2;
-const CARD_WIDTH = (width - (CARD_MARGIN * (NUM_COLUMNS + 1))) / NUM_COLUMNS;
 
-interface Subcategoria {
-  id: string;
-  nombre: string;
-  icono?: string;
-  descripcion?: string;
-  companiesCount: number;
-}
+import type { Company, Subcategoria } from '../../src/types/company';
 
 export default function CategoryScreen() {
   const router = useRouter();
   const { id, name } = useLocalSearchParams();
-  const { categories, loading: categoriesLoading, refresh: refreshCategories } = useCategories();
+  const categoryId = typeof id === 'string' ? id : id?.[0];
+
+  // Usar el nuevo hook para obtener la categoría por ID
+  const { category: currentCategory, loading: categoryLoading, refresh: refreshCategory } = useCategoryById(categoryId);
   const { companies, loading: companiesLoading } = useCompanies();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('all');
 
-  // Obtener la categoría actual y sus subcategorías del contexto
-  const currentCategory = useMemo(() => {
-    return categories.find((c) => c.id === id);
-  }, [categories, id]);
-
-  // Obtener subcategorías desde el contexto de categorías
+  // Obtener subcategorías desde la categoría cargada del contexto
   const subcategories = useMemo(() => {
-    if (!currentCategory?.subcategorias) return [];
+    if (!categoryId || !currentCategory?.subcategorias) return [];
 
-    const companiesInCategory = companies.filter((c) => c.categoriaId === id);
+    console.log('[CategoryScreen] Subcategorías cargadas desde contexto:', currentCategory.subcategorias.length);
+    return currentCategory.subcategorias;
+  }, [currentCategory, categoryId]);
 
-    // Contar empresas por subcategoría
-    const subsWithCount: Subcategoria[] = currentCategory.subcategorias.map((sub) => ({
-      ...sub,
-      companiesCount: companiesInCategory.filter((c) =>
-        (c.subcategorias || []).some((s) => s.id === sub.id)
-      ).length,
-    }));
+  // Obtener empresas de la categoría
+  const categoryCompanies = useMemo(() => {
+    return companies.filter((c) => c.categoriaId === categoryId);
+  }, [companies, categoryId]);
 
-    console.log('[CategoryScreen] Subcategorías cargadas desde contexto:', subsWithCount.length);
-    return subsWithCount;
-  }, [currentCategory, companies, id]);
+  // Filtrar empresas por subcategoría seleccionada
+  const filteredCompanies = useMemo(() => {
+    let filtered = categoryCompanies;
 
-  const loading = categoriesLoading || companiesLoading;
-  const error = null;
+    // Filtrar por subcategoría
+    if (selectedSubcategoryId !== 'all') {
+      filtered = filtered.filter((company) =>
+        (company.subcategorias || []).some((s) => s.id === selectedSubcategoryId)
+      );
+    }
+
+    // Filtrar por búsqueda
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((company) =>
+        company.name.toLowerCase().includes(query) ||
+        company.description?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [categoryCompanies, selectedSubcategoryId, searchQuery]);
+
+  const loading = categoryLoading || companiesLoading;
 
   // Refresh handler
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refreshCategories();
+    await refreshCategory();
     setRefreshing(false);
   };
 
-  // Filtrar subcategorías por búsqueda
-  const filteredSubcategories = useMemo(() => {
-    if (!searchQuery.trim()) return subcategories;
+  const handleSubcategoryPress = (subcategoryId: string) => {
+    setSelectedSubcategoryId(subcategoryId);
+  };
 
-    const query = searchQuery.toLowerCase().trim();
-    return subcategories.filter((sub) =>
-      sub.nombre.toLowerCase().includes(query)
+  const handleCompanyPress = (companyId: string) => {
+    router.push(`/company/${companyId}`);
+  };
+
+  // Renderizar chip de subcategoría en la barra horizontal
+  const renderSubcategoryChip = (subcategory: Subcategoria | { id: string; nombre: string; icono?: string }) => {
+    const isSelected = selectedSubcategoryId === subcategory.id;
+
+    return (
+      <TouchableOpacity
+        key={subcategory.id}
+        style={[styles.subcategoryChip, isSelected && styles.subcategoryChipSelected]}
+        onPress={() => handleSubcategoryPress(subcategory.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.chipIconContainer}>
+          {subcategory.icono ? (
+            <Text style={[styles.chipIcon, isSelected && styles.chipIconSelected]}>
+              {subcategory.icono}
+            </Text>
+          ) : (
+            <Ionicons
+              name={subcategory.id === 'all' ? 'grid' : 'pricetag'}
+              size={18}
+              color={isSelected ? colors.white : colors.primary}
+            />
+          )}
+        </View>
+        <Text style={[styles.chipText, isSelected && styles.chipTextSelected]} numberOfLines={1}>
+          {subcategory.nombre}
+        </Text>
+      </TouchableOpacity>
     );
-  }, [subcategories, searchQuery]);
-
-  const handleSubcategoryPress = (subcategory: Subcategoria) => {
-    // Navegar a la pantalla de empresas de esa subcategoría
-    router.push({
-      pathname: '/subcategory/[id]',
-      params: {
-        id: subcategory.id,
-        categoryId: id,
-        name: subcategory.nombre,
-        categoryName: name,
-      },
-    });
   };
 
-  const handleViewAllPress = () => {
-    // Ver todas las empresas de la categoría sin filtrar por subcategoría
-    router.push({
-      pathname: '/subcategory/[id]',
-      params: {
-        id: 'all',
-        categoryId: id,
-        name: 'Todas',
-        categoryName: name,
-      },
-    });
-  };
-
-  const renderSubcategoryCard = ({ item }: { item: Subcategoria }) => (
+  // Renderizar tarjeta de empresa
+  const renderCompanyCard = ({ item }: { item: Company }) => (
     <TouchableOpacity
-      style={styles.card}
-      onPress={() => handleSubcategoryPress(item)}
+      style={styles.companyCard}
+      onPress={() => handleCompanyPress(item.id)}
       activeOpacity={0.7}
     >
-      <View style={styles.cardContent}>
-        {/* Icon Container */}
-        <View style={styles.iconContainer}>
-          {item.icono ? (
-            <Text style={styles.categoryIcon}>{item.icono}</Text>
-          ) : (
-            <Ionicons name="pricetag" size={28} color={colors.primary} />
+      <View style={styles.companyCardContent}>
+        {/* Logo */}
+        {item.logo ? (
+          <Image source={{ uri: item.logo }} style={styles.companyLogo} />
+        ) : (
+          <View style={styles.companyLogoPlaceholder}>
+            <Ionicons name="business" size={24} color={colors.gray400} />
+          </View>
+        )}
+
+        {/* Info */}
+        <View style={styles.companyInfo}>
+          <Text style={styles.companyName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          {item.description && (
+            <Text style={styles.companyDescription} numberOfLines={2}>
+              {item.description}
+            </Text>
+          )}
+          {item.subcategorias && item.subcategorias.length > 0 && (
+            <View style={styles.companyTags}>
+              {item.subcategorias.slice(0, 2).map((sub, index) => (
+                <View key={index} style={styles.tag}>
+                  <Text style={styles.tagText} numberOfLines={1}>
+                    {sub.nombre}
+                  </Text>
+                </View>
+              ))}
+              {item.subcategorias.length > 2 && (
+                <Text style={styles.moreTagsText}>+{item.subcategorias.length - 2}</Text>
+              )}
+            </View>
           )}
         </View>
 
-        {/* Info */}
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle} numberOfLines={2}>
-            {item.nombre}
-          </Text>
-          <Text style={styles.cardCount}>
-            {item.companiesCount} {item.companiesCount === 1 ? 'empresa' : 'empresas'}
-          </Text>
-        </View>
-
         {/* Arrow */}
-        <View style={styles.cardArrow}>
-          <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
-        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
       </View>
     </TouchableOpacity>
   );
@@ -153,7 +180,7 @@ export default function CategoryScreen() {
         <Ionicons name="search" size={20} color={colors.gray500} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar subcategorías..."
+          placeholder="Buscar empresas..."
           placeholderTextColor={colors.gray500}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -167,31 +194,34 @@ export default function CategoryScreen() {
         )}
       </View>
 
-      {/* Ver todas las empresas */}
-      <TouchableOpacity style={styles.viewAllCard} onPress={handleViewAllPress} activeOpacity={0.7}>
-        <View style={styles.viewAllContent}>
-          <View style={styles.viewAllIconContainer}>
-            <Ionicons name="grid" size={24} color={colors.white} />
-          </View>
-          <View style={styles.viewAllInfo}>
-            <Text style={styles.viewAllTitle}>Ver todas las empresas</Text>
-            <Text style={styles.viewAllSubtitle}>
-              {companies.filter((c) => c.categoriaId === id).length} empresas en total
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={24} color={colors.white} />
-        </View>
-      </TouchableOpacity>
+      {/* Horizontal Subcategory Filter Bar */}
+      {subcategories.length > 0 && (
+        <View style={styles.horizontalFilterContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalFilterContent}
+          >
+            {/* Todas opción */}
+            {renderSubcategoryChip({ id: 'all', nombre: 'Todas', icono: '📋' })}
 
-      {/* Section Title */}
-      {filteredSubcategories.length > 0 && (
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Subcategorías</Text>
-          <Text style={styles.sectionSubtitle}>
-            {filteredSubcategories.length} {filteredSubcategories.length === 1 ? 'disponible' : 'disponibles'}
-          </Text>
+            {/* Subcategorías */}
+            {subcategories.map((sub) => renderSubcategoryChip(sub))}
+          </ScrollView>
         </View>
       )}
+
+      {/* Results count */}
+      <View style={styles.resultsHeader}>
+        <Text style={styles.resultsCount}>
+          {filteredCompanies.length} {filteredCompanies.length === 1 ? 'empresa' : 'empresas'}
+        </Text>
+        {selectedSubcategoryId !== 'all' && (
+          <TouchableOpacity onPress={() => setSelectedSubcategoryId('all')}>
+            <Text style={styles.clearFilter}>Limpiar filtro</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 
@@ -199,27 +229,34 @@ export default function CategoryScreen() {
     if (loading) return null;
 
     const isSearching = searchQuery.trim().length > 0;
+    const hasFilter = selectedSubcategoryId !== 'all';
 
     return (
       <View style={styles.emptyState}>
         <Ionicons
-          name={isSearching ? 'search-outline' : 'albums-outline'}
+          name={isSearching ? 'search-outline' : 'business-outline'}
           size={64}
           color={colors.textQuaternary}
         />
         <Text style={styles.emptyTitle}>
-          {error ? 'Error al cargar' : isSearching ? 'No hay resultados' : 'No hay subcategorías'}
+          {isSearching || hasFilter ? 'No hay resultados' : 'No hay empresas'}
         </Text>
         <Text style={styles.emptySubtitle}>
-          {error
-            ? error
-            : isSearching
-            ? `No encontramos subcategorías con "${searchQuery}"`
-            : 'Esta categoría no tiene subcategorías disponibles'}
+          {isSearching
+            ? `No encontramos empresas con "${searchQuery}"`
+            : hasFilter
+            ? 'No hay empresas en esta subcategoría'
+            : 'Esta categoría no tiene empresas disponibles'}
         </Text>
-        {error && (
-          <TouchableOpacity onPress={handleRefresh} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+        {(hasFilter || isSearching) && (
+          <TouchableOpacity
+            onPress={() => {
+              setSearchQuery('');
+              setSelectedSubcategoryId('all');
+            }}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryButtonText}>Limpiar filtros</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -239,8 +276,10 @@ export default function CategoryScreen() {
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
-          <Text style={styles.title}>{name}</Text>
-          <Text style={styles.subtitle}>Selecciona una subcategoría</Text>
+          <Text style={styles.title}>{name || currentCategory?.nombre || 'Categoría'}</Text>
+          <Text style={styles.subtitle}>
+            {categoryCompanies.length} {categoryCompanies.length === 1 ? 'empresa' : 'empresas'}
+          </Text>
         </View>
 
         <View style={styles.headerRight} />
@@ -253,11 +292,9 @@ export default function CategoryScreen() {
         </View>
       ) : (
         <FlatList
-          data={filteredSubcategories}
+          data={filteredCompanies}
           keyExtractor={(item) => item.id}
-          renderItem={renderSubcategoryCard}
-          numColumns={NUM_COLUMNS}
-          columnWrapperStyle={styles.row}
+          renderItem={renderCompanyCard}
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={renderEmptyState}
@@ -329,10 +366,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   listHeader: {
-    marginBottom: spacing.md,
-  },
-  row: {
-    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
   },
 
   // Search Bar
@@ -360,112 +394,149 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 
-  // View All Card
-  viewAllCard: {
-    backgroundColor: colors.primary,
-    borderRadius: 16,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+  // Horizontal Subcategory Filter Bar
+  horizontalFilterContainer: {
+    marginBottom: spacing.md,
   },
-  viewAllContent: {
+  horizontalFilterContent: {
+    paddingHorizontal: 2,
+    gap: spacing.sm,
+  },
+  subcategoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginRight: spacing.xs,
+    borderWidth: 1.5,
+    borderColor: colors.gray200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  viewAllIconContainer: {
-    width: 48,
-    height: 48,
+  subcategoryChipSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  chipIconContainer: {
+    marginRight: 6,
+  },
+  chipIcon: {
+    fontSize: 16,
+  },
+  chipIconSelected: {
+    // Mantener el icono igual cuando está seleccionado
+  },
+  chipText: {
+    ...textStyles.body,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.gray700,
+  },
+  chipTextSelected: {
+    color: colors.white,
+  },
+
+  // Results Header
+  resultsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  resultsCount: {
+    ...textStyles.body,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.gray700,
+  },
+  clearFilter: {
+    ...textStyles.caption1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+
+  // Company Card Styles
+  companyCard: {
+    backgroundColor: colors.white,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginBottom: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  companyCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+  },
+  companyLogo: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    marginRight: spacing.md,
+  },
+  companyLogoPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  viewAllInfo: {
+  companyInfo: {
     flex: 1,
+    marginRight: spacing.sm,
   },
-  viewAllTitle: {
-    ...textStyles.body,
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.white,
-    marginBottom: 2,
-  },
-  viewAllSubtitle: {
-    ...textStyles.caption1,
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-
-  // Section Header
-  sectionHeader: {
-    marginBottom: spacing.sm,
-  },
-  sectionTitle: {
-    ...textStyles.body,
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.gray900,
-    marginBottom: 2,
-  },
-  sectionSubtitle: {
-    ...textStyles.caption1,
-    fontSize: 13,
-    color: colors.gray600,
-  },
-
-  // Card Styles
-  card: {
-    width: CARD_WIDTH,
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    marginBottom: spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-    overflow: 'hidden',
-  },
-  cardContent: {
-    padding: spacing.md,
-  },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: `${colors.primary}15`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  categoryIcon: {
-    fontSize: 28,
-  },
-  cardInfo: {
-    flex: 1,
-    marginBottom: spacing.xs,
-  },
-  cardTitle: {
+  companyName: {
     ...textStyles.body,
     fontSize: 15,
     fontWeight: '700',
     color: colors.gray900,
     marginBottom: 4,
   },
-  cardCount: {
+  companyDescription: {
     ...textStyles.caption1,
-    fontSize: 12,
+    fontSize: 13,
     color: colors.gray600,
+    marginBottom: 6,
   },
-  cardArrow: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
+  companyTags: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  tag: {
+    backgroundColor: `${colors.primary}10`,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tagText: {
+    ...textStyles.caption1,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  moreTagsText: {
+    ...textStyles.caption1,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.gray500,
+    marginLeft: 4,
   },
 
   // Loading

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CartSummaryProps, CheckoutFormData, DeliveryLocation } from '../../types';
-import DeliveryLocationSelector from '../../components/DeliveryLocationSelector';
+import LocationSelectorWithSaved from '../../components/LocationSelectorWithSaved';
+import { useLocation } from '../../../../contexts/LocationContext';
 import './CartSummary.css';
 
 const CartSummary: React.FC<CartSummaryProps> = ({
@@ -10,6 +11,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   onCheckout,
   companyData
 }) => {
+  const { selectedLocation } = useLocation();
   const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<CheckoutFormData>({
     tipoEntrega: 'delivery',
@@ -19,6 +21,18 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [fotoError, setFotoError] = useState<string | null>(null);
   const [showLocationSelector, setShowLocationSelector] = useState(false);
+
+  // Auto-seleccionar ubicación principal cuando carga el componente
+  useEffect(() => {
+    if (selectedLocation && !formData.deliveryLocation && formData.tipoEntrega === 'delivery') {
+      const location: DeliveryLocation = {
+        direccion: selectedLocation.direccion,
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng
+      };
+      handleLocationSelect(location);
+    }
+  }, [selectedLocation, formData.tipoEntrega]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -474,7 +488,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
 
       {/* Delivery Location Selector Modal */}
       {showLocationSelector && companyData && (
-        <DeliveryLocationSelector
+        <LocationSelectorWithSaved
           onLocationSelect={handleLocationSelect}
           onClose={() => setShowLocationSelector(false)}
           empresaId={companyData.id}

@@ -262,6 +262,7 @@ const styles = StyleSheet.create({
   drawer: {
     top: "8%",
     width: "100%",
+
     backgroundColor: colors.white,
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
@@ -395,6 +396,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: colors.gray50,
     gap: spacing.xs,
+    
   },
   actionButtonDanger: {
     backgroundColor: colors.error + '15',
@@ -442,6 +444,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+    marginBottom:"25%",
   },
   addButtonText: {
     ...textStyles.subheadline,

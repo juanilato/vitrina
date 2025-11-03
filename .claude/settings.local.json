@@ -30,7 +30,9 @@
       "Bash(npm run clean:*)",
       "Bash(if exist .expo rmdir /s /q .expo)",
       "Bash(rd /s /q .expo 2)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(if exist node_modules.cache rmdir /s /q node_modules.cache)",
+      "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\app\\index2.tsx\")"
     ],
     "deny": [],
     "ask": []

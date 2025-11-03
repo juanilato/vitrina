@@ -6,6 +6,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { categoriesService, Categoria } from '../services/categories.service';
 import { locationService, SavedLocation } from '../services/location.service';
+import { companyService } from '../services/company.service';
+import { Company } from '../types/company';
 
 interface Location {
   latitude: number;
@@ -20,6 +22,8 @@ interface AppDataContextType {
   categoriesLoading: boolean;
   categoriesError: string | null;
   refreshCategories: () => Promise<void>;
+  getCategoryById: (id: string) => Categoria | undefined;
+  getSubcategoryById: (categoryId: string, subcategoryId: string) => { categoria: Categoria; subcategoria: any } | undefined;
 
   // User GPS Location (current position)
   userLocation: Location | null;
@@ -33,6 +37,13 @@ interface AppDataContextType {
   savedLocationsLoading: boolean;
   savedLocationsError: string | null;
   refreshSavedLocations: () => Promise<void>;
+
+  // Nearby Companies (based on location)
+  nearbyCompanies: Company[];
+  nearbyCompaniesLoading: boolean;
+  nearbyCompaniesError: string | null;
+  fetchNearbyCompanies: (lat: number, lng: number, radiusKm?: number) => Promise<void>;
+  refreshNearbyCompanies: () => Promise<void>;
 
   // Global refresh
   refreshAll: () => Promise<void>;
@@ -56,17 +67,44 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [savedLocationsLoading, setSavedLocationsLoading] = useState(true);
   const [savedLocationsError, setSavedLocationsError] = useState<string | null>(null);
 
+  // Nearby Companies State
+  const [nearbyCompanies, setNearbyCompanies] = useState<Company[]>([]);
+  const [nearbyCompaniesLoading, setNearbyCompaniesLoading] = useState(false);
+  const [nearbyCompaniesError, setNearbyCompaniesError] = useState<string | null>(null);
+  const [lastSearchLocation, setLastSearchLocation] = useState<{ lat: number; lng: number; radius: number } | null>(null);
+
   // Fetch Categories
   const fetchCategories = useCallback(async () => {
     try {
       setCategoriesLoading(true);
       setCategoriesError(null);
       const data = await categoriesService.getAllCategories();
-      setCategories(data);
-      console.log('[AppDataContext] Categories loaded:', data.length);
+
+      // Validar que todas las categorías tengan ID
+      const categoriesWithoutId = data.filter(cat => !cat?.id);
+      if (categoriesWithoutId.length > 0) {
+        console.error('[AppDataContext] ⚠️ Categories without ID found:', categoriesWithoutId);
+      }
+
+      // Filtrar solo categorías válidas con ID
+      const validCategories = data.filter(cat => cat && cat.id);
+
+      // Log detallado de categorías cargadas
+      console.log('[AppDataContext] ✅ Categories loaded:', {
+        total: validCategories.length,
+        withSubcategories: validCategories.filter(cat => cat.subcategorias && cat.subcategorias.length > 0).length,
+        categories: validCategories.map(cat => ({
+          id: cat.id,
+          nombre: cat.nombre,
+          subcategorias: cat.subcategorias?.length || 0,
+        })),
+      });
+
+      setCategories(validCategories);
     } catch (err: any) {
-      console.error('[AppDataContext] Error fetching categories:', err);
+      console.error('[AppDataContext] ❌ Error fetching categories:', err);
       setCategoriesError(err.response?.data?.message || 'Error al cargar categorías');
+      setCategories([]); // Set empty array on error
     } finally {
       setCategoriesLoading(false);
     }
@@ -77,16 +115,9 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setLocationLoading(true);
       setLocationError(null);
-      const location = await locationService.getCurrentLocation();
-
-      if (location) {
-        setUserLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          timestamp: location.timestamp,
-        });
-        console.log('[AppDataContext] GPS Location loaded:', location.coords);
-      }
+      // Note: GPS location is now handled by expo-location directly in components
+      // This is kept for compatibility but doesn't fetch anything
+      console.log('[AppDataContext] GPS Location fetch skipped (handled by components)');
     } catch (err: any) {
       console.error('[AppDataContext] Error fetching GPS location:', err);
       setLocationError(err.message || 'Error al obtener ubicación GPS');
@@ -126,11 +157,83 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await fetchSavedLocations();
   }, [fetchSavedLocations]);
 
+  // Fetch Nearby Companies
+  const fetchNearbyCompanies = useCallback(async (lat: number, lng: number, radiusKm: number = 10) => {
+    try {
+      setNearbyCompaniesLoading(true);
+      setNearbyCompaniesError(null);
+      console.log(`[AppDataContext] Fetching nearby companies at (${lat}, ${lng}) within ${radiusKm}km`);
+
+      const companies = await companyService.getCompaniesByLocation(lat, lng, radiusKm);
+      setNearbyCompanies(companies);
+      setLastSearchLocation({ lat, lng, radius: radiusKm });
+
+      console.log('[AppDataContext] Nearby companies loaded:', companies.length);
+    } catch (err: any) {
+      console.error('[AppDataContext] Error fetching nearby companies:', err);
+      setNearbyCompaniesError(err.response?.data?.message || 'Error al cargar empresas cercanas');
+    } finally {
+      setNearbyCompaniesLoading(false);
+    }
+  }, []);
+
+  // Refresh Nearby Companies (using last search location)
+  const refreshNearbyCompanies = useCallback(async () => {
+    if (lastSearchLocation) {
+      await fetchNearbyCompanies(
+        lastSearchLocation.lat,
+        lastSearchLocation.lng,
+        lastSearchLocation.radius
+      );
+    } else if (userLocation) {
+      // Si no hay búsqueda previa, usar la ubicación actual del usuario
+      await fetchNearbyCompanies(userLocation.latitude, userLocation.longitude);
+    } else {
+      console.warn('[AppDataContext] No location available to refresh nearby companies');
+    }
+  }, [lastSearchLocation, userLocation, fetchNearbyCompanies]);
+
   // Update Location (from other components)
   const updateLocation = useCallback((location: Location) => {
     setUserLocation(location);
     console.log('[AppDataContext] GPS Location updated:', location);
   }, []);
+
+  // Get Category by ID
+  const getCategoryById = useCallback((id: string): Categoria | undefined => {
+    console.log('[AppDataContext] Looking for category with id:', id, 'Available:', categories.length);
+    const category = categories.find((cat) => cat.id === id);
+    if (category) {
+      console.log('[AppDataContext] ✅ Category found:', {
+        id: category.id,
+        nombre: category.nombre,
+        subcategorias: category.subcategorias?.length || 0,
+      });
+    } else {
+      console.warn('[AppDataContext] ⚠️ Category not found with id:', id, {
+        availableIds: categories.map(c => c.id),
+      });
+    }
+    return category;
+  }, [categories]);
+
+  // Get Subcategory by ID within a Category
+  const getSubcategoryById = useCallback((categoryId: string, subcategoryId: string) => {
+    const category = categories.find((cat) => cat.id === categoryId);
+    if (!category) {
+      console.warn('[AppDataContext] Category not found with id:', categoryId);
+      return undefined;
+    }
+
+    const subcategory = category.subcategorias?.find((sub) => sub.id === subcategoryId);
+    if (!subcategory) {
+      console.warn('[AppDataContext] Subcategory not found with id:', subcategoryId);
+      return undefined;
+    }
+
+    console.log('[AppDataContext] Subcategory found:', subcategory.nombre);
+    return { categoria: category, subcategoria: subcategory };
+  }, [categories]);
 
   // Refresh All
   const refreshAll = useCallback(async () => {
@@ -154,6 +257,8 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     categoriesLoading,
     categoriesError,
     refreshCategories,
+    getCategoryById,
+    getSubcategoryById,
 
     // GPS Location
     userLocation,
@@ -167,6 +272,13 @@ export const AppDataProvider: React.FC<{ children: React.ReactNode }> = ({ child
     savedLocationsLoading,
     savedLocationsError,
     refreshSavedLocations,
+
+    // Nearby Companies
+    nearbyCompanies,
+    nearbyCompaniesLoading,
+    nearbyCompaniesError,
+    fetchNearbyCompanies,
+    refreshNearbyCompanies,
 
     // Global
     refreshAll,
@@ -224,5 +336,22 @@ export const useSavedLocations = () => {
     loading: savedLocationsLoading,
     error: savedLocationsError,
     refresh: refreshSavedLocations,
+  };
+};
+
+export const useNearbyCompanies = () => {
+  const {
+    nearbyCompanies,
+    nearbyCompaniesLoading,
+    nearbyCompaniesError,
+    fetchNearbyCompanies,
+    refreshNearbyCompanies,
+  } = useAppData();
+  return {
+    companies: nearbyCompanies,
+    loading: nearbyCompaniesLoading,
+    error: nearbyCompaniesError,
+    fetchNearby: fetchNearbyCompanies,
+    refresh: refreshNearbyCompanies,
   };
 };

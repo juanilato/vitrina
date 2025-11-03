@@ -24,6 +24,8 @@ import { MenuDrawer } from '../../src/components/navigation/MenuDrawer';
 import { LocationsDrawer } from '../../src/components/navigation/LocationsDrawer';
 import { colors, textStyles, spacing } from '../../src/theme';
 import { useLocation } from '../../src/contexts/LocationContext';
+import { useActiveOrder } from '../../src/hooks/useActiveOrder';
+import { ActiveOrderCard } from '../../src/components/orders/ActiveOrderCard';
 
 const { width } = Dimensions.get('window');
 
@@ -31,6 +33,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { categories, loading, refresh } = useCategories();
   const { selectedLocation } = useLocation();
+  const { activeOrder, loading: loadingOrder, refresh: refreshOrder } = useActiveOrder();
   const [refreshing, setRefreshing] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,12 +42,22 @@ export default function HomeScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refresh();
+    await Promise.all([refresh(), refreshOrder()]);
     setRefreshing(false);
   };
 
   const handleCategoryPress = (categoryId: string, categoryName: string) => {
-    console.log(categoryId,"CATEGORIA");
+    console.log('[HomeScreen] Category pressed:', {
+      id: categoryId,
+      name: categoryName,
+    });
+
+    // Validar que tenemos un ID válido
+    if (!categoryId) {
+      console.error('[HomeScreen] Cannot navigate: categoryId is undefined');
+      return;
+    }
+
     // Navegar a pantalla de empresas filtradas por categoría
     router.push({
       pathname: '/category/[id]',
@@ -81,15 +94,35 @@ export default function HomeScreen() {
     }
 
     // Filtrar categorías válidas (con id)
-    const validCategories = categories.filter(cat => cat && cat.id);
+    let validCategories = categories.filter(cat => cat && cat.id);
+
+    // Aplicar filtro de búsqueda
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase().trim();
+      validCategories = validCategories.filter(cat =>
+        cat.nombre.toLowerCase().includes(query)
+      );
+    }
 
     if (validCategories.length === 0) {
+      const isSearching = searchTerm.trim().length > 0;
       console.error('❌ No hay categorías válidas con ID');
       return (
         <View style={styles.emptyContainer}>
-          <Ionicons name="grid-outline" size={64} color={colors.textQuaternary} />
-          <Text style={styles.emptyTitle}>Error al cargar categorías</Text>
-          <Text style={styles.emptySubtitle}>Intenta refrescar la pantalla</Text>
+          <Ionicons
+            name={isSearching ? "search-outline" : "grid-outline"}
+            size={64}
+            color={colors.textQuaternary}
+          />
+          <Text style={styles.emptyTitle}>
+            {isSearching ? 'No hay resultados' : 'Error al cargar categorías'}
+          </Text>
+          <Text style={styles.emptySubtitle}>
+            {isSearching
+              ? `No encontramos categorías con "${searchTerm}"`
+              : 'Intenta refrescar la pantalla'
+            }
+          </Text>
         </View>
       );
     }
@@ -104,45 +137,54 @@ export default function HomeScreen() {
       // Cada 3 filas (6 categorías), insertar una categoría wide
       if (i > 0 && i % 6 === 0 && i < validCategories.length) {
         const cat = validCategories[i];
-        grid.push(
-          <View key={`row-wide-${i}`} style={styles.row}>
-            <CategoryCard
-              id={cat.id}
-              nombre={cat.nombre}
-              icono={cat.icono}
-              onPress={() => handleCategoryPress(cat.id, cat.nombre)}
-              variant="wide"
-            />
-          </View>
-        );
+        // Validar que cat existe y tiene id antes de renderizar
+        if (cat && cat.id) {
+          grid.push(
+            <View key={`row-wide-${cat.id}`} style={styles.row}>
+              <CategoryCard
+                id={cat.id}
+                nombre={cat.nombre}
+                icono={cat.icono}
+                onPress={() => handleCategoryPress(cat.id, cat.nombre)}
+                variant="wide"
+              />
+            </View>
+          );
+        }
         i++;
       } else {
         // Fila normal con 2 categorías
         if (i < validCategories.length) {
           const cat = validCategories[i];
-          row.push(
-            <CategoryCard
-              key={cat.id}
-              id={cat.id}
-              nombre={cat.nombre}
-              icono={cat.icono}
-              onPress={() => handleCategoryPress(cat.id, cat.nombre)}
-            />
-          );
+          // Validar que cat existe y tiene id antes de renderizar
+          if (cat && cat.id) {
+            row.push(
+              <CategoryCard
+                key={cat.id}
+                id={cat.id}
+                nombre={cat.nombre}
+                icono={cat.icono}
+                onPress={() => handleCategoryPress(cat.id, cat.nombre)}
+              />
+            );
+          }
           i++;
         }
 
         if (i < validCategories.length) {
           const cat = validCategories[i];
-          row.push(
-            <CategoryCard
-              key={cat.id}
-              id={cat.id}
-              nombre={cat.nombre}
-              icono={cat.icono}
-              onPress={() => handleCategoryPress(cat.id, cat.nombre)}
-            />
-          );
+          // Validar que cat existe y tiene id antes de renderizar
+          if (cat && cat.id) {
+            row.push(
+              <CategoryCard
+                key={cat.id}
+                id={cat.id}
+                nombre={cat.nombre}
+                icono={cat.icono}
+                onPress={() => handleCategoryPress(cat.id, cat.nombre)}
+              />
+            );
+          }
           i++;
         }
 
@@ -184,13 +226,7 @@ export default function HomeScreen() {
 
         {/* Right Side - Search & Menu */}
         <View style={styles.navRight}>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => setShowSearch(!showSearch)}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="search-outline" size={20} color={colors.gray700} />
-          </TouchableOpacity>
+
 
           <TouchableOpacity
             style={styles.navButton}
@@ -203,33 +239,9 @@ export default function HomeScreen() {
       </View>
 
       {/* Search Bar (Expandible) */}
-      {showSearch && (
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color={colors.textTertiary} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar categorías o empresas..."
-              value={searchTerm}
-              onChangeText={setSearchTerm}
-              placeholderTextColor={colors.textTertiary}
-            />
-            {searchTerm.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchTerm('')}>
-                <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      )}
+  
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Hola!</Text>
-        <Text style={styles.subtitle}>¿Qué estás buscando hoy?</Text>
-      </View>
-
-      {/* Categories Grid */}
+      {/* Scroll Content */}
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -241,6 +253,27 @@ export default function HomeScreen() {
           />
         }
       >
+              <View style={styles.header}>
+          <Text style={styles.greeting}>Hola!</Text>
+          <TextInput
+              style={styles.subtitle}
+              placeholder="¿Qué estás buscando hoy?"
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+              placeholderTextColor={colors.textTertiary}
+            />
+        </View>
+        {/* Active Order Card */}
+        {activeOrder && !loadingOrder && (
+          <View style={styles.activeOrderSection}>
+            <ActiveOrderCard order={activeOrder} />
+          </View>
+        )}
+
+        {/* Header */}
+
+
+        {/* Categories Grid */}
         {renderCategoryGrid()}
 
         {/* Bottom spacer */}
@@ -346,6 +379,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.gray600,
     fontWeight: '400',
+  },
+
+  // Active Order Section
+  activeOrderSection: {
+    paddingTop: spacing.md,
   },
 
   // Grid Styles

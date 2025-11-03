@@ -26,11 +26,7 @@ function AppContent() {
           contentStyle: { backgroundColor: '#FFFFFF' },
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="cart" />
-        <Stack.Screen name="orders" />
-        <Stack.Screen name="notifications" />
-        <Stack.Screen name="profile" />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" />
         <Stack.Screen name="company/[id]" />
         <Stack.Screen name="category/[id]" />

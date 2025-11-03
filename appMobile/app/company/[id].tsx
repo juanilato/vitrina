@@ -16,6 +16,7 @@ import {
   Alert,
   ImageBackground,
   Linking,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -39,6 +40,7 @@ export default function CompanyStoreScreen() {
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Obtener colores personalizados de las preferencias
   const buttonColor = useMemo(() => {
@@ -142,8 +144,23 @@ export default function CompanyStoreScreen() {
     );
   }
 
-  const activeProducts = company.products?.filter((p) => p.activo) || [];
-  const inactiveProducts = company.products?.filter((p) => !p.activo) || [];
+  // Filtrar productos por búsqueda
+  const filteredProducts = useMemo(() => {
+    const allProducts = company.products || [];
+
+    if (!searchQuery.trim()) {
+      return allProducts;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return allProducts.filter((product) =>
+      product.nombre.toLowerCase().includes(query) ||
+      product.descripcion?.toLowerCase().includes(query)
+    );
+  }, [company.products, searchQuery]);
+
+  const activeProducts = filteredProducts.filter((p) => p.activo);
+  const inactiveProducts = filteredProducts.filter((p) => !p.activo);
 
   // Debug: ver qué datos llegan
   console.log('🏢 Company data:', {
@@ -389,6 +406,24 @@ export default function CompanyStoreScreen() {
               </View>
             )}
 
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color={colors.gray500} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar productos..."
+                placeholderTextColor={colors.gray500}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+                  <Ionicons name="close-circle" size={20} color={colors.gray400} />
+                </TouchableOpacity>
+              )}
+            </View>
 
             {/* Products Section Header */}
 
@@ -396,10 +431,19 @@ export default function CompanyStoreScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="fast-food-outline" size={64} color={colors.textQuaternary} />
-            <Text style={styles.emptyTitle}>No hay productos</Text>
+            <Ionicons
+              name={searchQuery.trim() ? "search-outline" : "fast-food-outline"}
+              size={64}
+              color={colors.textQuaternary}
+            />
+            <Text style={styles.emptyTitle}>
+              {searchQuery.trim() ? 'No hay resultados' : 'No hay productos'}
+            </Text>
             <Text style={styles.emptySubtitle}>
-              Esta empresa aún no ha agregado productos
+              {searchQuery.trim()
+                ? `No encontramos productos con "${searchQuery}"`
+                : 'Esta empresa aún no ha agregado productos'
+              }
             </Text>
           </View>
         }
@@ -673,6 +717,32 @@ socialChipContainer: {
     ...textStyles.body,
     color: colors.text,
     lineHeight: 22,
+  },
+
+  // Search Bar
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    ...shadows.sm,
+  },
+  searchIcon: {
+    marginRight: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    ...textStyles.body,
+    fontSize: 15,
+    color: colors.text,
+  },
+  clearButton: {
+    padding: 4,
   },
 
   socialLinksContainer: {

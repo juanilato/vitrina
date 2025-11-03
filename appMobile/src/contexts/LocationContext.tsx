@@ -5,7 +5,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { locationService, SavedLocation } from '../services/location.service';
+import { locationService, SavedLocation, UpdateLocationDto } from '../services/location.service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSavedLocations } from './AppDataContext';
 
@@ -18,6 +18,7 @@ interface LocationContextType {
   refreshLocations: () => Promise<void>;
   deleteLocation: (locationId: number) => Promise<void>;
   setMainLocation: (locationId: number) => Promise<void>;
+  updateLocation: (locationId: number, data: UpdateLocationDto) => Promise<void>;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -127,6 +128,16 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateLocation = async (locationId: number, data: UpdateLocationDto) => {
+    try {
+      await locationService.update(locationId, data);
+      await loadLocations();
+    } catch (error) {
+      console.error('Error updating location:', error);
+      throw error;
+    }
+  };
+
   return (
     <LocationContext.Provider
       value={{
@@ -138,6 +149,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         refreshLocations,
         deleteLocation,
         setMainLocation,
+        updateLocation,
       }}
     >
       {children}

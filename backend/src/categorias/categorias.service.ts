@@ -9,9 +9,11 @@ export class CategoriasService {
    * Obtener todas las categorías activas con sus subcategorías
    */
   async findAll() {
-    return this.prisma.categoria.findMany({
+    const categorias = await this.prisma.categoria.findMany({
+
       where: { activo: true },
       include: {
+
         subcategorias: {
           where: { activo: true },
           orderBy: { orden: 'asc' },
@@ -19,6 +21,8 @@ export class CategoriasService {
       },
       orderBy: { orden: 'asc' },
     });
+    console.log(categorias);
+    return categorias;
   }
 
   /**

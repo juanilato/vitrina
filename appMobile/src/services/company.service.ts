@@ -15,6 +15,19 @@ export const companyService = {
   },
 
   /**
+   * Get companies near a location
+   * @param lat Latitude
+   * @param lng Longitude
+   * @param radiusKm Radius in kilometers (default 10)
+   */
+  async getCompaniesByLocation(lat: number, lng: number, radiusKm: number = 10): Promise<Company[]> {
+    const response = await api.get<Company[]>('/auth/companies/nearby', {
+      params: { lat, lng, radius: radiusKm },
+    });
+    return response.data;
+  },
+
+  /**
    * Get company by ID with locations and preferences
    */
   async getCompanyById(companyId: string): Promise<Company> {

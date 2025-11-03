@@ -11,6 +11,7 @@ import {
   TopNavbar,
   LocationsDropdown
 } from './components';
+import ProfileSettings from './components/ProfileSettings';
 import { CheckoutFormData, Company } from './types';
 import NotificationsDropdown from '../common/NotificationsDropdown';
 import { ThemeProvider } from '../../colors';
@@ -242,47 +243,7 @@ const ClientDashboard: React.FC = () => {
       case 'profile':
         return (
           <div className="tab-content">
-            <div className="profile-view">
-              <div className="profile-header">
-                <div className="profile-avatar">
-                  {user.name?.charAt(0).toUpperCase() || '👤'}
-                </div>
-                <h2 className="profile-name">{user.name}</h2>
-                <p className="profile-email">{user.email}</p>
-              </div>
-              <div className="profile-menu">
-                <button className="profile-menu-item" onClick={() => setActiveTab('orders')}>
-                  <span className="menu-icon">📋</span>
-                  <span className="menu-label">Mis Pedidos</span>
-                  <span className="menu-arrow">→</span>
-                </button>
-                <button className="profile-menu-item">
-                  <span className="menu-icon">📍</span>
-                  <span className="menu-label">Direcciones</span>
-                  <span className="menu-arrow">→</span>
-                </button>
-                <button className="profile-menu-item">
-                  <span className="menu-icon">💳</span>
-                  <span className="menu-label">Métodos de Pago</span>
-                  <span className="menu-arrow">→</span>
-                </button>
-                <button className="profile-menu-item">
-                  <span className="menu-icon">⚙️</span>
-                  <span className="menu-label">Configuración</span>
-                  <span className="menu-arrow">→</span>
-                </button>
-                <div className="profile-divider"></div>
-                <button className="profile-menu-item">
-                  <span className="menu-icon">❓</span>
-                  <span className="menu-label">Ayuda y Soporte</span>
-                  <span className="menu-arrow">→</span>
-                </button>
-                <button className="profile-menu-item danger">
-                  <span className="menu-icon">🚪</span>
-                  <span className="menu-label">Cerrar Sesión</span>
-                </button>
-              </div>
-            </div>
+            <ProfileSettings />
           </div>
         );
 

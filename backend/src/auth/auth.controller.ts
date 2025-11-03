@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Param, Put, Query, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterClienteDto, RegisterEmpresaDto, RegisterRepartidorDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -7,6 +7,7 @@ import { VerifyCodeDto, ResendCodeDto } from './dto/verification.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { GoogleRegisterDto } from './dto/google-register.dto';
+import { UpdateProfileDto, UpdatePasswordDto } from './dto/update-profile.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -84,6 +85,29 @@ export class AuthController {
     };
   }
 
+  // obtener empresas cercanas a una ubicación
+  @UseGuards(JwtAuthGuard)
+  @Get('companies/nearby')
+  async getCompaniesByLocation(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius?: string,
+  ) {
+    if (!lat || !lng) {
+      throw new BadRequestException('Se requieren las coordenadas lat y lng');
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    const radiusKm = radius ? parseFloat(radius) : 10;
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      throw new BadRequestException('Las coordenadas deben ser números válidos');
+    }
+
+    return this.authService.getCompaniesByLocation(latitude, longitude, radiusKm);
+  }
+
   // obtener todas las empresas (para clientes)
   @UseGuards(JwtAuthGuard)
   @Get('companies')
@@ -103,5 +127,31 @@ export class AuthController {
   @Get('companies/:id/locations')
   async getCompanyWithLocations(@Param('id') id: string) {
     return this.authService.getCompanyWithLocations(id);
+  }
+
+  // Actualizar perfil del cliente
+  @UseGuards(JwtAuthGuard)
+  @Put('profile')
+  async updateProfile(@Request() req, @Body() updateProfileDto: UpdateProfileDto) {
+    // Solo permitir actualización de perfil para clientes
+    if (req.user.type !== 'cliente') {
+      return { message: 'Solo los clientes pueden actualizar su perfil desde este endpoint' };
+    }
+    return this.authService.updateClientProfile(req.user.id, updateProfileDto);
+  }
+
+  // Cambiar contraseña del cliente
+  @UseGuards(JwtAuthGuard)
+  @Put('password')
+  async updatePassword(@Request() req, @Body() updatePasswordDto: UpdatePasswordDto) {
+    // Solo permitir cambio de contraseña para clientes
+    if (req.user.type !== 'cliente') {
+      return { message: 'Solo los clientes pueden cambiar su contraseña desde este endpoint' };
+    }
+    return this.authService.updateClientPassword(
+      req.user.id,
+      updatePasswordDto.currentPassword,
+      updatePasswordDto.newPassword
+    );
   }
 }

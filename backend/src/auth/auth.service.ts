@@ -619,6 +619,33 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
     return { message: 'Logout exitoso' };
   }
 
+  /**
+   * Calcula la distancia entre dos puntos geográficos usando la fórmula de Haversine
+   * @param lat1 Latitud del primer punto
+   * @param lon1 Longitud del primer punto
+   * @param lat2 Latitud del segundo punto
+   * @param lon2 Longitud del segundo punto
+   * @returns Distancia en kilómetros
+   */
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = this.deg2rad(lat2 - lat1);
+    const dLon = this.deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) *
+        Math.cos(this.deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return distance;
+  }
+
+  private deg2rad(deg: number): number {
+    return deg * (Math.PI / 180);
+  }
+
   // obtener todas las empresas (para clientes)
   async getCompanies() {
     try {
@@ -672,6 +699,96 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
     }
   }
 
+  /**
+   * Obtener empresas cercanas a una ubicación específica
+   * @param lat Latitud del usuario
+   * @param lng Longitud del usuario
+   * @param radiusKm Radio de búsqueda en kilómetros (por defecto 10km)
+   */
+  async getCompaniesByLocation(lat: number, lng: number, radiusKm: number = 10) {
+    try {
+      // Obtener todas las empresas verificadas con sus ubicaciones
+      const companies = await this.prisma.empresa.findMany({
+        where: {
+          isVerified: true
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          logo: true,
+          isVerified: true,
+          createdAt: true,
+          updatedAt: true,
+          categoriaId: true,
+          categoria: {
+            select: {
+              id: true,
+              nombre: true,
+              icono: true,
+            },
+          },
+          subcategorias: {
+            select: {
+              subcategoria: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  icono: true,
+                },
+              },
+            },
+          },
+          preferenciasWeb: {
+            select: {
+              dashboardFoto: true,
+            },
+          },
+          ubicacion: {
+            select: {
+              id: true,
+              lat: true,
+              lng: true,
+              direccion: true,
+            },
+          },
+        },
+      });
+
+      // Filtrar empresas que tengan una ubicación dentro del radio
+      const companiesInRange = companies
+        .map((company) => {
+          // Verificar si la empresa tiene ubicación y si está dentro del rango
+          if (!company.ubicacion || !company.ubicacion.lat || !company.ubicacion.lng) {
+            return null;
+          }
+
+          const distance = this.calculateDistance(
+            lat,
+            lng,
+            company.ubicacion.lat,
+            company.ubicacion.lng
+          );
+
+          if (distance <= radiusKm) {
+            return {
+              ...company,
+              distance,
+            };
+          }
+          return null;
+        })
+        .filter((company) => company !== null)
+        .sort((a, b) => a.distance - b.distance); // Ordenar por distancia
+
+      console.log(`🔍 [GET COMPANIES BY LOCATION] Encontradas ${companiesInRange.length} empresas en un radio de ${radiusKm}km`);
+      return companiesInRange;
+    } catch (error) {
+      console.error('❌ [GET COMPANIES BY LOCATION] Error:', error);
+      throw new BadRequestException('Error al obtener empresas cercanas');
+    }
+  }
+
   // obtener empresa específica (para clientes)
   async getCompany(id: string) {
     try {
@@ -684,7 +801,7 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
           id: true,
           name: true,
           email: true,
- 
+
 
           isVerified: true,
           createdAt: true,
@@ -739,6 +856,92 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
         throw error;
       }
       throw new BadRequestException('Error al obtener empresa');
+    }
+  }
+
+  // Actualizar perfil del cliente
+  async updateClientProfile(userId: string, updateData: { name?: string; email?: string }) {
+    try {
+      // Si se está actualizando el email, verificar que no exista ya
+      if (updateData.email) {
+        const existingUser = await this.prisma.cliente.findFirst({
+          where: {
+            email: updateData.email,
+            NOT: { id: userId }
+          }
+        });
+
+        if (existingUser) {
+          throw new ConflictException('El email ya está en uso');
+        }
+      }
+
+      // Actualizar el usuario
+      const updatedUser = await this.prisma.cliente.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          isVerified: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      });
+
+      return {
+        message: 'Perfil actualizado exitosamente',
+        user: {
+          ...updatedUser,
+          type: 'cliente'
+        }
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al actualizar perfil');
+    }
+  }
+
+  // Cambiar contraseña del cliente
+  async updateClientPassword(userId: string, currentPassword: string, newPassword: string) {
+    try {
+      // Buscar usuario
+      const user = await this.prisma.cliente.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      // Verificar contraseña actual (solo si tiene contraseña - puede no tener si se registró con Google)
+      if (user.password) {
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isPasswordValid) {
+          throw new UnauthorizedException('Contraseña actual incorrecta');
+        }
+      }
+
+      // Encriptar nueva contraseña
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Actualizar contraseña
+      await this.prisma.cliente.update({
+        where: { id: userId },
+        data: { password: hashedPassword }
+      });
+
+      return {
+        message: 'Contraseña actualizada exitosamente'
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al actualizar contraseña');
     }
   }
 }

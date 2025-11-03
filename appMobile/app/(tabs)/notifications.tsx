@@ -17,10 +17,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useNotifications } from '../src/contexts/NotificationsContext';
-import { Notification } from '../src/types/notification';
-import { colors, spacing } from '../src/theme';
-import { textStyles as typography } from '../src/theme/typography';
+import { useNotifications } from '../../src/contexts/NotificationsContext';
+import { Notification } from '../../src/types/notification';
+import { colors, spacing } from '../../src/theme';
+import { textStyles as typography } from '../../src/theme/typography';
 
 export default function NotificationsScreen() {
   const router = useRouter();
