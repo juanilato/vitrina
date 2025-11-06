@@ -9,17 +9,16 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import {MapView, Marker, MapFallback } from  '../src/components/common/MapViewUniversal';
+import { MapView, Marker, MapFallback } from '../src/components/common/MapViewUniversal';
 import { colors, spacing, textStyles } from '../src/theme';
 import { locationService, SavedLocation } from '../src/services/location.service';
 import { useLocation } from '../src/contexts/LocationContext';
 import { useAuth } from '../src/contexts/AuthContext';
-
-import { Platform } from 'react-native';
 
 // Helper para obtener dirección desde coordenadas
 const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {

@@ -14,12 +14,13 @@ import {
   Image,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import  {MapView,Marker, PROVIDER_GOOGLE, MapFallback } from '../../src/components/common/MapViewUniversal';
+import { MapView, Marker, PROVIDER_GOOGLE, MapFallback } from '../../src/components/common/MapViewUniversal';
 import { orderService } from '../../src/services/order.service';
 import { PedidoWithDetails, OrderStatus } from '../../src/types/order';
 import { DeliveryTrackingMap } from '../../src/components/orders/DeliveryTrackingMap';
@@ -29,7 +30,6 @@ import { colors } from '../../src/theme/colors';
 import { spacing } from '../../src/theme/spacing';
 import { textStyles as typography } from '../../src/theme/typography';
 
-import { Platform } from 'react-native';
 const { width } = Dimensions.get('window');
 
 interface MapData {

@@ -13,15 +13,16 @@ import {
   Modal,
   Animated,
   Image,
+  Platform,
 } from 'react-native';
-import {MapView, Marker, PROVIDER_GOOGLE, Region, Polyline, MapFallback } from '../common/MapViewUniversal';
+import { MapView, Marker, PROVIDER_GOOGLE, Region, Polyline } from '../common/MapViewUniversal';
 import { Ionicons } from '@expo/vector-icons';
 import { orderService } from '../../services/order.service';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { colors } from '../../theme/colors';
 import { spacing, shadows, borderRadius } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
-import { Platform } from 'react-native';
+
 interface DeliveryTrackingMapProps {
   pedidoId: string;
   visible: boolean;
@@ -51,6 +52,26 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
   visible,
   onClose,
 }) => {
+  // Si MapView no está disponible (Expo Go), mostrar mensaje
+  if (!MapView) {
+    return (
+      <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Ionicons name="map-outline" size={64} color={colors.gray400} />
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.gray900, marginTop: 16, textAlign: 'center' }}>
+            Mapa no disponible en Expo Go
+          </Text>
+          <Text style={{ fontSize: 14, color: colors.gray600, marginTop: 8, textAlign: 'center' }}>
+            Para ver el mapa de tracking, necesitas crear un Development Build.
+          </Text>
+          <TouchableOpacity onPress={onClose} style={{ marginTop: 24, backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 }}>
+            <Text style={{ color: colors.white, fontWeight: '600' }}>Cerrar</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    );
+  }
+
   const [mapData, setMapData] = useState<MapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -365,126 +386,85 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
         {/* Map con estilo personalizado */}
         {!loading && !error && mapData && region && (
-          <>
-            {Platform.OS === 'web' ? (
-              // Mapa para WEB con Google Maps
-              <MapFallback
-                height={600}
-                markers={[
-                  {
-                    lat: mapData.empresa.latitud,
-                    lng: mapData.empresa.longitud,
-                    title: mapData.empresa.name || 'Empresa',
-                    color: colors.primary,
-                  },
-                  {
-                    lat: mapData.cliente.latitud,
-                    lng: mapData.cliente.longitud,
-                    title: 'Dirección de entrega',
-                    color: colors.secondary,
-                  },
-                  ...(mapData.repartidor
-                    ? [
-                        {
-                          lat: mapData.repartidor.latitud,
-                          lng: mapData.repartidor.longitud,
-                          title: mapData.repartidor.nombre || 'Repartidor',
-                          color: colors.orange,
-                        },
-                      ]
-                    : []),
-                ]}
-                center={{
-                  lat: region.latitude,
-                  lng: region.longitude,
-                }}
-                zoom={13}
-                showRoute={routeCoordinates.length > 0}
-                routeCoordinates={routeCoordinates}
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={styles.map}
+            initialRegion={region}
+            showsUserLocation
+            showsMyLocationButton
+            customMapStyle={mapStyle}
+          >
+            {/* Ruta real entre repartidor y cliente */}
+            {routeCoordinates.length > 0 && (
+              <Polyline
+                coordinates={routeCoordinates}
+                strokeColor={colors.orange}
+                strokeWidth={4}
               />
-            ) : (
-              // Mapa para MOBILE con react-native-maps
-              <MapView
-                provider={PROVIDER_GOOGLE}
-                style={styles.map}
-                initialRegion={region}
-                showsUserLocation
-                showsMyLocationButton
-                customMapStyle={mapStyle}
-              >
-                {/* Ruta real entre repartidor y cliente */}
-                {routeCoordinates.length > 0 && (
-                  <Polyline
-                    coordinates={routeCoordinates}
-                    strokeColor={colors.orange}
-                    strokeWidth={4}
-                  />
-                )}
-
-                {/* Marcador del Local - Con logo */}
-                {mapData.empresa && (
-                  <Marker
-                    coordinate={{
-                      latitude: mapData.empresa.latitud,
-                      longitude: mapData.empresa.longitud,
-                    }}
-                    title={mapData.empresa.name}
-                    description="Local"
-                  >
-                    <View style={styles.markerContainer}>
-                      <View style={[styles.marker, styles.markerEmpresa]}>
-                        {mapData.empresa.logoUrl ? (
-                          <Image
-                            source={{ uri: mapData.empresa.logoUrl }}
-                            style={styles.markerLogo}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Ionicons name="storefront" size={24} color={colors.white} />
-                        )}
-                      </View>
-                    </View>
-                  </Marker>
-                )}
-
-                {/* Marcador del Cliente - Simple */}
-                {mapData.cliente && (
-                  <Marker
-                    coordinate={{
-                      latitude: mapData.cliente.latitud,
-                      longitude: mapData.cliente.longitud,
-                    }}
-                    title="Dirección de entrega"
-                    description="Tu ubicación"
-                  >
-                    <View style={styles.markerContainer}>
-                      <View style={[styles.marker, styles.markerCliente]}>
-                        <Ionicons name="home" size={24} color={colors.white} />
-                      </View>
-                    </View>
-                  </Marker>
-                )}
-
-                {/* Marcador del Repartidor - Simple */}
-                {mapData.repartidor && (
-                  <Marker
-                    coordinate={{
-                      latitude: mapData.repartidor.latitud,
-                      longitude: mapData.repartidor.longitud,
-                    }}
-                    title={mapData.repartidor.nombre || 'Repartidor'}
-                    description="En camino"
-                  >
-                    <View style={styles.markerContainer}>
-                      <View style={[styles.marker, styles.markerRepartidor]}>
-                        <Ionicons name="bicycle" size={24} color={colors.white} />
-                      </View>
-                    </View>
-                  </Marker>
-                )}
-              </MapView>
             )}
-          </>
+
+            {/* Marcador del Local - Con logo */}
+            {mapData.empresa && (
+              <Marker
+                coordinate={{
+                  latitude: mapData.empresa.latitud,
+                  longitude: mapData.empresa.longitud,
+                }}
+                title={mapData.empresa.name}
+                description="Local"
+              >
+                <View style={styles.markerContainer}>
+                  <View style={[styles.marker, styles.markerEmpresa]}>
+                    {mapData.empresa.logoUrl ? (
+                      <Image
+                        source={{ uri: mapData.empresa.logoUrl }}
+                        style={styles.markerLogo}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Ionicons name="storefront" size={24} color={colors.white} />
+                    )}
+                  </View>
+                </View>
+              </Marker>
+            )}
+
+            {/* Marcador del Cliente - Simple */}
+            {mapData.cliente && (
+              <Marker
+                coordinate={{
+                  latitude: mapData.cliente.latitud,
+                  longitude: mapData.cliente.longitud,
+                }}
+                title="Dirección de entrega"
+                description="Tu ubicación"
+              >
+                <View style={styles.markerContainer}>
+                  <View style={[styles.marker, styles.markerCliente]}>
+                    <Ionicons name="home" size={24} color={colors.white} />
+                  </View>
+                </View>
+              </Marker>
+            )}
+
+            {/* Marcador del Repartidor - Simple */}
+            {mapData.repartidor && (
+              <Marker
+                coordinate={{
+                  latitude: mapData.repartidor.latitud,
+                  longitude: mapData.repartidor.longitud,
+                }}
+                title={mapData.repartidor.nombre || 'Repartidor'}
+                description="En camino"
+              >
+                <View style={styles.markerContainer}>
+                  <View style={[styles.marker, styles.markerRepartidor]}>
+                    <Ionicons name="bicycle" size={24} color={colors.white} />
+                  </View>
+                </View>
+              </Marker>
+            )}
+          </MapView>
         )}
 
         {/* Legend - Rediseñada */}

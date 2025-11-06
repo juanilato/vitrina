@@ -1,29 +1,23 @@
+/**
+ * MapViewUniversal - Web
+ * Implementación de mapas para web usando Google Maps JavaScript API
+ */
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 
-let MapView: any = null;
-let Marker: any = null;
-let Region: any = null;
-let Polyline: any = null;
-let PROVIDER_GOOGLE: any = null;
+const GOOGLE_MAPS_API_KEY = 'AIzaSyANk5MpfxAkPg0krpULl3xUR3e4wDigkOs';
 
-// LÓGICA MOBILE - MANTENER INTACTA
-if (Platform.OS !== 'web') {
-  const RNMaps = require('react-native-maps');
-  MapView = RNMaps.default;
-  Marker = RNMaps.Marker;
-  Region = RNMaps.Region;
-  Polyline = RNMaps.Polyline;
-  PROVIDER_GOOGLE = RNMaps.PROVIDER_GOOGLE;
-}
-
-export { MapView, Marker, Polyline, PROVIDER_GOOGLE, Region };
+// Exportar componentes mock para web (no se usan directamente)
+export const MapView = null;
+export const Marker = null;
+export const Polyline = null;
+export const PROVIDER_GOOGLE = null;
+export const Region = null;
 
 // ========================================
 // GOOGLE MAPS WEB IMPLEMENTATION
 // ========================================
-
-const GOOGLE_MAPS_API_KEY = 'AIzaSyANk5MpfxAkPg0krpULl3xUR3e4wDigkOs';
 
 interface MapFallbackProps {
   height?: number;
@@ -65,8 +59,6 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
 
   // Cargar script de Google Maps
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
-
     const loadGoogleMapsScript = () => {
       if (typeof window === 'undefined') return;
 
@@ -99,7 +91,7 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
 
   // Inicializar mapa cuando esté cargado
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || Platform.OS !== 'web') return;
+    if (!mapLoaded || !mapRef.current) return;
 
     try {
       const google = (window as any).google;
@@ -140,7 +132,7 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
 
   // Actualizar marcadores
   useEffect(() => {
-    if (!googleMapRef.current || !mapLoaded || Platform.OS !== 'web') return;
+    if (!googleMapRef.current || !mapLoaded) return;
 
     const google = (window as any).google;
     if (!google?.maps) return;
@@ -190,7 +182,7 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
 
   // Dibujar ruta (polyline)
   useEffect(() => {
-    if (!googleMapRef.current || !mapLoaded || !showRoute || Platform.OS !== 'web') return;
+    if (!googleMapRef.current || !mapLoaded || !showRoute) return;
 
     const google = (window as any).google;
     if (!google?.maps) return;
@@ -217,24 +209,6 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
       polylineRef.current.setMap(googleMapRef.current);
     }
   }, [routeCoordinates, mapLoaded, showRoute]);
-
-  if (Platform.OS !== 'web') {
-    return (
-      <View
-        style={{
-          height,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#f4f4f4',
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: '#ddd',
-        }}
-      >
-        <Text style={{ color: '#666' }}>🌐 Usar en dispositivo móvil</Text>
-      </View>
-    );
-  }
 
   if (error) {
     return (

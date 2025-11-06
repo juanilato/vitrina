@@ -15,8 +15,8 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { MapView, Marker, PROVIDER_GOOGLE, MapFallback }  from './MapViewUniversal';
 import * as Location from 'expo-location';
+import { MapView, Marker, PROVIDER_GOOGLE } from './MapViewUniversal';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
@@ -45,6 +45,26 @@ export function LocationPicker({
   onSelectLocation,
   initialLocation,
 }: LocationPickerProps) {
+  // Si MapView no está disponible (Expo Go), mostrar mensaje
+  if (!MapView) {
+    return (
+      <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Ionicons name="map-outline" size={64} color={colors.gray400} />
+          <Text style={{ fontSize: 18, fontWeight: '600', color: colors.gray900, marginTop: 16, textAlign: 'center' }}>
+            Mapa no disponible en Expo Go
+          </Text>
+          <Text style={{ fontSize: 14, color: colors.gray600, marginTop: 8, textAlign: 'center' }}>
+            Para seleccionar ubicación con mapa, necesitas crear un Development Build.
+          </Text>
+          <TouchableOpacity onPress={onClose} style={{ marginTop: 24, backgroundColor: colors.primary, paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 }}>
+            <Text style={{ color: colors.white, fontWeight: '600' }}>Cerrar</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    );
+  }
+
   const [region, setRegion] = useState({
     latitude: initialLocation?.lat || -31.4201, // Córdoba, Argentina por defecto
     longitude: initialLocation?.lng || -64.1888,
@@ -174,43 +194,20 @@ export function LocationPicker({
 
         {/* Map */}
         <View style={styles.mapContainer}>
-          {Platform.OS === 'web' ? (
-            // Mapa para WEB con Google Maps
-            <MapFallback
-              height={500}
-              markers={[
-                {
-                  lat: markerPosition.latitude,
-                  lng: markerPosition.longitude,
-                  title: 'Ubicación seleccionada',
-                  color: colors.primary,
-                },
-              ]}
-              center={{ lat: markerPosition.latitude, lng: markerPosition.longitude }}
-              zoom={15}
-              onMapClick={async (lat, lng) => {
-                setMarkerPosition({ latitude: lat, longitude: lng });
-                await getAddressFromCoordinates(lat, lng);
-              }}
-              draggableMarker={true}
-            />
-          ) : (
-            // Mapa para MOBILE con react-native-maps
-            <MapView
-              provider={PROVIDER_GOOGLE}
-              style={styles.map}
-              region={region}
-              onPress={handleMapPress}
-              showsUserLocation
-              showsMyLocationButton={false}
-            >
-              <Marker coordinate={markerPosition} draggable onDragEnd={handleMapPress}>
-                <View style={styles.markerContainer}>
-                  <Ionicons name="location" size={40} color={colors.primary} />
-                </View>
-              </Marker>
-            </MapView>
-          )}
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={styles.map}
+            region={region}
+            onPress={handleMapPress}
+            showsUserLocation
+            showsMyLocationButton={false}
+          >
+            <Marker coordinate={markerPosition} draggable onDragEnd={handleMapPress}>
+              <View style={styles.markerContainer}>
+                <Ionicons name="location" size={40} color={colors.primary} />
+              </View>
+            </Marker>
+          </MapView>
 
           {/* Current Location Button */}
           <TouchableOpacity
