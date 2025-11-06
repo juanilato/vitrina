@@ -10,7 +10,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,8 +17,7 @@ import { useRouter } from 'expo-router';
 import { PedidoWithDetails, OrderStatus } from '../../types/order';
 import { colors, textStyles, spacing } from '../../theme';
 import { formatPrice } from '../../utils/formatPrice';
-
-const { width } = Dimensions.get('window');
+import { OrderStatusTimeline } from './OrderStatusTimeline';
 
 interface ActiveOrderCardProps {
   order: PedidoWithDetails;
@@ -155,7 +153,7 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
           end={{ x: 1, y: 1 }}
           style={styles.gradientCard}
         >
-          {/* Header con estado */}
+          {/* Header con estado - Compacto */}
           <View style={styles.header}>
             <View style={styles.statusContainer}>
               <Animated.View
@@ -169,65 +167,46 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
               />
               <Ionicons
                 name={statusConfig.icon}
-                size={24}
+                size={20}
                 color={colors.white}
                 style={styles.statusIcon}
               />
               <View style={styles.statusTextContainer}>
-                <Text style={styles.statusLabel}>Pedido Activo</Text>
-                <Text style={styles.statusText}>{statusConfig.label}</Text>
+                <Text style={styles.statusLabel}>
+                  {order.empresa?.name || 'Pedido'} • {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                </Text>
               </View>
             </View>
-            <TouchableOpacity onPress={handlePress}>
-              <Ionicons name="chevron-forward" size={24} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Información del pedido */}
-          <View style={styles.content}>
-            {/* Empresa */}
-            {order.empresa && (
-              <View style={styles.row}>
-                <Ionicons name="storefront" size={18} color={colors.white} />
-                <Text style={styles.infoText}>{order.empresa.name}</Text>
-              </View>
-            )}
-
-            {/* Número de artículos */}
-            <View style={styles.row}>
-              <Ionicons name="cart" size={18} color={colors.white} />
-              <Text style={styles.infoText}>
-                {itemCount} {itemCount === 1 ? 'artículo' : 'artículos'}
-              </Text>
-            </View>
-
-            {/* Tipo de entrega */}
-            <View style={styles.row}>
-              <Ionicons
-                name={order.tipoEntrega === 'delivery' ? 'bicycle' : 'walk'}
-                size={18}
-                color={colors.white}
-              />
-              <Text style={styles.infoText}>
-                {order.tipoEntrega === 'delivery' ? 'Delivery' : 'Retiro en local'}
-              </Text>
-            </View>
-
-            {/* Total */}
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total</Text>
+            <View style={styles.rightSection}>
               <Text style={styles.totalAmount}>{formatPrice(total)}</Text>
             </View>
           </View>
 
-          {/* Footer - Ver detalles */}
-          <TouchableOpacity style={styles.detailsButton} onPress={handlePress}>
-            <Text style={styles.detailsButtonText}>Ver detalles del pedido</Text>
-            <Ionicons name="arrow-forward" size={16} color={colors.white} />
-          </TouchableOpacity>
+          {/* Timeline Compacto Animado */}
+          <View style={styles.timelineContainer}>
+            <OrderStatusTimeline
+              currentStatus={order.estado}
+              tipoEntrega={order.tipoEntrega}
+              compact={true}
+            />
+          </View>
+
+          {/* Footer con tipo de entrega */}
+          <View style={styles.footer}>
+            <View style={styles.infoRow}>
+              <View style={styles.infoBadge}>
+                <Ionicons
+                  name={order.tipoEntrega === 'delivery' ? 'bicycle' : 'walk'}
+                  size={12}
+                  color={colors.white}
+                />
+                <Text style={styles.badgeText}>
+                  {order.tipoEntrega === 'delivery' ? 'Delivery' : 'Retiro'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.white} />
+            </View>
+          </View>
         </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
@@ -240,19 +219,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   gradientCard: {
-    borderRadius: 16,
-    padding: spacing.lg,
+    borderRadius: 12,
+    padding: spacing.md,
     shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -262,88 +241,78 @@ const styles = StyleSheet.create({
   pulseCircle: {
     position: 'absolute',
     left: 0,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     opacity: 0.3,
   },
   statusIcon: {
-    marginRight: spacing.sm,
+    marginRight: spacing.xs,
   },
   statusTextContainer: {
     flex: 1,
   },
   statusLabel: {
     ...textStyles.caption2,
-    fontSize: 11,
+    fontSize: 10,
     color: colors.white,
-    opacity: 0.9,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    opacity: 0.85,
+    fontWeight: '500',
+    marginTop: 1,
   },
   statusText: {
     ...textStyles.subheadline,
-    fontSize: 16,
+    fontSize: 13,
     color: colors.white,
     fontWeight: '700',
-    marginTop: 2,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.white,
-    opacity: 0.2,
-    marginBottom: spacing.md,
-  },
-  content: {
-    gap: spacing.sm,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  infoText: {
-    ...textStyles.body,
-    fontSize: 14,
-    color: colors.white,
-    fontWeight: '500',
-  },
-  totalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  totalLabel: {
-    ...textStyles.body,
-    fontSize: 14,
-    color: colors.white,
-    fontWeight: '600',
+  rightSection: {
+    alignItems: 'flex-end',
   },
   totalAmount: {
     ...textStyles.headline,
-    fontSize: 20,
+    fontSize: 16,
     color: colors.white,
-    fontWeight: '700',
+    fontWeight: '800',
   },
-  detailsButton: {
+  timelineContainer: {
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.xs,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 8,
-    gap: spacing.xs,
+    justifyContent: 'space-between',
+    flex: 1,
   },
-  detailsButtonText: {
-    ...textStyles.body,
-    fontSize: 14,
+  infoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  badgeText: {
+    ...textStyles.caption2,
+    fontSize: 11,
     color: colors.white,
     fontWeight: '600',
+  },
+  detailsLink: {
+    ...textStyles.caption1,
+    fontSize: 11,
+    color: colors.white,
+    fontWeight: '600',
+    opacity: 0.9,
   },
 });

@@ -1,44 +1,25 @@
 /**
  * Tabs Layout
- * Bottom tab navigation with icons
+ * Bottom tab navigation with glass effect and hide/show functionality
  */
 
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSizes } from '../../src/theme';
+import { colors } from '../../src/theme';
 import { useNotifications } from '../../src/contexts/NotificationsContext';
+import { GlassTabBar } from '../../src/components/navigation/GlassTabBar';
 
 export default function TabsLayout() {
   const { unreadCount } = useNotifications();
 
   return (
     <Tabs
+      tabBar={(props) => <GlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.gray500,
-        tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          borderTopWidth: 0,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 10,
-          marginHorizontal: 16,
-          marginBottom: 16,
-          borderRadius: 24,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.15,
-          shadowRadius: 16,
-          elevation: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: fontSizes.xs,
-          fontWeight: '700',
-          marginTop: 4,
-        },
       }}
     >
       <Tabs.Screen

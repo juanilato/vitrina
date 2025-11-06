@@ -41,6 +41,7 @@ const filterOptions: FilterOptionConfig[] = [
 export default function OrdersScreen() {
   const {
     orders,
+    filteredOrders,
     loading,
     error,
     refreshing,
@@ -222,7 +223,7 @@ export default function OrdersScreen() {
       </View>
 
       {/* Orders List or Empty State */}
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
         <EmptyState
           icon={filter === 'all' ? 'receipt-outline' : 'search-outline'}
           title={filter === 'all' ? 'No tienes pedidos' : 'No hay pedidos'}
@@ -236,7 +237,7 @@ export default function OrdersScreen() {
         />
       ) : (
         <FlatList
-          data={orders}
+          data={filteredOrders}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <OrderCard order={item} />}
           contentContainerStyle={styles.listContent}

@@ -37,6 +37,13 @@ export interface Pedido {
   estado: OrderStatus;
   tipoEntrega: TipoEntrega;
   formaPago: FormaPago;
+  metodoPago?: 'efectivo' | 'transferencia';
+  subtotal: number;
+  costoEnvio: number;
+  total: number;
+  direccionEntrega?: string;
+  referenciaEntrega?: string;
+  notas?: string;
   motivoRechazo?: string;
   createdAt: string;
   updatedAt: string;
@@ -48,6 +55,7 @@ export interface ItemPedido {
   productoId: string;
   cantidad: number;
   precio: number;
+  precioUnitario: number;
   producto?: Product;
 }
 
@@ -62,8 +70,8 @@ export interface PedidoWithDetails extends Pedido {
     id: string;
     name: string;
     logo?: string;
+    address?: string;
   };
-  total?: number;
   deliveryLocation?: DeliveryLocation;
   shippingPrice?: ShippingPriceResponse;
 }

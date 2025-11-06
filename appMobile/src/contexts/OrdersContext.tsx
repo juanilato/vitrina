@@ -141,12 +141,24 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
   // Filtrar pedidos según el filtro seleccionado
   const filteredOrders = orders.filter((order) => {
-    if (filter === 'all') return true;
-    if (filter === 'active') return ACTIVE_STATES.includes(order.estado);
-    if (filter === 'completed') return order.estado === 'entregado';
-    if (filter === 'cancelled') return order.estado === 'cancelado';
-    return true;
+    switch (filter) {
+      case 'all':
+        return true;
+      case 'active':
+        return ACTIVE_STATES.includes(order.estado);
+      case 'completed':
+        return order.estado === 'entregado';
+      case 'cancelled':
+        return order.estado === 'cancelado' || order.estado === 'no_confirmado';
+      default:
+        return true;
+    }
   });
+
+  console.log(`[OrdersContext] Filter: ${filter}, Total orders: ${orders.length}, Filtered: ${filteredOrders.length}`);
+  if (orders.length > 0) {
+    console.log('[OrdersContext] Order states:', orders.map(o => o.estado));
+  }
 
   const value: OrdersContextType = {
     orders,
