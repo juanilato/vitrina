@@ -14,14 +14,14 @@ import {
   Animated,
   Image,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE, Region, Polyline } from 'react-native-maps';
+import {MapView, Marker, PROVIDER_GOOGLE, Region, Polyline, MapFallback } from '../common/MapViewUniversal';
 import { Ionicons } from '@expo/vector-icons';
 import { orderService } from '../../services/order.service';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { colors } from '../../theme/colors';
 import { spacing, shadows, borderRadius } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
-
+import { Platform } from 'react-native';
 interface DeliveryTrackingMapProps {
   pedidoId: string;
   visible: boolean;
@@ -51,6 +51,8 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
   visible,
   onClose,
 }) => {
+    if (Platform.OS === 'web') return <MapFallback />;
+
   const [mapData, setMapData] = useState<MapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

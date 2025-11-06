@@ -22,6 +22,7 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 import { Button } from './Button';
+import { MapFallback } from './MapViewUniversal';
 
 interface SimpleLocationPickerProps {
   visible: boolean;
@@ -43,6 +44,7 @@ export function SimpleLocationPicker({
   onSelectLocation,
   initialLocation,
 }: SimpleLocationPickerProps) {
+  if (Platform.OS ==="web") return <MapFallback/>
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<{
     lat: number;

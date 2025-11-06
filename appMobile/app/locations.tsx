@@ -13,11 +13,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import MapView, { Marker } from 'react-native-maps';
+import {MapView, Marker, MapFallback } from  '../src/components/common/MapViewUniversal';
 import { colors, spacing, textStyles } from '../src/theme';
 import { locationService, SavedLocation } from '../src/services/location.service';
 import { useLocation } from '../src/contexts/LocationContext';
 import { useAuth } from '../src/contexts/AuthContext';
+
+import { Platform } from 'react-native';
 
 // Helper para obtener dirección desde coordenadas
 const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
@@ -42,6 +44,7 @@ const getAddressFromCoords = async (lat: number, lng: number): Promise<string> =
 };
 
 export default function LocationsScreen() {
+    if (Platform.OS === 'web') return <MapFallback />;
   const { refreshLocations: refreshContextLocations } = useLocation();
   const [locations, setLocations] = useState<SavedLocation[]>([]);
   const [loading, setLoading] = useState(true);

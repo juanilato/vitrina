@@ -15,7 +15,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { MapView, Marker, PROVIDER_GOOGLE, MapFallback }  from './MapViewUniversal';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
@@ -45,6 +45,7 @@ export function LocationPicker({
   onSelectLocation,
   initialLocation,
 }: LocationPickerProps) {
+  if (Platform.OS === 'web') return <MapFallback />;
   const [region, setRegion] = useState({
     latitude: initialLocation?.lat || -31.4201, // Córdoba, Argentina por defecto
     longitude: initialLocation?.lng || -64.1888,
