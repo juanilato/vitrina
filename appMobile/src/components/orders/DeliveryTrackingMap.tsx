@@ -3,7 +3,7 @@
  * Muestra el mapa con los marcadores de local, cliente y repartidor
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,15 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Modal,
+  Animated,
+  Image,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, Region, Polyline } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { orderService } from '../../services/order.service';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { colors } from '../../theme/colors';
-import { spacing } from '../../theme/spacing';
+import { spacing, shadows, borderRadius } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 
 interface DeliveryTrackingMapProps {
@@ -31,6 +33,7 @@ interface MapData {
     latitud: number;
     longitud: number;
     name: string;
+    logoUrl?: string;
   };
   cliente: {
     latitud: number;
@@ -55,7 +58,23 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
   const [eta, setEta] = useState<number | null>(null);
   const [nearbyNotified, setNearbyNotified] = useState(false);
 
+  // Animaciones
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+  const [routeCoordinates, setRouteCoordinates] = useState<Array<{ latitude: number; longitude: number }>>([]);
+
   const { on, off, isConnected } = useWebSocket({ autoConnect: true });
+
+  // Animación de entrada para card ETA
+  useEffect(() => {
+    if (visible) {
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 40,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
 
   // Cargar datos iniciales del mapa
   useEffect(() => {
@@ -101,6 +120,15 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
           };
 
           console.log('[Map] 📍 MapData actualizado:', JSON.stringify(newMapData.repartidor, null, 2));
+
+          // Actualizar ruta cuando cambie la posición del repartidor
+          if (prev.cliente) {
+            fetchRoute(
+              { lat, lng },
+              { lat: prev.cliente.latitud, lng: prev.cliente.longitud }
+            );
+          }
+
           return newMapData;
         });
       }
@@ -160,6 +188,63 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
     }
   }, [mapData, nearbyNotified]);
 
+  // Obtener ruta real usando Google Directions API
+  const fetchRoute = async (origin: { lat: number; lng: number }, destination: { lat: number; lng: number }) => {
+    try {
+      const apiKey = 'AIzaSyC38M7FX0xjywUeF8uRXvS8ZbZPEZ0k7LY'; // Tu API key de Google Maps
+      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&key=${apiKey}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.routes && data.routes.length > 0) {
+        const points = data.routes[0].overview_polyline.points;
+        const coordinates = decodePolyline(points);
+        setRouteCoordinates(coordinates);
+      }
+    } catch (error) {
+      console.error('[Map] Error al obtener ruta:', error);
+    }
+  };
+
+  // Decodificar polyline de Google
+  const decodePolyline = (encoded: string): Array<{ latitude: number; longitude: number }> => {
+    const poly = [];
+    let index = 0;
+    const len = encoded.length;
+    let lat = 0;
+    let lng = 0;
+
+    while (index < len) {
+      let b;
+      let shift = 0;
+      let result = 0;
+      do {
+        b = encoded.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlat = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlng = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+      lng += dlng;
+
+      poly.push({
+        latitude: lat / 1e5,
+        longitude: lng / 1e5,
+      });
+    }
+    return poly;
+  };
+
   const fetchMapData = async () => {
     try {
       setLoading(true);
@@ -169,6 +254,14 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
       console.log('[Map] 📍 Datos iniciales del mapa recibidos:', JSON.stringify(data, null, 2));
 
       setMapData(data);
+
+      // Obtener ruta real si hay repartidor y cliente
+      if (data.repartidor && data.cliente) {
+        await fetchRoute(
+          { lat: data.repartidor.latitud, lng: data.repartidor.longitud },
+          { lat: data.cliente.latitud, lng: data.cliente.longitud }
+        );
+      }
 
       // Calcular región inicial centrada entre los puntos
       if (data.cliente && data.empresa) {
@@ -215,32 +308,40 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.container}>
-        {/* Header */}
+        {/* Header simple solo con cruz */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={28} color={colors.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Seguimiento en tiempo real</Text>
-          <View style={{ width: 28 }} />
         </View>
 
-        {/* Connection Status */}
-        {isConnected && (
-          <View style={styles.statusBanner}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Conectado - Actualizaciones en vivo</Text>
-          </View>
-        )}
-
-        {/* ETA Banner */}
+        {/* ETA Card flotante */}
         {eta !== null && eta > 0 && (
-          <View style={[styles.etaBanner, eta <= 5 && styles.etaBannerNearby]}>
-            <Ionicons name="time-outline" size={20} color={colors.white} />
-            <Text style={styles.etaText}>
-              {eta <= 5 ? '¡Tu pedido está por llegar! ' : ''}
-              Llegada estimada en {eta} {eta === 1 ? 'minuto' : 'minutos'}
-            </Text>
-          </View>
+          <Animated.View
+            style={[
+              styles.etaCard,
+              eta <= 5 && styles.etaCardNearby,
+              { transform: [{ translateY: slideAnim }] }
+            ]}
+          >
+            <View style={styles.etaCardContent}>
+              <View style={[styles.etaIconCircle, eta <= 5 && styles.etaIconCircleNearby]}>
+                <Ionicons
+                  name={eta <= 5 ? "checkmark-circle" : "bicycle"}
+                  size={28}
+                  color={eta <= 5 ? colors.success : colors.orange}
+                />
+              </View>
+              <View style={styles.etaInfo}>
+                {eta <= 5 && (
+                  <Text style={styles.etaAlertText}>¡Muy cerca!</Text>
+                )}
+                <Text style={styles.etaText}>
+                  Llega en {eta} {eta === 1 ? 'min' : 'mins'}
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
         )}
 
         {/* Loading State */}
@@ -262,7 +363,7 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
           </View>
         )}
 
-        {/* Map */}
+        {/* Map con estilo personalizado */}
         {!loading && !error && mapData && region && (
           <MapView
             provider={PROVIDER_GOOGLE}
@@ -270,8 +371,18 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
             initialRegion={region}
             showsUserLocation
             showsMyLocationButton
+            customMapStyle={mapStyle}
           >
-            {/* Marcador del Local */}
+            {/* Ruta real entre repartidor y cliente */}
+            {routeCoordinates.length > 0 && (
+              <Polyline
+                coordinates={routeCoordinates}
+                strokeColor={colors.orange}
+                strokeWidth={4}
+              />
+            )}
+
+            {/* Marcador del Local - Con logo */}
             {mapData.empresa && (
               <Marker
                 coordinate={{
@@ -280,17 +391,24 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
                 }}
                 title={mapData.empresa.name}
                 description="Local"
-                pinColor={colors.primary}
               >
                 <View style={styles.markerContainer}>
                   <View style={[styles.marker, styles.markerEmpresa]}>
-                    <Ionicons name="storefront" size={20} color={colors.white} />
+                    {mapData.empresa.logoUrl ? (
+                      <Image
+                        source={{ uri: mapData.empresa.logoUrl }}
+                        style={styles.markerLogo}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Ionicons name="storefront" size={24} color={colors.white} />
+                    )}
                   </View>
                 </View>
               </Marker>
             )}
 
-            {/* Marcador del Cliente */}
+            {/* Marcador del Cliente - Simple */}
             {mapData.cliente && (
               <Marker
                 coordinate={{
@@ -299,17 +417,16 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
                 }}
                 title="Dirección de entrega"
                 description="Tu ubicación"
-                pinColor={colors.secondary}
               >
                 <View style={styles.markerContainer}>
                   <View style={[styles.marker, styles.markerCliente]}>
-                    <Ionicons name="home" size={20} color={colors.white} />
+                    <Ionicons name="home" size={24} color={colors.white} />
                   </View>
                 </View>
               </Marker>
             )}
 
-            {/* Marcador del Repartidor */}
+            {/* Marcador del Repartidor - Simple */}
             {mapData.repartidor && (
               <Marker
                 coordinate={{
@@ -318,11 +435,10 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
                 }}
                 title={mapData.repartidor.nombre || 'Repartidor'}
                 description="En camino"
-                pinColor={colors.orange}
               >
                 <View style={styles.markerContainer}>
                   <View style={[styles.marker, styles.markerRepartidor]}>
-                    <Ionicons name="bicycle" size={20} color={colors.white} />
+                    <Ionicons name="bicycle" size={24} color={colors.white} />
                   </View>
                 </View>
               </Marker>
@@ -330,20 +446,30 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
           </MapView>
         )}
 
-        {/* Legend */}
+        {/* Legend - Rediseñada */}
         {!loading && !error && mapData && (
-          <View style={styles.legend}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: colors.primary }]} />
-              <Text style={styles.legendText}>Local</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: colors.orange }]} />
-              <Text style={styles.legendText}>Repartidor</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: colors.secondary }]} />
-              <Text style={styles.legendText}>Tu dirección</Text>
+          <View style={styles.legendContainer}>
+            <View style={styles.legend}>
+              <View style={styles.legendItem}>
+                <View style={styles.legendIconContainer}>
+                  <Ionicons name="storefront" size={16} color={colors.primary} />
+                </View>
+                <Text style={styles.legendText}>Local</Text>
+              </View>
+              <View style={styles.legendDivider} />
+              <View style={styles.legendItem}>
+                <View style={styles.legendIconContainer}>
+                  <Ionicons name="bicycle" size={16} color={colors.orange} />
+                </View>
+                <Text style={styles.legendText}>Repartidor</Text>
+              </View>
+              <View style={styles.legendDivider} />
+              <View style={styles.legendItem}>
+                <View style={styles.legendIconContainer}>
+                  <Ionicons name="home" size={16} color={colors.secondary} />
+                </View>
+                <Text style={styles.legendText}>Destino</Text>
+              </View>
             </View>
           </View>
         )}
@@ -352,76 +478,96 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
   );
 };
 
+// Estilo personalizado para el mapa
+const mapStyle = [
+  {
+    featureType: 'poi',
+    elementType: 'labels',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'transit',
+    elementType: 'labels.icon',
+    stylers: [{ visibility: 'off' }],
+  },
+];
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
 
+  // Header simple
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
-    paddingTop: spacing['2xl'],
+    position: 'absolute',
+    top: spacing['2xl'] + spacing.sm,
+    left: spacing.md,
+    zIndex: 10,
   },
 
   closeButton: {
-    padding: spacing.xs,
-  },
-
-  headerTitle: {
-    ...typography.h3,
-    color: colors.gray900,
-    fontWeight: '700',
-  },
-
-  statusBanner: {
-    flexDirection: 'row',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.lg,
+  },
+
+  // ETA Card flotante
+  etaCard: {
+    position: 'absolute',
+    top: spacing['2xl'] + spacing.sm,
+    right: spacing.md,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    ...shadows.lg,
+    zIndex: 10,
+  },
+
+  etaCardNearby: {
     backgroundColor: colors.green50,
+  },
+
+  etaCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
   },
 
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
+  etaIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.orange + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  statusText: {
+  etaIconCircleNearby: {
+    backgroundColor: colors.success + '15',
+  },
+
+  etaInfo: {
+    justifyContent: 'center',
+  },
+
+  etaAlertText: {
     ...typography.bodySmall,
     color: colors.success,
-    fontWeight: '600',
-  },
-
-  etaBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    backgroundColor: colors.orange,
-    gap: spacing.sm,
-  },
-
-  etaBannerNearby: {
-    backgroundColor: colors.success,
+    fontWeight: '700',
+    fontSize: 11,
   },
 
   etaText: {
     ...typography.bodyMedium,
-    color: colors.white,
+    color: colors.gray900,
     fontWeight: '700',
-    flexWrap: 'wrap',
-    flex: 1,
-    textAlign: 'center',
+    fontSize: 15,
   },
 
   loadingContainer: {
@@ -468,27 +614,32 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  // Marcadores simples
   markerContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
 
   marker: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
     borderColor: colors.white,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...shadows.xl,
   },
 
   markerEmpresa: {
     backgroundColor: colors.primary,
+    overflow: 'hidden',
+  },
+
+  markerLogo: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
 
   markerCliente: {
@@ -499,21 +650,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.orange,
   },
 
-  legend: {
+  // Leyenda rediseñada
+  legendContainer: {
     position: 'absolute',
     bottom: spacing.xl,
-    left: spacing.lg,
-    right: spacing.lg,
+    left: spacing.md,
+    right: spacing.md,
+  },
+
+  legend: {
     backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.md,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    alignItems: 'center',
+    ...shadows.xl,
+    borderWidth: 1,
+    borderColor: colors.gray100,
   },
 
   legendItem: {
@@ -522,15 +677,25 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
 
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  legendIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.gray50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  legendDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: colors.gray200,
   },
 
   legendText: {
     ...typography.bodySmall,
     color: colors.gray700,
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 11,
   },
 });

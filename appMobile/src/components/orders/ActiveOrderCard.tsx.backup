@@ -144,17 +144,6 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
   const total = order.total || 0;
   const itemCount = order.items?.reduce((sum, item) => sum + item.cantidad, 0) || 0;
 
-  // Verificar si el estado es activo
-  const activeStates: OrderStatus[] = [
-    'pendiente_confirmacion',
-    'confirmado',
-    'en_proceso',
-    'esperando_delivery',
-    'en_camino',
-    'esperando_retiro',
-  ];
-  const isActiveState = activeStates.includes(order.estado);
-
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
@@ -167,25 +156,21 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
           {/* Header con estado - Compacto */}
           <View style={styles.header}>
             <View style={styles.statusContainer}>
-              {isActiveState && (
-                <>
-                  <Animated.View
-                    style={[
-                      styles.pulseCircle,
-                      {
-                        backgroundColor: statusConfig.pulseColor,
-                        transform: [{ scale: pulseAnim }],
-                      },
-                    ]}
-                  />
-                  <Ionicons
-                    name={statusConfig.icon}
-                    size={20}
-                    color={colors.white}
-                    style={styles.statusIcon}
-                  />
-                </>
-              )}
+              <Animated.View
+                style={[
+                  styles.pulseCircle,
+                  {
+                    backgroundColor: statusConfig.pulseColor,
+                    transform: [{ scale: pulseAnim }],
+                  },
+                ]}
+              />
+              <Ionicons
+                name={statusConfig.icon}
+                size={20}
+                color={colors.white}
+                style={styles.statusIcon}
+              />
               <View style={styles.statusTextContainer}>
                 <Text style={styles.statusLabel}>
                   {order.empresa?.name || 'Pedido'} • {itemCount} {itemCount === 1 ? 'item' : 'items'}

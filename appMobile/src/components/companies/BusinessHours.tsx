@@ -1,15 +1,21 @@
-/**
- * BusinessHours Component
- * Muestra los horarios de atención y el estado actual (abierto/cerrado)
- * Estilo iOS moderno con expansión colapsable
- */
 
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Easing,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HorarioAtencion, DayOfWeek } from '../../types/company';
 import { colors, spacing, borderRadius, textStyles } from '../../theme';
-
+import {
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from 'react-native';
 interface BusinessHoursProps {
   horarios?: HorarioAtencion[];
   compact?: boolean;
@@ -49,9 +55,14 @@ const getCurrentMinutes = (): number => {
   return now.getHours() * 60 + now.getMinutes();
 };
 
-export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact = false }) => {
+export const BusinessHours: React.FC<BusinessHoursProps> = ({
+  horarios,
+  compact = false,
+}) => {
   const [expanded, setExpanded] = useState(false);
-
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
   const { isOpen, currentStatus, todaySchedule, groupedHorarios } = useMemo(() => {
     if (!horarios || horarios.length === 0) {
       return {
@@ -64,16 +75,12 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
 
     const currentDay = getCurrentDay();
     const currentMinutes = getCurrentMinutes();
-
     const todayHorarios = horarios.filter(
       (h) => h.day === currentDay && !h.cerrado
     );
 
-    // Agrupar todos los horarios por día
     const grouped = horarios.reduce((acc, horario) => {
-      if (!acc[horario.day]) {
-        acc[horario.day] = [];
-      }
+      if (!acc[horario.day]) acc[horario.day] = [];
       acc[horario.day].push(horario);
       return acc;
     }, {} as Record<DayOfWeek, HorarioAtencion[]>);
@@ -87,30 +94,23 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
       };
     }
 
-    // Verificar si está abierto ahora
     const isCurrentlyOpen = todayHorarios.some(
       (h) => currentMinutes >= h.abreMin && currentMinutes < h.cierraMin
     );
 
     let status = 'Cerrado';
     if (isCurrentlyOpen) {
-      // Encontrar cuándo cierra
-      const currentSlot = todayHorarios.find(
+      const slot = todayHorarios.find(
         (h) => currentMinutes >= h.abreMin && currentMinutes < h.cierraMin
       );
-      if (currentSlot) {
-        status = `Abierto · Cierra ${formatTime(currentSlot.cierraMin)}`;
-      } else {
-        status = 'Abierto';
-      }
+      status = slot
+        ? `Abierto · Cierra ${formatTime(slot.cierraMin)}`
+        : 'Abierto';
     } else {
-      // Encontrar cuándo abre
-      const nextSlot = todayHorarios.find((h) => currentMinutes < h.abreMin);
-      if (nextSlot) {
-        status = `Cerrado · Abre ${formatTime(nextSlot.abreMin)}`;
-      } else {
-        status = 'Cerrado';
-      }
+      const next = todayHorarios.find((h) => currentMinutes < h.abreMin);
+      status = next
+        ? `Cerrado · Abre ${formatTime(next.abreMin)}`
+        : 'Cerrado';
     }
 
     return {
@@ -120,6 +120,37 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
       groupedHorarios: grouped,
     };
   }, [horarios]);
+
+  const currentDay = getCurrentDay();
+
+  // Animaciones para cada día
+  const animatedValues = useRef(
+    Object.keys(DAY_LABELS).map(() => new Animated.Value(0))
+  ).current;
+
+  useEffect(() => {
+    if (expanded) {
+      Animated.stagger(
+        70,
+        animatedValues.map((anim) =>
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 250,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          })
+        )
+      ).start();
+    } else {
+      animatedValues.forEach((anim) =>
+        Animated.timing(anim, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }).start()
+      );
+    }
+  }, [expanded]);
 
   if (compact) {
     return (
@@ -141,35 +172,34 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
     );
   }
 
-  // Siempre mostrar, incluso sin horarios
-
-  const currentDay = getCurrentDay();
-
   return (
     <View style={styles.container}>
-      {/* Header compacto con día actual */}
+      {/* Header */}
       <TouchableOpacity
         style={styles.headerRow}
-        onPress={() => setExpanded(!expanded)}
+        onPress={() => {
+    // <-- ESTA LÍNEA hace que el cambio de altura del componente
+    // se anime y empuje/traiga al resto del layout del PADRE.
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded((prev) => !prev);
+  }}
         activeOpacity={0.7}
       >
-        {/* Status Badge */}
         <View style={[styles.statusBadge, isOpen ? styles.openBadge : styles.closedBadge]}>
           <View style={[styles.statusDot, isOpen ? styles.openDot : styles.closedDot]} />
-          <Text style={[styles.statusText, isOpen ? styles.statusTextOpen : null]}>
+          <Text style={[styles.statusText, isOpen && styles.statusTextOpen]}>
             {isOpen ? 'Abierto' : 'Cerrado'}
           </Text>
         </View>
 
-        {/* Día actual y horario */}
         <View style={styles.todayInfo}>
           <Text style={styles.todayLabel}>{DAY_LABELS[currentDay]}</Text>
-          {todaySchedule && todaySchedule.length > 0 ? (
+          {todaySchedule?.length ? (
             <View style={styles.todayTimes}>
               {todaySchedule
                 .sort((a, b) => a.slotIndex - b.slotIndex)
-                .map((horario, index) => (
-                  <Text key={index} style={styles.todayTimeText}>
+                .map((horario, i) => (
+                  <Text key={i} style={styles.todayTimeText}>
                     {formatTime(horario.abreMin)}-{formatTime(horario.cierraMin)}
                   </Text>
                 ))}
@@ -179,7 +209,6 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
           )}
         </View>
 
-        {/* Flecha de expansión */}
         <Ionicons
           name={expanded ? 'chevron-up' : 'chevron-down'}
           size={20}
@@ -187,16 +216,37 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
         />
       </TouchableOpacity>
 
-      {/* Lista expandible de todos los días */}
+      {/* Lista animada */}
       {expanded && (
         <View style={styles.scheduleList}>
-          {Object.entries(DAY_LABELS).map(([day, label]) => {
+          {Object.entries(DAY_LABELS).map(([day, label], index) => {
             const dayHorarios = groupedHorarios[day as DayOfWeek] || [];
             const isToday = day === currentDay;
-            const hasCerrado = dayHorarios.length === 0 || dayHorarios.every((h) => h.cerrado);
+            const hasCerrado =
+              dayHorarios.length === 0 || dayHorarios.every((h) => h.cerrado);
+
+            const opacity = animatedValues[index].interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 1],
+            });
+
+            const translateY = animatedValues[index].interpolate({
+              inputRange: [0, 1],
+              outputRange: [10, 0],
+            });
 
             return (
-              <View key={day} style={[styles.dayRow, isToday && styles.todayRow]}>
+              <Animated.View
+                key={day}
+                style={[
+                  styles.dayRow,
+                  {
+                    opacity,
+                    transform: [{ translateY }],
+                  },
+                  isToday && styles.todayRow,
+                ]}
+              >
                 <Text style={[styles.dayText, isToday && styles.todayText]}>
                   {label.substring(0, 3)}
                 </Text>
@@ -207,14 +257,14 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
                     {dayHorarios
                       .filter((h) => !h.cerrado)
                       .sort((a, b) => a.slotIndex - b.slotIndex)
-                      .map((horario, index) => (
-                        <Text key={index} style={styles.timeText}>
-                          {formatTime(horario.abreMin)}-{formatTime(horario.cierraMin)}
+                      .map((h, i) => (
+                        <Text key={i} style={styles.timeText}>
+                          {formatTime(h.abreMin)}-{formatTime(h.cierraMin)}
                         </Text>
                       ))}
                   </View>
                 )}
-              </View>
+              </Animated.View>
             );
           })}
         </View>
@@ -222,6 +272,7 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

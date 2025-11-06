@@ -31,6 +31,7 @@ import { Toast } from '../../src/components/common';
 import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { Product, Agregado } from '../../src/types/company';
 import { CartIngredienteExtra } from '../../src/types/cart';
+import { Animated, Easing, LayoutAnimation, Platform, UIManager } from 'react-native';
 export default function CompanyStoreScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -51,6 +52,22 @@ export default function CompanyStoreScreen() {
     [company]
   );
 
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+  const isColorDark = (hex: string) => {
+  if (!hex) return false;
+  const cleaned = hex.replace('#', '');
+  const bigint = parseInt(cleaned.length === 3 
+    ? cleaned.split('').map(c => c + c).join('') 
+    : cleaned, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  // Luma formula
+  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luma < 140; // cuanto más bajo, más oscuro
+};
   // Filtrar productos por búsqueda - DEBE estar antes de los early returns
   const filteredProducts = useMemo(() => {
     const allProducts = company?.products || [];
@@ -125,12 +142,18 @@ export default function CompanyStoreScreen() {
     );
   }
 
+  const fondo = company?.preferenciasWeb?.colorFondo || buttonColor;
+  const fondoOscuro = isColorDark(fondo);
+  const textoColor = fondoOscuro ? colors.white : colors.text; // blanco si el fondo es oscuro
+  const panelColor = fondoOscuro
+    ? 'rgba(255,255,255,0.12)'
+    : 'rgba(0,0,0,0.05)';
   if (error || !company) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
+            <Ionicons name="arrow-back" size={24} color={textoColor} />
           </TouchableOpacity>
         </View>
         <View style={styles.errorContainer}>
@@ -144,7 +167,7 @@ export default function CompanyStoreScreen() {
       </SafeAreaView>
     );
   }
-
+  const dashboardFoto = company.preferenciasWeb?.dashboardFoto;
   // Debug: ver qué datos llegan
   console.log('🏢 Company data:', {
     name: company.name,
@@ -154,7 +177,6 @@ export default function CompanyStoreScreen() {
     colorFondo: company.preferenciasWeb?.colorFondo,
   });
 
-  const dashboardFoto = company.preferenciasWeb?.dashboardFoto;
 
   return (
     <View style={styles.container}>
@@ -179,15 +201,20 @@ export default function CompanyStoreScreen() {
             style={styles.headerBackground}
             resizeMode="cover"
           >
-            <LinearGradient
-              colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.75)']}
-              style={styles.headerGradient}
-            >
+    <LinearGradient
+        colors={[
+          fondo,
+          fondoOscuro ? `${buttonColor}88` : `${buttonColor}44`,
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.headerFormal}
+      >
               <SafeAreaView edges={['top']}>
                 {/* Top Bar */}
                 <View style={styles.topBar}>
                   <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
-                    <Ionicons name="arrow-back" size={24} color={colors.white} />
+                    <Ionicons name="arrow-back" size={24} color={textoColor} />
                   </TouchableOpacity>
 
                   <View style={styles.spacer} />
@@ -196,7 +223,7 @@ export default function CompanyStoreScreen() {
                     style={[styles.cartButtonModern, { backgroundColor: `${colors.white}25` }]}
                     onPress={() => router.push('/(tabs)/cart')}
                   >
-                    <Ionicons name="cart" size={24} color={colors.white} />
+                    <Ionicons name="cart" size={24} color={textoColor} />
                     {cart.totalItems > 0 && (
                       <View style={styles.cartBadgeModern}>
                         <Text style={styles.cartBadgeText}>
@@ -208,49 +235,120 @@ export default function CompanyStoreScreen() {
                 </View>
 
                 {/* Company Info Centrado */}
-                <View style={styles.companyInfoContainer}>
-                  {company.logo && (
-                    <View style={styles.logoContainer}>
-                      <Image source={{ uri: company.logo }} style={styles.logoLarge} />
-                    </View>
-                  )}
-                  <Text style={styles.companyNameLarge} numberOfLines={2}>
-                    {company.name}
-                  </Text>
-                </View>
+ {/* Branding iOS SOFT */}
+<View style={styles.brandingSoft}>
+  {/* Avatar sobrio (sin halos, sin ring) */}
+  {company.logo ? (
+    <View
+      style={[
+        styles.brandAvatar,
+        {
+          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
+          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
+        },
+      ]}
+    >
+      <Image source={{ uri: company.logo }} style={styles.brandAvatarImg} />
+    </View>
+  ) : (
+    <View
+      style={[
+        styles.brandAvatar,
+        {
+          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
+          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
+        },
+      ]}
+    >
+      <Text style={[styles.brandAvatarMono, { color: fondoOscuro ? '#111' : '#222' }]}>
+        {company.name?.slice(0, 2)?.toUpperCase() ?? 'E'}
+      </Text>
+    </View>
+  )}
+
+  {/* Título sobrio + acento mínimo */}
+  <Text
+    numberOfLines={1}
+    style={[styles.brandTitleSoft, { color: textoColor }]}
+  >
+    {company.name}
+  </Text>
+
+  {/* Acento de color MUY sutil */}
+
+</View>
+
               </SafeAreaView>
             </LinearGradient>
           </ImageBackground>
         ) : (
-          <LinearGradient
-            colors={[`${buttonColor}35`, `${buttonColor}20`, `${buttonColor}10`]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.headerGradient}
-          >
-            <SafeAreaView edges={['top']}>
-              {/* Top Bar */}
-              <View style={styles.topBar}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
-                  <Ionicons name="arrow-back" size={24} color={colors.white} />
-                </TouchableOpacity>
+<LinearGradient
+  colors={[
+    fondo,
+    fondoOscuro ? `${buttonColor}88` : `${buttonColor}44`,
+  ]}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 0, y: 1 }}
+  style={styles.headerFormal}
+>
+    <SafeAreaView edges={['top']}>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
+          <Ionicons name="arrow-back" size={24} color={textoColor} />
+        </TouchableOpacity>
+        <View style={styles.spacer} />
+
+      </View>
+
+      {/* Panel translúcido para nombre y logo */}
+{/* Branding iOS SOFT */}
+<View style={styles.brandingSoft}>
+  {/* Avatar sobrio (sin halos, sin ring) */}
+  {company.logo ? (
+    <View
+      style={[
+        styles.brandAvatar,
+        {
+          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
+          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
+        },
+      ]}
+    >
+      <Image source={{ uri: company.logo }} style={styles.brandAvatarImg} />
+    </View>
+  ) : (
+    <View
+      style={[
+        styles.brandAvatar,
+        {
+          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
+          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
+        },
+      ]}
+    >
+      <Text style={[styles.brandAvatarMono, { color: fondoOscuro ? '#111' : '#222' }]}>
+        {company.name?.slice(0, 2)?.toUpperCase() ?? 'E'}
+      </Text>
+    </View>
+  )}
+
+  {/* Título sobrio + acento mínimo */}
+  <Text
+    numberOfLines={1}
+    style={[styles.brandTitleSoft, { color: textoColor }]}
+  >
+    {company.name}
+  </Text>
 
 
-              </View>
+</View>
 
-              {/* Company Info Centrado */}
-              <View style={styles.companyInfoContainer}>
-                {company.logo && (
-                  <View style={styles.logoContainer}>
-                    <Image source={{ uri: company.logo }} style={styles.logoLarge} />
-                  </View>
-                )}
-                <Text style={styles.companyNameLarge} numberOfLines={2}>
-                  {company.name}
-                </Text>
-              </View>
-            </SafeAreaView>
-          </LinearGradient>
+
+      {/* Línea separadora elegante */}
+      <View style={styles.bottomDivider} />
+    </SafeAreaView>
+  </LinearGradient>
         )}
       </View>
 
@@ -370,6 +468,113 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  brandingSoft: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingTop: spacing.xs,   // antes spacing.sm
+  paddingBottom: spacing.sm,    // antes spacing.lg
+  gap: 4,                       // antes 6
+},
+
+brandTitleSoft: {
+  ...textStyles.title2,
+  fontWeight: '700',
+  fontSize: 20,
+  letterSpacing: -0.2,
+  textAlign: 'center',
+  marginTop: 4,                 // antes 6
+  marginBottom: spacing.xs,     // NUEVO: empuja un poco hacia abajo para “pegar” al contenido
+},
+
+// (opcional) achicar un toque el avatar para que todo quede más compacto
+brandAvatar: {
+  width: 72,                    // antes 76
+  height: 72,                   // antes 76
+  borderRadius: 36,
+  borderWidth: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 }, // más suave
+  shadowOpacity: 0.08,
+  shadowRadius: 5,
+  elevation: 2,
+},
+brandAvatarImg: {
+  width: 60,                    // antes 64
+  height: 60,                   // antes 64
+  borderRadius: 30,
+  resizeMode: 'cover',
+},
+headerFormal: {
+  paddingBottom: spacing.xl,
+  borderBottomLeftRadius: 24,
+  borderBottomRightRadius: 24,
+  overflow: 'hidden',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 0.14,   // menor
+  shadowRadius: 10,
+  elevation: 8,
+
+
+},
+
+formalPanel: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(255,255,255,0.12)',
+  marginHorizontal: spacing.lg,
+  borderRadius: 24,
+  paddingVertical: spacing.md,
+  paddingHorizontal: spacing.xl,
+  marginTop: spacing.md,
+ 
+},
+
+logoContainerFormal: {
+  width: 90,
+  height: 90,
+  borderRadius: 45,
+  backgroundColor: 'rgba(255,255,255,0.95)',
+  padding: 5,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 10,
+  elevation: 6,
+  borderWidth: 2,
+  borderColor: 'rgba(255,255,255,0.6)',
+  marginBottom: spacing.sm,
+},
+
+companyNameFormal: {
+  ...textStyles.title2,
+
+  fontWeight: '800',
+  textAlign: 'center',
+  fontSize: 22,
+  letterSpacing: -0.3,
+  textShadowColor: 'rgba(0,0,0,0.2)',
+  textShadowOffset: { width: 0, height: 2 },
+  textShadowRadius: 4,
+},
+
+
+brandAvatarMono: {
+  fontWeight: '700',
+  fontSize: 22,
+  letterSpacing: 0.2,
+},
+
+
+
+
+bottomDivider: {
+
+},
+
+
 
   fullBackground: {
     position: 'absolute',

@@ -40,7 +40,6 @@ export default function NotificationsScreen() {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
-    deleteNotification,
   } = useNotifications();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -272,26 +271,29 @@ export default function NotificationsScreen() {
           colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
           style={styles.headerGradient}
         >
-          <View style={styles.notificationBadge}>
-            <View style={styles.notificationIconContainer}>
-              <Ionicons name="notifications" size={22} color={colors.primary} />
-              {unreadCount > 0 && (
-                <View style={styles.notificationCountBadge}>
-                  <Text style={styles.notificationCountText}>{unreadCount}</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.notificationTextContainer}>
-              <Text style={styles.notificationLabel}>NOTIFICACIONES</Text>
-              <Text style={styles.notificationTitle}>
-                {totalNotifications} {totalNotifications === 1 ? 'notificación' : 'notificaciones'}
-              </Text>
+          <View style={styles.headerRow}>
+            <View style={styles.notificationBadge}>
+              <View style={styles.notificationIconContainer}>
+                <Ionicons name="notifications" size={22} color={colors.primary} />
+                {unreadCount > 0 && (
+                  <View style={styles.notificationCountBadge}>
+                    <Text style={styles.notificationCountText}>{unreadCount}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.notificationTextContainer}>
+                <Text style={styles.notificationLabel}>NOTIFICACIONES</Text>
+                <Text style={styles.notificationTitle}>
+                  {totalNotifications} {totalNotifications === 1 ? 'notificación' : 'notificaciones'}
+                </Text>
+              </View>
             </View>
           </View>
 
           {unreadCount > 0 && (
             <TouchableOpacity onPress={handleMarkAllAsRead} style={styles.markAllButton}>
-              <Ionicons name="checkmark-done" size={18} color={colors.secondary} />
+              <Ionicons name="checkmark-done" size={20} color={colors.white} />
+              <Text style={styles.markAllButtonText}>Marcar todas leídas</Text>
             </TouchableOpacity>
           )}
         </LinearGradient>
@@ -384,14 +386,18 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   headerGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
+    gap: spacing.sm,
+  },
+
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   // Notification Badge
@@ -404,7 +410,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     gap: 10,
     flex: 1,
-    marginRight: spacing.md,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -457,19 +462,26 @@ const styles = StyleSheet.create({
   },
 
   markAllButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.secondary,
+    shadowColor: colors.secondary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  markAllButtonText: {
+    ...typography.bodySmall,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.white,
   },
 
   // Filter

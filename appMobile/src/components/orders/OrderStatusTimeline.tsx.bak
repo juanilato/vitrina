@@ -4,12 +4,15 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { OrderStatus, TipoEntrega } from '../../types/order';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles } from '../../theme/typography';
+
+const { width } = Dimensions.get('window');
 
 interface TimelineStep {
   status: OrderStatus;
@@ -90,61 +93,6 @@ const RETIRO_STEPS: TimelineStep[] = [
   },
 ];
 
-// Componente para una barra animada individual
-const AnimatedBar: React.FC<{
-  isActive: boolean;
-  isCompleted: boolean;
-  isLast: boolean;
-}> = ({ isActive, isCompleted, isLast }) => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (isActive) {
-      const shimmer = Animated.loop(
-        Animated.sequence([
-          Animated.timing(shimmerAnim, {
-            toValue: 1,
-            duration: 1200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(shimmerAnim, {
-            toValue: 0,
-            duration: 1200,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      shimmer.start();
-      return () => shimmer.stop();
-    }
-  }, [isActive]);
-
-  const shimmerOpacity = shimmerAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.6, 1, 0.6],
-  });
-
-  let barColor = 'rgba(255, 255, 255, 0.25)';
-  if (isCompleted) {
-    barColor = 'rgba(255, 255, 255, 0.9)';
-  } else if (isActive) {
-    barColor = 'rgba(255, 255, 255, 0.75)';
-  }
-
-  return (
-    <Animated.View
-      style={[
-        styles.compactBarSegment,
-        isLast && styles.compactBarSegmentLast,
-        {
-          backgroundColor: barColor,
-          opacity: isActive ? shimmerOpacity : isCompleted ? 1 : 0.35,
-        },
-      ]}
-    />
-  );
-};
-
 export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
   currentStatus,
   tipoEntrega,
@@ -219,22 +167,47 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
   });
 
   if (compact) {
-    // Versión compacta para el dashboard - Solo líneas animadas
+    // Versión compacta para el dashboard
     return (
       <View style={styles.compactContainer}>
-        <View style={styles.compactBarContainer}>
+        <View style={styles.compactBar}>
+          <Animated.View
+            style={[
+              styles.compactProgress,
+              {
+                width: progressWidth,
+                backgroundColor: currentIndex === steps.length - 1 ? colors.success : colors.primary,
+              },
+            ]}
+          />
           {steps.map((step, index) => {
             const isActive = index === currentIndex;
             const isCompleted = index < currentIndex;
-            const isLast = index === steps.length - 1;
+            const color = getStepColor(index);
 
             return (
-              <AnimatedBar
+              <Animated.View
                 key={step.status}
-                isActive={isActive}
-                isCompleted={isCompleted}
-                isLast={isLast}
-              />
+                style={[
+                  styles.compactDot,
+                  {
+                    left: `${(index / (steps.length - 1)) * 100}%`,
+                    backgroundColor: getStepBackgroundColor(index),
+                    transform: [
+                      { scale: scaleAnims[index] },
+                      ...(isActive ? [{ scale: pulseAnims[index] }] : []),
+                    ],
+                  },
+                ]}
+              >
+                {(isCompleted || isActive) && (
+                  <Ionicons
+                    name={isCompleted ? 'checkmark' : step.icon}
+                    size={compact ? 10 : 12}
+                    color={colors.white}
+                  />
+                )}
+              </Animated.View>
             );
           })}
         </View>
@@ -444,21 +417,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Versión compacta con barras animadas
+  // Versión compacta
   compactContainer: {
     gap: spacing.sm,
   },
-  compactBarContainer: {
-    flexDirection: 'row',
-    gap: 4,
-    height: 4,
+  compactBar: {
+    height: 6,
+    backgroundColor: colors.gray200,
+    borderRadius: 3,
+    overflow: 'visible',
+    position: 'relative',
   },
-  compactBarSegment: {
-    flex: 1,
-    borderRadius: 2,
+  compactProgress: {
+    position: 'absolute',
+    height: '100%',
+    borderRadius: 3,
   },
-  compactBarSegmentLast: {
-    // Estilo especial para la última barra si es necesario
+  compactDot: {
+    position: 'absolute',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    marginLeft: -9,
+    marginTop: -6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
   },
   compactLabel: {
     ...textStyles.caption1,

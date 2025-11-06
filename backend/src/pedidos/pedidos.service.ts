@@ -321,6 +321,7 @@ export class PedidosService {
           producto: {
             id: item.producto.id,
             nombre: item.producto.nombre,
+            name: item.producto.nombre, // Alias for frontend compatibility
             precio: parseFloat(item.producto.precio.toString()), // Convert Decimal to number
           }
         })),
@@ -389,6 +390,7 @@ export class PedidosService {
           producto: {
             id: item.producto.id,
             nombre: item.producto.nombre,
+            name: item.producto.nombre, // Alias for frontend compatibility
             precio: parseFloat(item.producto.precio.toString())
           }
         })),
@@ -410,6 +412,18 @@ export class PedidosService {
               id: true,
               name: true,
               email: true
+            }
+          },
+          empresa: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              ubicacion: {
+                select: {
+                  direccion: true
+                }
+              }
             }
           },
           ItemPedido: {
@@ -450,6 +464,12 @@ export class PedidosService {
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
+        empresa: {
+          id: pedido.empresa.id,
+          name: pedido.empresa.name,
+          logo: pedido.empresa.logo,
+          address: pedido.empresa.ubicacion?.direccion
+        },
         items: pedido.ItemPedido.map(item => ({
           id: item.id,
           pedidoId: item.pedidoId,
@@ -461,6 +481,7 @@ export class PedidosService {
           producto: {
             id: item.producto.id,
             nombre: item.producto.nombre,
+            name: item.producto.nombre, // Alias for frontend compatibility
             precio: parseFloat(item.producto.precio.toString())
           }
         })),

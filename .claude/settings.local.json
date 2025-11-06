@@ -36,7 +36,9 @@
       "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\app\\notifications.tsx\")",
       "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\app\\cart.tsx\")",
       "Bash(rm:*)",
-      "Bash(if not exist \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\notifications\" mkdir \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\notifications\")"
+      "Bash(if not exist \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\notifications\" mkdir \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\notifications\")",
+      "Bash(copy:*)",
+      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\orders\\ActiveOrderCard.tsx.backup\")"
     ],
     "deny": [],
     "ask": []
