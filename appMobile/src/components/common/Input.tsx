@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { colors, fontSizes, fontWeights, borderRadius, spacing } from '../../theme';
+import { normalize } from '../../utils/responsive';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -98,8 +99,9 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
     borderColor: colors.border,
-    height: 52,
+    minHeight: normalize(52),
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
 
   inputContainerFocused: {

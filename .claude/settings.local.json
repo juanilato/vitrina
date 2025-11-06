@@ -38,7 +38,8 @@
       "Bash(rm:*)",
       "Bash(if not exist \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\notifications\" mkdir \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\notifications\")",
       "Bash(copy:*)",
-      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\orders\\ActiveOrderCard.tsx.backup\")"
+      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\orders\\ActiveOrderCard.tsx.backup\")",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

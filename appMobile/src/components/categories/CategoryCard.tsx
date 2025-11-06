@@ -7,6 +7,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, textStyles, spacing } from '../../theme';
+import { normalize, wp } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = spacing.md;
@@ -74,9 +75,9 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    height: 110,
+    minHeight: normalize(110),
     marginBottom: spacing.sm,
-    borderRadius: 12,
+    borderRadius: normalize(12),
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
@@ -86,10 +87,10 @@ const styles = StyleSheet.create({
   },
   cardWide: {
     width: width - (CARD_MARGIN * 2),
-    height: 100,
+    minHeight: normalize(100),
   },
   cardTall: {
-    height: 130,
+    minHeight: normalize(130),
   },
   gradient: {
     flex: 1,
@@ -100,12 +101,12 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   icon: {
-    fontSize: 32,
+    fontSize: normalize(32),
     marginBottom: 2,
   },
   name: {
     ...textStyles.subheadline,
-    fontSize: 14,
+    fontSize: normalize(14),
     color: colors.white,
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',

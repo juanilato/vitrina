@@ -1,27 +1,29 @@
 /**
  * Spacing System
- * 8px grid system
+ * 8px grid system with responsive scaling
  */
 
+import { responsiveSpacing } from '../utils/responsive';
+
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  '2xl': 40,
-  '3xl': 48,
-  '4xl': 64,
+  xs: responsiveSpacing(4),
+  sm: responsiveSpacing(8),
+  md: responsiveSpacing(16),
+  lg: responsiveSpacing(24),
+  xl: responsiveSpacing(32),
+  '2xl': responsiveSpacing(40),
+  '3xl': responsiveSpacing(48),
+  '4xl': responsiveSpacing(64),
 };
 
 export const borderRadius = {
   none: 0,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  '2xl': 20,
-  '3xl': 24,
+  sm: responsiveSpacing(4),
+  md: responsiveSpacing(8),
+  lg: responsiveSpacing(12),
+  xl: responsiveSpacing(16),
+  '2xl': responsiveSpacing(20),
+  '3xl': responsiveSpacing(24),
   full: 9999,
 };
 

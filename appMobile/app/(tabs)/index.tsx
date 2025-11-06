@@ -28,6 +28,7 @@ import { useActiveOrder } from '../../src/hooks/useActiveOrder';
 import { ActiveOrderCard } from '../../src/components/orders/ActiveOrderCard';
 import { Logo } from '../../src/components/common/Logo';
 import { LinearGradient } from 'expo-linear-gradient';
+import { normalize } from '../../src/utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -88,7 +89,7 @@ export default function HomeScreen() {
     if (!categories || categories.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Ionicons name="grid-outline" size={64} color={colors.textQuaternary} />
+          <Ionicons name="grid-outline" size={normalize(64)} color={colors.textQuaternary} />
           <Text style={styles.emptyTitle}>No hay categorías</Text>
           <Text style={styles.emptySubtitle}>Intenta refrescar la pantalla</Text>
         </View>
@@ -113,7 +114,7 @@ export default function HomeScreen() {
         <View style={styles.emptyContainer}>
           <Ionicons
             name={isSearching ? "search-outline" : "grid-outline"}
-            size={64}
+            size={normalize(64)}
             color={colors.textQuaternary}
           />
           <Text style={styles.emptyTitle}>
@@ -236,7 +237,7 @@ export default function HomeScreen() {
               onPress={handleOpenLocationDrawer}
               activeOpacity={0.7}
             >
-              <Ionicons name="location-outline" size={20} color={colors.primary} />
+              <Ionicons name="location-outline" size={normalize(20)} color={colors.primary} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -244,7 +245,7 @@ export default function HomeScreen() {
               onPress={handleOpenMenuDrawer}
               activeOpacity={0.7}
             >
-              <Ionicons name="menu-outline" size={20} color={colors.primary} />
+              <Ionicons name="menu-outline" size={normalize(20)} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -323,8 +324,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingVertical: normalize(12),
+    borderRadius: normalize(20),
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
   },
@@ -334,10 +335,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    gap: 10,
+    paddingHorizontal: normalize(12),
+    paddingVertical: normalize(8),
+    borderRadius: normalize(16),
+    gap: normalize(10),
     flex: 1,
     marginRight: spacing.md,
     shadowColor: colors.primary,
@@ -347,9 +348,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   logoIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: normalize(40),
+    height: normalize(40),
+    borderRadius: normalize(12),
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
   },
   logoTitle: {
     ...textStyles.body,
-    fontSize: 18,
+    fontSize: normalize(18),
     fontWeight: '800',
     color: colors.gray900,
     letterSpacing: -0.5,
@@ -373,11 +374,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 2,
-    gap: 4,
+    gap: normalize(4),
   },
   locationBadgeText: {
     ...textStyles.caption1,
-    fontSize: 11,
+    fontSize: normalize(11),
     color: colors.gray600,
     fontWeight: '600',
   },
@@ -385,12 +386,12 @@ const styles = StyleSheet.create({
   // Action Buttons
   navActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: normalize(8),
   },
   glassButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: normalize(40),
+    height: normalize(40),
+    borderRadius: normalize(12),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
@@ -405,9 +406,9 @@ const styles = StyleSheet.create({
 
   // Legacy styles (kept for compatibility)
   navButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(8),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.gray100,
@@ -419,19 +420,19 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     ...textStyles.body,
-    fontSize: 16,
+    fontSize: normalize(16),
     color: colors.gray900,
     fontWeight: '700',
   },
   locationText: {
     ...textStyles.caption1,
-    fontSize: 11,
+    fontSize: normalize(11),
     color: colors.gray600,
     marginTop: 1,
   },
   navRight: {
     flexDirection: 'row',
-    gap: 8,
+    gap: normalize(8),
   },
 
   // Search Bar Styles
@@ -446,15 +447,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.gray100,
-    borderRadius: 8,
+    borderRadius: normalize(8),
     paddingHorizontal: spacing.sm,
-    paddingVertical: 8,
+    paddingVertical: normalize(8),
     gap: spacing.xs,
   },
   searchInput: {
     flex: 1,
     ...textStyles.body,
-    fontSize: 14,
+    fontSize: normalize(14),
     color: colors.gray900,
   },
 
@@ -466,14 +467,14 @@ const styles = StyleSheet.create({
   },
   greeting: {
     ...textStyles.headline,
-    fontSize: 20,
+    fontSize: normalize(20),
     color: colors.gray900,
     fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
     ...textStyles.subheadline,
-    fontSize: 14,
+    fontSize: normalize(14),
     color: colors.gray600,
     fontWeight: '400',
   },

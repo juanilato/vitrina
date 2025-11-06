@@ -37,16 +37,18 @@ export const fontFamilies = {
   }),
 };
 
+import { responsiveFontSize } from '../utils/responsive';
+
 export const fontSizes = {
-  xs: 12,
-  sm: 14,
-  base: 16,
-  lg: 18,
-  xl: 20,
-  '2xl': 24,
-  '3xl': 28,
-  '4xl': 32,
-  '5xl': 36,
+  xs: responsiveFontSize(12),
+  sm: responsiveFontSize(14),
+  base: responsiveFontSize(16),
+  lg: responsiveFontSize(18),
+  xl: responsiveFontSize(20),
+  '2xl': responsiveFontSize(24),
+  '3xl': responsiveFontSize(28),
+  '4xl': responsiveFontSize(32),
+  '5xl': responsiveFontSize(36),
 };
 
 export const fontWeights = {
@@ -57,15 +59,15 @@ export const fontWeights = {
 };
 
 export const lineHeights = {
-  xs: 16,
-  sm: 20,
-  base: 24,
-  lg: 28,
-  xl: 32,
-  '2xl': 36,
-  '3xl': 40,
-  '4xl': 44,
-  '5xl': 48,
+  xs: responsiveFontSize(16),
+  sm: responsiveFontSize(20),
+  base: responsiveFontSize(24),
+  lg: responsiveFontSize(28),
+  xl: responsiveFontSize(32),
+  '2xl': responsiveFontSize(36),
+  '3xl': responsiveFontSize(40),
+  '4xl': responsiveFontSize(44),
+  '5xl': responsiveFontSize(48),
 };
 
 /**

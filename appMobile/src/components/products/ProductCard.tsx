@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Product } from '../../types/company';
 import { colors, spacing, borderRadius, shadows, textStyles } from '../../theme';
 import { formatPrice } from '../../utils/formatPrice';
+import { normalize } from '../../utils/responsive';
 
 interface ProductCardProps {
   product: Product;
@@ -51,14 +52,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           />
         ) : (
           <View style={styles.placeholder}>
-            <Ionicons name="fast-food" size={24} color={colors.textTertiary} />
+            <Ionicons name="fast-food" size={normalize(24)} color={colors.textTertiary} />
           </View>
         )}
 
         {/* Status Badge */}
         {!product.activo && (
           <View style={styles.inactiveBadge}>
-            <Ionicons name="close-circle" size={16} color={colors.white} />
+            <Ionicons name="close-circle" size={normalize(16)} color={colors.white} />
           </View>
         )}
       </View>
@@ -82,7 +83,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {/* Customization Indicator */}
             {showExtrasIndicator && hasCustomizations && (
               <View style={styles.customizationBadge}>
-                <Ionicons name="options-outline" size={12} color={colors.primary} />
+                <Ionicons name="options-outline" size={normalize(12)} color={colors.primary} />
                 <Text style={styles.customizationText}>Personalizable</Text>
               </View>
             )}
@@ -99,7 +100,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             }}
             activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color={colors.white} />
+            <Ionicons name="add" size={normalize(22)} color={colors.white} />
           </TouchableOpacity>
         )}
       </View>
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: normalize(12),
     overflow: 'hidden',
     marginBottom: spacing.sm,
     shadowColor: '#000',
@@ -128,8 +129,8 @@ const styles = StyleSheet.create({
   },
 
   imageContainer: {
-    width: 80,
-    height: 80,
+    width: normalize(80),
+    height: normalize(80),
     position: 'relative',
   },
 
@@ -148,11 +149,11 @@ const styles = StyleSheet.create({
 
   inactiveBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: normalize(6),
+    right: normalize(6),
+    width: normalize(24),
+    height: normalize(24),
+    borderRadius: normalize(12),
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -174,16 +175,16 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     color: colors.gray900,
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: normalize(14),
     marginBottom: 2,
   },
 
   description: {
     ...textStyles.caption1,
     color: colors.gray600,
-    marginBottom: 6,
-    lineHeight: 16,
-    fontSize: 12,
+    marginBottom: normalize(6),
+    lineHeight: normalize(16),
+    fontSize: normalize(12),
   },
 
   bottomRow: {
@@ -197,17 +198,17 @@ const styles = StyleSheet.create({
     ...textStyles.callout,
     color: colors.primary,
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: normalize(15),
   },
 
   customizationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: `${colors.primary}10`,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 6,
-    gap: 3,
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(3),
+    borderRadius: normalize(6),
+    gap: normalize(3),
     borderWidth: 0.5,
     borderColor: `${colors.primary}25`,
   },
@@ -216,13 +217,13 @@ const styles = StyleSheet.create({
     ...textStyles.caption2,
     color: colors.primary,
     fontWeight: '600',
-    fontSize: 9,
+    fontSize: normalize(9),
   },
 
   addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

@@ -16,9 +16,10 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, fontSizes } from '../../theme';
+import { normalize } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
-const TAB_BAR_HEIGHT = 100; // Total height including padding
+const TAB_BAR_HEIGHT = normalize(100); // Total height including padding
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const [isVisible, setIsVisible] = useState(true);
@@ -75,7 +76,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
           >
             <Ionicons
               name={isVisible ? 'chevron-down' : 'chevron-up'}
-              size={20}
+              size={normalize(20)}
               color={colors.primary}
             />
           </LinearGradient>
@@ -131,7 +132,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
                 ? options.tabBarIcon({
                     focused: isFocused,
                     color: isFocused ? colors.primary : colors.gray500,
-                    size: 24,
+                    size: normalize(24),
                   })
                 : null;
 
@@ -191,8 +192,8 @@ const styles = StyleSheet.create({
   // Toggle Button
   toggleContainer: {
     position: 'absolute',
-    bottom: TAB_BAR_HEIGHT+25, // Position just above the tab bar
-    left: width / 2 - 24,
+    bottom: TAB_BAR_HEIGHT + normalize(25), // Position just above the tab bar
+    left: width / 2 - normalize(24),
     zIndex: 1000,
   },
   toggleButton: {
@@ -203,9 +204,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   toggleGradient: {
-    width: 48,
-    height: 32,
-    borderRadius: 16,
+    width: normalize(48),
+    height: normalize(32),
+    borderRadius: normalize(16),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
   },
   tabBarGradient: {
-    borderRadius: 24,
+    borderRadius: normalize(24),
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
     shadowColor: '#000',
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: normalize(10),
     paddingHorizontal: spacing.xs,
     alignItems: 'center',
   },
@@ -244,16 +245,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
+    paddingVertical: normalize(4),
   },
   tabContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    minWidth: 64,
-    minHeight: 56,
+    paddingVertical: normalize(8),
+    paddingHorizontal: normalize(10),
+    borderRadius: normalize(14),
+    minWidth: normalize(64),
+    minHeight: normalize(56),
   },
   tabContentActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.6)',

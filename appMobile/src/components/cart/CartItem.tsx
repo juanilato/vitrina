@@ -20,6 +20,7 @@ import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 import { formatPrice } from '../../utils/formatPrice';
 import { RenderIngredientIcon } from '../../utils/ingredientIcons';
+import { normalize } from '../../utils/responsive';
 
 interface CartItemProps {
   item: CartItemType;
@@ -126,7 +127,7 @@ export const CartItem: React.FC<CartItemProps> = ({
               <View key={`${ingredienteExtra.productoIngrediente.id}-${index}`} style={styles.extraItem}>
                 <RenderIngredientIcon
                   name={ingredienteExtra.productoIngrediente.ingrediente.icono}
-                  size={18}
+                  size={normalize(18)}
                 />
                 <Text style={styles.extraName}>
                   {ingredienteExtra.productoIngrediente.ingrediente.nombre}
@@ -145,7 +146,7 @@ export const CartItem: React.FC<CartItemProps> = ({
       {item.notes && (
         <View style={styles.productNotesSection}>
           <View style={styles.productNotesHeader}>
-            <Ionicons name="document-text" size={16} color={colors.gray600} />
+            <Ionicons name="document-text" size={normalize(16)} color={colors.gray600} />
             <Text style={styles.productNotesTitle}>Nota:</Text>
           </View>
           <Text style={styles.productNotesText}>{item.notes}</Text>
@@ -162,7 +163,7 @@ export const CartItem: React.FC<CartItemProps> = ({
           >
             <Ionicons
               name={item.quantity === 1 ? 'trash-outline' : 'remove'}
-              size={20}
+              size={normalize(20)}
               color={item.quantity === 1 ? colors.error : colors.secondary}
             />
           </TouchableOpacity>
@@ -174,7 +175,7 @@ export const CartItem: React.FC<CartItemProps> = ({
             style={styles.quantityButton}
             activeOpacity={0.7}
           >
-            <Ionicons name="add" size={20} color={colors.secondary} />
+            <Ionicons name="add" size={normalize(20)} color={colors.secondary} />
           </TouchableOpacity>
         </View>
 
@@ -186,7 +187,7 @@ export const CartItem: React.FC<CartItemProps> = ({
         >
           <Ionicons
             name={showNotes ? 'create' : 'create-outline'}
-            size={20}
+            size={normalize(20)}
             color={showNotes ? colors.accent : colors.gray400}
           />
           <Text style={[styles.notesToggleText, showNotes && styles.notesToggleTextActive]}>
@@ -217,7 +218,7 @@ export const CartItem: React.FC<CartItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: normalize(12),
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
@@ -230,9 +231,9 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: normalize(80),
+    height: normalize(80),
+    borderRadius: normalize(8),
     backgroundColor: colors.gray100,
     marginRight: spacing.md,
   },
@@ -284,24 +285,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.secondary + '15',
-    borderRadius: 8,
+    borderRadius: normalize(8),
     padding: spacing.xs,
   },
 
   quantityButton: {
-    width: 32,
-    height: 32,
+    width: normalize(32),
+    height: normalize(32),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.white,
-    borderRadius: 6,
+    borderRadius: normalize(6),
   },
 
   quantity: {
     ...typography.bodyMedium,
     fontWeight: '600',
     color: colors.gray900,
-    minWidth: 40,
+    minWidth: normalize(40),
     textAlign: 'center',
   },
 
@@ -331,10 +332,10 @@ const styles = StyleSheet.create({
   notesInput: {
     ...typography.bodyMedium,
     backgroundColor: colors.gray50,
-    borderRadius: 8,
+    borderRadius: normalize(8),
     padding: spacing.md,
-    minHeight: 60,
-    maxHeight: 100,
+    minHeight: normalize(60),
+    maxHeight: normalize(100),
     color: colors.gray900,
     textAlignVertical: 'top',
   },
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     backgroundColor: colors.gray50,
-    borderRadius: 6,
+    borderRadius: normalize(6),
     marginBottom: spacing.xs,
   },
 
@@ -381,7 +382,7 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: colors.orange,
     fontWeight: '600',
-    minWidth: 60,
+    minWidth: normalize(60),
     textAlign: 'right',
   },
 
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
     color: colors.gray700,
     backgroundColor: colors.gray50,
     padding: spacing.sm,
-    borderRadius: 6,
-    lineHeight: 18,
+    borderRadius: normalize(6),
+    lineHeight: normalize(18),
   },
 });
