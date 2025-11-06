@@ -51,8 +51,6 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
   visible,
   onClose,
 }) => {
-    if (Platform.OS === 'web') return <MapFallback />;
-
   const [mapData, setMapData] = useState<MapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -367,85 +365,126 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
         {/* Map con estilo personalizado */}
         {!loading && !error && mapData && region && (
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={styles.map}
-            initialRegion={region}
-            showsUserLocation
-            showsMyLocationButton
-            customMapStyle={mapStyle}
-          >
-            {/* Ruta real entre repartidor y cliente */}
-            {routeCoordinates.length > 0 && (
-              <Polyline
-                coordinates={routeCoordinates}
-                strokeColor={colors.orange}
-                strokeWidth={4}
+          <>
+            {Platform.OS === 'web' ? (
+              // Mapa para WEB con Google Maps
+              <MapFallback
+                height={600}
+                markers={[
+                  {
+                    lat: mapData.empresa.latitud,
+                    lng: mapData.empresa.longitud,
+                    title: mapData.empresa.name || 'Empresa',
+                    color: colors.primary,
+                  },
+                  {
+                    lat: mapData.cliente.latitud,
+                    lng: mapData.cliente.longitud,
+                    title: 'Dirección de entrega',
+                    color: colors.secondary,
+                  },
+                  ...(mapData.repartidor
+                    ? [
+                        {
+                          lat: mapData.repartidor.latitud,
+                          lng: mapData.repartidor.longitud,
+                          title: mapData.repartidor.nombre || 'Repartidor',
+                          color: colors.orange,
+                        },
+                      ]
+                    : []),
+                ]}
+                center={{
+                  lat: region.latitude,
+                  lng: region.longitude,
+                }}
+                zoom={13}
+                showRoute={routeCoordinates.length > 0}
+                routeCoordinates={routeCoordinates}
               />
-            )}
-
-            {/* Marcador del Local - Con logo */}
-            {mapData.empresa && (
-              <Marker
-                coordinate={{
-                  latitude: mapData.empresa.latitud,
-                  longitude: mapData.empresa.longitud,
-                }}
-                title={mapData.empresa.name}
-                description="Local"
+            ) : (
+              // Mapa para MOBILE con react-native-maps
+              <MapView
+                provider={PROVIDER_GOOGLE}
+                style={styles.map}
+                initialRegion={region}
+                showsUserLocation
+                showsMyLocationButton
+                customMapStyle={mapStyle}
               >
-                <View style={styles.markerContainer}>
-                  <View style={[styles.marker, styles.markerEmpresa]}>
-                    {mapData.empresa.logoUrl ? (
-                      <Image
-                        source={{ uri: mapData.empresa.logoUrl }}
-                        style={styles.markerLogo}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <Ionicons name="storefront" size={24} color={colors.white} />
-                    )}
-                  </View>
-                </View>
-              </Marker>
-            )}
+                {/* Ruta real entre repartidor y cliente */}
+                {routeCoordinates.length > 0 && (
+                  <Polyline
+                    coordinates={routeCoordinates}
+                    strokeColor={colors.orange}
+                    strokeWidth={4}
+                  />
+                )}
 
-            {/* Marcador del Cliente - Simple */}
-            {mapData.cliente && (
-              <Marker
-                coordinate={{
-                  latitude: mapData.cliente.latitud,
-                  longitude: mapData.cliente.longitud,
-                }}
-                title="Dirección de entrega"
-                description="Tu ubicación"
-              >
-                <View style={styles.markerContainer}>
-                  <View style={[styles.marker, styles.markerCliente]}>
-                    <Ionicons name="home" size={24} color={colors.white} />
-                  </View>
-                </View>
-              </Marker>
-            )}
+                {/* Marcador del Local - Con logo */}
+                {mapData.empresa && (
+                  <Marker
+                    coordinate={{
+                      latitude: mapData.empresa.latitud,
+                      longitude: mapData.empresa.longitud,
+                    }}
+                    title={mapData.empresa.name}
+                    description="Local"
+                  >
+                    <View style={styles.markerContainer}>
+                      <View style={[styles.marker, styles.markerEmpresa]}>
+                        {mapData.empresa.logoUrl ? (
+                          <Image
+                            source={{ uri: mapData.empresa.logoUrl }}
+                            style={styles.markerLogo}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Ionicons name="storefront" size={24} color={colors.white} />
+                        )}
+                      </View>
+                    </View>
+                  </Marker>
+                )}
 
-            {/* Marcador del Repartidor - Simple */}
-            {mapData.repartidor && (
-              <Marker
-                coordinate={{
-                  latitude: mapData.repartidor.latitud,
-                  longitude: mapData.repartidor.longitud,
-                }}
-                title={mapData.repartidor.nombre || 'Repartidor'}
-                description="En camino"
-              >
-                <View style={styles.markerContainer}>
-                  <View style={[styles.marker, styles.markerRepartidor]}>
-                    <Ionicons name="bicycle" size={24} color={colors.white} />
-                  </View>
-                </View>
-              </Marker>
+                {/* Marcador del Cliente - Simple */}
+                {mapData.cliente && (
+                  <Marker
+                    coordinate={{
+                      latitude: mapData.cliente.latitud,
+                      longitude: mapData.cliente.longitud,
+                    }}
+                    title="Dirección de entrega"
+                    description="Tu ubicación"
+                  >
+                    <View style={styles.markerContainer}>
+                      <View style={[styles.marker, styles.markerCliente]}>
+                        <Ionicons name="home" size={24} color={colors.white} />
+                      </View>
+                    </View>
+                  </Marker>
+                )}
+
+                {/* Marcador del Repartidor - Simple */}
+                {mapData.repartidor && (
+                  <Marker
+                    coordinate={{
+                      latitude: mapData.repartidor.latitud,
+                      longitude: mapData.repartidor.longitud,
+                    }}
+                    title={mapData.repartidor.nombre || 'Repartidor'}
+                    description="En camino"
+                  >
+                    <View style={styles.markerContainer}>
+                      <View style={[styles.marker, styles.markerRepartidor]}>
+                        <Ionicons name="bicycle" size={24} color={colors.white} />
+                      </View>
+                    </View>
+                  </Marker>
+                )}
+              </MapView>
             )}
-          </MapView>
+          </>
         )}
 
         {/* Legend - Rediseñada */}

@@ -1,6 +1,6 @@
 /**
  * Register Screen
- * iOS Modern Design - Cliente only
+ * iOS Modern Design - Vitrina Style - Cliente only
  */
 
 import React, { useState } from 'react';
@@ -13,14 +13,20 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Button, Input } from '../../src/components/common';
 import { Logo } from '../../src/components/common/Logo';
 import { colors, spacing, textStyles } from '../../src/theme';
 import { useGoogleSignIn } from '../../src/hooks/useGoogleSignIn';
+import { normalize } from '../../src/utils/responsive';
+
+const { width } = Dimensions.get('window');
 
 export default function RegisterScreen() {
   const { register } = useAuth();
@@ -101,148 +107,186 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#F9F9F9', '#FFFFFF', '#F5F9FC']}
+        style={styles.gradient}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Logo variant="full" size={140} />
-          </View>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+          >
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Logo Section */}
+              <View style={styles.logoSection}>
+                <View style={styles.logoCard}>
+                  <View style={styles.logoIconContainer}>
+                    <Logo variant="icon" size={normalize(44)} />
+                  </View>
+                </View>
+                <Text style={styles.brandName}>Vitrina</Text>
+              </View>
 
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Crear Cuenta</Text>
-            <Text style={styles.subtitle}>Regístrate como cliente</Text>
-          </View>
+              {/* Header */}
+              <View style={styles.header}>
+                <Text style={styles.title}>Crear Cuenta</Text>
+                <Text style={styles.subtitle}>Regístrate y empieza a explorar</Text>
+              </View>
 
-          {/* Form */}
-          <View style={styles.form}>
-            <Input
-              label="Nombre completo"
-              placeholder="Juan Pérez"
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                if (errors.name) setErrors({ ...errors, name: undefined });
-              }}
-              error={errors.name}
-              autoCapitalize="words"
-              autoCorrect={false}
-              editable={!loading}
-            />
+              {/* Form Card */}
+              <View style={styles.formCard}>
+                <LinearGradient
+                  colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)']}
+                  style={styles.formCardGradient}
+                >
+                  <View style={styles.form}>
+                    <Input
+                      label="Nombre completo"
+                      placeholder="Juan Pérez"
+                      value={name}
+                      onChangeText={(text) => {
+                        setName(text);
+                        if (errors.name) setErrors({ ...errors, name: undefined });
+                      }}
+                      error={errors.name}
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
 
-            <Input
-              label="Email"
-              placeholder="tu@email.com"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (errors.email) setErrors({ ...errors, email: undefined });
-              }}
-              error={errors.email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
+                    <Input
+                      label="Email"
+                      placeholder="tu@email.com"
+                      value={email}
+                      onChangeText={(text) => {
+                        setEmail(text);
+                        if (errors.email) setErrors({ ...errors, email: undefined });
+                      }}
+                      error={errors.email}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
 
-            <Input
-              label="Contraseña"
-              placeholder="Mínimo 6 caracteres"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errors.password) setErrors({ ...errors, password: undefined });
-              }}
-              error={errors.password}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
+                    <Input
+                      label="Contraseña"
+                      placeholder="Mínimo 6 caracteres"
+                      value={password}
+                      onChangeText={(text) => {
+                        setPassword(text);
+                        if (errors.password) setErrors({ ...errors, password: undefined });
+                      }}
+                      error={errors.password}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
 
-            <Input
-              label="Confirmar contraseña"
-              placeholder="Repite tu contraseña"
-              value={confirmPassword}
-              onChangeText={(text) => {
-                setConfirmPassword(text);
-                if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
-              }}
-              error={errors.confirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
+                    <Input
+                      label="Confirmar contraseña"
+                      placeholder="Repite tu contraseña"
+                      value={confirmPassword}
+                      onChangeText={(text) => {
+                        setConfirmPassword(text);
+                        if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                      }}
+                      error={errors.confirmPassword}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
 
-            {/* Terms */}
-            <Text style={styles.termsText}>
-              Al registrarte, aceptas nuestros{' '}
-              <Text style={styles.termsLink}>Términos de Servicio</Text> y{' '}
-              <Text style={styles.termsLink}>Política de Privacidad</Text>
-            </Text>
+                    {/* Terms */}
+                    <Text style={styles.termsText}>
+                      Al registrarte, aceptas nuestros{' '}
+                      <Text style={styles.termsLink}>Términos de Servicio</Text> y{' '}
+                      <Text style={styles.termsLink}>Política de Privacidad</Text>
+                    </Text>
 
-            {/* Register Button */}
-            <Button
-              title="Crear Cuenta"
-              onPress={handleRegister}
-              loading={loading}
-              disabled={loading}
-              fullWidth
-              size="lg"
-            />
+                    {/* Register Button */}
+                    <Button
+                      title="Crear Cuenta"
+                      onPress={handleRegister}
+                      loading={loading}
+                      disabled={loading}
+                      fullWidth
+                      size="lg"
+                    />
 
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>o continúa con</Text>
-              <View style={styles.dividerLine} />
-            </View>
+                    {/* Divider */}
+                    <View style={styles.divider}>
+                      <View style={styles.dividerLine} />
+                      <Text style={styles.dividerText}>o continúa con</Text>
+                      <View style={styles.dividerLine} />
+                    </View>
 
-            {/* Google Sign In */}
-            <Button
-              title="Continuar con Google"
-              variant="outline"
-              onPress={async () => {
-                try {
-                  await signInWithGoogle();
-                } catch (error) {
-                  Alert.alert('Error', 'No se pudo registrar con Google');
-                }
-              }}
-              disabled={loading || googleDisabled}
-              loading={googleLoading}
-              fullWidth
-            />
-          </View>
+                    {/* Google Sign In */}
+                    <TouchableOpacity
+                      style={styles.googleButton}
+                      onPress={async () => {
+                        try {
+                          await signInWithGoogle();
+                        } catch (error) {
+                          Alert.alert('Error', 'No se pudo registrar con Google');
+                        }
+                      }}
+                      disabled={loading || googleDisabled || googleLoading}
+                      activeOpacity={0.7}
+                    >
+                      <LinearGradient
+                        colors={['#FFFFFF', '#F9F9F9']}
+                        style={styles.googleButtonGradient}
+                      >
+                        {googleLoading ? (
+                          <Text style={styles.googleButtonText}>Cargando...</Text>
+                        ) : (
+                          <>
+                            <Ionicons name="logo-google" size={normalize(20)} color="#DB4437" />
+                            <Text style={styles.googleButtonText}>Continuar con Google</Text>
+                          </>
+                        )}
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </LinearGradient>
+              </View>
 
-          {/* Login Link */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
-            <Link href="/auth/login" asChild>
-              <TouchableOpacity disabled={loading}>
-                <Text style={styles.footerLink}>Inicia Sesión</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              {/* Login Link */}
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
+                <Link href="/auth/login" asChild>
+                  <TouchableOpacity disabled={loading}>
+                    <Text style={styles.footerLink}>Inicia Sesión</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+
+  gradient: {
+    flex: 1,
+  },
+
+  safeArea: {
+    flex: 1,
   },
 
   keyboardView: {
@@ -251,42 +295,101 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing['2xl'],
   },
 
-  logoContainer: {
+  // Logo Section
+  logoSection: {
     alignItems: 'center',
     marginBottom: spacing.xl,
+    marginTop: spacing.xs,
   },
 
+  logoCard: {
+    width: normalize(90),
+    height: normalize(90),
+    borderRadius: normalize(22),
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+  },
+
+  logoIconContainer: {
+    width: normalize(72),
+    height: normalize(72),
+    borderRadius: normalize(18),
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  brandName: {
+    fontSize: normalize(24),
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: -0.5,
+  },
+
+  // Header
   header: {
-    marginBottom: spacing['3xl'],
+    marginBottom: spacing.lg,
   },
 
   title: {
-    ...textStyles.largeTitle,
-    color: colors.primary,
-    marginBottom: spacing.xs,
+    fontSize: normalize(24),
     fontWeight: '700',
+    color: colors.gray900,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
   },
 
   subtitle: {
-    ...textStyles.body,
+    fontSize: normalize(14),
     color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: normalize(20),
+  },
+
+  // Form Card
+  formCard: {
+    borderRadius: normalize(20),
+    overflow: 'hidden',
+    marginBottom: spacing.lg,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+
+  formCardGradient: {
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: normalize(20),
   },
 
   form: {
-    marginBottom: spacing.lg,
+    gap: spacing.xs,
   },
 
   termsText: {
-    ...textStyles.footnote,
+    fontSize: normalize(11),
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.lg,
-    lineHeight: 18,
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+    lineHeight: normalize(16),
   },
 
   termsLink: {
@@ -297,7 +400,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.xl,
+    marginVertical: spacing.md,
   },
 
   dividerLine: {
@@ -307,11 +410,42 @@ const styles = StyleSheet.create({
   },
 
   dividerText: {
-    ...textStyles.subheadline,
+    fontSize: normalize(12),
     color: colors.textTertiary,
     marginHorizontal: spacing.md,
+    fontWeight: '500',
   },
 
+  // Google Button
+  googleButton: {
+    borderRadius: normalize(14),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  googleButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: normalize(15),
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: normalize(14),
+  },
+
+  googleButtonText: {
+    fontSize: normalize(14),
+    fontWeight: '600',
+    color: colors.gray800,
+  },
+
+  // Footer
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -321,13 +455,13 @@ const styles = StyleSheet.create({
   },
 
   footerText: {
-    ...textStyles.body,
+    fontSize: normalize(14),
     color: colors.textSecondary,
   },
 
   footerLink: {
-    ...textStyles.body,
+    fontSize: normalize(14),
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

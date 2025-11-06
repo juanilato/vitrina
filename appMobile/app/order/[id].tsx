@@ -51,7 +51,6 @@ const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; icon: keyof type
 };
 
 export default function OrderDetailScreen() {
-    if (Platform.OS === 'web') return <MapFallback />;
   const { id, showMap } = useLocalSearchParams<{ id: string; showMap?: string }>();
   const router = useRouter();
   const [order, setOrder] = useState<PedidoWithDetails | null>(null);
@@ -266,22 +265,59 @@ export default function OrderDetailScreen() {
 
               {mapExpanded && mapData && (
                 <View style={styles.mapContainer}>
-                  <MapView
-                    provider={PROVIDER_GOOGLE}
-                    style={styles.map}
-                    initialRegion={{
-                      latitude: (mapData.cliente.latitud + mapData.empresa.latitud) / 2,
-                      longitude: (mapData.cliente.longitud + mapData.empresa.longitud) / 2,
-                      latitudeDelta: Math.abs(mapData.cliente.latitud - mapData.empresa.latitud) * 2 || 0.02,
-                      longitudeDelta: Math.abs(mapData.cliente.longitud - mapData.empresa.longitud) * 2 || 0.02,
-                    }}
-                    scrollEnabled={false}
-                    zoomEnabled={false}
-                  >
-                    <Marker coordinate={{ latitude: mapData.empresa.latitud, longitude: mapData.empresa.longitud }} pinColor={colors.primary} />
-                    <Marker coordinate={{ latitude: mapData.cliente.latitud, longitude: mapData.cliente.longitud }} pinColor={colors.secondary} />
-                    {mapData.repartidor && <Marker coordinate={{ latitude: mapData.repartidor.latitud, longitude: mapData.repartidor.longitud }} pinColor={colors.orange} />}
-                  </MapView>
+                  {Platform.OS === 'web' ? (
+                    // Mapa para WEB con Google Maps
+                    <MapFallback
+                      height={200}
+                      markers={[
+                        {
+                          lat: mapData.empresa.latitud,
+                          lng: mapData.empresa.longitud,
+                          title: 'Empresa',
+                          color: colors.primary,
+                        },
+                        {
+                          lat: mapData.cliente.latitud,
+                          lng: mapData.cliente.longitud,
+                          title: 'Cliente',
+                          color: colors.secondary,
+                        },
+                        ...(mapData.repartidor
+                          ? [
+                              {
+                                lat: mapData.repartidor.latitud,
+                                lng: mapData.repartidor.longitud,
+                                title: 'Repartidor',
+                                color: colors.orange,
+                              },
+                            ]
+                          : []),
+                      ]}
+                      center={{
+                        lat: (mapData.cliente.latitud + mapData.empresa.latitud) / 2,
+                        lng: (mapData.cliente.longitud + mapData.empresa.longitud) / 2,
+                      }}
+                      zoom={13}
+                    />
+                  ) : (
+                    // Mapa para MOBILE con react-native-maps
+                    <MapView
+                      provider={PROVIDER_GOOGLE}
+                      style={styles.map}
+                      initialRegion={{
+                        latitude: (mapData.cliente.latitud + mapData.empresa.latitud) / 2,
+                        longitude: (mapData.cliente.longitud + mapData.empresa.longitud) / 2,
+                        latitudeDelta: Math.abs(mapData.cliente.latitud - mapData.empresa.latitud) * 2 || 0.02,
+                        longitudeDelta: Math.abs(mapData.cliente.longitud - mapData.empresa.longitud) * 2 || 0.02,
+                      }}
+                      scrollEnabled={false}
+                      zoomEnabled={false}
+                    >
+                      <Marker coordinate={{ latitude: mapData.empresa.latitud, longitude: mapData.empresa.longitud }} pinColor={colors.primary} />
+                      <Marker coordinate={{ latitude: mapData.cliente.latitud, longitude: mapData.cliente.longitud }} pinColor={colors.secondary} />
+                      {mapData.repartidor && <Marker coordinate={{ latitude: mapData.repartidor.latitud, longitude: mapData.repartidor.longitud }} pinColor={colors.orange} />}
+                    </MapView>
+                  )}
                   <TouchableOpacity style={styles.fullMapBtn} onPress={() => setMapVisible(true)}>
                     <Ionicons name="expand" size={16} color={colors.white} />
                     <Text style={styles.fullMapText}>Ver mapa completo</Text>

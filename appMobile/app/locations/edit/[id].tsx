@@ -42,7 +42,6 @@ const getAddressFromCoords = async (lat: number, lng: number): Promise<string> =
 };
 
 export default function EditLocationScreen() {
-  if (Platform.OS === 'web') return <MapFallback />;
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { refreshLocations } = useLocation();
@@ -184,35 +183,58 @@ export default function EditLocationScreen() {
 
       {/* Map */}
       <View style={styles.mapContainer}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={{
-            latitude: coords.lat,
-            longitude: coords.lng,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-          onPress={async (e) => {
-            const { latitude, longitude } = e.nativeEvent.coordinate;
-            setCoords({ lat: latitude, lng: longitude });
-            await updateAddressFromCoords(latitude, longitude);
-          }}
-        >
-          <Marker
-            coordinate={{
+        {Platform.OS === 'web' ? (
+          // Mapa para WEB con Google Maps
+          <MapFallback
+            height={300}
+            markers={[
+              {
+                lat: coords.lat,
+                lng: coords.lng,
+                title: 'Ubicación seleccionada',
+                color: '#F26B1D',
+              },
+            ]}
+            center={{ lat: coords.lat, lng: coords.lng }}
+            zoom={15}
+            onMapClick={async (lat, lng) => {
+              setCoords({ lat, lng });
+              await updateAddressFromCoords(lat, lng);
+            }}
+            draggableMarker={true}
+          />
+        ) : (
+          // Mapa para MOBILE con react-native-maps
+          <MapView
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={{
               latitude: coords.lat,
               longitude: coords.lng,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
             }}
-            title="Ubicación seleccionada"
-            draggable
-            onDragEnd={async (e) => {
+            onPress={async (e) => {
               const { latitude, longitude } = e.nativeEvent.coordinate;
               setCoords({ lat: latitude, lng: longitude });
               await updateAddressFromCoords(latitude, longitude);
             }}
-          />
-        </MapView>
+          >
+            <Marker
+              coordinate={{
+                latitude: coords.lat,
+                longitude: coords.lng,
+              }}
+              title="Ubicación seleccionada"
+              draggable
+              onDragEnd={async (e) => {
+                const { latitude, longitude } = e.nativeEvent.coordinate;
+                setCoords({ lat: latitude, lng: longitude });
+                await updateAddressFromCoords(latitude, longitude);
+              }}
+            />
+          </MapView>
+        )}
 
         {/* Botón de ubicación actual */}
         <TouchableOpacity

@@ -45,7 +45,6 @@ export function LocationPicker({
   onSelectLocation,
   initialLocation,
 }: LocationPickerProps) {
-  if (Platform.OS === 'web') return <MapFallback />;
   const [region, setRegion] = useState({
     latitude: initialLocation?.lat || -31.4201, // Córdoba, Argentina por defecto
     longitude: initialLocation?.lng || -64.1888,
@@ -175,20 +174,43 @@ export function LocationPicker({
 
         {/* Map */}
         <View style={styles.mapContainer}>
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={styles.map}
-            region={region}
-            onPress={handleMapPress}
-            showsUserLocation
-            showsMyLocationButton={false}
-          >
-            <Marker coordinate={markerPosition} draggable onDragEnd={handleMapPress}>
-              <View style={styles.markerContainer}>
-                <Ionicons name="location" size={40} color={colors.primary} />
-              </View>
-            </Marker>
-          </MapView>
+          {Platform.OS === 'web' ? (
+            // Mapa para WEB con Google Maps
+            <MapFallback
+              height={500}
+              markers={[
+                {
+                  lat: markerPosition.latitude,
+                  lng: markerPosition.longitude,
+                  title: 'Ubicación seleccionada',
+                  color: colors.primary,
+                },
+              ]}
+              center={{ lat: markerPosition.latitude, lng: markerPosition.longitude }}
+              zoom={15}
+              onMapClick={async (lat, lng) => {
+                setMarkerPosition({ latitude: lat, longitude: lng });
+                await getAddressFromCoordinates(lat, lng);
+              }}
+              draggableMarker={true}
+            />
+          ) : (
+            // Mapa para MOBILE con react-native-maps
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.map}
+              region={region}
+              onPress={handleMapPress}
+              showsUserLocation
+              showsMyLocationButton={false}
+            >
+              <Marker coordinate={markerPosition} draggable onDragEnd={handleMapPress}>
+                <View style={styles.markerContainer}>
+                  <Ionicons name="location" size={40} color={colors.primary} />
+                </View>
+              </Marker>
+            </MapView>
+          )}
 
           {/* Current Location Button */}
           <TouchableOpacity

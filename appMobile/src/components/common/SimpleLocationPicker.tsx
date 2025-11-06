@@ -44,7 +44,6 @@ export function SimpleLocationPicker({
   onSelectLocation,
   initialLocation,
 }: SimpleLocationPickerProps) {
-  if (Platform.OS ==="web") return <MapFallback/>
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<{
     lat: number;

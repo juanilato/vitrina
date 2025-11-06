@@ -1,6 +1,6 @@
 /**
  * Login Screen
- * iOS Modern Design
+ * iOS Modern Design - Vitrina Style
  */
 
 import React, { useState } from 'react';
@@ -13,14 +13,20 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Button, Input } from '../../src/components/common';
 import { Logo } from '../../src/components/common/Logo';
 import { colors, spacing, textStyles } from '../../src/theme';
 import { useGoogleSignIn } from '../../src/hooks/useGoogleSignIn';
+import { normalize } from '../../src/utils/responsive';
+
+const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -71,120 +77,158 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#F9F9F9', '#FFFFFF', '#F5F9FC']}
+        style={styles.gradient}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Logo variant="full" size={180} />
-          </View>
-
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Bienvenido</Text>
-            <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            <Input
-              label="Email"
-              placeholder="tu@email.com"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (errors.email) setErrors({ ...errors, email: undefined });
-              }}
-              error={errors.email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
-
-            <Input
-              label="Contraseña"
-              placeholder="Ingresa tu contraseña"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errors.password) setErrors({ ...errors, password: undefined });
-              }}
-              error={errors.password}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-            />
-
-            {/* Forgot Password */}
-            <TouchableOpacity
-              style={styles.forgotPassword}
-              disabled={loading}
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+          >
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             >
-              <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-            </TouchableOpacity>
+              {/* Logo Section */}
+              <View style={styles.logoSection}>
+                <View style={styles.logoCard}>
+                  <View style={styles.logoIconContainer}>
+                    <Logo variant="icon" size={normalize(48)} />
+                  </View>
+                </View>
+                <Text style={styles.brandName}>Vitrina</Text>
+              </View>
 
-            {/* Login Button */}
-            <Button
-              title="Iniciar Sesión"
-              onPress={handleLogin}
-              loading={loading}
-              disabled={loading}
-              fullWidth
-              size="lg"
-            />
+              {/* Header */}
+              <View style={styles.header}>
+                <Text style={styles.title}>¡Bienvenido de nuevo!</Text>
+                <Text style={styles.subtitle}>Inicia sesión para continuar con tu experiencia</Text>
+              </View>
 
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>o continúa con</Text>
-              <View style={styles.dividerLine} />
-            </View>
+              {/* Form Card */}
+              <View style={styles.formCard}>
+                <LinearGradient
+                  colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)']}
+                  style={styles.formCardGradient}
+                >
+                  <View style={styles.form}>
+                    <Input
+                      label="Email"
+                      placeholder="tu@email.com"
+                      value={email}
+                      onChangeText={(text) => {
+                        setEmail(text);
+                        if (errors.email) setErrors({ ...errors, email: undefined });
+                      }}
+                      error={errors.email}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
 
-            {/* Google Sign In */}
-            <Button
-              title="Continuar con Google"
-              variant="outline"
-              onPress={async () => {
-                try {
-                  await signInWithGoogle();
-                } catch (error) {
-                  Alert.alert('Error', 'No se pudo iniciar sesión con Google');
-                }
-              }}
-              disabled={loading || googleDisabled}
-              loading={googleLoading}
-              fullWidth
-            />
-          </View>
+                    <Input
+                      label="Contraseña"
+                      placeholder="Ingresa tu contraseña"
+                      value={password}
+                      onChangeText={(text) => {
+                        setPassword(text);
+                        if (errors.password) setErrors({ ...errors, password: undefined });
+                      }}
+                      error={errors.password}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                    />
 
-          {/* Sign Up Link */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-            <Link href="/auth/register" asChild>
-              <TouchableOpacity disabled={loading}>
-                <Text style={styles.footerLink}>Regístrate</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+                    {/* Forgot Password */}
+                    <TouchableOpacity
+                      style={styles.forgotPassword}
+                      disabled={loading}
+                    >
+                      <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+                    </TouchableOpacity>
+
+                    {/* Login Button */}
+                    <Button
+                      title="Iniciar Sesión"
+                      onPress={handleLogin}
+                      loading={loading}
+                      disabled={loading}
+                      fullWidth
+                      size="lg"
+                    />
+
+                    {/* Divider */}
+                    <View style={styles.divider}>
+                      <View style={styles.dividerLine} />
+                      <Text style={styles.dividerText}>o continúa con</Text>
+                      <View style={styles.dividerLine} />
+                    </View>
+
+                    {/* Google Sign In */}
+                    <TouchableOpacity
+                      style={styles.googleButton}
+                      onPress={async () => {
+                        try {
+                          await signInWithGoogle();
+                        } catch (error) {
+                          Alert.alert('Error', 'No se pudo iniciar sesión con Google');
+                        }
+                      }}
+                      disabled={loading || googleDisabled || googleLoading}
+                      activeOpacity={0.7}
+                    >
+                      <LinearGradient
+                        colors={['#FFFFFF', '#F9F9F9']}
+                        style={styles.googleButtonGradient}
+                      >
+                        {googleLoading ? (
+                          <Text style={styles.googleButtonText}>Cargando...</Text>
+                        ) : (
+                          <>
+                            <Ionicons name="logo-google" size={normalize(20)} color="#DB4437" />
+                            <Text style={styles.googleButtonText}>Continuar con Google</Text>
+                          </>
+                        )}
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </LinearGradient>
+              </View>
+
+              {/* Sign Up Link */}
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>¿No tienes cuenta? </Text>
+                <Link href="/auth/register" asChild>
+                  <TouchableOpacity disabled={loading}>
+                    <Text style={styles.footerLink}>Regístrate</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+
+  gradient: {
+    flex: 1,
+  },
+
+  safeArea: {
+    flex: 1,
   },
 
   keyboardView: {
@@ -193,43 +237,102 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing['2xl'],
   },
 
-  logoContainer: {
+  // Logo Section
+  logoSection: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing['2xl'],
+    marginTop: spacing.md,
   },
 
+  logoCard: {
+    width: normalize(100),
+    height: normalize(100),
+    borderRadius: normalize(24),
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+  },
+
+  logoIconContainer: {
+    width: normalize(80),
+    height: normalize(80),
+    borderRadius: normalize(20),
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  brandName: {
+    fontSize: normalize(28),
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: -0.5,
+  },
+
+  // Header
   header: {
-    marginBottom: spacing['2xl'],
+    marginBottom: spacing.xl,
   },
 
   title: {
-    ...textStyles.largeTitle,
-    color: colors.text,
+    fontSize: normalize(26),
+    fontWeight: '700',
+    color: colors.gray900,
     marginBottom: spacing.xs,
+    textAlign: 'center',
   },
 
   subtitle: {
-    ...textStyles.body,
+    fontSize: normalize(15),
     color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: normalize(22),
+  },
+
+  // Form Card
+  formCard: {
+    borderRadius: normalize(20),
+    overflow: 'hidden',
+    marginBottom: spacing.xl,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+
+  formCardGradient: {
+    padding: spacing.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: normalize(20),
   },
 
   form: {
-    marginBottom: spacing.xl,
+    gap: spacing.sm,
   },
 
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: spacing.lg,
-    marginTop: -spacing.sm,
+    marginBottom: spacing.md,
+    marginTop: -spacing.xs,
   },
 
   forgotPasswordText: {
-    ...textStyles.subheadline,
+    fontSize: normalize(13),
     color: colors.primary,
     fontWeight: '600',
   },
@@ -237,7 +340,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.xl,
+    marginVertical: spacing.lg,
   },
 
   dividerLine: {
@@ -247,11 +350,42 @@ const styles = StyleSheet.create({
   },
 
   dividerText: {
-    ...textStyles.subheadline,
+    fontSize: normalize(13),
     color: colors.textTertiary,
     marginHorizontal: spacing.md,
+    fontWeight: '500',
   },
 
+  // Google Button
+  googleButton: {
+    borderRadius: normalize(14),
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  googleButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: normalize(16),
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: normalize(14),
+  },
+
+  googleButtonText: {
+    fontSize: normalize(15),
+    fontWeight: '600',
+    color: colors.gray800,
+  },
+
+  // Footer
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -261,13 +395,13 @@ const styles = StyleSheet.create({
   },
 
   footerText: {
-    ...textStyles.body,
+    fontSize: normalize(15),
     color: colors.textSecondary,
   },
 
   footerLink: {
-    ...textStyles.body,
+    fontSize: normalize(15),
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
