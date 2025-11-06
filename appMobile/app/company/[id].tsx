@@ -282,73 +282,63 @@ export default function CompanyStoreScreen() {
             </LinearGradient>
           </ImageBackground>
         ) : (
-<LinearGradient
-  colors={[
-    fondo,
-    fondoOscuro ? `${buttonColor}88` : `${buttonColor}44`,
-  ]}
-  start={{ x: 0, y: 0 }}
-  end={{ x: 0, y: 1 }}
-  style={styles.headerFormal}
->
-    <SafeAreaView edges={['top']}>
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
-          <Ionicons name="arrow-back" size={24} color={textoColor} />
-        </TouchableOpacity>
-        <View style={styles.spacer} />
+          <View style={styles.headerNoPhotoContainer}>
+            {/* Gradiente sutil vertical - estilo iOS minimalista */}
+            <LinearGradient
+              colors={[
+                buttonColor,
+                fondoOscuro ? `${buttonColor}F5` : `${buttonColor}E8`,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.headerClean}
+            >
+              <SafeAreaView edges={['top']}>
+                {/* Top Bar - Minimalista */}
+                <View style={styles.topBarClean}>
+                  <TouchableOpacity onPress={() => router.back()} style={[
+                    styles.backButtonClean,
+                    { backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.35)' }
+                  ]}>
+                    <Ionicons name="arrow-back" size={22} color={textoColor} />
+                  </TouchableOpacity>
+                </View>
 
-      </View>
+                {/* Branding Minimalista iOS */}
+                <View style={styles.brandingClean}>
+                  {/* Avatar limpio */}
+                  {company.logo ? (
+                    <View style={[
+                      styles.avatarClean,
+                      {
+                        backgroundColor: colors.white,
+                        shadowColor: fondoOscuro ? '#000' : buttonColor,
+                      }
+                    ]}>
+                      <Image source={{ uri: company.logo }} style={styles.avatarImage} />
+                    </View>
+                  ) : (
+                    <View style={[
+                      styles.avatarClean,
+                      {
+                        backgroundColor: colors.white,
+                        shadowColor: fondoOscuro ? '#000' : buttonColor,
+                      }
+                    ]}>
+                      <Text style={styles.avatarInitials}>
+                        {company.name?.slice(0, 2)?.toUpperCase() ?? 'E'}
+                      </Text>
+                    </View>
+                  )}
 
-      {/* Panel translúcido para nombre y logo */}
-{/* Branding iOS SOFT */}
-<View style={styles.brandingSoft}>
-  {/* Avatar sobrio (sin halos, sin ring) */}
-  {company.logo ? (
-    <View
-      style={[
-        styles.brandAvatar,
-        {
-          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
-          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
-        },
-      ]}
-    >
-      <Image source={{ uri: company.logo }} style={styles.brandAvatarImg} />
-    </View>
-  ) : (
-    <View
-      style={[
-        styles.brandAvatar,
-        {
-          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
-          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
-        },
-      ]}
-    >
-      <Text style={[styles.brandAvatarMono, { color: fondoOscuro ? '#111' : '#222' }]}>
-        {company.name?.slice(0, 2)?.toUpperCase() ?? 'E'}
-      </Text>
-    </View>
-  )}
-
-  {/* Título sobrio + acento mínimo */}
-  <Text
-    numberOfLines={1}
-    style={[styles.brandTitleSoft, { color: textoColor }]}
-  >
-    {company.name}
-  </Text>
-
-
-</View>
-
-
-      {/* Línea separadora elegante */}
-      <View style={styles.bottomDivider} />
-    </SafeAreaView>
-  </LinearGradient>
+                  {/* Título limpio */}
+                  <Text numberOfLines={2} style={[styles.titleClean, { color: textoColor }]}>
+                    {company.name}
+                  </Text>
+                </View>
+              </SafeAreaView>
+            </LinearGradient>
+          </View>
         )}
       </View>
 
@@ -467,6 +457,61 @@ export default function CompanyStoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerNoPhotoContainer: {
+    overflow: 'hidden',
+  },
+  // Header limpio y minimalista
+  headerClean: {
+    paddingBottom: spacing.xl,
+  },
+  topBarClean: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.md,
+  },
+  backButtonClean: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandingClean: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
+  },
+  avatarClean: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  avatarImage: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+  avatarInitials: {
+    fontSize: 32,
+    fontWeight: '600',
+    color: colors.gray800,
+    letterSpacing: 0.5,
+  },
+  titleClean: {
+    ...textStyles.title2,
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: -0.5,
+    lineHeight: 30,
   },
   brandingSoft: {
   alignItems: 'center',
