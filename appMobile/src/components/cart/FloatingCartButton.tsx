@@ -55,10 +55,10 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({ buttonCo
 
       {/* Total amount */}
       <View style={styles.amountContainer}>
-        <Text style={styles.amountLabel}>Total</Text>
         <Text style={styles.amountValue}>
           ${formatPrice(cart.total)}
         </Text>
+        <Text style={styles.amountLabel}>(sin envío)</Text>
       </View>
     </TouchableOpacity>
   );
@@ -71,29 +71,28 @@ const styles = StyleSheet.create({
     right: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 30,
+    borderRadius: 25,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
         shadowRadius: 8,
       },
       android: {
-        elevation: 8,
+        elevation: 4,
       },
     }),
   },
   button: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.sm,
   },
   badge: {
     position: 'absolute',
@@ -116,16 +115,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   amountContainer: {
-    marginRight: spacing.xs,
+    marginLeft: spacing.sm,
+    alignItems: 'flex-start',
   },
   amountLabel: {
     ...typography.caption,
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 9,
+    marginTop: 1,
   },
   amountValue: {
     ...typography.bodyMedium,
     color: colors.white,
     fontWeight: '700',
+    fontSize: 15,
   },
 });

@@ -42,7 +42,7 @@ const getAddressFromCoords = async (lat: number, lng: number): Promise<string> =
 };
 
 export default function LocationsScreen() {
-  const { loadLocations: refreshContextLocations } = useLocation();
+  const { refreshLocations: refreshContextLocations } = useLocation();
   const [locations, setLocations] = useState<SavedLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);

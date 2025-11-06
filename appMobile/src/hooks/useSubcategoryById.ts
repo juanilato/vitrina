@@ -30,31 +30,26 @@ export const useSubcategoryById = (
 
   const result = useMemo(() => {
     if (!categoryId || !subcategoryId) {
-      console.warn('[useSubcategoryById] Missing categoryId or subcategoryId');
       return { category: undefined, subcategory: undefined };
     }
 
     const category = categories.find((cat) => cat.id === categoryId);
 
     if (!category) {
-      console.warn('[useSubcategoryById] Category not found with id:', categoryId);
+      if (!categoriesLoading) {
+        console.warn('[useSubcategoryById] Category not found:', categoryId);
+      }
       return { category: undefined, subcategory: undefined };
     }
 
     const subcategory = category.subcategorias?.find((sub) => sub.id === subcategoryId);
 
-    if (!subcategory) {
-      console.warn('[useSubcategoryById] Subcategory not found with id:', subcategoryId);
-      return { category, subcategory: undefined };
+    if (!subcategory && !categoriesLoading) {
+      console.warn('[useSubcategoryById] Subcategory not found:', subcategoryId);
     }
 
-    console.log('[useSubcategoryById] Subcategory found:', {
-      category: category.nombre,
-      subcategory: subcategory.nombre,
-    });
-
     return { category, subcategory };
-  }, [categories, categoryId, subcategoryId]);
+  }, [categories, categoryId, subcategoryId, categoriesLoading]);
 
   return {
     subcategory: result.subcategory,

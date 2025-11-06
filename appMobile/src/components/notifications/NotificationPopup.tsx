@@ -1,6 +1,6 @@
 /**
  * Notification Popup Component
- * Displays a floating notification popup at the top of the screen
+ * Modern toast-style popup with gradient design
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -13,6 +13,8 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Notification } from '../../types/notification';
@@ -81,25 +83,57 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
     }
   };
 
-  const getIcon = () => {
-    switch (notification.tipo) {
+  const getNotificationStyle = (tipo: string) => {
+    switch (tipo) {
       case 'pedido_creado':
-        return { name: 'receipt' as const, color: colors.success };
+      case 'order_created':
+        return {
+          icon: 'checkmark-circle' as const,
+          gradientColors: ['#10b981', '#059669'],
+          shadowColor: '#10b981',
+        };
       case 'pedido_actualizado':
-        return { name: 'refresh-circle' as const, color: colors.accent };
+      case 'order_updated':
+        return {
+          icon: 'reload-circle' as const,
+          gradientColors: ['#3b82f6', '#2563eb'],
+          shadowColor: '#3b82f6',
+        };
       case 'pedido_rechazado':
-        return { name: 'close-circle' as const, color: colors.error };
+      case 'order_cancelled':
+        return {
+          icon: 'close-circle' as const,
+          gradientColors: ['#ef4444', '#dc2626'],
+          shadowColor: '#ef4444',
+        };
+      case 'order_delivered':
+        return {
+          icon: 'checkmark-done-circle' as const,
+          gradientColors: ['#8b5cf6', '#7c3aed'],
+          shadowColor: '#8b5cf6',
+        };
       default:
-        return { name: 'notifications' as const, color: colors.primary };
+        return {
+          icon: 'notifications' as const,
+          gradientColors: [colors.primary, colors.secondary],
+          shadowColor: colors.primary,
+        };
     }
   };
 
-  const icon = getIcon();
+  const style = getNotificationStyle(notification.tipo);
 
-  // Format total amount if available
-  const totalAmount = notification.metadata?.totalAmount
-    ? `$${notification.metadata.totalAmount.toLocaleString('es-AR')}`
-    : null;
+  // Format time ago
+  const formatTimeAgo = (date: string | Date) => {
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    return 'Hace un momento';
+  };
 
   if (!visible) return null;
 
@@ -113,48 +147,113 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
           opacity,
         },
       ]}
+      pointerEvents={visible ? 'auto' : 'none'}
     >
       <TouchableOpacity
-        style={styles.popup}
+        activeOpacity={0.95}
         onPress={handlePress}
-        activeOpacity={0.9}
+        style={styles.touchable}
       >
-        <View style={styles.content}>
-          {/* Icon */}
-          <View style={[styles.iconContainer, { backgroundColor: `${icon.color}15` }]}>
-            <Ionicons name={icon.name} size={24} color={icon.color} />
-          </View>
+        {/* Glass effect con blur para iOS */}
+        {Platform.OS === 'ios' ? (
+          <BlurView intensity={80} tint="light" style={styles.blurContainer}>
+            <View style={styles.content}>
+              {/* Icon con gradiente */}
+              <LinearGradient
+                colors={style.gradientColors as any}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.iconContainer, { shadowColor: style.shadowColor }]}
+              >
+                {notification.metadata?.icono ? (
+                  <Text style={styles.iconEmoji}>{notification.metadata.icono}</Text>
+                ) : (
+                  <Ionicons name={style.icon} size={28} color="#fff" />
+                )}
+              </LinearGradient>
 
-          {/* Text */}
-          <View style={styles.textContainer}>
-            <View style={styles.titleRow}>
-              {notification.metadata?.icono && (
-                <Text style={styles.emoji}>{notification.metadata.icono}</Text>
-              )}
-              <Text style={styles.title} numberOfLines={1}>
-                {notification.titulo}
-              </Text>
+              {/* Texto */}
+              <View style={styles.textContainer}>
+                <View style={styles.titleRow}>
+                  <Text style={styles.title} numberOfLines={1}>
+                    {notification.titulo}
+                  </Text>
+                  <View style={styles.unreadDot} />
+                </View>
+                <Text style={styles.message} numberOfLines={2}>
+                  {notification.mensaje}
+                </Text>
+                {notification.metadata?.totalAmount && (
+                  <Text style={styles.amount}>
+                    ${notification.metadata.totalAmount.toLocaleString('es-AR')}
+                  </Text>
+                )}
+                <Text style={styles.time}>{formatTimeAgo(notification.createdAt)}</Text>
+              </View>
+
+              {/* Botón cerrar */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onDismiss();
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={20} color={colors.gray600} />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.message} numberOfLines={2}>
-              {notification.mensaje}
-            </Text>
-            {totalAmount && (
-              <Text style={styles.amount}>{totalAmount}</Text>
-            )}
-          </View>
+          </BlurView>
+        ) : (
+          <View style={[styles.blurContainer, styles.androidBackground]}>
+            <View style={styles.content}>
+              {/* Icon con gradiente */}
+              <LinearGradient
+                colors={style.gradientColors as any}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.iconContainer, { shadowColor: style.shadowColor }]}
+              >
+                {notification.metadata?.icono ? (
+                  <Text style={styles.iconEmoji}>{notification.metadata.icono}</Text>
+                ) : (
+                  <Ionicons name={style.icon} size={28} color="#fff" />
+                )}
+              </LinearGradient>
 
-          {/* Close button */}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              onDismiss();
-            }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="close" size={20} color={colors.gray600} />
-          </TouchableOpacity>
-        </View>
+              {/* Texto */}
+              <View style={styles.textContainer}>
+                <View style={styles.titleRow}>
+                  <Text style={styles.title} numberOfLines={1}>
+                    {notification.titulo}
+                  </Text>
+                  <View style={styles.unreadDot} />
+                </View>
+                <Text style={styles.message} numberOfLines={2}>
+                  {notification.mensaje}
+                </Text>
+                {notification.metadata?.totalAmount && (
+                  <Text style={styles.amount}>
+                    ${notification.metadata.totalAmount.toLocaleString('es-AR')}
+                  </Text>
+                )}
+                <Text style={styles.time}>{formatTimeAgo(notification.createdAt)}</Text>
+              </View>
+
+              {/* Botón cerrar */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onDismiss();
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={20} color={colors.gray600} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -163,80 +262,107 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
+    left: spacing.lg,
+    right: spacing.lg,
     zIndex: 9999,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadowColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
   },
 
-  popup: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.primary,
+  touchable: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+
+  blurContainer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+  },
+
+  androidBackground: {
+    backgroundColor: 'rgba(255, 255, 255, 0.97)',
   },
 
   content: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: spacing.md,
     gap: spacing.sm,
   },
 
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+
+  iconEmoji: {
+    fontSize: 32,
   },
 
   textContainer: {
     flex: 1,
+    paddingTop: 2,
   },
 
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    marginBottom: spacing.xs / 2,
-  },
-
-  emoji: {
-    fontSize: 16,
+    marginBottom: 4,
   },
 
   title: {
     ...typography.bodyMedium,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.gray900,
     flex: 1,
   },
 
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.secondary,
+  },
+
   message: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    fontSize: 13,
+    color: colors.gray700,
     lineHeight: 18,
-    marginBottom: spacing.xs / 2,
+    marginBottom: 4,
   },
 
   amount: {
     ...typography.bodySmall,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.secondary,
+    marginBottom: 4,
+  },
+
+  time: {
+    ...typography.caption1,
+    fontSize: 11,
+    color: colors.gray500,
+    fontWeight: '500',
   },
 
   closeButton: {
-    padding: spacing.xs,
+    padding: 4,
+    marginTop: -2,
   },
 });

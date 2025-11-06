@@ -26,6 +26,8 @@ import { colors, textStyles, spacing } from '../../src/theme';
 import { useLocation } from '../../src/contexts/LocationContext';
 import { useActiveOrder } from '../../src/hooks/useActiveOrder';
 import { ActiveOrderCard } from '../../src/components/orders/ActiveOrderCard';
+import { Logo } from '../../src/components/common/Logo';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -203,39 +205,49 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Custom Navbar */}
+      {/* Modern Glass Navbar with Logo Card */}
       <View style={styles.navbar}>
-        {/* Left Side - Location Drawer Button */}
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={handleOpenLocationDrawer}
-          activeOpacity={0.7}
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          style={styles.navbarGradient}
         >
-          <Ionicons name="location-outline" size={20} color={colors.gray700} />
-        </TouchableOpacity>
+          {/* Logo Card */}
+          <View style={styles.logoCard}>
+            <View style={styles.logoIconContainer}>
+              <Logo variant="icon" size={28} />
+            </View>
+            <View style={styles.logoTextContainer}>
+              <Text style={styles.logoTitle}>Vitrina</Text>
+              {selectedLocation && (
+                <View style={styles.locationBadge}>
+                  <Ionicons name="location" size={10} color={colors.primary} />
+                  <Text style={styles.locationBadgeText} numberOfLines={1}>
+                    {selectedLocation.nombre}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
 
-        {/* Center - Logo & Location */}
-        <View style={styles.navCenter}>
-          <Text style={styles.appTitle}>Vitrina</Text>
-          {selectedLocation && (
-            <Text style={styles.locationText} numberOfLines={1}>
-              {selectedLocation.nombre}
-            </Text>
-          )}
-        </View>
+          {/* Action Buttons */}
+          <View style={styles.navActions}>
+            <TouchableOpacity
+              style={styles.glassButton}
+              onPress={handleOpenLocationDrawer}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="location-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
 
-        {/* Right Side - Search & Menu */}
-        <View style={styles.navRight}>
-
-
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={handleOpenMenuDrawer}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="menu-outline" size={20} color={colors.gray700} />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.glassButton}
+              onPress={handleOpenMenuDrawer}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="menu-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
       </View>
 
       {/* Search Bar (Expandible) */}
@@ -276,8 +288,8 @@ export default function HomeScreen() {
         {/* Categories Grid */}
         {renderCategoryGrid()}
 
-        {/* Bottom spacer */}
-        <View style={{ height: spacing.xl }} />
+        {/* Bottom spacer for floating tab bar */}
+        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Drawers */}
@@ -296,17 +308,102 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Navbar Styles
+  // Navbar Styles - Glass Effect
   navbar: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  navbarGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
+
+  // Logo Card Styles
+  logoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 10,
+    flex: 1,
+    marginRight: spacing.md,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  logoIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  logoTextContainer: {
+    flex: 1,
+  },
+  logoTitle: {
+    ...textStyles.body,
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.gray900,
+    letterSpacing: -0.5,
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    gap: 4,
+  },
+  locationBadgeText: {
+    ...textStyles.caption1,
+    fontSize: 11,
+    color: colors.gray600,
+    fontWeight: '600',
+  },
+
+  // Action Buttons
+  navActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  glassButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  // Legacy styles (kept for compatibility)
   navButton: {
     width: 36,
     height: 36,

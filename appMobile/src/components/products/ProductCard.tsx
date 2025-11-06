@@ -110,20 +110,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.white,
+    borderRadius: 12,
     overflow: 'hidden',
     marginBottom: spacing.sm,
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: `${colors.gray100}80`,
   },
 
   inactiveContainer: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
 
   imageContainer: {
-    width: 90,
-    height: 90,
+    width: 80,
+    height: 80,
     position: 'relative',
   },
 
@@ -135,7 +141,7 @@ const styles = StyleSheet.create({
   placeholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: `${colors.primary}08`,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -157,7 +163,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.sm,
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
 
   textContainer: {
@@ -166,16 +172,18 @@ const styles = StyleSheet.create({
 
   name: {
     ...textStyles.body,
-    color: colors.text,
+    color: colors.gray900,
     fontWeight: '600',
+    fontSize: 14,
     marginBottom: 2,
   },
 
   description: {
     ...textStyles.caption1,
-    color: colors.textSecondary,
+    color: colors.gray600,
     marginBottom: 6,
     lineHeight: 16,
+    fontSize: 12,
   },
 
   bottomRow: {
@@ -189,31 +197,38 @@ const styles = StyleSheet.create({
     ...textStyles.callout,
     color: colors.primary,
     fontWeight: '700',
+    fontSize: 15,
   },
 
   customizationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-    borderRadius: borderRadius.sm,
+    backgroundColor: `${colors.primary}10`,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
     gap: 3,
+    borderWidth: 0.5,
+    borderColor: `${colors.primary}25`,
   },
 
   customizationText: {
     ...textStyles.caption2,
     color: colors.primary,
     fontWeight: '600',
-    fontSize: 10,
+    fontSize: 9,
   },
 
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

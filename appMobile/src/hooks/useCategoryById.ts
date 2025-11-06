@@ -24,30 +24,12 @@ export const useCategoryById = (categoryId: string | undefined): UseCategoryById
   const { categories, categoriesLoading, categoriesError, refreshCategories } = useAppData();
 
   const category = useMemo(() => {
-    if (!categoryId) {
-      console.warn('[useCategoryById] ⚠️ No category ID provided');
-      return undefined;
-    }
-
-    console.log('[useCategoryById] Searching for category:', {
-      searchingId: categoryId,
-      totalCategories: categories.length,
-      categoriesLoaded: !categoriesLoading,
-    });
+    if (!categoryId) return undefined;
 
     const found = categories.find((cat) => cat.id === categoryId);
 
-    if (found) {
-      console.log('[useCategoryById] ✅ Category found:', {
-        id: found.id,
-        nombre: found.nombre,
-        subcategorias: found.subcategorias?.length || 0,
-        subcategoriasData: found.subcategorias?.map(s => ({ id: s.id, nombre: s.nombre })),
-      });
-    } else {
-      console.warn('[useCategoryById] ⚠️ Category not found with id:', categoryId, {
-        availableIds: categories.map(c => ({ id: c.id, nombre: c.nombre })),
-      });
+    if (!found && !categoriesLoading) {
+      console.warn('[useCategoryById] Category not found:', categoryId);
     }
 
     return found;

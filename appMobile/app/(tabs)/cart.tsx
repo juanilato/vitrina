@@ -20,6 +20,7 @@ import { useCart } from '../../src/contexts/CartContext';
 import { CartSummary } from '../../src/components/cart/CartSummary';
 import { colors, textStyles, spacing, borderRadius, shadows } from '../../src/theme';
 import { formatPrice } from '../../src/utils/formatPrice';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CartScreen() {
   const router = useRouter();
@@ -59,68 +60,106 @@ export default function CartScreen() {
     </View>
   );
 
-  const renderCartItem = (item: typeof cart.items[0]) => (
-    <View key={item.id} style={styles.cartItem}>
-      {/* Image */}
-      <View style={styles.itemImageContainer}>
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.itemImage} resizeMode="cover" />
-        ) : (
-          <View style={styles.itemImagePlaceholder}>
-            <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+  const renderCartItem = (item: typeof cart.items[0]) => {
+    // Calcular precio unitario con agregados e ingredientes extras
+    const basePrice = typeof item.product.precio === 'string'
+      ? parseFloat(item.product.precio)
+      : (item.product.precio || item.product.price || 0);
+
+    const agregadosPrice = item.agregados?.reduce((sum, a) => {
+      const aPrecio = typeof a.precio === 'string' ? parseFloat(a.precio) : a.precio;
+      return sum + aPrecio;
+    }, 0) || 0;
+
+    const ingredientesExtrasPrice = item.ingredientesExtras?.reduce((sum, ie) => {
+      const precioExtra = ie.productoIngrediente.precioExtra;
+      const precio = typeof precioExtra === 'string' ? parseFloat(precioExtra) : (precioExtra || 0);
+      return sum + (precio * ie.cantidad);
+    }, 0) || 0;
+
+    const unitPrice = basePrice + agregadosPrice + ingredientesExtrasPrice;
+
+    return (
+      <View key={item.product.id} style={styles.cartItem}>
+        {/* Remove Button - Positioned absolutely at top right */}
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => handleRemoveItem(item.product.id)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="trash-outline" size={18} color={colors.error} />
+        </TouchableOpacity>
+
+        {/* Main Content Row */}
+        <View style={styles.itemMainRow}>
+          {/* Image */}
+          <View style={styles.itemImageContainer}>
+            {(item.product.fotoUrl || (item.product.images && item.product.images[0])) ? (
+              <Image
+                source={{ uri: item.product.fotoUrl || item.product.images![0] }}
+                style={styles.itemImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.itemImagePlaceholder}>
+                <Ionicons name="restaurant" size={24} color={colors.textTertiary} />
+              </View>
+            )}
           </View>
-        )}
+
+          {/* Content */}
+          <View style={styles.itemContent}>
+            <Text style={styles.itemName} numberOfLines={2}>
+              {item.product.nombre}
+            </Text>
+            {item.notes && (
+              <Text style={styles.itemNotes} numberOfLines={2}>
+                {item.notes}
+              </Text>
+            )}
+            {item.agregados && item.agregados.length > 0 && (
+              <Text style={styles.itemExtras} numberOfLines={1}>
+                + {item.agregados.map(a => a.nombre).join(', ')}
+              </Text>
+            )}
+            {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
+              <Text style={styles.itemExtras} numberOfLines={1}>
+                + {item.ingredientesExtras.map(ie =>
+                  `${ie.productoIngrediente.ingrediente.nombre} (x${ie.cantidad})`
+                ).join(', ')}
+              </Text>
+            )}
+
+            {/* Price and Quantity Row */}
+            <View style={styles.itemFooter}>
+              <Text style={styles.itemPrice}>${formatPrice(unitPrice)}</Text>
+
+              {/* Quantity Controls */}
+              <View style={styles.quantityControls}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="remove" size={16} color={colors.primary} />
+                </TouchableOpacity>
+
+                <Text style={styles.quantityText}>{item.quantity}</Text>
+
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add" size={16} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
       </View>
-
-      {/* Content */}
-      <View style={styles.itemContent}>
-        <Text style={styles.itemName} numberOfLines={2}>
-          {item.name}
-        </Text>
-        {item.notes && (
-          <Text style={styles.itemNotes} numberOfLines={2}>
-            {item.notes}
-          </Text>
-        )}
-        {item.agregados && item.agregados.length > 0 && (
-          <Text style={styles.itemExtras} numberOfLines={1}>
-            + {item.agregados.map(a => a.nombre).join(', ')}
-          </Text>
-        )}
-        <Text style={styles.itemPrice}>${formatPrice(item.price)}</Text>
-      </View>
-
-      {/* Quantity Controls */}
-      <View style={styles.quantityControls}>
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="remove" size={18} color={colors.primary} />
-        </TouchableOpacity>
-
-        <Text style={styles.quantityText}>{item.quantity}</Text>
-
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="add" size={18} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Remove Button */}
-      <TouchableOpacity
-        style={styles.removeButton}
-        onPress={() => handleRemoveItem(item.id)}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="trash-outline" size={20} color={colors.error} />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -134,26 +173,42 @@ export default function CartScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+      {/* Modern Glass Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          style={styles.headerGradient}
         >
-          <Ionicons name="arrow-back" size={20} color={colors.gray700} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={20} color={colors.primary} />
+          </TouchableOpacity>
 
-        <View style={styles.headerCenter}>
-          <Text style={styles.title}>Mi Carrito</Text>
-          {cart.totalItems > 0 && (
-            <Text style={styles.subtitle}>
-              {cart.totalItems} {cart.totalItems === 1 ? 'producto' : 'productos'}
-            </Text>
-          )}
-        </View>
+          <View style={styles.cartBadge}>
+            <View style={styles.cartIconContainer}>
+              <Ionicons name="cart" size={22} color={colors.primary} />
+              {cart.totalItems > 0 && (
+                <View style={styles.cartCountBadge}>
+                  <Text style={styles.cartCountText}>{cart.totalItems}</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.cartTextContainer}>
+              <Text style={styles.cartLabel}>TU CARRITO</Text>
+              <Text style={styles.cartTitle}>
+                {cart.totalItems === 0
+                  ? 'Vacío'
+                  : `${cart.totalItems} ${cart.totalItems === 1 ? 'producto' : 'productos'}`
+                }
+              </Text>
+            </View>
+          </View>
 
-        <View style={styles.headerRight} />
+          <View style={styles.headerRight} />
+        </LinearGradient>
       </View>
 
       {/* Content */}
@@ -167,10 +222,10 @@ export default function CartScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* Company Info */}
-            {cart.companyName && (
+            {cart.items.length > 0 && cart.items[0].companyName && (
               <View style={styles.companySection}>
                 <Ionicons name="business" size={20} color={colors.primary} />
-                <Text style={styles.companyName}>{cart.companyName}</Text>
+                <Text style={styles.companyName}>{cart.items[0].companyName}</Text>
               </View>
             )}
 
@@ -207,25 +262,105 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Header
+  // Header - Modern Glass Design
   header: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  headerGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.gray100,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
+
+  // Cart Badge
+  cartBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 10,
+    flex: 1,
+    marginHorizontal: spacing.md,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cartIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: `${colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  cartCountBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  cartCountText: {
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  cartTextContainer: {
+    flex: 1,
+  },
+  cartLabel: {
+    ...textStyles.caption1,
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  cartTitle: {
+    ...textStyles.body,
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.gray900,
+    marginTop: 2,
+  },
+
+  // Legacy styles (kept for compatibility)
   headerCenter: {
     flex: 1,
     alignItems: 'center',
@@ -263,21 +398,29 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
 
-  // Company Section
+  // Company Section - Modern Card
   companySection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: colors.white,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    borderRadius: 16,
     marginBottom: spacing.md,
     gap: spacing.sm,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
   },
   companyName: {
     ...textStyles.body,
-    color: colors.text,
-    fontWeight: '600',
+    color: colors.gray900,
+    fontWeight: '700',
+    fontSize: 15,
   },
 
   // Items List
@@ -285,20 +428,35 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
 
-  // Cart Item
+  // Cart Item - Modern Design
   cartItem: {
-    flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.white,
+    borderRadius: 16,
     padding: spacing.md,
-    ...shadows.sm,
-    gap: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.gray100,
+    position: 'relative',
+  },
+  itemMainRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   itemImageContainer: {
     width: 70,
     height: 70,
-    borderRadius: borderRadius.md,
+    borderRadius: 12,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    flexShrink: 0,
   },
   itemImage: {
     width: '100%',
@@ -307,7 +465,7 @@ const styles = StyleSheet.create({
   itemImagePlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: `${colors.primary}10`,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -319,54 +477,71 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     color: colors.text,
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: 4,
+    fontSize: 14,
   },
   itemNotes: {
     ...textStyles.caption1,
     color: colors.textSecondary,
     fontStyle: 'italic',
     marginBottom: 2,
+    fontSize: 11,
   },
   itemExtras: {
     ...textStyles.caption1,
     color: colors.textTertiary,
-    marginBottom: 4,
+    marginBottom: 2,
+    fontSize: 11,
+  },
+  itemFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
   },
   itemPrice: {
     ...textStyles.callout,
     color: colors.primary,
     fontWeight: '700',
+    fontSize: 16,
   },
 
-  // Quantity Controls
+  // Quantity Controls - Horizontal
   quantityControls: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
+    gap: 6,
+    flexShrink: 0,
   },
   quantityButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.backgroundSecondary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: `${colors.primary}30`,
   },
   quantityText: {
     ...textStyles.body,
-    color: colors.text,
+    color: colors.gray900,
     fontWeight: '700',
-    minWidth: 24,
+    minWidth: 20,
     textAlign: 'center',
+    fontSize: 14,
   },
 
   // Remove Button
   removeButton: {
     position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
+    top: spacing.xs,
+    right: spacing.xs,
     padding: spacing.xs,
+    backgroundColor: `${colors.error}10`,
+    borderRadius: 8,
+    zIndex: 10,
   },
 
   // Empty State

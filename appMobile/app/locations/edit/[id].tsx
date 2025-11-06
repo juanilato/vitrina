@@ -43,7 +43,7 @@ const getAddressFromCoords = async (lat: number, lng: number): Promise<string> =
 export default function EditLocationScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { loadLocations } = useLocation();
+  const { refreshLocations } = useLocation();
 
   const [location, setLocation] = useState<SavedLocation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -138,7 +138,7 @@ export default function EditLocationScreen() {
       });
 
       // Recargar ubicaciones
-      await loadLocations();
+      await refreshLocations();
 
       Alert.alert('Éxito', 'Ubicación actualizada correctamente', [
         { text: 'OK', onPress: () => router.back() }

@@ -9,6 +9,7 @@ import { CartProvider } from '../src/contexts/CartContext';
 import { NotificationsProvider, useNotifications } from '../src/contexts/NotificationsContext';
 import { LocationProvider } from '../src/contexts/LocationContext';
 import { AppDataProvider } from '../src/contexts/AppDataContext';
+import { OrdersProvider } from '../src/contexts/OrdersContext';
 import { NotificationPopup } from '../src/components/notifications';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -52,13 +53,15 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.container}>
       <AppDataProvider>
         <AuthProvider>
-          <NotificationsProvider>
-            <LocationProvider>
-              <CartProvider>
-                <AppContent />
-              </CartProvider>
-            </LocationProvider>
-          </NotificationsProvider>
+          <OrdersProvider>
+            <NotificationsProvider>
+              <LocationProvider>
+                <CartProvider>
+                  <AppContent />
+                </CartProvider>
+              </LocationProvider>
+            </NotificationsProvider>
+          </OrdersProvider>
         </AuthProvider>
       </AppDataProvider>
     </GestureHandlerRootView>

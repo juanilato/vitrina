@@ -30,7 +30,14 @@ export const useCompanies = () => {
       setError(null);
 
       const data = await companyService.getAllCompanies();
-      setCompanies(data);
+
+      // Mapear las subcategorías para aplanar la estructura anidada
+      const mappedData = data.map((company: any) => ({
+        ...company,
+        subcategorias: company.subcategorias?.map((item: any) => item.subcategoria) || [],
+      }));
+
+      setCompanies(mappedData);
     } catch (err: any) {
       console.error('Error fetching companies:', err);
       setError(err.response?.data?.message || 'Error al cargar empresas');

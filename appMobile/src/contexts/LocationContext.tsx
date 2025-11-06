@@ -1,7 +1,7 @@
 /**
  * Location Context
  * Contexto para manejar la ubicación seleccionada del usuario
- * Usa AppDataContext para las ubicaciones guardadas
+ * Usa AppDataContext como fuente única de verdad para las ubicaciones guardadas
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -14,7 +14,6 @@ interface LocationContextType {
   locations: SavedLocation[];
   loading: boolean;
   setSelectedLocation: (location: SavedLocation | null) => void;
-  loadLocations: () => Promise<void>;
   refreshLocations: () => Promise<void>;
   deleteLocation: (locationId: number) => Promise<void>;
   setMainLocation: (locationId: number) => Promise<void>;
@@ -26,77 +25,71 @@ const LocationContext = createContext<LocationContextType | undefined>(undefined
 const SELECTED_LOCATION_KEY = '@vitrina_selected_location';
 
 export function LocationProvider({ children }: { children: ReactNode }) {
+  // Usar AppDataContext como fuente única de verdad
   const { savedLocations, loading: savedLocationsLoading, refresh: refreshSavedLocations } = useSavedLocations();
   const [selectedLocation, setSelectedLocationState] = useState<SavedLocation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [locations, setLocations] = useState<SavedLocation[]>([]);
-  // Cargar ubicación guardada al iniciar
+  const [initializing, setInitializing] = useState(true);
+
+  // Sincronizar con savedLocations de AppDataContext
   useEffect(() => {
-    loadInitialLocation();
-  }, []);
+    if (!savedLocationsLoading && initializing) {
+      loadInitialLocation();
+    }
+  }, [savedLocationsLoading, savedLocations]);
+
+  // Actualizar selectedLocation cuando savedLocations cambia
+  useEffect(() => {
+    if (selectedLocation && savedLocations.length > 0) {
+      const updated = savedLocations.find(loc => loc.id === selectedLocation.id);
+      if (updated && JSON.stringify(updated) !== JSON.stringify(selectedLocation)) {
+        setSelectedLocationState(updated);
+      } else if (!updated) {
+        // La ubicación seleccionada fue eliminada
+        selectDefaultLocation(savedLocations);
+      }
+    }
+  }, [savedLocations]);
 
   const loadInitialLocation = async () => {
     try {
-      // Primero cargar todas las ubicaciones
-      const locs = await locationService.getAll();
-      setLocations(locs);
-
       // Intentar cargar la ubicación guardada en AsyncStorage
       const savedLocationId = await AsyncStorage.getItem(SELECTED_LOCATION_KEY);
 
       if (savedLocationId) {
-        const savedLoc = locs.find(loc => loc.id === parseInt(savedLocationId));
+        const savedLoc = savedLocations.find(loc => loc.id === parseInt(savedLocationId));
         if (savedLoc) {
           setSelectedLocationState(savedLoc);
           return;
         }
       }
 
-      // Si no hay ubicación guardada, usar la principal
-      const principal = locs.find(loc => loc.esPrincipal);
-      if (principal) {
-        setSelectedLocationState(principal);
-        await AsyncStorage.setItem(SELECTED_LOCATION_KEY, principal.id.toString());
-      } else if (locs.length > 0) {
-        // Si no hay principal, usar la primera
-        setSelectedLocationState(locs[0]);
-        await AsyncStorage.setItem(SELECTED_LOCATION_KEY, locs[0].id.toString());
-      }
+      // Si no hay ubicación guardada, seleccionar la predeterminada
+      selectDefaultLocation(savedLocations);
     } catch (error) {
-      console.error('Error loading locations:', error);
+      console.error('[LocationContext] Error loading initial location:', error);
+      selectDefaultLocation(savedLocations);
     } finally {
-      setLoading(false);
+      setInitializing(false);
     }
   };
 
-  const loadLocations = async () => {
-    try {
-      const locs = await locationService.getAll();
-      setLocations(locs);
+  const selectDefaultLocation = async (locs: SavedLocation[]) => {
+    // Usar la principal o la primera disponible
+    const principal = locs.find(loc => loc.esPrincipal);
+    const defaultLoc = principal || locs[0];
 
-      // Actualizar la ubicación seleccionada si cambió
-      if (selectedLocation) {
-        const updated = locs.find(loc => loc.id === selectedLocation.id);
-        if (updated) {
-          setSelectedLocationState(updated);
-        } else if (locs.length > 0) {
-          // Si la ubicación seleccionada fue eliminada, seleccionar la primera
-          setSelectedLocationState(locs[0]);
-          await AsyncStorage.setItem(SELECTED_LOCATION_KEY, locs[0].id.toString());
-        } else {
-          setSelectedLocationState(null);
-          await AsyncStorage.removeItem(SELECTED_LOCATION_KEY);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading locations:', error);
+    if (defaultLoc) {
+      setSelectedLocationState(defaultLoc);
+      await AsyncStorage.setItem(SELECTED_LOCATION_KEY, defaultLoc.id.toString());
+    } else {
+      setSelectedLocationState(null);
+      await AsyncStorage.removeItem(SELECTED_LOCATION_KEY);
     }
   };
 
   const refreshLocations = async () => {
-    setLoading(true);
-    await loadLocations();
-    setLoading(false);
+    // Delegar al AppDataContext que es la fuente de verdad
+    await refreshSavedLocations();
   };
 
   const setSelectedLocation = async (location: SavedLocation | null) => {
@@ -111,9 +104,10 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const deleteLocation = async (locationId: number) => {
     try {
       await locationService.delete(locationId);
-      await loadLocations();
+      // Refrescar desde AppDataContext (fuente de verdad)
+      await refreshSavedLocations();
     } catch (error) {
-      console.error('Error deleting location:', error);
+      console.error('[LocationContext] Error deleting location:', error);
       throw error;
     }
   };
@@ -121,9 +115,10 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const setMainLocation = async (locationId: number) => {
     try {
       await locationService.setAsPrincipal(locationId);
-      await loadLocations();
+      // Refrescar desde AppDataContext (fuente de verdad)
+      await refreshSavedLocations();
     } catch (error) {
-      console.error('Error setting main location:', error);
+      console.error('[LocationContext] Error setting main location:', error);
       throw error;
     }
   };
@@ -131,9 +126,10 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const updateLocation = async (locationId: number, data: UpdateLocationDto) => {
     try {
       await locationService.update(locationId, data);
-      await loadLocations();
+      // Refrescar desde AppDataContext (fuente de verdad)
+      await refreshSavedLocations();
     } catch (error) {
-      console.error('Error updating location:', error);
+      console.error('[LocationContext] Error updating location:', error);
       throw error;
     }
   };
@@ -142,10 +138,9 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     <LocationContext.Provider
       value={{
         selectedLocation,
-        locations,
-        loading,
+        locations: savedLocations, // Usar directamente de AppDataContext
+        loading: savedLocationsLoading || initializing, // Combinar ambos estados
         setSelectedLocation,
-        loadLocations,
         refreshLocations,
         deleteLocation,
         setMainLocation,

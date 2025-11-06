@@ -141,9 +141,7 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
     );
   }
 
-  if (!horarios || horarios.length === 0) {
-    return null;
-  }
+  // Siempre mostrar, incluso sin horarios
 
   const currentDay = getCurrentDay();
 
@@ -227,10 +225,17 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({ horarios, compact 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.white,
+    borderRadius: 12,
     padding: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+    borderWidth: 0.5,
+    borderColor: `${colors.gray100}60`,
   },
 
   compactContainer: {
@@ -263,18 +268,21 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: borderRadius.full,
-    gap: 4,
+    borderRadius: 16,
+    gap: 5,
+    borderWidth: 0.5,
   },
 
   openBadge: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E8F5E910',
+    borderColor: '#4CAF5020',
   },
 
   closedBadge: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#FFEBEE10',
+    borderColor: '#F4433620',
   },
 
   statusDot: {
@@ -294,6 +302,7 @@ const styles = StyleSheet.create({
   statusText: {
     ...textStyles.caption1,
     fontWeight: '600',
+    fontSize: 11,
     color: '#F44336',
   },
 
@@ -311,7 +320,8 @@ const styles = StyleSheet.create({
   todayLabel: {
     ...textStyles.subheadline,
     fontWeight: '600',
-    color: colors.text,
+    fontSize: 13,
+    color: colors.gray900,
   },
 
   todayTimes: {
@@ -323,6 +333,7 @@ const styles = StyleSheet.create({
     ...textStyles.caption1,
     color: colors.textSecondary,
     fontWeight: '500',
+    fontSize: 11,
   },
 
   scheduleList: {

@@ -16,13 +16,16 @@ import {
   Dimensions,
   ScrollView,
   Image,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCompanies } from '../../src/hooks/useCompanies';
 import { useCategoryById } from '../../src/hooks/useCategoryById';
-import { colors, textStyles, spacing } from '../../src/theme';
+import { BusinessHours } from '../../src/components/companies/BusinessHours';
+import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -118,60 +121,142 @@ export default function CategoryScreen() {
           )}
         </View>
         <Text style={[styles.chipText, isSelected && styles.chipTextSelected]} numberOfLines={1}>
-          {subcategory.nombre}
+          {subcategory.nombre} 
         </Text>
       </TouchableOpacity>
     );
   };
 
   // Renderizar tarjeta de empresa
-  const renderCompanyCard = ({ item }: { item: Company }) => (
-    <TouchableOpacity
-      style={styles.companyCard}
-      onPress={() => handleCompanyPress(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.companyCardContent}>
-        {/* Logo */}
-        {item.logo ? (
-          <Image source={{ uri: item.logo }} style={styles.companyLogo} />
-        ) : (
-          <View style={styles.companyLogoPlaceholder}>
-            <Ionicons name="business" size={24} color={colors.gray400} />
-          </View>
-        )}
+  const renderCompanyCard = ({ item }: { item: Company }) => {
+    const dashboardFoto = item.preferenciasWeb?.dashboardFoto;
 
-        {/* Info */}
-        <View style={styles.companyInfo}>
-          <Text style={styles.companyName} numberOfLines={1}>
-            {item.name}
-          </Text>
-          {item.description && (
-            <Text style={styles.companyDescription} numberOfLines={2}>
-              {item.description}
-            </Text>
-          )}
-          {item.subcategorias && item.subcategorias.length > 0 && (
-            <View style={styles.companyTags}>
-              {item.subcategorias.slice(0, 2).map((sub, index) => (
-                <View key={index} style={styles.tag}>
-                  <Text style={styles.tagText} numberOfLines={1}>
-                    {sub.nombre}
+    if (dashboardFoto) {
+      // Versión con dashboard foto (como en CompanyCard)
+      return (
+        <TouchableOpacity
+          style={styles.companyCard}
+          onPress={() => handleCompanyPress(item.id)}
+          activeOpacity={0.7}
+        >
+          <ImageBackground
+            source={{ uri: dashboardFoto }}
+            style={styles.backgroundImage}
+            resizeMode="cover"
+            imageStyle={styles.backgroundImageStyle}
+          >
+            <View style={styles.gradientOverlay}>
+              {/* Logo con borde blanco */}
+              <View style={styles.logoWrapper}>
+                {item.logo ? (
+                  <Image
+                    source={{ uri: item.logo }}
+                    style={styles.logoSmall}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.logoPlaceholder}>
+                    <Ionicons name="business" size={24} color={colors.gray400} />
+                  </View>
+                )}
+              </View>
+
+              {/* Content */}
+              <View style={styles.contentWithBackground}>
+                {/* Nombre en estilo chip */}
+                <View style={styles.nameChip}>
+                  <Text style={styles.nameChipText} numberOfLines={1}>
+                    {item.name}
                   </Text>
                 </View>
-              ))}
-              {item.subcategorias.length > 2 && (
-                <Text style={styles.moreTagsText}>+{item.subcategorias.length - 2}</Text>
-              )}
+                {item.alias && (
+                  <Text style={styles.aliasText} numberOfLines={1}>
+                    @{item.alias}
+                  </Text>
+                )}
+
+                {/* Horarios - Compact */}
+                {item.preferenciasWeb?.horarios && (
+                  <View style={styles.hoursCompact}>
+                    <BusinessHours horarios={item.preferenciasWeb.horarios} compact />
+                  </View>
+                )}
+
+                {/* Social Links Row */}
+                {item.redesSociales && item.redesSociales.length > 0 && (
+                  <View style={styles.socialLinksRowCard}>
+                    {item.redesSociales.slice(0, 4).map((social, index) => {
+                      const getSocialIcon = (key: string) => {
+                        const iconMap: Record<string, any> = {
+                          instagram: 'logo-instagram',
+                          facebook: 'logo-facebook',
+                          twitter: 'logo-twitter',
+                          whatsapp: 'logo-whatsapp',
+                          tiktok: 'logo-tiktok',
+                          web: 'globe-outline',
+                        };
+                        return iconMap[key.toLowerCase()] || 'link-outline';
+                      };
+
+                      return (
+                        <View key={index} style={styles.socialIconCard}>
+                          <Ionicons
+                            name={getSocialIcon(social.key)}
+                            size={16}
+                            color={colors.white}
+                          />
+                        </View>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+
+              {/* Arrow */}
+              <View style={styles.arrowWhite}>
+                <Ionicons name="chevron-forward" size={20} color={colors.white} />
+              </View>
+            </View>
+          </ImageBackground>
+        </TouchableOpacity>
+      );
+    }
+
+    // Versión sin dashboard foto (diseño normal)
+    return (
+      <TouchableOpacity
+        style={styles.companyCard}
+        onPress={() => handleCompanyPress(item.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.companyCardContent}>
+          {/* Logo */}
+          {item.logo ? (
+            <Image source={{ uri: item.logo }} style={styles.companyLogo} />
+          ) : (
+            <View style={styles.companyLogoPlaceholder}>
+              <Ionicons name="business" size={24} color={colors.gray400} />
             </View>
           )}
-        </View>
 
-        {/* Arrow */}
-        <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
-      </View>
-    </TouchableOpacity>
-  );
+          {/* Info */}
+          <View style={styles.companyInfo}>
+            <Text style={styles.companyName} numberOfLines={1}>
+              {item.name}
+            </Text>
+            {item.description && (
+              <Text style={styles.companyDescription} numberOfLines={2}>
+                {item.description}
+              </Text>
+            )}
+          </View>
+
+          {/* Arrow */}
+          <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderHeader = () => (
     <View style={styles.listHeader}>
@@ -180,7 +265,7 @@ export default function CategoryScreen() {
         <Ionicons name="search" size={20} color={colors.gray500} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar empresas..."
+          placeholder="Buscar "
           placeholderTextColor={colors.gray500}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -213,9 +298,7 @@ export default function CategoryScreen() {
 
       {/* Results count */}
       <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>
-          {filteredCompanies.length} {filteredCompanies.length === 1 ? 'empresa' : 'empresas'}
-        </Text>
+
         {selectedSubcategoryId !== 'all' && (
           <TouchableOpacity onPress={() => setSelectedSubcategoryId('all')}>
             <Text style={styles.clearFilter}>Limpiar filtro</Text>
@@ -265,24 +348,36 @@ export default function CategoryScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+      {/* Modern Category Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          style={styles.headerGradient}
         >
-          <Ionicons name="arrow-back" size={20} color={colors.gray700} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={20} color={colors.primary} />
+          </TouchableOpacity>
 
-        <View style={styles.headerCenter}>
-          <Text style={styles.title}>{name || currentCategory?.nombre || 'Categoría'}</Text>
-          <Text style={styles.subtitle}>
-            {categoryCompanies.length} {categoryCompanies.length === 1 ? 'empresa' : 'empresas'}
-          </Text>
-        </View>
+          <View style={styles.categoryBadge}>
+            {currentCategory?.icono && (
+              <View style={styles.categoryIconContainer}>
+                <Text style={styles.categoryIcon}>{currentCategory.icono}</Text>
+              </View>
+            )}
+            <View style={styles.categoryTextContainer}>
+              <Text style={styles.categoryLabel}>Categoría</Text>
+              <Text style={styles.categoryTitle} numberOfLines={1}>
+                {name || currentCategory?.nombre || 'Categoría'}
+              </Text>
+            </View>
+          </View>
 
-        <View style={styles.headerRight} />
+          <View style={styles.headerRight} />
+        </LinearGradient>
       </View>
 
       {/* Content */}
@@ -318,25 +413,93 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Header Styles
+  // Header Styles - Modern Glass Design
   header: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  headerGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.gray100,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
+
+  // Category Badge
+  categoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 10,
+    flex: 1,
+    marginHorizontal: spacing.md,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  categoryIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: `${colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryIcon: {
+    fontSize: 20,
+  },
+  categoryTextContainer: {
+    flex: 1,
+    
+  },
+  categoryLabel: {
+    ...textStyles.caption1,
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+
+  },
+  categoryTitle: {
+    ...textStyles.body,
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.gray900,
+    marginTop: 2,
+    width: 900,
+  },
+
+  // Legacy styles (kept for compatibility)
   headerCenter: {
     flex: 1,
     alignItems: 'center',
@@ -362,7 +525,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
-    paddingBottom: spacing.xl,
+    paddingBottom: 100, // Space for floating tab bar
     flexGrow: 1,
   },
   listHeader: {
@@ -576,5 +739,122 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     color: colors.white,
     fontWeight: '600',
+  },
+
+  // Estilos para versión CON dashboard foto
+  backgroundImage: {
+    width: '100%',
+    height: 100,
+    marginLeft: -spacing.md,
+    marginRight: -spacing.md,
+    marginTop: -spacing.md,
+    marginBottom: -spacing.md,
+  },
+
+  backgroundImageStyle: {
+    transform: [{ scale: 1.2 }],
+  },
+
+  gradientOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+
+  logoWrapper: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.white,
+    padding: 3,
+    marginRight: spacing.md,
+    borderWidth: 3,
+    borderColor: colors.white,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+
+  logoSmall: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
+  },
+
+  logoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
+    backgroundColor: colors.gray100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  contentWithBackground: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  nameChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs / 1.5,
+    borderRadius: 20,
+    marginBottom: spacing.xs / 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+
+  nameChipText: {
+    ...textStyles.callout,
+    color: colors.white,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+
+  aliasText: {
+    ...textStyles.footnote,
+    color: colors.white,
+    fontWeight: '500',
+    opacity: 0.85,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+
+  hoursCompact: {
+    marginTop: spacing.xs,
+    alignSelf: 'flex-start',
+  },
+
+  socialLinksRowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: spacing.xs,
+  },
+
+  socialIconCard: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  arrowWhite: {
+    justifyContent: 'center',
+    marginLeft: spacing.xs,
+    opacity: 0.7,
   },
 });

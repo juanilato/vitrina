@@ -13,9 +13,7 @@ import {
   ActivityIndicator,
   Image,
   TouchableOpacity,
-  Alert,
   ImageBackground,
-  Linking,
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,25 +26,54 @@ import { ProductCard } from '../../src/components/products/ProductCard';
 import { ProductModal } from '../../src/components/products/ProductModal';
 import { BusinessHours } from '../../src/components/companies/BusinessHours';
 import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton';
+import { FloatingSocialLinks } from '../../src/components/companies/FloatingSocialLinks';
+import { Toast } from '../../src/components/common';
 import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { Product, Agregado } from '../../src/types/company';
 import { CartIngredienteExtra } from '../../src/types/cart';
-import { Animated, Easing } from 'react-native';
 export default function CompanyStoreScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+
   const { company, loading, error, refreshing, refresh } = useCompanyStore(id);
   const { addItem, cart } = useCart();
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [socialLinksExpanded, setSocialLinksExpanded] = useState(false);
 
-  // Obtener colores personalizados de las preferencias
-  const buttonColor = useMemo(() => {
-    return company?.preferenciasWeb?.colorBotones || colors.primary;
-  }, [company]);
+  const buttonColor = useMemo(
+    () => company?.preferenciasWeb?.colorBotones || colors.primary,
+    [company]
+  );
 
+  // Filtrar productos por búsqueda - DEBE estar antes de los early returns
+  const filteredProducts = useMemo(() => {
+    const allProducts = company?.products || [];
+
+    if (!searchQuery.trim()) {
+      return allProducts;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return allProducts.filter((product) =>
+      product.nombre.toLowerCase().includes(query) ||
+      product.descripcion?.toLowerCase().includes(query)
+    );
+  }, [company?.products, searchQuery]);
+
+  const activeProducts = filteredProducts.filter((p) => p.activo);
+  const inactiveProducts = filteredProducts.filter((p) => !p.activo);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   const handleQuickAddToCart = (productId: string) => {
     if (!company) return;
@@ -55,7 +82,7 @@ export default function CompanyStoreScreen() {
     if (!product) return;
 
     if (!product.activo) {
-      Alert.alert('Producto no disponible', 'Este producto no está disponible en este momento');
+      showToast('Este producto no está disponible en este momento', 'warning');
       return;
     }
 
@@ -70,38 +97,12 @@ export default function CompanyStoreScreen() {
 
     // Agregar directo sin agregados ni ingredientes extras
     addItem(product, company.id, company.name, 1);
-    Alert.alert('Producto agregado', `${product.nombre} se agregó al carrito`);
+    showToast(`${product.nombre} se agregó al carrito`, 'success');
   };
 
   const handleProductPress = (product: Product) => {
     setSelectedProduct(product);
     setModalVisible(true);
-  };
-    const iconCount = company?.redesSociales?.length || 0;
-    const iconWidth = 20; // ancho aproximado de cada botón + gap
-    const totalMenuWidth = iconCount * iconWidth;
-
-  const [socialMenuOpen, setSocialMenuOpen] = useState(false);
-  const slideAnim = useState(new Animated.Value(0))[0]; // controla el desplazamiento vertical del logo/título
-  const fadeAnim = useState(new Animated.Value(0))[0]; // controla opacidad del menú
-
-  const toggleSocialMenu = () => {
-    const toValue = socialMenuOpen ? 0 : 1;
-    setSocialMenuOpen(!socialMenuOpen);
-
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue,
-        duration: 400,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start();
   };
 
   const handleAddToCartFromModal = (
@@ -113,7 +114,7 @@ export default function CompanyStoreScreen() {
     if (!company || !selectedProduct) return;
 
     addItem(selectedProduct, company.id, company.name, quantity, selectedAgregados, notes, ingredientesExtras);
-    Alert.alert('Producto agregado', `${selectedProduct.nombre} se agregó al carrito`);
+    showToast(`${selectedProduct.nombre} se agregó al carrito`, 'success');
   };
 
   if (loading && !refreshing) {
@@ -144,24 +145,6 @@ export default function CompanyStoreScreen() {
     );
   }
 
-  // Filtrar productos por búsqueda
-  const filteredProducts = useMemo(() => {
-    const allProducts = company.products || [];
-
-    if (!searchQuery.trim()) {
-      return allProducts;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    return allProducts.filter((product) =>
-      product.nombre.toLowerCase().includes(query) ||
-      product.descripcion?.toLowerCase().includes(query)
-    );
-  }, [company.products, searchQuery]);
-
-  const activeProducts = filteredProducts.filter((p) => p.activo);
-  const inactiveProducts = filteredProducts.filter((p) => !p.activo);
-
   // Debug: ver qué datos llegan
   console.log('🏢 Company data:', {
     name: company.name,
@@ -189,6 +172,7 @@ export default function CompanyStoreScreen() {
 
       {/* Header Moderno con Dashboard Background */}
       <View style={styles.headerContainer}>
+        
         {company.preferenciasWeb?.dashboardFoto ? (
           <ImageBackground
             source={{ uri: company.preferenciasWeb.dashboardFoto }}
@@ -206,11 +190,13 @@ export default function CompanyStoreScreen() {
                     <Ionicons name="arrow-back" size={24} color={colors.white} />
                   </TouchableOpacity>
 
+                  <View style={styles.spacer} />
+
                   <TouchableOpacity
-                    style={[styles.cartButtonModern, { backgroundColor: buttonColor }]}
+                    style={[styles.cartButtonModern, { backgroundColor: `${colors.white}25` }]}
                     onPress={() => router.push('/(tabs)/cart')}
                   >
-                    <Ionicons name="cart-outline" size={22} color={colors.white} />
+                    <Ionicons name="cart" size={24} color={colors.white} />
                     {cart.totalItems > 0 && (
                       <View style={styles.cartBadgeModern}>
                         <Text style={styles.cartBadgeText}>
@@ -222,116 +208,24 @@ export default function CompanyStoreScreen() {
                 </View>
 
                 {/* Company Info Centrado */}
-<Animated.View
-  style={[
-    styles.companyInfoContainer,
-    {
-      transform: [
-        {
-          translateY: slideAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, -60], // se eleva 30px cuando se abre el menú
-          }),
-        },
-      ],
-    },
-  ]}
->
-  {company.logo && (
-    <View style={styles.logoContainer}>
-      <Image source={{ uri: company.logo }} style={styles.logoLarge} />
-    </View>
-  )}
-  <Text style={styles.companyNameLarge} numberOfLines={2}>
-    {company.name}
-  </Text>
-
-</Animated.View>
-
-{/* Botón de menú de redes */}
-<TouchableOpacity
-  onPress={toggleSocialMenu}
-  style={styles.socialMenuButton}
-  activeOpacity={0.8}
->
-  <Ionicons
-    name={socialMenuOpen ? 'close' :'ellipsis-horizontal'}
-    size={15}
-    color={colors.white}
-  />
-</TouchableOpacity>
-
-{/* Menú lateral de redes */}
-<Animated.View
-  style={[
-    styles.socialMenuContainer,
-    {
-      opacity: fadeAnim,
-    
-      right: spacing.md + totalMenuWidth, // ✅ acá se aplica dinámicamente
-    
-      transform: [
-        {
-          translateX: fadeAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [totalMenuWidth, 0], // entra desde el costado derecho
-          }),
-        },
-      ],
-    },
-  ]}
->
-  {company.redesSociales?.map((social, index) => {
-    const getSocialIcon = (key: string) => {
-      const iconMap: Record<string, any> = {
-        instagram: 'logo-instagram',
-        facebook: 'logo-facebook',
-        twitter: 'logo-twitter',
-        whatsapp: 'logo-whatsapp',
-        tiktok: 'logo-tiktok',
-        web: 'globe-outline',
-      };
-      return iconMap[key.toLowerCase()] || 'link-outline';
-    };
-
-    const getSocialUrl = (key: string, value: string) => {
-      const urlMap: Record<string, (v: string) => string> = {
-        instagram: (v) => `https://instagram.com/${v.replace('@', '')}`,
-        facebook: (v) => `https://facebook.com/${v}`,
-        twitter: (v) => `https://twitter.com/${v.replace('@', '')}`,
-        whatsapp: (v) => `https://wa.me/${v}`,
-        tiktok: (v) => `https://tiktok.com/@${v.replace('@', '')}`,
-      };
-      return urlMap[key.toLowerCase()]?.(value) || value;
-    };
-
-    return (
-      <TouchableOpacity
-        key={index}
-        onPress={async () => {
-          const url = getSocialUrl(social.key, social.value);
-          const canOpen = await Linking.canOpenURL(url);
-          if (canOpen) await Linking.openURL(url);
-          else Alert.alert('Error', 'No se pudo abrir el enlace');
-        }}
-        style={styles.socialMenuIcon}
-        activeOpacity={0.8}
-      >
-        <Ionicons
-          name={getSocialIcon(social.key)}
-          size={22}
-          color={colors.white}
-        />
-      </TouchableOpacity>
-    );
-  })}
-</Animated.View>
+                <View style={styles.companyInfoContainer}>
+                  {company.logo && (
+                    <View style={styles.logoContainer}>
+                      <Image source={{ uri: company.logo }} style={styles.logoLarge} />
+                    </View>
+                  )}
+                  <Text style={styles.companyNameLarge} numberOfLines={2}>
+                    {company.name}
+                  </Text>
+                </View>
               </SafeAreaView>
             </LinearGradient>
           </ImageBackground>
         ) : (
           <LinearGradient
-            colors={[buttonColor, `${buttonColor}CC`]}
+            colors={[`${buttonColor}35`, `${buttonColor}20`, `${buttonColor}10`]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.headerGradient}
           >
             <SafeAreaView edges={['top']}>
@@ -341,19 +235,7 @@ export default function CompanyStoreScreen() {
                   <Ionicons name="arrow-back" size={24} color={colors.white} />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.cartButtonModern, { backgroundColor: 'rgba(255,255,255,0.3)' }]}
-                  onPress={() => router.push('/(tabs)/cart')}
-                >
-                  <Ionicons name="cart-outline" size={22} color={colors.white} />
-                  {cart.totalItems > 0 && (
-                    <View style={styles.cartBadgeModern}>
-                      <Text style={styles.cartBadgeText}>
-                        {cart.totalItems > 99 ? '99+' : cart.totalItems}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
+
               </View>
 
               {/* Company Info Centrado */}
@@ -366,11 +248,6 @@ export default function CompanyStoreScreen() {
                 <Text style={styles.companyNameLarge} numberOfLines={2}>
                   {company.name}
                 </Text>
-                {company.alias && (
-                  <Text style={styles.companyAliasLarge}>
-                    @{company.alias}
-                  </Text>
-                )}
               </View>
             </SafeAreaView>
           </LinearGradient>
@@ -392,12 +269,8 @@ export default function CompanyStoreScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View>
-            {/* Business Hours */}
-{company.preferenciasWeb?.horarios && (
-  <BusinessHours horarios={company.preferenciasWeb.horarios} />
-)}
-
-
+            {/* Business Hours - Siempre visible */}
+            <BusinessHours horarios={company.preferenciasWeb?.horarios} />
 
             {/* Description */}
             {company.description && (
@@ -471,6 +344,24 @@ export default function CompanyStoreScreen() {
 
       {/* Floating Cart Button */}
       <FloatingCartButton buttonColor={buttonColor} />
+
+      {/* Floating Social Links */}
+      {company.redesSociales && company.redesSociales.length > 0 && (
+        <FloatingSocialLinks
+          socialLinks={company.redesSociales}
+          isExpanded={socialLinksExpanded}
+          onToggle={() => setSocialLinksExpanded(!socialLinksExpanded)}
+          buttonColor={buttonColor}
+        />
+      )}
+
+      {/* Toast Notification */}
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+      />
     </View>
   );
 }
@@ -615,23 +506,41 @@ socialChipContainer: {
     paddingTop: spacing.xs,
   },
 
+  spacer: {
+    flex: 1,
+  },
+
   backButtonModern: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
 
   cartButtonModern: {
-    flexDirection: 'row',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 22,
+    justifyContent: 'center',
     position: 'relative',
-    ...shadows.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
 
   cartBadgeModern: {
@@ -664,40 +573,38 @@ socialChipContainer: {
   },
 
   logoContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: colors.white,
-    padding: 3,
+    padding: 4,
     marginBottom: spacing.sm,
-    ...shadows.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
   },
 
   logoLarge: {
     width: '100%',
     height: '100%',
-    borderRadius: 32,
+    borderRadius: 36,
   },
 
   companyNameLarge: {
     ...textStyles.title1,
     color: colors.white,
-    fontWeight: '700',
+    fontWeight: '800',
     textAlign: 'center',
     marginBottom: spacing.xs / 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    fontSize: 24,
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
-  },
-
-  companyAliasLarge: {
-    ...textStyles.footnote,
-    color: colors.white,
-    fontWeight: '500',
-    opacity: 0.9,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
 
   listContent: {
@@ -706,31 +613,42 @@ socialChipContainer: {
   },
 
   descriptionCard: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.white,
+    borderRadius: 16,
     padding: spacing.md,
     marginBottom: spacing.md,
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.gray100,
   },
 
   description: {
     ...textStyles.body,
-    color: colors.text,
+    color: colors.gray800,
     lineHeight: 22,
+    fontSize: 15,
   },
 
-  // Search Bar
+  // Search Bar - Modern Glass
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 12,
+    backgroundColor: colors.white,
+    borderRadius: 16,
     paddingHorizontal: spacing.md,
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.gray200,
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   searchIcon: {
     marginRight: spacing.sm,

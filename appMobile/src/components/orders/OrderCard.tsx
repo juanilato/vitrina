@@ -132,11 +132,16 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: colors.gray100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
 
   header: {
@@ -144,6 +149,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray50,
   },
 
   headerLeft: {
@@ -155,11 +163,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.gray900,
     marginBottom: spacing.xs,
+    letterSpacing: -0.3,
   },
 
   date: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    fontSize: 12,
+    color: colors.gray500,
   },
 
   companySection: {
@@ -168,15 +178,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray100,
+    borderBottomColor: colors.gray50,
   },
 
   companyLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.gray100,
-    marginRight: spacing.sm,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: colors.gray50,
+    marginRight: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.gray100,
   },
 
   companyInfo: {
@@ -185,24 +197,35 @@ const styles = StyleSheet.create({
 
   companyName: {
     ...typography.bodyMedium,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.gray900,
     marginBottom: spacing.xs,
+    fontSize: 15,
   },
 
   itemsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    backgroundColor: colors.gray50,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
 
   itemsText: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    fontSize: 12,
+    color: colors.gray700,
+    fontWeight: '600',
   },
 
   deliverySection: {
     marginBottom: spacing.md,
+    backgroundColor: colors.gray50,
+    padding: spacing.sm,
+    borderRadius: 10,
   },
 
   deliveryRow: {
@@ -214,12 +237,14 @@ const styles = StyleSheet.create({
 
   deliveryText: {
     ...typography.bodySmall,
-    color: colors.gray700,
-    fontWeight: '500',
+    color: colors.gray900,
+    fontWeight: '600',
+    fontSize: 13,
   },
 
   address: {
     ...typography.bodySmall,
+    fontSize: 12,
     color: colors.gray600,
     marginLeft: 24,
   },
@@ -228,6 +253,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray50,
   },
 
   totalSection: {
@@ -238,32 +266,43 @@ const styles = StyleSheet.create({
 
   totalLabel: {
     ...typography.bodyMedium,
+    fontSize: 13,
     color: colors.gray600,
+    fontWeight: '500',
   },
 
   totalAmount: {
     ...typography.h3,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: colors.primary,
+    letterSpacing: -0.5,
   },
 
   arrowContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.gray50,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary + '10',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary + '20',
   },
 
   trackingBanner: {
     backgroundColor: colors.orange,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    shadowColor: colors.orange,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
 
   trackingContent: {
@@ -275,6 +314,6 @@ const styles = StyleSheet.create({
   trackingText: {
     ...typography.bodyMedium,
     color: colors.white,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

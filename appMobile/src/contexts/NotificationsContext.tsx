@@ -74,32 +74,46 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [isAuthenticated]);
 
   /**
-   * Mark notification as read
+   * Mark notification as read and remove it after a delay
    */
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       await notificationService.markAsRead(notificationId);
+
+      // Marcar como leída primero
       setNotifications((prev) =>
         prev.map((notif) =>
           notif.id === notificationId ? { ...notif, leida: true } : notif
         )
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      // Después de 500ms, eliminar de la lista
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((notif) => notif.id !== notificationId));
+      }, 500);
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
   }, []);
 
   /**
-   * Mark all notifications as read
+   * Mark all notifications as read and remove them after a delay
    */
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
+
+      // Marcar todas como leídas primero
       setNotifications((prev) =>
         prev.map((notif) => ({ ...notif, leida: true }))
       );
       setUnreadCount(0);
+
+      // Después de 500ms, eliminar todas las leídas
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((notif) => !notif.leida));
+      }, 500);
     } catch (error) {
       console.error('Error marking all as read:', error);
     }

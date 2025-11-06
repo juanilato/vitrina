@@ -86,14 +86,6 @@ export const locationService = {
   },
 
   /**
-   * Marcar una ubicación como principal
-   */
-  async setPrincipal(id: number): Promise<SavedLocation> {
-    const response = await api.put<SavedLocation>(`/ubicaciones-cliente/${id}/principal`);
-    return response.data;
-  },
-
-  /**
    * Eliminar una ubicación
    */
   async delete(id: number): Promise<void> {

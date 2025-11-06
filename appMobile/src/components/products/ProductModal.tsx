@@ -151,16 +151,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       <View style={styles.overlay}>
         <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
         <View style={styles.modalContainer}>
-          {/* Header con botón cerrar */}
+          {/* Header con drag handle */}
           <View style={styles.header}>
             <View style={styles.dragHandle} />
-            <TouchableOpacity
-              style={[styles.closeButton, { backgroundColor: 'rgba(0,0,0,0.1)' }]}
-              onPress={onClose}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="close" size={24} color="#fff" />
-            </TouchableOpacity>
           </View>
 
           <ScrollView
@@ -314,6 +307,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </View>
           </ScrollView>
 
+          {/* Botón cerrar - Posición absoluta sobre todo */}
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={onClose}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+
           {/* Footer - Botón agregar */}
           <View style={[styles.footer, { borderTopColor: colors.border }]}>
             <Animated.View style={{ transform: [{ scale: scaleAnim }], flex: 1 }}>
@@ -356,6 +358,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
     position: 'relative',
+    zIndex: 10,
   },
   dragHandle: {
     width: 40,
@@ -367,17 +370,19 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     right: spacing.lg,
-    top: spacing.sm,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    top: 50,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 999,
+    zIndex: 999,
   },
   scrollContent: {
     paddingBottom: 140,
