@@ -97,19 +97,19 @@ const OrdersSection: React.FC = () => {
       {/* Sidebar izquierda */}
       <div className="orders-sidebar">
         <div className="sidebar-header">
-          <h2 className="sidebar-title">
-            <span className="sidebar-icon"><ReceiptLongOutlinedIcon /></span>
-            Pedidos
-          </h2>
-            
-    <button
-      className="cnav-item cnav-item--info"
-      onClick={() => setShowStatusReference(!showStatusReference)}
-    >
-      <span className="cnav-icon"><InfoOutlinedIcon fontSize="small" /></span>
-      <span className="cnav-label">Ver flujo de estados</span>
-    </button>
-
+          <div className="sidebar-header-content">
+            <h2 className="sidebar-title">
+              <span className="sidebar-icon"><ReceiptLongOutlinedIcon /></span>
+              Pedidos
+            </h2>
+            <button
+              className="btn-info-icon"
+              onClick={() => setShowStatusReference(!showStatusReference)}
+              title="Ver flujo de estados del pedido"
+            >
+              <InfoOutlinedIcon fontSize="small" />
+            </button>
+          </div>
         </div>
 
         {/* Filtros y búsqueda */}
@@ -381,28 +381,18 @@ const OrdersSection: React.FC = () => {
 )}
 
 
-  {/* Header tabla (variante Clean bar) */}
-  <div className="olist">
-    <div className="olist-header">
-      <div className="ohcell oh-order">Pedido / Cliente</div>
-      <div className="ohcell oh-status">Estado</div>
-      <div className="ohcell oh-meta">Entrega / Pago</div>
-      <div className="ohcell oh-qty">Ítems / Total</div>
-      <div className="ohcell oh-actions">Acciones</div>
-    </div>
-
-    <div className="olist-body">
-      {filteredOrders.map(order => (
-        <OrderRow
-          key={order.id}
-          pedido={order}
-          onUpdateStatus={handleStatusUpdate}
-          onViewDetails={handleViewDetails}
-          onReject={handleRejectOrder}
-          onDelete={handleDeleteOrder}
-        />
-      ))}
-    </div>
+  {/* Lista de pedidos moderna */}
+  <div className="orders-grid">
+    {filteredOrders.map(order => (
+      <OrderRow
+        key={order.id}
+        pedido={order}
+        onUpdateStatus={handleStatusUpdate}
+        onViewDetails={handleViewDetails}
+        onReject={handleRejectOrder}
+        onDelete={handleDeleteOrder}
+      />
+    ))}
 
     {filteredOrders.length === 0 && (
       <div className="olist-empty">

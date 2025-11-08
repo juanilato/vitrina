@@ -2,6 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { OrderModalProps } from '../types';
 import pedidosService from '../../../../../services/pedidosService';
 import AsignarRepartidorModal from './AsignarRepartidorModal';
+import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined';
+import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined';
+import RestaurantOutlinedIcon from '@mui/icons-material/RestaurantOutlined';
+import DeliveryDiningOutlinedIcon from '@mui/icons-material/DeliveryDiningOutlined';
+import NearMeOutlinedIcon from '@mui/icons-material/NearMeOutlined';
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
+import DoneAllOutlinedIcon from '@mui/icons-material/DoneAllOutlined';
+import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 
 const OrderModal: React.FC<OrderModalProps> = ({
   pedido,
@@ -82,296 +93,259 @@ const OrderModal: React.FC<OrderModalProps> = ({
     }
   };
 
+  // Timeline steps para el modal
+  const getTimelineSteps = () => {
+    if (pedido.tipoEntrega === 'delivery') {
+      return [
+        { status: 'pendiente_confirmacion', label: 'Esperando confirmación', icon: HourglassEmptyOutlinedIcon, color: '#f59e0b' },
+        { status: 'confirmado', label: 'Confirmado', icon: TaskAltOutlinedIcon, color: '#10b981' },
+        { status: 'en_proceso', label: 'En preparación', icon: RestaurantOutlinedIcon, color: '#3b82f6' },
+        { status: 'esperando_delivery', label: 'Esperando repartidor', icon: DeliveryDiningOutlinedIcon, color: '#8b5cf6' },
+        { status: 'en_camino', label: 'En camino', icon: NearMeOutlinedIcon, color: '#06b6d4' },
+        { status: 'entregado', label: 'Entregado', icon: DoneAllOutlinedIcon, color: '#22c55e' }
+      ];
+    } else {
+      return [
+        { status: 'pendiente_confirmacion', label: 'Esperando confirmación', icon: HourglassEmptyOutlinedIcon, color: '#f59e0b' },
+        { status: 'confirmado', label: 'Confirmado', icon: TaskAltOutlinedIcon, color: '#10b981' },
+        { status: 'en_proceso', label: 'En preparación', icon: RestaurantOutlinedIcon, color: '#3b82f6' },
+        { status: 'esperando_retiro', label: 'Listo para retiro', icon: StorefrontOutlinedIcon, color: '#ec4899' },
+        { status: 'entregado', label: 'Retirado', icon: DoneAllOutlinedIcon, color: '#22c55e' }
+      ];
+    }
+  };
+
+  const timelineSteps = getTimelineSteps();
+  const currentStepIndex = timelineSteps.findIndex(step => step.status === pedido.estado);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content order-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+      <div className="modal-content order-modal-modern" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div style={{
-          padding: '20px 24px',
-          borderBottom: '1px solid #e5e7eb',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
-              Pedido #{pedido.id.substring(0, 8).toUpperCase()}
-            </h2>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280' }}>
-              {formatDate(pedido.createdAt)}
-            </p>
+        <div className="order-modal-header">
+          <div className="order-modal-header-left">
+            <div className="order-id-badge-modal">
+              #{pedido.id.substring(0, 8).toUpperCase()}
+            </div>
+            <div className="order-modal-header-info">
+              <div className="order-modal-client-name">
+                {pedido.cliente?.name || 'Cliente sin nombre'}
+              </div>
+              <div className="order-modal-date">
+                {formatDate(pedido.createdAt)}
+              </div>
+            </div>
           </div>
-          <button
-            className="modal-close"
-            onClick={onClose}
-            style={{
-              background: '#f3f4f6',
-              border: 'none',
-              borderRadius: '8px',
-              width: '32px',
-              height: '32px',
-              fontSize: '20px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
+          <button className="modal-close-modern" onClick={onClose}>
             ×
           </button>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '24px', maxHeight: '70vh', overflowY: 'auto' }}>
-          {/* Estado */}
-          <div style={{ marginBottom: '24px' }}>
-            {getStatusBadge(pedido.estado)}
-          </div>
-
-          {/* Info Cliente */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '16px'
-          }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
-              👤 Cliente
-            </div>
-            <div style={{ fontSize: '14px', color: '#111827', marginBottom: '4px' }}>
-              {pedido.cliente?.name || 'No disponible'}
-            </div>
-            <div style={{ fontSize: '13px', color: '#6b7280' }}>
-              {pedido.cliente?.email || 'No disponible'}
-            </div>
-          </div>
-
-          {/* Info Entrega y Pago */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '16px'
-          }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
-              📦 Entrega y Pago
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Tipo de entrega</div>
-                <div style={{ fontSize: '14px', color: '#111827' }}>
-                  {pedido.tipoEntrega === 'delivery' ? '🚚 Delivery' : '🏪 Retiro'}
-                </div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Forma de pago</div>
-                <div style={{ fontSize: '14px', color: '#111827' }}>
-                  {pedido.formaPago === 'transferencia' ? '💳 Transferencia' : '💰 Efectivo'}
-                </div>
-              </div>
-            </div>
-
-            {/* Botones de acción */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-              {pedido.tipoEntrega === 'delivery' && pedido.lat && pedido.lng && (
-                <button
-                  onClick={() => {
-                    window.open(`https://www.google.com/maps?q=${pedido.lat},${pedido.lng}`, '_blank');
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '10px 16px',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
-                  }}
-                >
-                   Ver ubicación
-                </button>
+        <div className="order-modal-body">
+          {/* Chips informativos horizontal */}
+          <div className="order-modal-chips-section">
+            <div className="order-chip order-chip-delivery">
+              {pedido.tipoEntrega === 'delivery' ? (
+                <LocalShippingOutlinedIcon fontSize="small" />
+              ) : (
+                <StorefrontOutlinedIcon fontSize="small" />
               )}
-
-              {pedido.formaPago === 'transferencia' && transferenciaFoto && (
-                <button
-                  onClick={() => setShowFotoModal(true)}
-                  style={{
-                    flex: 1,
-                    padding: '10px 16px',
-                    backgroundColor: '#10b981',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
-                  }}
-                >
-                   Ver comprobante
-                </button>
-              )}
+              <span>{pedido.tipoEntrega === 'delivery' ? 'Delivery' : 'Retiro en local'}</span>
             </div>
-
-            {pedido.direccion && (
-              <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e5e7eb' }}>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Dirección</div>
-                <div style={{ fontSize: '13px', color: '#111827' }}>{pedido.direccion}</div>
+            <div className="order-chip order-chip-payment">
+              <AccountBalanceWalletOutlinedIcon fontSize="small" />
+              <span>{pedido.formaPago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
+            </div>
+            {pedido.cliente?.email && (
+              <div className="order-chip order-chip-email">
+                <EmailOutlinedIcon fontSize="small" />
+                <span>{pedido.cliente.email}</span>
               </div>
             )}
           </div>
 
-          {/* Lista de Items */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '16px'
-          }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
-              🛒 Detalles del Pedido
-            </div>
+          {/* Timeline completo del estado */}
+          <div className="modal-timeline-section">
+            <h3 className="modal-section-title">
+              Estado del Pedido
+            </h3>
+            <div className="modal-timeline">
+              {timelineSteps.map((step, index) => {
+                const StepIcon = step.icon;
+                const isActive = index === currentStepIndex;
+                const isCompleted = index < currentStepIndex;
+                const isPending = index > currentStepIndex;
 
-            {pedido.items?.map((item, index) => (
-              <div key={item.id}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  paddingBottom: '12px',
-                  marginBottom: '12px',
-                  borderBottom: index < pedido.items!.length - 1 ? '1px solid #e5e7eb' : 'none'
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', color: '#111827', fontWeight: '500', marginBottom: '4px' }}>
+                return (
+                  <div key={step.status} className="modal-timeline-row">
+                    {/* Indicador y línea */}
+                    <div className="modal-timeline-indicator-column">
+                      {index > 0 && (
+                        <div className={`modal-timeline-connector ${isCompleted ? 'completed' : ''}`} />
+                      )}
+
+                      <div
+                        className={`modal-timeline-circle ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
+                        style={{
+                          borderColor: isActive || isCompleted ? step.color : '#d1d5db',
+                          backgroundColor: isActive || isCompleted ? step.color : '#f3f4f6'
+                        }}
+                      >
+                        {isCompleted ? (
+                          <CheckOutlinedIcon fontSize="small" style={{ color: '#fff' }} />
+                        ) : (
+                          <StepIcon
+                            fontSize="small"
+                            style={{ color: isActive ? '#fff' : '#9ca3af' }}
+                          />
+                        )}
+
+                        {isActive && (
+                          <div
+                            className="modal-timeline-pulse"
+                            style={{ backgroundColor: step.color }}
+                          />
+                        )}
+                      </div>
+
+                      {index < timelineSteps.length - 1 && (
+                        <div className={`modal-timeline-connector ${isCompleted ? 'completed' : ''}`} />
+                      )}
+                    </div>
+
+                    {/* Contenido del paso */}
+                    <div className="modal-timeline-content">
+                      <div
+                        className={`modal-timeline-label ${isActive || isCompleted ? 'active' : ''}`}
+                        style={{ color: isActive || isCompleted ? step.color : '#6b7280' }}
+                      >
+                        {step.label}
+                      </div>
+                      {isActive && (
+                        <span className="modal-timeline-badge" style={{ backgroundColor: step.color }}>
+                          En proceso
+                        </span>
+                      )}
+                      {isCompleted && (
+                        <span className="modal-timeline-badge completed">
+                          Completado
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Dirección y botones de acción */}
+          {(pedido.direccion || (pedido.tipoEntrega === 'delivery' && pedido.lat && pedido.lng) || (pedido.formaPago === 'transferencia' && transferenciaFoto)) && (
+            <div className="order-modal-section">
+              <h3 className="modal-section-title">Información de Entrega</h3>
+
+              {pedido.direccion && (
+                <div className="order-modal-address">
+                  📍 {pedido.direccion}
+                </div>
+              )}
+
+              <div className="order-modal-action-buttons">
+                {pedido.tipoEntrega === 'delivery' && pedido.lat && pedido.lng && (
+                  <button
+                    className="order-modal-btn order-modal-btn-map"
+                    onClick={() => {
+                      window.open(`https://www.google.com/maps?q=${pedido.lat},${pedido.lng}`, '_blank');
+                    }}
+                  >
+                    🗺️ Ver ubicación
+                  </button>
+                )}
+
+                {pedido.formaPago === 'transferencia' && transferenciaFoto && (
+                  <button
+                    className="order-modal-btn order-modal-btn-receipt"
+                    onClick={() => setShowFotoModal(true)}
+                  >
+                    🧾 Ver comprobante
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Lista de Items */}
+          <div className="order-modal-section">
+            <h3 className="modal-section-title">
+              🛒 Detalles del Pedido
+            </h3>
+
+            <div className="order-modal-items-list">
+              {pedido.items?.map((item, index) => (
+                <div key={item.id} className="order-modal-item-row">
+                  <div className="order-modal-item-info">
+                    <div className="order-modal-item-name">
                       {item.producto?.nombre || 'Producto no disponible'}
                     </div>
-                    <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                    <div className="order-modal-item-qty">
                       {item.cantidad} × ${item.precio.toFixed(2)}
                     </div>
                     {item.notas && (
-                      <div style={{
-                        marginTop: '8px',
-                        padding: '8px',
-                        backgroundColor: '#fef3c7',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        color: '#92400e',
-                        fontStyle: 'italic'
-                      }}>
+                      <div className="order-modal-item-notes">
                         💬 "{item.notas}"
                       </div>
                     )}
                   </div>
-                  <div style={{
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    color: '#111827',
-                    marginLeft: '12px'
-                  }}>
+                  <div className="order-modal-item-subtotal">
                     ${(item.precio * item.cantidad).toFixed(2)}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
             {/* Totales */}
-            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e5e7eb' }}>
+            <div className="order-modal-totals">
               {pedido.subtotal !== undefined && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginBottom: '8px',
-                  fontSize: '14px'
-                }}>
-                  <span style={{ color: '#6b7280' }}>Subtotal</span>
-                  <span style={{ color: '#111827', fontWeight: '500' }}>
-                    ${pedido.subtotal.toFixed(2)}
-                  </span>
+                <div className="order-modal-total-row">
+                  <span>Subtotal</span>
+                  <span>${pedido.subtotal.toFixed(2)}</span>
                 </div>
               )}
 
               {pedido.costoEnvio !== undefined && pedido.costoEnvio > 0 && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginBottom: '8px',
-                  fontSize: '14px'
-                }}>
-                  <span style={{ color: '#6b7280' }}>Envío</span>
-                  <span style={{ color: '#111827', fontWeight: '500' }}>
-                    ${pedido.costoEnvio.toFixed(2)}
-                  </span>
+                <div className="order-modal-total-row">
+                  <span>Envío</span>
+                  <span>${pedido.costoEnvio.toFixed(2)}</span>
                 </div>
               )}
 
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                paddingTop: '12px',
-                borderTop: '1px solid #e5e7eb',
-                fontSize: '16px'
-              }}>
-                <span style={{ color: '#111827', fontWeight: '600' }}>Total</span>
-                <span style={{ color: '#3b82f6', fontWeight: '700', fontSize: '18px' }}>
-                  ${(pedido.total || 0).toFixed(2)}
-                </span>
+              <div className="order-modal-total-row order-modal-total-final">
+                <span>Total</span>
+                <span>${(pedido.total || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{
-          padding: '16px 24px',
-          borderTop: '1px solid #e5e7eb',
-          display: 'flex',
-          gap: '12px',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="order-modal-footer">
+          <div className="order-modal-footer-left">
             {pedido.tipoEntrega === 'delivery' && pedido.estado === 'esperando_delivery' && !pedido.repartidorId && (
               <button
                 type="button"
-                className="btn-accent"
+                className="order-modal-btn order-modal-btn-assign"
                 onClick={() => setShowAsignarRepartidor(true)}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  background: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
               >
                 🚴 Asignar Repartidor
               </button>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div className="order-modal-footer-right">
             <button
               type="button"
-              className="btn-secondary"
+              className="order-modal-btn order-modal-btn-close"
               onClick={onClose}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
             >
               Cerrar
             </button>
@@ -379,14 +353,8 @@ const OrderModal: React.FC<OrderModalProps> = ({
             {nextStatus && onUpdateStatus && (
               <button
                 type="button"
-                className="btn-primary"
+                className="order-modal-btn order-modal-btn-primary"
                 onClick={handleStatusUpdate}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}
               >
                 {nextStatusText}
               </button>
