@@ -165,7 +165,15 @@
 }
 
 .icon-row { display: flex; align-items: center; gap: .75rem; }
-.icon-chip { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--vitrina-border); background: var(--vitrina-white); }
+.icon-chip { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; border: 0; padding: 0; clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap; }
+
+/* Help text */
+.pm2-help {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
 
 

@@ -50,23 +50,38 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
 
   const unidadMedidaOptions = ['unidades', 'gramos', 'mililitros', 'litros', 'kilogramos'];
 
+  const stock = parseInt(stockStr || '0', 10);
+  const getStockStatus = () => {
+    if (stock === 0) return { label: 'Sin stock', color: '#dc2626', bg: '#fef2f2' };
+    if (stock < 10) return { label: 'Stock bajo', color: '#f59e0b', bg: '#fef3c7' };
+    return { label: 'Stock disponible', color: '#10b981', bg: '#d1fae5' };
+  };
+
+  const stockStatus = getStockStatus();
+
   return (
     <div className="pm2-overlay" onClick={onClose}>
       <section
-        className="pm2-dialog"
+        className="pm2-dialog ingredient-modal-modern"
         role="dialog"
         aria-modal="true"
         aria-label={ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header moderno */}
         <header className="pm2-header">
           <div className="pm2-titles">
-            <h2 className="pm2-title">{ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}</h2>
-            <p className="pm2-subtitle">Define el nombre, stock, unidad de medida y su ícono.</p>
+            <h2 className="pm2-title">
+              {ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}
+            </h2>
+            <p className="pm2-subtitle">
+              Define el nombre, stock, unidad de medida y selecciona un ícono representativo
+            </p>
           </div>
           <button className="pm2-close" onClick={onClose} aria-label="Cerrar">×</button>
         </header>
 
+        {/* Body */}
         <div className="pm2-body" style={{ gridTemplateColumns: '1fr' }}>
           <form className="pm2-form" onSubmit={submit}>
             <div className="pm2-field">
@@ -84,7 +99,7 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
 
             <div className="pm2-row">
               <div className="pm2-field">
-                <label htmlFor="pm2-stock">Stock Disponible *</label>
+                <label htmlFor="pm2-stock">Stock disponible *</label>
                 <input
                   id="pm2-stock"
                   type="text"
@@ -94,16 +109,29 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
                   placeholder="0"
                   required
                 />
+                <p className="pm2-help" style={{ color: stockStatus.color, fontWeight: 600 }}>
+                  {stockStatus.label}
+                </p>
               </div>
 
               <div className="pm2-field">
-                <label htmlFor="pm2-unidad">Unidad de Medida *</label>
+                <label htmlFor="pm2-unidad">Unidad de medida *</label>
                 <select
                   id="pm2-unidad"
                   value={formData.unidadMedida}
                   onChange={(e) => setField('unidadMedida', e.target.value)}
                   className="pm2-field-select"
                   required
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    padding: '10px 12px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    fontSize: '14px',
+                  }}
                 >
                   {unidadMedidaOptions.map(u => (
                     <option key={u} value={u}>{u.charAt(0).toUpperCase() + u.slice(1)}</option>
@@ -112,12 +140,27 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
               </div>
             </div>
 
-            {/* Icono */}
+            {/* Selector de ícono */}
             <div className="pm2-field">
               <label>Ícono</label>
-              <div className="icon-row">
-                <span className="icon-chip" role="img" aria-label={`Ícono seleccionado: ${formData.icono}`}>
-                  <DynamicMuiIcon name={formData.icono} fontSize="medium" />
+              <div className="icon-row" style={{ alignItems: 'center' }}>
+                <span
+                  className="icon-chip"
+                  role="img"
+                  aria-label={`Ícono seleccionado: ${formData.icono}`}
+                  style={{
+                    width: '52px',
+                    height: '52px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '12px',
+                    border: `2px solid ${stockStatus.color}`,
+                    background: 'var(--surface-alt)',
+                    color: stockStatus.color,
+                  }}
+                >
+                  <DynamicMuiIcon name={formData.icono} fontSize="large" />
                   <span className="visually-hidden">{formData.icono}</span>
                 </span>
                 <button
@@ -127,8 +170,6 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
                 >
                   {ingrediente ? 'Cambiar ícono' : 'Elegir ícono'}
                 </button>
-                {/* Valor real que viaja al back */}
-                <input type="hidden" name="icono" value={formData.icono} />
               </div>
               <p className="pm2-help">Se guardará el nombre del ícono MUI, y se mostrará visualmente en las listas.</p>
             </div>

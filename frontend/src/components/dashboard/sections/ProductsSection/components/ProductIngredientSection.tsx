@@ -139,7 +139,7 @@ const ProductIngredientSection: React.FC<ProductIngredientSectionProps> = ({
   return (
     <div className="pm2-section">
       <h3 className="pm2-section-title">Gestión de Stock</h3>
-      
+
       <div className="pm2-field">
         <label>Tipo de Stock</label>
         <div className="pm2-segment">
@@ -177,13 +177,14 @@ const ProductIngredientSection: React.FC<ProductIngredientSectionProps> = ({
       ) : (
         <div className="pm2-ingredients-section">
           <div className="pm2-field">
-            <label>
+            <label className="pm2-checkbox-label">
               <input
                 type="checkbox"
+                className="pm2-checkbox"
                 checked={permiteExtras}
                 onChange={(e) => onPermiteExtrasChange(e.target.checked)}
               />
-              Permitir ingredientes extra
+              <span className="pm2-checkbox-text">Permitir ingredientes extra</span>
             </label>
           </div>
 
@@ -194,6 +195,7 @@ const ProductIngredientSection: React.FC<ProductIngredientSectionProps> = ({
                 <label htmlFor="pm2-ingrediente">Ingrediente</label>
                 <select
                   id="pm2-ingrediente"
+                  className="pm2-select"
                   value={selectedIngredienteId}
                   onChange={(e) => setSelectedIngredienteId(e.target.value)}
                   disabled={loadingIngredientes}
@@ -218,15 +220,16 @@ const ProductIngredientSection: React.FC<ProductIngredientSectionProps> = ({
                 />
               </div>
             </div>
-            
+
             <div className="pm2-field">
-              <label>
+              <label className="pm2-checkbox-label">
                 <input
                   type="checkbox"
+                  className="pm2-checkbox"
                   checked={esExtraPermitido}
                   onChange={(e) => setEsExtraPermitido(e.target.checked)}
                 />
-                Permitir como extra
+                <span className="pm2-checkbox-text">Permitir como extra</span>
               </label>
             </div>
 

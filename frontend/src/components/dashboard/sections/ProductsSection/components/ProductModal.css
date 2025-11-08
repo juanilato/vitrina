@@ -9,12 +9,14 @@
 
 .pm2-dialog{
   width: min(900px, 92vw);
-  height:80%;
+  max-height: 90vh;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow-300);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   animation: pm2In .18s ease;
 }
 @keyframes pm2In{ from{ transform: translateY(8px); opacity:0 } to{ transform: translateY(0); opacity:1 } }
@@ -43,6 +45,8 @@
 .pm2-body{
   display:grid; grid-template-columns: 1fr 360px; gap: 16px;
   padding: 16px;
+  overflow-y: auto;
+  flex: 1;
 }
 @media (max-width: 900px){ .pm2-body{ grid-template-columns: 1fr; } }
 
@@ -57,7 +61,7 @@
   font-size: 12.5px; font-weight: 800; color: var(--text);
   text-transform: none; letter-spacing: .2px;
 }
-.pm2-field input[type="text"], .pm2-field textarea, .pm2-field select{
+.pm2-field input[type="text"], .pm2-field textarea, .pm2-field select, .pm2-select{
   width:100%; height: 42px;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -68,8 +72,16 @@
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 .pm2-field textarea{ height: auto; resize: vertical; min-height: 96px; }
+.pm2-field select, .pm2-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
 
-.pm2-field input:focus, .pm2-field textarea:focus, .pm2-field select:focus{
+.pm2-field input:focus, .pm2-field textarea:focus, .pm2-field select:focus, .pm2-select:focus{
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
@@ -318,4 +330,65 @@
   font-size: 13px; color: var(--text-muted);
   text-align: center; padding: 20px;
   font-style: italic;
+}
+
+/* ====== Checkboxes modernos ====== */
+.pm2-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 10px;
+  transition: background .15s ease;
+}
+
+.pm2-checkbox-label:hover {
+  background: var(--surface-alt);
+}
+
+.pm2-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  position: relative;
+  transition: all .15s ease;
+  flex-shrink: 0;
+}
+
+.pm2-checkbox:hover {
+  border-color: var(--primary);
+}
+
+.pm2-checkbox:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.pm2-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+}
+
+.pm2-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.pm2-checkbox-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  user-select: none;
 }

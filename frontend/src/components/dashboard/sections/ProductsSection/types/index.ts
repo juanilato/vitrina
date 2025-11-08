@@ -26,11 +26,18 @@ export interface ProductModalProps {
     descripcion: string;
     precio: number;
     activo: boolean;
+    file?: File;
+  }) => void;
+  onClose: () => void;
+}
+
+export interface StockManagementModalProps {
+  product: ProductWithExtras;
+  onSave: (data: {
     tipoStock: string;
     stockIndividual?: number;
     permiteExtras: boolean;
     ingredientes?: ProductoIngrediente[];
-    file?: File;
   }) => void;
   onClose: () => void;
 }
@@ -47,6 +54,7 @@ export interface ProductCardProps {
   product: ProductWithExtras;
   onEdit: (product: ProductWithExtras) => void;
   onDelete: (productId: string) => void;
+  onManageStock?: (product: ProductWithExtras) => void;
 }
 
 export interface ProductsStats {

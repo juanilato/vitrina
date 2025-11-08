@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ProductModal, ProductsSkeletonLoader } from './components';
+import StockManagementModal from './components/StockManagementModal';
 import { useProducts } from './hooks/useProducts';
 import { ProductWithExtras } from './types';
 import './ProductsSection.css';
@@ -23,6 +24,8 @@ const ProductsSection: React.FC = () => {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithExtras | null>(null);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [managingStockProduct, setManagingStockProduct] = useState<ProductWithExtras | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all'); 
   const filteredProducts = products.filter((product) => {
@@ -52,11 +55,16 @@ const ProductsSection: React.FC = () => {
     setShowAddModal(true);
   };
 
-  
-  
+
+
   const handleEditProduct = (product: ProductWithExtras) => {
     setEditingProduct(product);
     setShowAddModal(true);
+  };
+
+  const handleManageStock = (product: ProductWithExtras) => {
+    setManagingStockProduct(product);
+    setShowStockModal(true);
   };
 
   const handleSave = async (productData: {
@@ -72,6 +80,33 @@ const ProductsSection: React.FC = () => {
       setEditingProduct(null);
     } catch (err: any) {
       alert(err.message || 'Error al guardar producto');
+    }
+  };
+
+  const handleSaveStock = async (stockData: {
+    tipoStock: string;
+    stockIndividual?: number;
+    permiteExtras: boolean;
+    ingredientes?: any[];
+  }) => {
+    try {
+      if (!managingStockProduct) return;
+
+      await handleSaveProduct(
+        {
+          nombre: managingStockProduct.nombre,
+          descripcion: managingStockProduct.descripcion || '',
+          precio: managingStockProduct.precio,
+          activo: managingStockProduct.activo ?? true,
+          ...stockData
+        },
+        managingStockProduct
+      );
+
+      setShowStockModal(false);
+      setManagingStockProduct(null);
+    } catch (err: any) {
+      alert(err.message || 'Error al guardar stock');
     }
   };
 
@@ -197,7 +232,7 @@ const ProductsSection: React.FC = () => {
   <div className="products-list-header">
     <div className="hcell h-product">Producto</div>
     <div className="hcell h-status">Estado</div>
-    <div className="hcell h-price">Precio</div>
+
     <div className="hcell h-date">Creado</div>
     <div className="hcell h-actions">Acciones</div>
   </div>
@@ -209,6 +244,7 @@ const ProductsSection: React.FC = () => {
         product={product}
         onEdit={handleEditProduct}
         onDelete={handleDeleteProduct}
+        onManageStock={handleManageStock}
       />
     ))}
   </div>
@@ -241,6 +277,18 @@ const ProductsSection: React.FC = () => {
           onClose={() => {
             setShowAddModal(false);
             setEditingProduct(null);
+          }}
+        />
+      )}
+
+      {/* Modal para gestión de stock */}
+      {showStockModal && managingStockProduct && (
+        <StockManagementModal
+          product={managingStockProduct}
+          onSave={handleSaveStock}
+          onClose={() => {
+            setShowStockModal(false);
+            setManagingStockProduct(null);
           }}
         />
       )}

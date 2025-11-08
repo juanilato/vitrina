@@ -1,19 +1,14 @@
-// src/features/ingredientes/IngredientesSection/index.tsx (Nuevo Archivo)
-
 import React, { useState } from 'react';
-import { IngredienteModal, IngredienteRow } from './components'; // Asume que creas este index
+import { IngredienteModal, IngredienteRow } from './components';
 import { useIngredientes } from './hooks/useIngredientes';
 import { IngredienteWithExtras } from './types';
-// Reutilizamos los estilos de la sección de productos
-import './IngredientsSection.css'; 
-
-// Importa iconos relevantes para ingredientes
+import './IngredientsSection.css';
 import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import LocalGroceryStoreOutlinedIcon from '@mui/icons-material/LocalGroceryStoreOutlined'; // Icono principal
+import LocalGroceryStoreOutlinedIcon from '@mui/icons-material/LocalGroceryStoreOutlined';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
-
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 
 const IngredientesSection: React.FC = () => {
   const {
@@ -30,8 +25,7 @@ const IngredientesSection: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingIngrediente, setEditingIngrediente] = useState<IngredienteWithExtras | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  // Filtro adaptado: 'all', 'in_stock', 'out_of_stock'
-  const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'out_of_stock'>('all'); 
+  const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all'); 
   
   const filteredIngredientes = ingredientes.filter((ingrediente) => {
     const nombre = ingrediente.nombre || '';
@@ -39,17 +33,30 @@ const IngredientesSection: React.FC = () => {
 
     const matchesSearch = nombre.toLowerCase().includes(searchTermLower);
 
-    const isInStock = ingrediente.stockDisponible > 0;
+    const stock = ingrediente.stockDisponible ?? 0;
+    const isInStock = stock > 0;
+    const isLowStock = stock > 0 && stock < 10;
+    const isOutOfStock = stock === 0;
 
     const matchesStock =
       stockFilter === 'all'
         ? true
         : stockFilter === 'in_stock'
-        ? isInStock
-        : !isInStock; 
+        ? isInStock && !isLowStock
+        : stockFilter === 'low_stock'
+        ? isLowStock
+        : isOutOfStock;
 
     return matchesSearch && matchesStock;
   });
+
+  // Calcular estadísticas
+  const stockStats = {
+    all: ingredientes.length,
+    inStock: ingredientes.filter(i => i.stockDisponible >= 10).length,
+    lowStock: ingredientes.filter(i => i.stockDisponible > 0 && i.stockDisponible < 10).length,
+    outOfStock: ingredientes.filter(i => i.stockDisponible === 0).length,
+  };
 
   const handleAddIngrediente = () => {
     setEditingIngrediente(null);
@@ -77,14 +84,19 @@ const IngredientesSection: React.FC = () => {
   };
 
   if (loading) {
-    // Reutilizar el ProductsSkeletonLoader (no provisto, pero asumimos que funciona)
-    return <div>Cargando ingredientes...</div>; 
+    return (
+      <div className="products-section">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Cargando ingredientes...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
       <div className="products-section">
-        {/* Error state (reutilizando clases) */}
         <div className="error-container">
           <div className="error-icon">❌</div>
           <h3>Error al cargar ingredientes</h3>
@@ -136,10 +148,10 @@ const IngredientesSection: React.FC = () => {
               >
                 <span className="cnav-icon"><FilterListOutlinedIcon fontSize="small" /></span>
                 <span className="cnav-label">Todos</span>
-                <span className="cnav-pill">{ingredientes.length}</span>
+                <span className="cnav-pill">{stockStats.all}</span>
               </button>
 
-              {/* En Stock */}
+              {/* En Stock (buena cantidad) */}
               <button
                 className={`cnav-item ${stockFilter === 'in_stock' ? 'active' : ''}`}
                 onClick={() => setStockFilter('in_stock')}
@@ -147,9 +159,18 @@ const IngredientesSection: React.FC = () => {
               >
                 <span className="cnav-icon"><CheckCircleOutlineOutlinedIcon fontSize="small" /></span>
                 <span className="cnav-label">En Stock</span>
-                <span className="cnav-pill">
-                  {ingredientes.filter(i => i.stockDisponible > 0).length}
-                </span>
+                <span className="cnav-pill">{stockStats.inStock}</span>
+              </button>
+
+              {/* Stock Bajo */}
+              <button
+                className={`cnav-item ${stockFilter === 'low_stock' ? 'active' : ''}`}
+                onClick={() => setStockFilter('low_stock')}
+                aria-pressed={stockFilter === 'low_stock'}
+              >
+                <span className="cnav-icon"><WarningAmberOutlinedIcon fontSize="small" /></span>
+                <span className="cnav-label">Stock Bajo</span>
+                <span className="cnav-pill">{stockStats.lowStock}</span>
               </button>
 
               {/* Agotados */}
@@ -160,9 +181,7 @@ const IngredientesSection: React.FC = () => {
               >
                 <span className="cnav-icon"><HighlightOffOutlinedIcon fontSize="small" /></span>
                 <span className="cnav-label">Agotados</span>
-                <span className="cnav-pill">
-                  {ingredientes.filter(i => i.stockDisponible === 0).length}
-                </span>
+                <span className="cnav-pill">{stockStats.outOfStock}</span>
               </button>
             </div>
           </div>
@@ -174,14 +193,17 @@ const IngredientesSection: React.FC = () => {
             </button>
           </div>
 
-          {searchTerm && (
+          {(searchTerm || stockFilter !== 'all') && (
             <div className="sidebar-section">
               <button
                 className="cnav-item cnav-item--subtle"
-                onClick={() => setSearchTerm('')}
+                onClick={() => {
+                  setSearchTerm('');
+                  setStockFilter('all');
+                }}
               >
                 <span className="cnav-icon">🔄</span>
-                <span className="cnav-label">Limpiar búsqueda</span>
+                <span className="cnav-label">Limpiar filtros</span>
               </button>
             </div>
           )}
