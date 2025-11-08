@@ -27,7 +27,7 @@ class WebSocketService {
       auth: {
         token,
       },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
@@ -38,6 +38,10 @@ class WebSocketService {
       console.log('✅ WebSocket connected successfully!');
       console.log('🆔 Socket ID:', this.socket?.id);
       this.isConnected = true;
+
+      // IMPORTANTE: Unirse al room de notificaciones
+      console.log('📢 Joining notifications room...');
+      this.socket?.emit('join-notifications');
     });
 
     this.socket.on('disconnect', (reason) => {

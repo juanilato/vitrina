@@ -47,7 +47,7 @@ const hydrateSchedule = (horarios: HorarioAtencionData[] | undefined): Record<Da
 type PrefsView = 'logos' | 'appearance' | 'hours' | 'preview';
 
 const PreferencesTab: React.FC = () => {
-  const { empresaData, saving, updatePreferences, uploadFoto, updateEmpresaExtras } = useAccountConfig();
+  const { empresaData, saving, updatePreferences, uploadFoto, updateEmpresaExtras, updateApariencia, updateHorarios } = useAccountConfig();
 
   const initialPreferences = useMemo<PreferencesState>(() => ({
     dashboardFotoUrl: empresaData?.preferenciasWeb?.dashboardFoto ?? '',
@@ -68,6 +68,7 @@ const PreferencesTab: React.FC = () => {
     setRedes(empresaData?.redesSociales || []);
   }, [initialPreferences, empresaData]);
 
+  // Guardar todo (función original mantenida para compatibilidad)
   const handleSave = async () => {
     if (!empresaData?.id) {
       alert('Falta empresaId');
@@ -123,6 +124,58 @@ const PreferencesTab: React.FC = () => {
 
     console.log('✅ [FRONTEND] Extras guardados');
     alert('Preferencias y datos de empresa guardados');
+  };
+
+  // Guardar solo apariencia
+  const handleSaveApariencia = async () => {
+    if (!empresaData?.id) {
+      alert('Falta empresaId');
+      return;
+    }
+
+    try {
+      await updateApariencia(
+        preferences.colorBotones,
+        preferences.colorFondo,
+        preferences.envioDomicilio
+      );
+
+      // Guardar alias y redes sociales
+      const extras: UpdateEmpresaExtrasPayload = {
+        empresaId: empresaData.id,
+        alias,
+        redesSociales: redes.map(r => ({
+          key: (r.key || 'otros').toString().toLowerCase(),
+          label: r.label?.trim() || 'Link',
+          value: r.value?.trim() || '',
+        })),
+      };
+
+      if (typeof updateEmpresaExtras === 'function') {
+        await updateEmpresaExtras(extras);
+      }
+
+      alert('Apariencia guardada exitosamente');
+    } catch (error) {
+      console.error('Error al guardar apariencia:', error);
+      alert('Error al guardar apariencia');
+    }
+  };
+
+  // Guardar solo horarios
+  const handleSaveHorarios = async () => {
+    if (!empresaData?.id) {
+      alert('Falta empresaId');
+      return;
+    }
+
+    try {
+      await updateHorarios(preferences.schedule);
+      alert('Horarios guardados exitosamente');
+    } catch (error) {
+      console.error('Error al guardar horarios:', error);
+      alert('Error al guardar horarios');
+    }
   };
 
   return (
@@ -226,17 +279,30 @@ const PreferencesTab: React.FC = () => {
               <AliasesEditor value={alias} onChange={setAlias} />
               <SocialLinksEditor value={redes} onChange={setRedes} />
             </div>
+            <div className="section-foot" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-primary" onClick={handleSaveApariencia} disabled={saving}>
+                {saving ? 'Guardando…' : 'Guardar apariencia'}
+              </button>
+            </div>
           </section>
         )}
 
         {/* HORARIOS */}
         {activeView === 'hours' && (
           <section className="section-card" aria-labelledby="prefs-hours">
-
+            <div className="section-head">
+              <h3 id="prefs-hours" className="section-title">Horarios de atención</h3>
+              <p className="section-desc muted">Configurá los horarios de tu negocio</p>
+            </div>
             <CalendarSchedule
               schedule={preferences.schedule}
               onChange={(next) => setPreferences(p => ({ ...p, schedule: next }))}
             />
+            <div className="section-foot" style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-primary" onClick={handleSaveHorarios} disabled={saving}>
+                {saving ? 'Guardando…' : 'Guardar horarios'}
+              </button>
+            </div>
           </section>
         )}
 

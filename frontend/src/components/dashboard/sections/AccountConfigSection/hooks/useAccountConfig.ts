@@ -278,31 +278,49 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const uploadFoto = useCallback(async (file: File, dashboard?: Boolean): Promise<string> => {
     if (!user?.id) throw new Error('Usuario no autenticado');
 
+    console.log('📤 [UPLOAD] Iniciando subida de foto:', { dashboard, fileName: file.name, fileSize: file.size });
+
+    setState(prev => ({ ...prev, saving: true, error: null }));
+
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      let response = '';
+      let response: any;
       if (dashboard){
-      response = await axiosInstance.post(`/empresas/${user.id}/upload-dashboard`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+        console.log('📤 [UPLOAD] Subiendo foto de dashboard...');
+        response = await axiosInstance.post(`/empresas/${user.id}/upload-dashboard`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        console.log('✅ [UPLOAD] Dashboard foto subida:', response.data);
       }else{
-      response = await axiosInstance.post(`/empresas/${user.id}/upload-logo`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+        console.log('📤 [UPLOAD] Subiendo logo...');
+        response = await axiosInstance.post(`/empresas/${user.id}/upload-logo`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        console.log('✅ [UPLOAD] Logo subido:', response.data);
       }
 
-      return response;
+      // Recargar datos de la empresa para obtener la URL actualizada
+      await loadEmpresaData();
+
+      setState(prev => ({ ...prev, saving: false }));
+
+      return response.data?.dashUrl || response.data?.logoUrl || '';
     } catch (error: any) {
-      console.error('Error al subir logo:', error);
-      throw new Error(error.response?.data?.message || 'Error al subir logo');
+      console.error('❌ [UPLOAD] Error al subir foto:', error);
+      setState(prev => ({
+        ...prev,
+        saving: false,
+        error: error.response?.data?.message || 'Error al subir la foto'
+      }));
+      throw new Error(error.response?.data?.message || 'Error al subir foto');
     }
-  }, [user?.id]);
+  }, [user?.id, loadEmpresaData]);
 
   // Resetear formulario
   const resetForm = useCallback(() => {
@@ -418,14 +436,93 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const updatePreferences = useCallback(async (payload: any) =>{
     if (!user?.id) return;
     console.log("PAYLOAD", payload);
+    setState(prev => ({ ...prev, saving: true, error: null, success: null }));
     try{
       await axiosInstance.patch(`/empresas/${user.id}/preferencias`, payload);
+      await loadEmpresaData();
+      setState(prev => ({
+        ...prev,
+        saving: false,
+        success: 'Preferencias guardadas exitosamente'
+      }));
+      setTimeout(() => {
+        setState(prev => ({ ...prev, success: null }));
+      }, 3000);
     } catch (error: any){
       console.error ('Error al guardar preferencias', error);
+      setState(prev => ({
+        ...prev,
+        saving: false,
+        error: error.response?.data?.message || 'Error al guardar preferencias'
+      }));
       throw error;
     }
 
-  },[user?.id])
+  },[user?.id, loadEmpresaData])
+
+  // Guardar solo apariencia (colores y envío a domicilio)
+  const updateApariencia = useCallback(async (colorBotones: string, colorFondo: string, envioDomicilio: boolean) => {
+    if (!user?.id || !state.empresaData?.id) return;
+
+    console.log('🎨 [APARIENCIA] Guardando apariencia...');
+
+    const payload = {
+      empresaId: state.empresaData.id,
+      colorBotones: colorBotones || null,
+      colorFondo: colorFondo || null,
+      envioDomicilio,
+      dashboardFoto: state.empresaData?.preferenciasWeb?.dashboardFoto || null,
+      horarios: (state.empresaData?.preferenciasWeb?.horarios || []).map((h: any) => ({
+        day: h.day,
+        slotIndex: 0,
+        abreMin: h.abreMin,
+        cierraMin: h.cierraMin,
+        cerrado: h.cerrado || false
+      }))
+    };
+
+    await updatePreferences(payload);
+  }, [user?.id, state.empresaData, updatePreferences]);
+
+  // Guardar solo horarios
+  const updateHorarios = useCallback(async (schedule: Record<string, any[]>) => {
+    if (!user?.id || !state.empresaData?.id) return;
+
+    console.log('🕒 [HORARIOS] Guardando horarios...');
+
+    const DAYS: { key: string; label: string }[] = [
+      { key: 'LUN', label: 'Lunes' },
+      { key: 'MAR', label: 'Martes' },
+      { key: 'MIE', label: 'Miércoles' },
+      { key: 'JUE', label: 'Jueves' },
+      { key: 'VIE', label: 'Viernes' },
+      { key: 'SAB', label: 'Sábado' },
+      { key: 'DOM', label: 'Domingo' },
+    ];
+
+    const payload = {
+      empresaId: state.empresaData.id,
+      colorBotones: state.empresaData?.preferenciasWeb?.colorBotones || null,
+      colorFondo: state.empresaData?.preferenciasWeb?.colorFondo || null,
+      envioDomicilio: state.empresaData?.preferenciasWeb?.envioDomicilio || false,
+      dashboardFoto: state.empresaData?.preferenciasWeb?.dashboardFoto || null,
+      horarios: DAYS.flatMap(({ key }) =>
+        (schedule[key] || []).map((slot: any, idx: number) => {
+          const [oh, om] = slot.open.split(':').map(Number);
+          const [ch, cm] = slot.close.split(':').map(Number);
+          return {
+            day: key,
+            slotIndex: idx,
+            abreMin: (oh || 0) * 60 + (om || 0),
+            cierraMin: (ch || 0) * 60 + (cm || 0),
+            cerrado: false,
+          };
+        })
+      )
+    };
+
+    await updatePreferences(payload);
+  }, [user?.id, state.empresaData, updatePreferences]);
 
 
 
@@ -555,6 +652,8 @@ const updateCategorias = useCallback(async (payload: UpdateCategoriasPayload) =>
     updatePrecioEnvio,
     removePrecioEnvio,
     updatePreferences,
+    updateApariencia,
+    updateHorarios,
     updateEmpresaExtras,
     cargaUbicacionInicial,
     getCategorias,

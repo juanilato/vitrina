@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { OrderModal, OrdersSkeletonLoader } from './components';
 import { useOrders } from './hooks/useOrders';
 import { PedidoWithDetails } from './types';
 import './OrdersSection.css';
 import OrderRow from './components/OrderCard';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
-import '../../shared/CompanyNavbar.css'; 
+import '../../shared/CompanyNavbar.css';
 import FilterListOutlinedIcon from '@mui/icons-material/FilterListOutlined';
 import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined';
 import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined';
@@ -15,6 +15,9 @@ import DeliveryDiningOutlinedIcon from '@mui/icons-material/DeliveryDiningOutlin
 import NearMeOutlinedIcon from '@mui/icons-material/NearMeOutlined';
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
 import DoneAllOutlinedIcon from '@mui/icons-material/DoneAllOutlined';
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
+import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 const OrdersSection: React.FC = () => {
   const {
     orders,
@@ -30,9 +33,30 @@ const OrdersSection: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'last_hour' | 'last_day'>('all');
   const [selectedOrder, setSelectedOrder] = useState<PedidoWithDetails | null>(null);
+  const [showStatusReference, setShowStatusReference] = useState(false);
 
-  const filteredOrders = getFilteredOrders(searchTerm, statusFilter);
+  // Filtrado combinado: estado + búsqueda + tiempo
+  const filteredOrders = useMemo(() => {
+    let result = getFilteredOrders(searchTerm, statusFilter);
+
+    // Aplicar filtro de tiempo
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      const cutoff = new Date();
+
+      if (timeFilter === 'last_hour') {
+        cutoff.setHours(now.getHours() - 1);
+      } else if (timeFilter === 'last_day') {
+        cutoff.setHours(now.getHours() - 24);
+      }
+
+      result = result.filter(order => new Date(order.createdAt) >= cutoff);
+    }
+
+    return result;
+  }, [searchTerm, statusFilter, timeFilter, getFilteredOrders]);
 
   const handleViewDetails = (pedido: PedidoWithDetails) => {
     setSelectedOrder(pedido);
@@ -77,24 +101,61 @@ const OrdersSection: React.FC = () => {
             <span className="sidebar-icon"><ReceiptLongOutlinedIcon /></span>
             Pedidos
           </h2>
+            
+    <button
+      className="cnav-item cnav-item--info"
+      onClick={() => setShowStatusReference(!showStatusReference)}
+    >
+      <span className="cnav-icon"><InfoOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Ver flujo de estados</span>
+    </button>
+
         </div>
 
         {/* Filtros y búsqueda */}
-{/* Filtros y búsqueda */}
 <div className="sidebar-content">
   <div className="sidebar-section">
     <h3 className="sidebar-section-title">Buscar</h3>
     <div className="sidebar-search">
       <input
         type="text"
-        placeholder="Cliente, email o ID..."
+        placeholder="Cliente o email"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="sidebar-search-input"
       />
-      <span className="sidebar-search-icon">🔍</span>
+   
     </div>
   </div>
+
+  {/* Filtros de Tiempo */}
+  <div className="sidebar-section">
+    <h3 className="sidebar-section-title">Período</h3>
+    <div className="sidebar-time-filters">
+      <button
+        className={`time-filter-btn ${timeFilter === 'all' ? 'active' : ''}`}
+        onClick={() => setTimeFilter('all')}
+      >
+        <FilterListOutlinedIcon fontSize="small" />
+        <span>Todos</span>
+      </button>
+      <button
+        className={`time-filter-btn ${timeFilter === 'last_hour' ? 'active' : ''}`}
+        onClick={() => setTimeFilter('last_hour')}
+      >
+        <AccessTimeOutlinedIcon fontSize="small" />
+        <span>Última hora</span>
+      </button>
+      <button
+        className={`time-filter-btn ${timeFilter === 'last_day' ? 'active' : ''}`}
+        onClick={() => setTimeFilter('last_day')}
+      >
+        <TodayOutlinedIcon fontSize="small" />
+        <span>Último día</span>
+      </button>
+    </div>
+  </div>
+
 <div className="sidebar-section">
   <h3 className="sidebar-section-title">Estado</h3>
 
@@ -191,13 +252,17 @@ const OrdersSection: React.FC = () => {
   </div>
 </div>
 
-  {(searchTerm || statusFilter !== 'todos') && (
+  {/* Referencia de Estados */}
+
+
+  {(searchTerm || statusFilter !== 'todos' || timeFilter !== 'all') && (
     <div className="sidebar-section">
       <button
         className="cnav-item cnav-item--subtle"
         onClick={() => {
           setSearchTerm('');
           setStatusFilter('todos');
+          setTimeFilter('all');
         }}
       >
         <span className="cnav-icon">🔄</span>
@@ -211,6 +276,109 @@ const OrdersSection: React.FC = () => {
 
       {/* Contenido principal */}
 <div className="orders-main">
+
+{/* Referencia de Estados - Modal flotante */}
+{showStatusReference && (
+  <div className="status-reference-overlay" onClick={() => setShowStatusReference(false)}>
+    <div className="status-reference-card" onClick={(e) => e.stopPropagation()}>
+      <div className="status-ref-header">
+        <h3>Flujo de Estados del Pedido</h3>
+        <button className="status-ref-close" onClick={() => setShowStatusReference(false)}>×</button>
+      </div>
+      <div className="status-ref-body">
+        <div className="status-flow">
+          <div className="status-flow-item">
+            <div className="status-flow-icon pending">
+              <HourglassEmptyOutlinedIcon fontSize="small" />
+            </div>
+            <div className="status-flow-info">
+              <span className="status-flow-name">Pendiente de Confirmación</span>
+              <span className="status-flow-desc">Pedido recibido, esperando confirmación</span>
+            </div>
+          </div>
+          <div className="status-flow-arrow">↓</div>
+
+          <div className="status-flow-item">
+            <div className="status-flow-icon confirmed">
+              <TaskAltOutlinedIcon fontSize="small" />
+            </div>
+            <div className="status-flow-info">
+              <span className="status-flow-name">Confirmado</span>
+              <span className="status-flow-desc">Pedido confirmado por el comercio</span>
+            </div>
+          </div>
+          <div className="status-flow-arrow">↓</div>
+
+          <div className="status-flow-item">
+            <div className="status-flow-icon processing">
+              <SettingsOutlinedIcon fontSize="small" />
+            </div>
+            <div className="status-flow-info">
+              <span className="status-flow-name">En Proceso</span>
+              <span className="status-flow-desc">Se está preparando el pedido</span>
+            </div>
+          </div>
+          <div className="status-flow-arrow">↓</div>
+
+          <div className="status-flow-split">
+            <div className="status-flow-branch">
+              <span className="branch-label">Delivery</span>
+              <div className="status-flow-item">
+                <div className="status-flow-icon waiting-delivery">
+                  <DeliveryDiningOutlinedIcon fontSize="small" />
+                </div>
+                <div className="status-flow-info">
+                  <span className="status-flow-name">Esperando Delivery</span>
+                  <span className="status-flow-desc">Listo para entregar al repartidor</span>
+                </div>
+              </div>
+              <div className="status-flow-arrow">↓</div>
+              <div className="status-flow-item">
+                <div className="status-flow-icon on-way">
+                  <NearMeOutlinedIcon fontSize="small" />
+                </div>
+                <div className="status-flow-info">
+                  <span className="status-flow-name">En Camino</span>
+                  <span className="status-flow-desc">El repartidor está en camino</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="status-flow-branch">
+              <span className="branch-label">Retiro</span>
+              <div className="status-flow-item">
+                <div className="status-flow-icon waiting-pickup">
+                  <StorefrontOutlinedIcon fontSize="small" />
+                </div>
+                <div className="status-flow-info">
+                  <span className="status-flow-name">Esperando Retiro</span>
+                  <span className="status-flow-desc">Listo para que el cliente retire</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="status-flow-arrow">↓</div>
+
+          <div className="status-flow-item">
+            <div className="status-flow-icon delivered">
+              <DoneAllOutlinedIcon fontSize="small" />
+            </div>
+            <div className="status-flow-info">
+              <span className="status-flow-name">Entregado</span>
+              <span className="status-flow-desc">Pedido completado exitosamente</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="status-ref-footer">
+          <div className="status-ref-note">
+            <strong>Nota:</strong> Los pedidos pueden ser rechazados en cualquier momento antes de ser confirmados.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
 
   {/* Header tabla (variante Clean bar) */}

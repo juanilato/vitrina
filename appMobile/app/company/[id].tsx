@@ -201,15 +201,7 @@ export default function CompanyStoreScreen() {
             style={styles.headerBackground}
             resizeMode="cover"
           >
-    <LinearGradient
-        colors={[
-          fondo,
-          fondoOscuro ? `${buttonColor}88` : `${buttonColor}44`,
-        ]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.headerFormal}
-      >
+
               <SafeAreaView edges={['top']}>
                 {/* Top Bar */}
                 <View style={styles.topBar}>
@@ -219,19 +211,6 @@ export default function CompanyStoreScreen() {
 
                   <View style={styles.spacer} />
 
-                  <TouchableOpacity
-                    style={[styles.cartButtonModern, { backgroundColor: `${colors.white}25` }]}
-                    onPress={() => router.push('/(tabs)/cart')}
-                  >
-                    <Ionicons name="cart" size={24} color={textoColor} />
-                    {cart.totalItems > 0 && (
-                      <View style={styles.cartBadgeModern}>
-                        <Text style={styles.cartBadgeText}>
-                          {cart.totalItems > 99 ? '99+' : cart.totalItems}
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
                 </View>
 
                 {/* Company Info Centrado */}
@@ -279,7 +258,7 @@ export default function CompanyStoreScreen() {
 </View>
 
               </SafeAreaView>
-            </LinearGradient>
+      
           </ImageBackground>
         ) : (
           <View style={styles.headerNoPhotoContainer}>

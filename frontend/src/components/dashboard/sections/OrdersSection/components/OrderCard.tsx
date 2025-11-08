@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { OrderCardProps } from '../types';
 import pedidosService from '../../../../../services/pedidosService';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
+import BlockOutlinedIcon from '@mui/icons-material/BlockOutlined';
 
 const OrderRow: React.FC<OrderCardProps> = ({
   pedido,
@@ -72,14 +75,33 @@ const OrderRow: React.FC<OrderCardProps> = ({
         {/* Columna: Acciones */}
         <div className="ocell ocell-actions">
           <div className="oactions">
-            <button className="btn-ghost" onClick={() => onViewDetails?.(pedido)}>Detalles</button>
+            <button
+              className="btn-action btn-action-view"
+              onClick={() => onViewDetails?.(pedido)}
+              title="Ver detalles completos del pedido"
+            >
+              <VisibilityOutlinedIcon fontSize="small" />
+              <span className="btn-text">Detalles</span>
+            </button>
             {nextStatus && (
-              <button className="btn-primary" onClick={() => onUpdateStatus?.(pedido.id, nextStatus as any)}>
-                {nextStatusText}
+              <button
+                className="btn-action btn-action-next"
+                onClick={() => onUpdateStatus?.(pedido.id, nextStatus as any)}
+                title={`Cambiar estado a: ${nextStatusText}`}
+              >
+                <span className="btn-text">{nextStatusText}</span>
+                <ArrowForwardOutlinedIcon fontSize="small" />
               </button>
             )}
             {onDelete && pedido.estado === 'pendiente_confirmacion' && (
-              <button className="btn-danger" onClick={() => setShowReject(true)}>No confirmar</button>
+              <button
+                className="btn-action btn-action-reject"
+                onClick={() => setShowReject(true)}
+                title="Rechazar este pedido"
+              >
+                <BlockOutlinedIcon fontSize="small" />
+                <span className="btn-text">No confirmar</span>
+              </button>
             )}
           </div>
         </div>

@@ -55,6 +55,10 @@ export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketRet
         socket.on('connect', () => {
           console.log('[WebSocket] ✅ Conectado exitosamente');
           setIsConnected(true);
+
+          // IMPORTANTE: Unirse al room de notificaciones
+          console.log('[WebSocket] 📢 Joining notifications room...');
+          socket.emit('join-notifications');
         });
 
         socket.on('disconnect', (reason) => {

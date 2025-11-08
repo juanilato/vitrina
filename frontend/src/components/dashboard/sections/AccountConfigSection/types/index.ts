@@ -198,6 +198,8 @@ export interface AccountConfigActions {
   updatePrecioEnvio: (ubicacionId: number, precioId: number, data: UpdatePrecioEnvioData) => Promise<void>;
   removePrecioEnvio: (ubicacionId: number, precioId: number) => Promise<void>;
   updatePreferences: (payload: UpdatePreferenciasPayload) => Promise<void>;
+  updateApariencia: (colorBotones: string, colorFondo: string, envioDomicilio: boolean) => Promise<void>;
+  updateHorarios: (schedule: Record<DayKey, TimeSlot[]>) => Promise<void>;
   updateEmpresaExtras: (payload: UpdateEmpresaExtrasPayload) => Promise<void>;
   cargaUbicacionInicial: (empresaId: string, ubicacion: Ubicacion) => void;
   getCategorias: () => Promise<CategoriaData[]>;
