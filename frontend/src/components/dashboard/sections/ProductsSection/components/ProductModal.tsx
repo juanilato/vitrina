@@ -72,23 +72,49 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
     <>
       <div className="pm2-overlay" onClick={onClose}>
         <section
-          className="pm2-dialog"
+          className="pm2-dialog order-modal-modern"
           role="dialog"
           aria-modal="true"
           aria-label={product ? 'Editar producto' : 'Nuevo producto'}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <header className="pm2-header">
-            <div className="pm2-titles">
-              <h2 className="pm2-title">{product ? 'Editar producto' : 'Nuevo producto'}</h2>
-              <p className="pm2-subtitle">Completa los datos y previsualiza la imagen antes de guardar.</p>
+          <header className="order-modal-header">
+            <div className="order-modal-header-left">
+              <div className="order-modal-header-info">
+                <div className="order-modal-client-name">
+                  {product ? 'Editar producto' : 'Nuevo producto'}
+                </div>
+                <div className="order-modal-date">
+                  Completa los datos y previsualiza la imagen antes de guardar
+                </div>
+              </div>
             </div>
-            <button className="pm2-close" onClick={onClose} aria-label="Cerrar">×</button>
+            <button className="modal-close-modern" onClick={onClose} aria-label="Cerrar">×</button>
           </header>
 
           {/* Body */}
-          <div className="pm2-body">
+          <div className="order-modal-body">
+            {/* Chips informativos */}
+            <div className="order-modal-chips-section">
+              <div className="order-chip order-chip-delivery">
+                {formData.activo ? '✅' : '⛔'}
+                <span>{formData.activo ? 'Producto Activo' : 'Producto Inactivo'}</span>
+              </div>
+              {precioStr && parseFloat(precioStr) > 0 && (
+                <div className="order-chip order-chip-payment">
+                  💰
+                  <span>Precio: ${parseFloat(precioStr).toFixed(2)}</span>
+                </div>
+              )}
+              {preview && (
+                <div className="order-chip order-chip-email">
+                  📷
+                  <span>Imagen agregada</span>
+                </div>
+              )}
+            </div>
+
             {/* Form */}
             <form className="pm2-form" onSubmit={submit}>
               <input
@@ -99,46 +125,63 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
                 onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
               />
 
-              <div className="pm2-field">
-                <label htmlFor="pm2-nombre">Nombre *</label>
-                <input
-                  ref={firstInputRef}
-                  id="pm2-nombre"
-                  type="text"
-                  value={formData.nombre}
-                  onChange={(e) => setField('nombre', e.target.value)}
-                  placeholder=" "
-                  required
-                />
+              <div className="pm2-field pm2-field-enhanced">
+                <label htmlFor="pm2-nombre">
+                  <span className="pm2-label-icon">🏷️</span>
+                  Nombre del Producto *
+                </label>
+                <div className="pm2-input-wrapper">
+                  <input
+                    ref={firstInputRef}
+                    id="pm2-nombre"
+                    type="text"
+                    value={formData.nombre}
+                    onChange={(e) => setField('nombre', e.target.value)}
+                    placeholder="Ej: Hamburguesa Clásica"
+                    className="pm2-input-modern"
+                    required
+                  />
+                  <span className="pm2-input-hint">nombre visible en el catálogo</span>
+                </div>
               </div>
 
               <div className="pm2-row">
-                <div className="pm2-field">
-                  <label htmlFor="pm2-precio">Precio *</label>
-                  <div className="pm2-input-adorn">
-                    <span className="pm2-adorn">$</span>
-                    <input
-                      id="pm2-precio"
-                      type="text"
-                      inputMode="decimal"
-                      value={precioStr}
-                      onChange={(e) => handlePrecioChange(e.target.value)}
-                      placeholder="0,00"
-                      required
-                    />
+                <div className="pm2-field pm2-field-enhanced">
+                  <label htmlFor="pm2-precio">
+                    <span className="pm2-label-icon">💰</span>
+                    Precio de Venta *
+                  </label>
+                  <div className="pm2-input-wrapper">
+                    <div className="pm2-input-adorn">
+                      <span className="pm2-adorn">$</span>
+                      <input
+                        id="pm2-precio"
+                        type="text"
+                        inputMode="decimal"
+                        value={precioStr}
+                        onChange={(e) => handlePrecioChange(e.target.value)}
+                        placeholder="0.00"
+                        className="pm2-input-modern"
+                        required
+                      />
+                    </div>
+                    <span className="pm2-input-hint">precio final al cliente</span>
                   </div>
                 </div>
 
-                <div className="pm2-field">
-                  <label>Estado</label>
-                  <div className="pm2-segment">
+                <div className="pm2-field pm2-field-enhanced">
+                  <label>
+                    <span className="pm2-label-icon">⚡</span>
+                    Estado
+                  </label>
+                  <div className="pm2-segment pm2-segment-modern">
                     <button
                       type="button"
                       className={`pm2-seg-btn ${formData.activo ? 'is-active' : ''}`}
                       onClick={() => setField('activo', true)}
                       aria-pressed={formData.activo}
                     >
-                      Activo
+                      ✅ Activo
                     </button>
                     <button
                       type="button"
@@ -146,36 +189,35 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
                       onClick={() => setField('activo', false)}
                       aria-pressed={!formData.activo}
                     >
-                      Inactivo
+                      ⛔ Inactivo
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="pm2-field">
-                <label htmlFor="pm2-desc">Descripción</label>
-                <textarea
-                  id="pm2-desc"
-                  rows={4}
-                  value={formData.descripcion}
-                  onChange={(e) => setField('descripcion', e.target.value)}
-                  placeholder="Características, materiales, medidas…"
-                />
+              <div className="pm2-field pm2-field-enhanced">
+                <label htmlFor="pm2-desc">
+                  <span className="pm2-label-icon">📝</span>
+                  Descripción
+                </label>
+                <div className="pm2-input-wrapper">
+                  <textarea
+                    id="pm2-desc"
+                    rows={4}
+                    value={formData.descripcion}
+                    onChange={(e) => setField('descripcion', e.target.value)}
+                    placeholder="Describe los ingredientes, características especiales, tamaño, etc."
+                    className="pm2-input-modern pm2-textarea-modern"
+                  />
+                  <span className="pm2-input-hint">información adicional para el cliente</span>
+                </div>
               </div>
 
-              {/* Footer (sticky dentro del modal) */}
-              <div className="pm2-actions">
-                <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-primary" disabled={saving}>
-                  {saving ? (file ? 'Guardando con imagen…' : 'Guardando…') : (product ? 'Actualizar' : 'Agregar')}
-                </button>
-              </div>
             </form>
 
-            {/* Preview / Media */}
-            <aside className="pm2-media">
+            {/* Preview / Media Section */}
+            <div className="order-modal-section">
+              <h3 className="modal-section-title">Vista Previa de Imagen</h3>
               <div className="pm2-media-box" onClick={preview ? () => setShowImagePreview(true) : undefined}>
                 {preview ? (
                   <img src={preview} alt="Vista previa" />
@@ -190,12 +232,47 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
                 )}
               </div>
 
-              <div className="pm2-media-actions">
-                <button className="pm2-soft" onClick={openPicker}>Cambiar</button>
-                {preview && <button className="pm2-soft" onClick={() => setShowImagePreview(true)}>Ampliar</button>}
-                {preview && <button className="pm2-soft danger" onClick={() => { setPreview(null); setFile(null); }}>Quitar</button>}
+              <div className="order-modal-action-buttons">
+                <button className="order-modal-btn order-modal-btn-map" onClick={openPicker}>
+                  📷 Cambiar
+                </button>
+                {preview && (
+                  <button className="order-modal-btn order-modal-btn-receipt" onClick={() => setShowImagePreview(true)}>
+                    🔍 Ampliar
+                  </button>
+                )}
+                {preview && (
+                  <button className="pm2-soft danger" onClick={() => { setPreview(null); setFile(null); }}>
+                    🗑️ Quitar
+                  </button>
+                )}
               </div>
-            </aside>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="order-modal-footer">
+            <div className="order-modal-footer-left">
+              {/* Espacio para acciones adicionales */}
+            </div>
+            <div className="order-modal-footer-right">
+              <button
+                type="button"
+                className="order-modal-btn order-modal-btn-close"
+                onClick={onClose}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="order-modal-btn order-modal-btn-primary"
+                onClick={submit}
+                disabled={saving}
+              >
+                {saving ? (file ? 'Guardando con imagen…' : 'Guardando…') : (product ? 'Actualizar' : 'Agregar')}
+              </button>
+            </div>
           </div>
         </section>
       </div>

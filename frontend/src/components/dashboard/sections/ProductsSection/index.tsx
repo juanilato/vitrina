@@ -10,6 +10,10 @@ import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import ProductRow from './components/ProductCard';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 const ProductsSection: React.FC = () => {
   const {
     products,
@@ -27,7 +31,8 @@ const ProductsSection: React.FC = () => {
   const [showStockModal, setShowStockModal] = useState(false);
   const [managingStockProduct, setManagingStockProduct] = useState<ProductWithExtras | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all'); 
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [showInfoReference, setShowInfoReference] = useState(false); 
   const filteredProducts = products.filter((product) => {
   const nombre = product.nombre || '';
   const descripcion = product.descripcion || '';
@@ -141,6 +146,13 @@ const ProductsSection: React.FC = () => {
             <span className="sidebar-icon"><Inventory2OutlinedIcon fontSize="small" /></span>
             Productos
           </h2>
+          <button
+            className="btn-info-icon"
+            onClick={() => setShowInfoReference(!showInfoReference)}
+            title="Ver cómo funcionan los productos"
+          >
+            <InfoOutlinedIcon fontSize="small" />
+          </button>
         </div>
 
 <div className="sidebar-content">
@@ -291,6 +303,110 @@ const ProductsSection: React.FC = () => {
             setManagingStockProduct(null);
           }}
         />
+      )}
+
+      {/* Modal de referencia de productos */}
+      {showInfoReference && (
+        <div className="status-reference-overlay" onClick={() => setShowInfoReference(false)}>
+          <div className="status-reference-card" onClick={(e) => e.stopPropagation()}>
+            <div className="status-ref-header">
+              <h3>¿Cómo funcionan los Productos?</h3>
+              <button className="status-ref-close" onClick={() => setShowInfoReference(false)}>×</button>
+            </div>
+            <div className="status-ref-body">
+              <div className="status-flow">
+                <div className="status-flow-item">
+                  <div className="status-flow-icon" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                    <AddOutlinedIcon fontSize="small" />
+                  </div>
+                  <div className="status-flow-info">
+                    <span className="status-flow-name">1. Crear Producto</span>
+                    <span className="status-flow-desc">Registra productos con nombre, descripción, precio e imagen</span>
+                  </div>
+                </div>
+                <div className="status-flow-arrow">↓</div>
+
+                <div className="status-flow-item">
+                  <div className="status-flow-icon" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}>
+                    <EditOutlinedIcon fontSize="small" />
+                  </div>
+                  <div className="status-flow-info">
+                    <span className="status-flow-name">2. Configurar Información</span>
+                    <span className="status-flow-desc">Define precio, descripción y activa/desactiva su disponibilidad</span>
+                  </div>
+                </div>
+                <div className="status-flow-arrow">↓</div>
+
+                <div className="status-flow-item">
+                  <div className="status-flow-icon" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' }}>
+                    <Inventory2OutlinedIcon fontSize="small" />
+                  </div>
+                  <div className="status-flow-info">
+                    <span className="status-flow-name">3. Gestionar Stock</span>
+                    <span className="status-flow-desc">Elige entre stock individual o compuesto por ingredientes</span>
+                  </div>
+                </div>
+                <div className="status-flow-arrow">↓</div>
+
+                <div className="status-flow-split">
+                  <div className="status-flow-branch">
+                    <span className="branch-label">Stock Individual</span>
+                    <div className="status-flow-item">
+                      <div className="status-flow-icon" style={{ background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)' }}>
+                        <span style={{ fontSize: '20px' }}>🔢</span>
+                      </div>
+                      <div className="status-flow-info">
+                        <span className="status-flow-name">Cantidad Fija</span>
+                        <span className="status-flow-desc">Define cuántas unidades tienes disponibles</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="status-flow-branch">
+                    <span className="branch-label">Stock Compuesto</span>
+                    <div className="status-flow-item">
+                      <div className="status-flow-icon" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
+                        <span style={{ fontSize: '20px' }}>🍴</span>
+                      </div>
+                      <div className="status-flow-info">
+                        <span className="status-flow-name">Por Ingredientes</span>
+                        <span className="status-flow-desc">El stock se calcula según ingredientes disponibles</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="status-flow-arrow">↓</div>
+
+                <div className="status-flow-item">
+                  <div className="status-flow-icon" style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)' }}>
+                    <VisibilityOutlinedIcon fontSize="small" />
+                  </div>
+                  <div className="status-flow-info">
+                    <span className="status-flow-name">4. Publicar en Vitrina</span>
+                    <span className="status-flow-desc">Los productos activos aparecen en tu tienda online</span>
+                  </div>
+                </div>
+                <div className="status-flow-arrow">↓</div>
+
+                <div className="status-flow-item">
+                  <div className="status-flow-icon" style={{ background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}>
+                    <ShoppingCartOutlinedIcon fontSize="small" />
+                  </div>
+                  <div className="status-flow-info">
+                    <span className="status-flow-name">5. Recibir Pedidos</span>
+                    <span className="status-flow-desc">Los clientes pueden comprar y el stock se actualiza automáticamente</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="status-ref-footer">
+                <div className="status-ref-note">
+                  <strong>Nota:</strong> Los productos con stock compuesto dependen de tus ingredientes. Si un ingrediente se agota, el producto dejará de estar disponible automáticamente.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

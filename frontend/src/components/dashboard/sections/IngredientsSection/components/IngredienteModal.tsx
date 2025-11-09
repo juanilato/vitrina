@@ -62,27 +62,47 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
   return (
     <div className="pm2-overlay" onClick={onClose}>
       <section
-        className="pm2-dialog ingredient-modal-modern"
+        className="pm2-dialog order-modal-modern ingredient-modal-modern"
         role="dialog"
         aria-modal="true"
         aria-label={ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header moderno */}
-        <header className="pm2-header">
-          <div className="pm2-titles">
-            <h2 className="pm2-title">
-              {ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}
-            </h2>
-            <p className="pm2-subtitle">
-              Define el nombre, stock, unidad de medida y selecciona un ícono representativo
-            </p>
+        <header className="order-modal-header">
+          <div className="order-modal-header-left">
+            <div className="order-modal-header-info">
+              <div className="order-modal-client-name">
+                {ingrediente ? 'Editar ingrediente' : 'Nuevo ingrediente'}
+              </div>
+              <div className="order-modal-date">
+                Define el nombre, stock, unidad de medida y selecciona un ícono representativo
+              </div>
+            </div>
           </div>
-          <button className="pm2-close" onClick={onClose} aria-label="Cerrar">×</button>
+          <button className="modal-close-modern" onClick={onClose} aria-label="Cerrar">×</button>
         </header>
 
         {/* Body */}
-        <div className="pm2-body" style={{ gridTemplateColumns: '1fr' }}>
+        <div className="order-modal-body">
+          {/* Chips informativos */}
+          <div className="order-modal-chips-section">
+            <div className="order-chip order-chip-delivery" style={{ backgroundColor: stockStatus.bg, color: stockStatus.color, borderColor: stockStatus.color }}>
+              <DynamicMuiIcon name={formData.icono} fontSize="small" />
+              <span>{stockStatus.label}</span>
+            </div>
+            {stock > 0 && (
+              <div className="order-chip order-chip-payment">
+                📦
+                <span>{stock} {formData.unidadMedida}</span>
+              </div>
+            )}
+            <div className="order-chip order-chip-email">
+              📏
+              <span>Unidad: {formData.unidadMedida}</span>
+            </div>
+          </div>
+
           <form className="pm2-form" onSubmit={submit}>
             <div className="pm2-field">
               <label htmlFor="pm2-nombre">Nombre *</label>
@@ -174,15 +194,32 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
               <p className="pm2-help">Se guardará el nombre del ícono MUI, y se mostrará visualmente en las listas.</p>
             </div>
 
-            <div className="pm2-actions" style={{ gridColumn: '1 / -1' }}>
-              <button type="button" className="btn-secondary" onClick={onClose} disabled={saving}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn-primary" disabled={saving}>
-                {saving ? 'Guardando…' : (ingrediente ? 'Actualizar' : 'Agregar')}
-              </button>
-            </div>
           </form>
+        </div>
+
+        {/* Footer */}
+        <div className="order-modal-footer">
+          <div className="order-modal-footer-left">
+            {/* Espacio para acciones adicionales */}
+          </div>
+          <div className="order-modal-footer-right">
+            <button
+              type="button"
+              className="order-modal-btn order-modal-btn-close"
+              onClick={onClose}
+              disabled={saving}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="order-modal-btn order-modal-btn-primary"
+              onClick={submit}
+              disabled={saving}
+            >
+              {saving ? 'Guardando…' : (ingrediente ? 'Actualizar' : 'Agregar')}
+            </button>
+          </div>
         </div>
       </section>
 
