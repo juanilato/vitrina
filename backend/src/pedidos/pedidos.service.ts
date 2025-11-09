@@ -961,8 +961,101 @@ export class PedidosService {
   }
 
   /**
+   * Descuenta el stock de los productos de un pedido entregado
+   * Permite stock negativo como indicador de faltante
+   */
+  private async descontarStockPedido(pedidoId: string): Promise<void> {
+    try {
+      // Obtener todos los items del pedido con información del producto
+      const items = await this.prisma.itemPedido.findMany({
+        where: { pedidoId },
+        include: {
+          producto: {
+            include: {
+              ingredientes: {
+                include: {
+                  ingrediente: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      for (const item of items) {
+        const { producto, cantidad, ingredientesExtras } = item;
+
+        // Procesar según tipo de stock
+        if (producto.tipoStock === 'individual') {
+          // Stock individual: restar la cantidad del pedido al stock individual
+          await this.prisma.productos.update({
+            where: { id: producto.id },
+            data: {
+              stockIndividual: {
+                decrement: cantidad
+              }
+            }
+          });
+
+          console.log(`Stock individual descontado: Producto ${producto.nombre}, cantidad: ${cantidad}, nuevo stock: ${producto.stockIndividual - cantidad}`);
+
+        } else if (producto.tipoStock === 'compuesto') {
+          // Stock compuesto: restar ingredientes según la receta
+          for (const productoIngrediente of producto.ingredientes) {
+            const cantidadTotal = productoIngrediente.cantidadRequerida * cantidad;
+
+            await this.prisma.ingrediente.update({
+              where: { id: productoIngrediente.ingredienteId },
+              data: {
+                stockDisponible: {
+                  decrement: cantidadTotal
+                }
+              }
+            });
+
+            console.log(`Stock ingrediente descontado: ${productoIngrediente.ingrediente.nombre}, cantidad: ${cantidadTotal}`);
+          }
+        }
+
+        // Procesar ingredientes extras si los hay
+        if (ingredientesExtras) {
+          const extras = Array.isArray(ingredientesExtras)
+            ? ingredientesExtras
+            : typeof ingredientesExtras === 'string'
+              ? JSON.parse(ingredientesExtras)
+              : ingredientesExtras;
+
+          if (Array.isArray(extras) && extras.length > 0) {
+            for (const extra of extras) {
+              if (extra.ingredienteId && extra.cantidad) {
+                await this.prisma.ingrediente.update({
+                  where: { id: extra.ingredienteId },
+                  data: {
+                    stockDisponible: {
+                      decrement: extra.cantidad
+                    }
+                  }
+                });
+
+                console.log(`Stock extra descontado: ingrediente ID ${extra.ingredienteId}, cantidad: ${extra.cantidad}`);
+              }
+            }
+          }
+        }
+      }
+
+      console.log(`Stock descontado exitosamente para pedido ${pedidoId}`);
+    } catch (error) {
+      console.error(`Error descontando stock del pedido ${pedidoId}:`, error);
+      // No lanzamos el error para no bloquear la entrega del pedido
+      // El stock queda registrado en logs para corrección manual si es necesario
+    }
+  }
+
+  /**
    * Marca el pedido como "entregado" (solo repartidor)
    * Notifica a la empresa y al cliente
+   * Descuenta el stock de los productos
    */
   async marcarEntregado(pedidoId: string, repartidorId: string): Promise<PedidoWithItems> {
     try {
@@ -993,6 +1086,9 @@ export class PedidosService {
         where: { id: pedidoId },
         data: { estado: 'entregado' }
       });
+
+      // Descontar stock de los productos e ingredientes
+      await this.descontarStockPedido(pedidoId);
 
       const pedidoActualizado = await this.findOne(pedidoId);
 

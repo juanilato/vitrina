@@ -12,6 +12,7 @@ import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlined';
+import StockControlModal from './components/StockControlModal';
 
 const IngredientesSection: React.FC = () => {
   const {
@@ -29,7 +30,8 @@ const IngredientesSection: React.FC = () => {
   const [editingIngrediente, setEditingIngrediente] = useState<IngredienteWithExtras | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
-  const [showInfoReference, setShowInfoReference] = useState(false); 
+  const [showInfoReference, setShowInfoReference] = useState(false);
+  const [showStockControlModal, setShowStockControlModal] = useState(false); 
   
   const filteredIngredientes = ingredientes.filter((ingrediente) => {
     const nombre = ingrediente.nombre || '';
@@ -133,6 +135,17 @@ const IngredientesSection: React.FC = () => {
         </div>
 
         <div className="sidebar-content">
+          <div className="sidebar-section">
+            <button
+              className="cnav-item cnav-item--primary"
+              onClick={() => setShowStockControlModal(true)}
+              style={{ marginBottom: '12px' }}
+            >
+              <span className="cnav-icon"><Inventory2OutlinedIcon fontSize="small" /></span>
+              <span className="cnav-label">Control Stock</span>
+            </button>
+          </div>
+
           <div className="sidebar-section">
             <h3 className="sidebar-section-title">Buscar</h3>
             <div className="sidebar-search">
@@ -272,6 +285,14 @@ const IngredientesSection: React.FC = () => {
             setShowAddModal(false);
             setEditingIngrediente(null);
           }}
+        />
+      )}
+
+      {/* Modal de Control de Stock */}
+      {showStockControlModal && (
+        <StockControlModal
+          onClose={() => setShowStockControlModal(false)}
+          onUpdate={loadIngredientes}
         />
       )}
 
