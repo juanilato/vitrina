@@ -7,6 +7,7 @@ import IngredientsSection from './sections/IngredientsSection';
 import OrdersSection from './sections/OrdersSection';
 import NotificationsSection from './sections/NotificationsSection';
 import AccountConfigSection from './sections/AccountConfigSection';
+import StatsSection from './sections/StatsSection';
 import MenuOpenOutlinedIcon from '@mui/icons-material/MenuOpenOutlined';
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
@@ -42,7 +43,7 @@ const CompanyMainDashboard: React.FC = () => {
       case 'pedidos': return <OrdersSection />;
       case 'ingredientes': return <IngredientsSection />;
       case 'notificaciones': return <NotificationsSection />;
-      case 'estadisticas': return <div className="section-placeholder">📈 Sección de Estadísticas (próximamente)</div>;
+      case 'estadisticas': return <StatsSection />;
       case 'config': return <div className="tab-content"><AccountConfigSection /></div>;
       default:
         return (

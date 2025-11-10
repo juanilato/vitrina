@@ -15,6 +15,7 @@ import { UpdatePreferenciasDto } from './dto/update-preferencias.dto';
 import { UpdateExtrasDto } from './dto/update-extras.dto';
 import { UpdateCategoriasDto } from './dto/update-categorias.dto';
 import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
+import { VinculoEstado } from '@prisma/client';
 
 @Injectable()
 export class EmpresasService {
@@ -1097,5 +1098,322 @@ async uploadDashboard(id: string, file: Express.Multer.File) {
         subcategorias: subcategorias.map((es: any) => es.subcategoria),
       };
     });
+  }
+
+  // Estadísticas generales de la empresa
+  async getEstadisticas(empresaId: string) {
+    console.log('📊 [GET ESTADISTICAS] Obteniendo estadísticas para empresa:', empresaId);
+
+    // Verificar que la empresa existe
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+    });
+
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    // Obtener fecha de hace 30 días para comparaciones
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hace30Dias.getDate() - 30);
+
+    const hace7Dias = new Date();
+    hace7Dias.setDate(hace7Dias.getDate() - 7);
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const ayer = new Date(hoy);
+    ayer.setDate(ayer.getDate() - 1);
+
+    // 1. Estadísticas de Productos
+    const totalProductos = await this.prisma.productos.count({
+      where: { empresaId },
+    });
+
+    const productosActivos = await this.prisma.productos.count({
+      where: { empresaId, activo: true },
+    });
+
+    const productosInactivos = totalProductos - productosActivos;
+
+    const productosConStockBajo = await this.prisma.productos.count({
+      where: {
+        empresaId,
+        tipoStock: 'individual',
+        stockIndividual: { lt: 10, gt: 0 },
+      },
+    });
+
+    const productosSinStock = await this.prisma.productos.count({
+      where: {
+        empresaId,
+        tipoStock: 'individual',
+        stockIndividual: 0,
+      },
+    });
+
+    // 2. Estadísticas de Pedidos
+    const totalPedidos = await this.prisma.pedido.count({
+      where: { empresaId },
+    });
+
+    const pedidosHoy = await this.prisma.pedido.count({
+      where: {
+        empresaId,
+        createdAt: { gte: hoy },
+      },
+    });
+
+    const pedidosAyer = await this.prisma.pedido.count({
+      where: {
+        empresaId,
+        createdAt: {
+          gte: ayer,
+          lt: hoy,
+        },
+      },
+    });
+
+    const pedidosUltimos7Dias = await this.prisma.pedido.count({
+      where: {
+        empresaId,
+        createdAt: { gte: hace7Dias },
+      },
+    });
+
+    const pedidosUltimos30Dias = await this.prisma.pedido.count({
+      where: {
+        empresaId,
+        createdAt: { gte: hace30Dias },
+      },
+    });
+
+    // Pedidos por estado
+    const pedidosPorEstado = await this.prisma.pedido.groupBy({
+      by: ['estado'],
+      where: { empresaId },
+      _count: true,
+    });
+
+    const estadoPedidos = {
+      pendiente_confirmacion: 0,
+      confirmado: 0,
+      en_proceso: 0,
+      esperando_delivery: 0,
+      en_camino: 0,
+      esperando_retiro: 0,
+      entregado: 0,
+      no_confirmado: 0,
+      cancelado: 0,
+    };
+
+    pedidosPorEstado.forEach((item) => {
+      estadoPedidos[item.estado] = item._count;
+    });
+
+    // 3. Estadísticas de Ventas
+    const ventasTotales = await this.prisma.pedido.aggregate({
+      where: {
+        empresaId,
+        estado: { in: ['entregado', 'en_camino', 'esperando_retiro', 'confirmado', 'en_proceso', 'esperando_delivery'] },
+      },
+      _sum: { total: true },
+    });
+
+    const ventasHoy = await this.prisma.pedido.aggregate({
+      where: {
+        empresaId,
+        createdAt: { gte: hoy },
+        estado: { in: ['entregado', 'en_camino', 'esperando_retiro', 'confirmado', 'en_proceso', 'esperando_delivery'] },
+      },
+      _sum: { total: true },
+    });
+
+    const ventasUltimos7Dias = await this.prisma.pedido.aggregate({
+      where: {
+        empresaId,
+        createdAt: { gte: hace7Dias },
+        estado: { in: ['entregado', 'en_camino', 'esperando_retiro', 'confirmado', 'en_proceso', 'esperando_delivery'] },
+      },
+      _sum: { total: true },
+    });
+
+    const ventasUltimos30Dias = await this.prisma.pedido.aggregate({
+      where: {
+        empresaId,
+        createdAt: { gte: hace30Dias },
+        estado: { in: ['entregado', 'en_camino', 'esperando_retiro', 'confirmado', 'en_proceso', 'esperando_delivery'] },
+      },
+      _sum: { total: true },
+    });
+
+    // Ticket promedio
+    const ticketPromedio = totalPedidos > 0 ? Number(ventasTotales._sum.total || 0) / totalPedidos : 0;
+
+    // 4. Estadísticas de Ingredientes
+    const totalIngredientes = await this.prisma.ingrediente.count({
+      where: { empresaId },
+    });
+
+    const ingredientesStockBajo = await this.prisma.ingrediente.count({
+      where: {
+        empresaId,
+        stockDisponible: { lt: 10, gt: 0 },
+      },
+    });
+
+    const ingredientesSinStock = await this.prisma.ingrediente.count({
+      where: {
+        empresaId,
+        stockDisponible: 0,
+      },
+    });
+
+    // 5. Productos más vendidos (últimos 30 días)
+    const productosMasVendidos = await this.prisma.itemPedido.groupBy({
+      by: ['productoId'],
+      where: {
+        pedido: {
+          empresaId,
+          createdAt: { gte: hace30Dias },
+          estado: { notIn: ['no_confirmado', 'cancelado'] },
+        },
+      },
+      _sum: { cantidad: true },
+      _count: true,
+      orderBy: {
+        _sum: {
+          cantidad: 'desc',
+        },
+      },
+      take: 5,
+    });
+
+    // Obtener nombres de productos
+    const productosVendidosConNombres = await Promise.all(
+      productosMasVendidos.map(async (item) => {
+        const producto = await this.prisma.productos.findUnique({
+          where: { id: item.productoId },
+          select: { id: true, nombre: true, precio: true, fotoUrl: true },
+        });
+        return {
+          producto: producto,
+          cantidadVendida: item._sum.cantidad || 0,
+          numeroVentas: item._count,
+        };
+      })
+    );
+
+    // 6. Estadísticas de Repartidores
+    const totalRepartidores = await this.prisma.empresaRepartidor.count({
+      where: { empresaId, estado: VinculoEstado.ACEPTADO },
+    });
+
+    const repartidoresActivos = await this.prisma.empresaRepartidor.count({
+      where: { empresaId, estado: VinculoEstado.ACEPTADO },
+    });
+
+    // 7. Tasa de conversión y métricas de tiempo
+    const pedidosEntregados = await this.prisma.pedido.count({
+      where: {
+        empresaId,
+        estado: 'entregado',
+        createdAt: { gte: hace30Dias },
+      },
+    });
+
+    const pedidosRechazados = await this.prisma.pedido.count({
+      where: {
+        empresaId,
+        estado: { in: ['no_confirmado', 'cancelado'] },
+        createdAt: { gte: hace30Dias },
+      },
+    });
+
+    const tasaExito = pedidosUltimos30Dias > 0
+      ? ((pedidosEntregados / pedidosUltimos30Dias) * 100).toFixed(1)
+      : '0.0';
+
+    const tasaRechazo = pedidosUltimos30Dias > 0
+      ? ((pedidosRechazados / pedidosUltimos30Dias) * 100).toFixed(1)
+      : '0.0';
+
+    // 8. Tendencias (comparación con período anterior)
+    const hace60Dias = new Date();
+    hace60Dias.setDate(hace60Dias.getDate() - 60);
+
+    const pedidosPeriodoAnterior = await this.prisma.pedido.count({
+      where: {
+        empresaId,
+        createdAt: {
+          gte: hace60Dias,
+          lt: hace30Dias,
+        },
+      },
+    });
+
+    const crecimientoPedidos = pedidosPeriodoAnterior > 0
+      ? (((pedidosUltimos30Dias - pedidosPeriodoAnterior) / pedidosPeriodoAnterior) * 100).toFixed(1)
+      : '0.0';
+
+    const ventasPeriodoAnterior = await this.prisma.pedido.aggregate({
+      where: {
+        empresaId,
+        createdAt: {
+          gte: hace60Dias,
+          lt: hace30Dias,
+        },
+        estado: { in: ['entregado', 'en_camino', 'esperando_retiro', 'confirmado', 'en_proceso', 'esperando_delivery'] },
+      },
+      _sum: { total: true },
+    });
+
+    const crecimientoVentas = Number(ventasPeriodoAnterior._sum.total || 0) > 0
+      ? (((Number(ventasUltimos30Dias._sum.total || 0) - Number(ventasPeriodoAnterior._sum.total || 0)) / Number(ventasPeriodoAnterior._sum.total || 0)) * 100).toFixed(1)
+      : '0.0';
+
+    console.log('✅ [GET ESTADISTICAS] Estadísticas calculadas exitosamente');
+
+    return {
+      productos: {
+        total: totalProductos,
+        activos: productosActivos,
+        inactivos: productosInactivos,
+        stockBajo: productosConStockBajo,
+        sinStock: productosSinStock,
+      },
+      pedidos: {
+        total: totalPedidos,
+        hoy: pedidosHoy,
+        ayer: pedidosAyer,
+        ultimos7Dias: pedidosUltimos7Dias,
+        ultimos30Dias: pedidosUltimos30Dias,
+        porEstado: estadoPedidos,
+        tasaExito: parseFloat(tasaExito),
+        tasaRechazo: parseFloat(tasaRechazo),
+      },
+      ventas: {
+        totales: ventasTotales._sum.total || 0,
+        hoy: ventasHoy._sum.total || 0,
+        ultimos7Dias: ventasUltimos7Dias._sum.total || 0,
+        ultimos30Dias: ventasUltimos30Dias._sum.total || 0,
+        ticketPromedio: ticketPromedio,
+      },
+      ingredientes: {
+        total: totalIngredientes,
+        stockBajo: ingredientesStockBajo,
+        sinStock: ingredientesSinStock,
+      },
+      productosMasVendidos: productosVendidosConNombres,
+      repartidores: {
+        total: totalRepartidores,
+        activos: repartidoresActivos,
+      },
+      tendencias: {
+        crecimientoPedidos: parseFloat(crecimientoPedidos),
+        crecimientoVentas: parseFloat(crecimientoVentas),
+      },
+    };
   }
 }

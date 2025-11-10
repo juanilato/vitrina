@@ -326,4 +326,10 @@ export class EmpresasController {
   ) {
     return this.empresasService.updateCategorias(id, updateCategoriasDto);
   }
+
+  // Estadísticas
+  @Get(':id/estadisticas')
+  async getEstadisticas(@Param('id') id: string) {
+    return this.empresasService.getEstadisticas(id);
+  }
 }
