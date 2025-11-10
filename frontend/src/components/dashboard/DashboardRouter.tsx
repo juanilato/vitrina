@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
-import ClientDashboard from '../client';
+
 import CompanyMainDashboard from './CompanyMainDashboard';
 import RepartidorMainDashboard from './RepartidorMainDashboard';
 import './DashboardRouter.css';
@@ -29,9 +29,7 @@ const DashboardRouter: React.FC = () => {
     return <CompanyMainDashboard />;
   }
 
-  if (isClient) {
-    return <ClientDashboard />;
-  }
+
 
   if (isRepartidor) {
     return <RepartidorMainDashboard />;

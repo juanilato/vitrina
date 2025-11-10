@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 interface PrivateRouteProps {
   children: React.ReactNode;
 }
-
+// Verifica usuario este en sesión para ingresar a página de usuario logeado
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
 

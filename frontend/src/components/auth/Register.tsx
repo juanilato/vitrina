@@ -6,7 +6,7 @@ import './Register.css';
 import { GoogleLogin } from '@react-oauth/google';
 
 
-
+// Register de usuario con google auth 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',

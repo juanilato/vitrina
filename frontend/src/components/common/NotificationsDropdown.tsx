@@ -9,7 +9,7 @@ interface NotificationsDropdownProps {
   isOpen?: boolean;
   onClose?: () => void;
 }
-
+// Listado de notificaciones
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ 
   onViewAll, 
   showTrigger = true, 

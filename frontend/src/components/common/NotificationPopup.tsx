@@ -3,6 +3,8 @@ import { useNotifications } from '../../contexts/NotificationsContext';
 import { getNotificationIcon } from '../../utils/notificationUtils';
 import './NotificationPopup.css';
 
+
+// Notificacion popup usa el notificacion context para traer notificaciones en vivo y mostrar
 const NotificationPopup: React.FC = () => {
   const { notifications } = useNotifications();
   const [showPopup, setShowPopup] = useState(false);

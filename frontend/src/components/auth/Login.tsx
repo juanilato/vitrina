@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import './Login.css';
 
 import { GoogleLogin } from '@react-oauth/google';
-
+// Login de usuario con google auth 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

@@ -1,10 +1,22 @@
-import { ShippingPriceResponse, DeliveryLocation } from '../components/client/types';
+
 import axiosInstance from '../config/axios.config';
 
 export interface CalculateShippingPriceRequest {
   clienteLat: number;
   clienteLng: number;
   ubicacionId: number;
+}
+
+export interface ShippingPriceResponse {
+  price: number | null;
+  isEstimated: boolean;
+  message: string;
+}
+
+export interface DeliveryLocation {
+  direccion: string;
+  lat: number;
+  lng: number;
 }
 
 export class ShippingService {

@@ -8,7 +8,7 @@ interface VerificationModalProps {
   userType: 'cliente' | 'empresa' | 'repartidor';
   onVerificationSuccess: () => void;
 }
-
+// Modal de código de verificación 
 const VerificationModal: React.FC<VerificationModalProps> = ({
   isOpen,
   onClose,
