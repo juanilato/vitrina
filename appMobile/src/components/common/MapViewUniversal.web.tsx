@@ -3,59 +3,64 @@
  * Implementación de mapas para web usando Google Maps JavaScript API
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect, useRef, useState, Children } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyANk5MpfxAkPg0krpULl3xUR3e4wDigkOs';
 
-// Exportar componentes mock para web (no se usan directamente)
-export const MapView = null;
-export const Marker = null;
-export const Polyline = null;
-export const PROVIDER_GOOGLE = null;
-export const Region = null;
+// Types
+export interface Region {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
+}
 
-// ========================================
-// GOOGLE MAPS WEB IMPLEMENTATION
-// ========================================
+export const PROVIDER_GOOGLE = 'google';
 
-interface MapFallbackProps {
-  height?: number;
-  mapType?: 'location-picker' | 'location-edit' | 'order-detail' | 'delivery-tracking' | 'simple-location';
-  markers?: Array<{
-    lat: number;
-    lng: number;
-    title?: string;
-    color?: string;
-    icon?: string;
-  }>;
-  center?: { lat: number; lng: number };
-  zoom?: number;
-  onMapClick?: (lat: number, lng: number) => void;
-  draggableMarker?: boolean;
-  showRoute?: boolean;
-  routeCoordinates?: Array<{ latitude: number; longitude: number }>;
+interface MapViewProps {
+  provider?: string;
+  style?: any;
+  initialRegion?: Region;
+  showsUserLocation?: boolean;
+  showsMyLocationButton?: boolean;
+  customMapStyle?: any[];
+  children?: React.ReactNode;
+}
+
+interface MarkerProps {
+  coordinate: { latitude: number; longitude: number };
+  title?: string;
+  description?: string;
+  children?: React.ReactNode;
+}
+
+interface PolylineProps {
+  coordinates: Array<{ latitude: number; longitude: number }>;
+  strokeColor?: string;
+  strokeWidth?: number;
 }
 
 /**
- * Google Maps implementation for web
+ * MapView component for web - uses Google Maps JavaScript API
  */
-export const MapFallback: React.FC<MapFallbackProps> = ({
-  height = 250,
-  markers = [],
-  center = { lat: -31.4201, lng: -64.1888 }, // Córdoba por defecto
-  zoom = 13,
-  onMapClick,
-  draggableMarker = false,
-  showRoute = false,
-  routeCoordinates = [],
+export const MapView: React.FC<MapViewProps> = ({
+  style,
+  initialRegion,
+  showsUserLocation = false,
+  showsMyLocationButton = false,
+  customMapStyle = [],
+  children,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
-  const polylineRef = useRef<any>(null);
+  const polylinesRef = useRef<any[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Extraer altura del estilo
+  const height = StyleSheet.flatten(style)?.height || 400;
 
   // Cargar script de Google Maps
   useEffect(() => {
@@ -97,6 +102,14 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
       const google = (window as any).google;
       if (!google?.maps) return;
 
+      const center = initialRegion
+        ? { lat: initialRegion.latitude, lng: initialRegion.longitude }
+        : { lat: -31.4201, lng: -64.1888 }; // Córdoba por defecto
+
+      const zoom = initialRegion
+        ? Math.round(Math.log(360 / initialRegion.latitudeDelta) / Math.LN2)
+        : 13;
+
       // Crear mapa
       const mapOptions = {
         center: center,
@@ -104,33 +117,42 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
-        zoomControl: true,
-        styles: [
-          {
-            featureType: 'poi',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }],
-          },
-        ],
+        zoomControl: showsMyLocationButton,
+        styles: customMapStyle,
       };
 
       googleMapRef.current = new google.maps.Map(mapRef.current, mapOptions);
 
-      // Click en mapa
-      if (onMapClick) {
-        googleMapRef.current.addListener('click', (e: any) => {
-          const lat = e.latLng.lat();
-          const lng = e.latLng.lng();
-          onMapClick(lat, lng);
+      // Mostrar ubicación del usuario si está habilitado
+      if (showsUserLocation && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          new google.maps.Marker({
+            position: userLocation,
+            map: googleMapRef.current,
+            title: 'Tu ubicación',
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: '#4285F4',
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 2,
+            },
+          });
         });
       }
     } catch (err) {
       console.error('Error inicializando mapa:', err);
       setError('Error al inicializar el mapa');
     }
-  }, [mapLoaded, center, zoom, onMapClick]);
+  }, [mapLoaded, initialRegion, showsUserLocation, showsMyLocationButton, customMapStyle]);
 
-  // Actualizar marcadores
+  // Procesar children (Markers y Polylines)
   useEffect(() => {
     if (!googleMapRef.current || !mapLoaded) return;
 
@@ -141,80 +163,66 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
 
-    // Agregar nuevos marcadores
-    markers.forEach((markerData, index) => {
-      const marker = new google.maps.Marker({
-        position: { lat: markerData.lat, lng: markerData.lng },
-        map: googleMapRef.current,
-        title: markerData.title || '',
-        draggable: draggableMarker && index === 0, // Solo el primer marcador es draggable
-        icon: markerData.color
-          ? {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: markerData.color,
-              fillOpacity: 1,
-              strokeColor: '#ffffff',
-              strokeWeight: 2,
-            }
-          : undefined,
-      });
+    // Limpiar polylines anteriores
+    polylinesRef.current.forEach((polyline) => polyline.setMap(null));
+    polylinesRef.current = [];
 
-      // Evento de arrastre
-      if (draggableMarker && index === 0 && onMapClick) {
-        marker.addListener('dragend', (e: any) => {
-          const lat = e.latLng.lat();
-          const lng = e.latLng.lng();
-          onMapClick(lat, lng);
+    // Procesar children
+    Children.forEach(children, (child: any) => {
+      if (!child) return;
+
+      // Procesar Marker
+      if (child.type === Marker) {
+        const { coordinate, title, description, children: markerChildren } = child.props;
+
+        const marker = new google.maps.Marker({
+          position: { lat: coordinate.latitude, lng: coordinate.longitude },
+          map: googleMapRef.current,
+          title: title || '',
         });
+
+        if (title || description) {
+          const infoWindow = new google.maps.InfoWindow({
+            content: `<div><strong>${title || ''}</strong><br/>${description || ''}</div>`,
+          });
+          marker.addListener('click', () => {
+            infoWindow.open(googleMapRef.current, marker);
+          });
+        }
+
+        markersRef.current.push(marker);
       }
 
-      markersRef.current.push(marker);
+      // Procesar Polyline
+      if (child.type === Polyline) {
+        const { coordinates, strokeColor, strokeWidth } = child.props;
+
+        if (coordinates && coordinates.length > 0) {
+          const path = coordinates.map((coord: any) => ({
+            lat: coord.latitude,
+            lng: coord.longitude,
+          }));
+
+          const polyline = new google.maps.Polyline({
+            path: path,
+            geodesic: true,
+            strokeColor: strokeColor || '#F26B1D',
+            strokeOpacity: 1.0,
+            strokeWeight: strokeWidth || 4,
+          });
+
+          polyline.setMap(googleMapRef.current);
+          polylinesRef.current.push(polyline);
+        }
+      }
     });
-
-    // Ajustar bounds si hay múltiples marcadores
-    if (markers.length > 1) {
-      const bounds = new google.maps.LatLngBounds();
-      markers.forEach((m) => bounds.extend({ lat: m.lat, lng: m.lng }));
-      googleMapRef.current.fitBounds(bounds);
-    }
-  }, [markers, mapLoaded, draggableMarker, onMapClick]);
-
-  // Dibujar ruta (polyline)
-  useEffect(() => {
-    if (!googleMapRef.current || !mapLoaded || !showRoute) return;
-
-    const google = (window as any).google;
-    if (!google?.maps) return;
-
-    // Limpiar polyline anterior
-    if (polylineRef.current) {
-      polylineRef.current.setMap(null);
-    }
-
-    if (routeCoordinates.length > 0) {
-      const path = routeCoordinates.map((coord) => ({
-        lat: coord.latitude,
-        lng: coord.longitude,
-      }));
-
-      polylineRef.current = new google.maps.Polyline({
-        path: path,
-        geodesic: true,
-        strokeColor: '#F26B1D',
-        strokeOpacity: 1.0,
-        strokeWeight: 4,
-      });
-
-      polylineRef.current.setMap(googleMapRef.current);
-    }
-  }, [routeCoordinates, mapLoaded, showRoute]);
+  }, [children, mapLoaded]);
 
   if (error) {
     return (
       <View
         style={{
-          height,
+          height: typeof height === 'number' ? height : 400,
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: '#fee',
@@ -232,7 +240,7 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
     return (
       <View
         style={{
-          height,
+          height: typeof height === 'number' ? height : 400,
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: '#f4f4f4',
@@ -251,10 +259,27 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
       ref={mapRef}
       style={{
         width: '100%',
-        height: height,
+        height: typeof height === 'number' ? height : 400,
         borderRadius: 12,
         overflow: 'hidden',
       }}
     />
   );
 };
+
+/**
+ * Marker component for web
+ */
+export const Marker: React.FC<MarkerProps> = () => {
+  return null;
+};
+
+/**
+ * Polyline component for web
+ */
+export const Polyline: React.FC<PolylineProps> = () => {
+  return null;
+};
+
+// MapFallback exportado para compatibilidad
+export const MapFallback = MapView;

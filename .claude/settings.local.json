@@ -42,7 +42,8 @@
       "Bash(findstr:*)",
       "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\appMobile\\src\\components\\common\\MapViewUniversal.tsx\")",
       "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\ProductsSection\\ProductsSection.css\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm run web:*)"
     ],
     "deny": [],
     "ask": []
