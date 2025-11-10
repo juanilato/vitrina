@@ -27,6 +27,10 @@ const RootRedirect: React.FC = () => {
   }
 };
 
+// App envuelta
+//      -> Auth Provider (autenticacion)
+//          -> Locations Provider  (ubicaciones de usuario)
+//            -> notificaciones
 function App() {
   return (
     <AuthProvider>

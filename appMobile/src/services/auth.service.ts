@@ -16,7 +16,19 @@ export const authService = {
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/login', credentials);
-    return response.data;
+    const data = response.data;
+
+    // 🚦 Si no es cliente → limpiar token y redirigir
+    if (data.user?.type !== 'cliente') {
+      console.warn(`🚫 Usuario tipo "${data.user?.type}" no permitido en este portal.`);
+      localStorage.removeItem('token');
+      setTimeout(() => {
+        window.location.href = 'https://company.vitrina.com.ar';
+      }, 100);
+      throw new Error('Usuario no permitido en esta aplicación.');
+    }
+
+    return data;
   },
 
   /**
@@ -35,9 +47,22 @@ export const authService = {
   async googleLogin(idToken: string): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/google', {
       idToken,
-      role: 'cliente', // Force role to be cliente
+      role: 'cliente', // fuerza tipo cliente
     });
-    return response.data;
+
+    const data = response.data;
+
+    // 🚦 Si no es cliente → limpiar token y redirigir
+    if (data.user?.type !== 'cliente') {
+      console.warn(`🚫 Usuario tipo "${data.user?.type}" no permitido en este portal.`);
+      localStorage.removeItem('token');
+      setTimeout(() => {
+        window.location.href = 'https://company.vitrina.com.ar';
+      }, 100);
+      throw new Error('Usuario no permitido en esta aplicación.');
+    }
+
+    return data;
   },
 
   /**
@@ -45,7 +70,19 @@ export const authService = {
    */
   async getProfile(): Promise<User> {
     const response = await api.get<User>('/auth/profile');
-    return response.data;
+    const user = response.data as User;
+
+    // 🚦 Si no es cliente → limpiar token y redirigir
+    if (user?.type !== 'cliente') {
+      console.warn(`🚫 Usuario tipo "${user?.type}" no permitido en este portal.`);
+      localStorage.removeItem('token');
+      setTimeout(() => {
+        window.location.href = 'https://company.vitrina.com.ar';
+      }, 100);
+      throw new Error('Usuario no permitido en esta aplicación.');
+    }
+
+    return user;
   },
 
   /**
@@ -55,8 +92,10 @@ export const authService = {
     try {
       await api.post('/auth/logout');
     } catch (error) {
-      // Ignore errors on logout
       console.error('Logout error:', error);
+    } finally {
+      // 🧹 Limpieza local
+      localStorage.removeItem('token');
     }
   },
 };

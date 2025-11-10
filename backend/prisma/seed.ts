@@ -2,6 +2,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+
+// Seed de mi prisma (categorías y subcategorías)
+
 const categoriesData = [
   {
     nombre: 'Alimentos y Bebidas',

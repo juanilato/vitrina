@@ -19,6 +19,7 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  // login de user (google id token)
   @Post('google')
   async loginWithGoogle(@Body() dto: GoogleLoginDto) {
     const { accessToken, user } = await this.authService.loginWithGoogle(dto.idToken);
@@ -38,13 +39,13 @@ export class AuthController {
     return this.authService.registerEmpresa(registerEmpresaDto);
   }
 
-    // registro de una empresa
+    // registro de un repartidor
     @Post('register/repartidor')
     async registerRepartidor(@Body() registerRepartidorDto: RegisterRepartidorDto) {
     return this.authService.registerRepartidor(registerRepartidorDto);
     }
 
-  
+  // registro de google (id Token)
   @Post('google/register')
   async googleRegister(@Body() dto: GoogleRegisterDto) {
     return this.authService.registerWithGoogle(dto.idToken, dto.type);
@@ -75,7 +76,7 @@ export class AuthController {
     return this.authService.logout(req.user.id, req.user.type);
   }
 
-  // obtención de perfil (no usado)
+  // obtención de perfil 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Request() req) {

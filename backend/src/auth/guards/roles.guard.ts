@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-// Roles guard para proteger rutas segun el tipo de usuario (cliente o empresa)
+// Roles guard para proteger rutas segun el tipo de usuario (cliente, empresa o repartidor)
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}

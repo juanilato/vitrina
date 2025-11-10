@@ -3,10 +3,11 @@
  */
 
 export interface User {
+  type: any;
   id: string;
   name: string;
   email: string;
-  role: 'cliente' | 'empresa';
+  role: 'cliente' | 'empresa' | 'repartidor';
   createdAt: string;
   updatedAt: string;
 }

@@ -8,6 +8,10 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.svg"   // o "./ERD.png"
+}
 
 
 // ——— Cuenta cliente ———
@@ -117,7 +121,7 @@ model Empresa {
 
   @@index([categoriaId])
 }
-
+// ——— Cuenta repartidor ———
 model Repartidor {
   id              String            @id @default(cuid())
   name          String
@@ -132,6 +136,7 @@ model Repartidor {
   updatedAt   DateTime  @updatedAt
 }
 
+// ——— Relación empresa repartidor  ———
 model EmpresaRepartidor {
   id          Int       @id @default(autoincrement())
   empresaId   String
@@ -141,12 +146,13 @@ model EmpresaRepartidor {
   repartidor  Repartidor @relation(fields: [repartidorId], references: [id])
 }
 
+// ——— Estado Vínculo entre repartidor empresa ———
 enum VinculoEstado {
   PENDIENTE
   ACEPTADO
   RECHAZADO
 }
-
+// ——— Días de la semana para horarios empresa ———
 enum DayOfWeek {
   LUN
   MAR
@@ -156,6 +162,7 @@ enum DayOfWeek {
   SAB
   DOM
 }
+// ——— Preferencias empresa ———
 model Preferencias {
   // hacemos 1:1 usando el mismo id que Empresa
   empresaId       String        @id
@@ -173,6 +180,7 @@ model Preferencias {
   horarios        HorarioAtencion[]
 }
 
+// ——— Horarios de atención ———
 model HorarioAtencion {
   id              Int           @id @default(autoincrement())
   empresaId       String
@@ -191,6 +199,7 @@ model HorarioAtencion {
 
   @@unique([empresaId, day, slotIndex])
 }
+// ——— Precios de envío ———
 model PreciosEnvio {
   id         Int      @id @default(autoincrement())
   empresaId  String
@@ -200,6 +209,8 @@ model PreciosEnvio {
   ubicacionId Int
   @@unique([ubicacionId, distancia])
 }
+
+// ——— Ubicación empresa ———
 model Ubicacion {
   id          Int         @id @default(autoincrement())
   empresaId   String      @unique
@@ -241,6 +252,7 @@ model Productos {
   ingredientes    ProductoIngrediente[]
 }
 
+// ——— Ingredientes particulares (stock compuesto) ———
 model Ingrediente {
   id              String         @id @default(cuid())
   nombre          String
@@ -257,7 +269,7 @@ model Ingrediente {
   @@index([empresaId])
 }
 
-
+// ——— Relación entre producto e ingrediente ———
 model ProductoIngrediente {
   id              Int            @id @default(autoincrement())
 
@@ -370,7 +382,7 @@ model ItemPedido {
   @@index([productoId])
 }
 
-// --- Mensajes ---
+// --- Mensajes --- (No Implementado prox chat en vivo)
 model Mensaje {
   id             String   @id @default(cuid())
 

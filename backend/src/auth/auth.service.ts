@@ -92,6 +92,7 @@ export class AuthService {
     };
   }
 
+  
   async loginWithGoogle(idToken: string)/*: Promise<TokenResponseDto>*/ {
     // 1) Verificar token de Google (firma + audiencia)
     const ticket = await this.google.verifyIdToken({
@@ -208,7 +209,7 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
           name: name ?? '',
           password,
           isVerified: true,
-          logo: picture ?? null, // si querés aprovechar la foto de Google como logo
+          logo: picture ?? null, 
         },
       });
     }

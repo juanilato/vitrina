@@ -18,6 +18,7 @@ export class RegisterClienteDto {
   type?: string;
 }
 
+// DTO register para un repartidor 
 export class RegisterRepartidorDto {
   @IsEmail()
   email: string;

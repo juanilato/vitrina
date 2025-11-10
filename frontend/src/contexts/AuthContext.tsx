@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import axiosInstance from '../config/axios.config';
 import { logTokenInfo, startTokenMonitoring } from '../utils/tokenMonitor';
 
+// 🔹 Solo estos tipos pueden usar esta app (ajustá según cuál sea esta app)
+const ALLOWED_USER_TYPE = ['empresa', 'repartidor'];
+
 interface User {
   id: string;
   email: string;
@@ -19,7 +22,7 @@ interface AuthContextType {
   error: string | null;
   debugToken: () => void;
   googleLogin: (idToken: string) => Promise<void>;
-  googleRegister: (idToken: string, type: 'cliente' | 'empresa' | 'repartidor') => Promise<void>; // 👉 NUEVO
+  googleRegister: (idToken: string, type: 'cliente' | 'empresa' | 'repartidor') => Promise<void>;
 }
 
 interface RegisterData {
@@ -44,6 +47,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 🔹 Función global de redirección
+const redirectIfNotAllowed = (userType?: string) => {
+  if (!userType) return;
+
+  if (!ALLOWED_USER_TYPE.includes(userType)) {
+    console.warn(`🚫 Usuario tipo "${userType}" no permitido. Cerrando sesión y redirigiendo...`);
+
+    // 🧹 1. Limpiar token y estado local
+    localStorage.removeItem('token');
+    setUser(null);
+
+    // 🕓 2. Pequeño delay opcional para que se ejecute el state update antes de salir
+    setTimeout(() => {
+      window.location.href = 'https://vitrina.com.ar';
+    }, 100);
+  }
+};
 
   const saveToken = (token?: string) => {
     if (!token) return;
@@ -70,8 +91,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (token) {
           logTokenInfo();
           const restoredUser = await restoreUserFromToken();
-          if (restoredUser) setUser(restoredUser);
-          else localStorage.removeItem('token');
+          if (restoredUser) {
+            setUser(restoredUser);
+            redirectIfNotAllowed(restoredUser.type); // 👈 chequea acá
+          } else {
+            localStorage.removeItem('token');
+          }
           const stop = startTokenMonitoring(30000);
           return () => stop();
         }
@@ -90,6 +115,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = data.accessToken || data.jwt;
       saveToken(token);
       setUser(data.user);
+      redirectIfNotAllowed(data.user.type); // 👈 chequea después de login
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Error al iniciar sesión';
       setError(msg);
@@ -108,6 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (!token) throw new Error('Respuesta sin token');
       saveToken(token);
       setUser(data.user);
+      redirectIfNotAllowed(data.user.type); // 👈 chequea después de Google login
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Error con Google';
       setError(msg);
@@ -117,16 +144,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const googleRegister = async (idToken: string, type: 'cliente' | 'empresa' | 'repartidor') => { // 👉 NUEVO
+  const googleRegister = async (idToken: string, type: 'cliente' | 'empresa' | 'repartidor') => {
     try {
       setLoading(true);
       setError(null);
-      // Backend: POST /auth/google/register { idToken, type }
       const { data } = await axiosInstance.post('/auth/google/register', { idToken, type });
       const token = data.accessToken || data.jwt;
       if (!token) throw new Error('Respuesta sin token');
       saveToken(token);
       setUser(data.user);
+      redirectIfNotAllowed(data.user.type); // 👈 chequea después de Google register
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Error al registrar con Google';
       setError(msg);
@@ -141,7 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
       const endpoint = `auth/register/${userData.type}`;
-      const logo = (userData.type === 'cliente' || userData.type === 'repartidor' )? undefined : userData.logo;
+      const logo = (userData.type === 'cliente' || userData.type === 'repartidor') ? undefined : userData.logo;
       const { data } = await axiosInstance.post(endpoint, { ...userData, logo });
       return data;
     } catch (err: any) {
@@ -179,7 +206,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error,
     debugToken,
     googleLogin,
-    googleRegister, // 👉 NUEVO
+    googleRegister,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
