@@ -7,7 +7,7 @@ interface AliasEditorProps {
   label?: string;
   placeholder?: string;
 }
-
+// Editor de alias de transferencia
 const AliasEditor: React.FC<AliasEditorProps> = ({
   value,
   onChange,

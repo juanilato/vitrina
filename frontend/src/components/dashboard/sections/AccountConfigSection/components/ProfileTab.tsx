@@ -1,8 +1,7 @@
 import React, { useState, useRef } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
-import ImageUploader from './preferencesTab/components/imageUploader';
-import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
-import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
+
+// Tab para perfil (no usado todavía )
 const ProfileTab: React.FC = () => {
   const {
     empresaData,

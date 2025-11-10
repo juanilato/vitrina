@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF, CircleF } from '@react-google-maps/api';
 import './PriceZoneMap.css';
-
+// Mapeador de distancia para los precios de envío 
 type Zone = { distancia: number; precio: number };
 
 interface PriceZoneMapProps {

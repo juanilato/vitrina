@@ -15,7 +15,7 @@ import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNone
 import './CompanyMainDashboard.css';
 import NotificationPeek from './shared/NotificationPeek';
 import NotificationsDropdown from '../common/NotificationsDropdown';
-
+// Side bar de compania para manejar los distintos sections 
 const CompanyMainDashboard: React.FC = () => {
   const { user, logout } = useAuthOptimized();
   const [activeSection, setActiveSection] = useState<

@@ -10,7 +10,7 @@ interface TimeInputProps {
   value: string;
   onChange: (val: string) => void;
 }
-
+// Time inputs de los schedule editor 
 const TimeInput: React.FC<TimeInputProps> = ({ value, onChange }) => {
   const parsed = dayjs(value, 'HH:mm');
   return (

@@ -25,7 +25,7 @@ declare global {
     google: any;
   }
 }
-
+// Selector de mapas para cargar distintos precios de envío
 const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
   onLocationSelect,
   initialLocation,

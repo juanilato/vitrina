@@ -5,7 +5,7 @@ interface Props {
   fotoUrl: string;
   onFileSelect: (file: File | null, preview: string | null) => void;
 }
-
+// Selector foto dashboard (recorte rectangular)
 const DashboardFoto: React.FC<Props> = ({ fotoUrl, onFileSelect }) => {
   return (
     <div className="preference-item">

@@ -3,6 +3,7 @@ import useAccountConfig from '../hooks/useAccountConfig';
 import { CategoriaData, SubcategoriaData } from '../types';
 import './CategoriesTab.css';
 
+  //Seleccionador de categorías y subcategorías correspondientes
 const CategoriesTab: React.FC = () => {
   const {
     empresaData,
@@ -10,6 +11,7 @@ const CategoriesTab: React.FC = () => {
     getCategorias,
     updateCategorias
   } = useAccountConfig();
+
 
   const [categorias, setCategorias] = useState<CategoriaData[]>([]);
   const [selectedCategoriaId, setSelectedCategoriaId] = useState<string>('');

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+//Tab para cambio de contraseña 
 const SecurityTab: React.FC = () => {
   const { changePassword, saving } = useAccountConfig();
   

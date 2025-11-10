@@ -11,7 +11,7 @@ interface ColorPickerProps {
 const DEFAULTS = ['#4F7CFF','#22C55E','#EF4444','#F59E0B','#06B6D4','#8B5CF6','#14B8A6','#111827','#FFFFFF'];
 
 const isValidHex = (s: string) => /^#([0-9A-Fa-f]{6})$/.test(s);
-
+// Picker de color (dash y botón)
 const ColorPicker: React.FC<ColorPickerProps> = ({
   label,
   description,

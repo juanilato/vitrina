@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import "./CalendarSchedule.css";
 import { DayKey, TimeSlot } from "../../../types";
 import TimeInput from "./TimeInput";
 
+//Editor de horarios de empresa
 const DAYS: { key: DayKey; label: string; isWeekday: boolean }[] = [
   { key: "LUN", label: "Lunes", isWeekday: true },
   { key: "MAR", label: "Martes", isWeekday: true },

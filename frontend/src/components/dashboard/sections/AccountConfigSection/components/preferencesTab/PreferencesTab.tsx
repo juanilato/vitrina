@@ -15,12 +15,16 @@ import EnvioToggle from './components/EnvioToggle';
 import ColorPicker from './components/ColorPicker';
 import CalendarSchedule from './components/ScheduleEditor';
 import ImageUploader from './components/imageUploader';
-import LiveSitePreview from './components/liveWebPage';
+import {LiveSitePreview} from './components/liveWebPage';
 import AliasesEditor from './components/AliasEditor';
 import SocialLinksEditor from './components/SocialLinksEditor';
 
 import './PreferencesTab.css';
-
+// Sección de preferencias web: 
+//    -> Selector de logos
+//    -> Apariencia (colores boton y fondo web) / Envío a domicilio / Alias de transferencia / Redes sociales
+//    -> Generador de Horarios 
+//    -> Visualizador formato celular Página Propia
 const DAYS: { key: DayKey; label: string }[] = [
   { key: 'LUN', label: 'Lunes' },
   { key: 'MAR', label: 'Martes' },
@@ -319,13 +323,13 @@ const PreferencesTab: React.FC = () => {
                   id: empresaData?.id || '',
                   name: empresaData?.name || 'Tu Empresa',
                   logo: empresaData?.logo || undefined,
-                  ubicaciones: empresaData?.ubicaciones || [],
-                  products: (empresaData as any)?.products || [],
-                  instagram: (empresaData as any)?.instagram,
-                  facebook: (empresaData as any)?.facebook,
-                  website: (empresaData as any)?.website,
+                 
+                  
+                 
+                  
+                 
                 }}
-                prefs={preferences}
+               
               />
             </div>
           </section>

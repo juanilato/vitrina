@@ -4,7 +4,7 @@ interface Props {
   value: boolean;
   onChange: (val: boolean) => void;
 }
-
+// selector de delivery 
 const EnvioToggle: React.FC<Props> = ({ value, onChange }) => (
   <div className="preference-item">
     <div className="preference-info">

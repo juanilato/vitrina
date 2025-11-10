@@ -11,7 +11,7 @@ interface PreciosEnvioTabProps {
   ubicacionCoords?: { lat: number; lng: number };
   onClose: () => void;
 }
-
+// Tabulador de precios de envío selecciona, guarda y agrega precios de ser necesario 
 const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
   ubicacionId,
   ubicacionDireccion,

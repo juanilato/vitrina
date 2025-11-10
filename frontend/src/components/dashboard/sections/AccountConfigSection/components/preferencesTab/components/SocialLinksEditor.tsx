@@ -4,6 +4,7 @@ import "./SocialLinksEditor.css";
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 
+// Editor de agregado de redes sociales
 const SOCIAL_OPTIONS: { key: SocialKey; label: string; placeholder: string }[] = [
   { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/tu_usuario" },
   { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/tu_pagina" },

@@ -1,21 +1,20 @@
 // ChargeUbicacionModule.tsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import GoogleMapsSelector from '../components/GoogleMapsSelector';
-// ⚠️ No importamos InteractiveMap para evitar doble loader
-// import InteractiveMap from '../components/InteractiveMap';
+
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined';
 import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import './ChargeUbicacionModule.css';
 import { Ubicacion } from '../types';
 
+// Trae ubicación de empresa para el maps
 interface Props {
   empresaId: string;
   onSaved: (empresaId: string, dto: Ubicacion) => void | Promise<void>;
   /** Dejar en false salvo que NO uses otro loader en toda la vista */
   showRadiusPreview?: boolean;
 }
-
 const ChargeUbicacionModule: React.FC<Props> = ({
   empresaId,
   onSaved,

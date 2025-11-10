@@ -21,7 +21,7 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import useAccountConfig from '../hooks/useAccountConfig';
 import axiosInstance from '../../../../../config/axios.config';
 import { useWebSocket } from '../../../../../hooks/useWebSocket';
-
+// Tab para agregar repartidores a usuario 
 const RepartidoresTab: React.FC = () => {
   const { empresaData } = useAccountConfig();
   const [repartidores, setRepartidores] = useState<any[]>([]);

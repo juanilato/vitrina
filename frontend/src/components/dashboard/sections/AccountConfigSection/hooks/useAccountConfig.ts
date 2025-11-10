@@ -12,11 +12,70 @@ import {
   UpdatePrecioEnvioData,
   SocialLink,
   UpdateEmpresaExtrasPayload,
-  UbicacionData,
   Ubicacion,
   CategoriaData,
   UpdateCategoriasPayload
 } from '../types';
+/**
+ * 🔧 useAccountConfig Hook
+ * 
+ * Este hook centraliza toda la lógica de configuración de una cuenta de empresa.
+ * Gestiona datos del perfil, ubicaciones, preferencias, precios de envío, horarios, apariencia, redes sociales, categorías, etc.
+ * 
+ * ==============================
+ * 📋 FUNCIONALIDADES PRINCIPALES
+ * ==============================
+ * 
+ * 🏢 Datos de Empresa
+ * - loadEmpresaData() → Carga los datos completos de la empresa (nombre, email, logo, ubicaciones, etc.)
+ * - updateProfile(data) → Actualiza los datos básicos del perfil de la empresa.
+ * 
+ * 📍 Ubicaciones
+ * - updateLocation(locationId, data) → Actualiza una ubicación específica.
+ * - addLocation(data) → Agrega una nueva ubicación.
+ * - removeLocation(locationId) → Elimina una ubicación existente.
+ * - cargaUbicacionInicial(empresaId, ubicacion) → Carga una ubicación inicial (usado al crear empresa por primera vez).
+ * 
+ * 🔒 Seguridad
+ * - changePassword(currentPassword, newPassword) → Cambia la contraseña de la empresa.
+ * 
+ * 🖼️ Multimedia
+ * - uploadFoto(file, dashboard?) → Sube una imagen (logo o dashboard foto) y actualiza la empresa.
+ * 
+ * ⚙️ Preferencias y Apariencia
+ * - updatePreferences(payload) → Guarda preferencias generales (colores, horarios, etc.)
+ * - updateApariencia(colorBotones, colorFondo, envioDomicilio) → Actualiza solo la apariencia visual de la web.
+ * - updateHorarios(schedule) → Guarda los horarios de atención.
+ * 
+ * 🚚 Precios de Envío
+ * - getPreciosEnvio(ubicacionId) → Obtiene los precios de envío asociados a una ubicación.
+ * - createPrecioEnvio(ubicacionId, data) → Crea un nuevo precio de envío.
+ * - updatePrecioEnvio(ubicacionId, precioId, data) → Actualiza un precio de envío existente.
+ * - removePrecioEnvio(ubicacionId, precioId) → Elimina un precio de envío.
+ * 
+ * 🌐 Extras y Redes Sociales
+ * - updateEmpresaExtras(payload) → Actualiza alias y redes sociales de la empresa.
+ * 
+ * 🗂️ Categorías
+ * - getCategorias() → Obtiene la lista de categorías disponibles.
+ * - updateCategorias(payload) → Asigna o actualiza las categorías y subcategorías de la empresa.
+ * 
+ * 🧭 Estado y UI
+ * - resetForm() → Restaura los datos del formulario a su estado original.
+ * - setActiveTab(tab) → Cambia la pestaña activa en la interfaz de configuración.
+ * 
+ * ==============================
+ * 🧠 ESTADO INTERNO MANEJADO
+ * ==============================
+ * - loading / saving / error / success → Estados de carga, guardado y mensajes.
+ * - empresaData → Datos de la empresa cargada desde el backend.
+ * - formData → Datos editables del formulario actual.
+ * - hasChanges → Indica si hay cambios sin guardar.
+ * - activeTab → Pestaña actual del panel de configuración.
+ * 
+ * Este hook simplifica el uso del panel de configuración de empresa,
+ * agrupando todas las llamadas API y sincronización de datos con el backend.
+ */
 
 const normalizeSocials = (arr: SocialLink[]) =>
   (arr || []).map(r => ({

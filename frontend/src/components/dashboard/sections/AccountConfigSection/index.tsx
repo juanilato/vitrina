@@ -12,10 +12,16 @@ import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutli
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import ChargeUbicacionModule from './components/ChargeUbicacionModule';
-import GoogleMapsSelector from './components/GoogleMapsSelector';
+
 import MopedIcon from '@mui/icons-material/Moped';
 import RepartidoresTab from './components/RepartidoresTab';
-
+// Sección de manejo de settings de la cuenta: 
+// Perfil : Por ahora nada, idea de que combine con seguridad y cambie nombre y contraseña
+// Categorías Selección de categorías y subcategorías de la empresa
+// Precios de envío: Manejo de los precios de envío
+// Repartidores: Manejo de los repartidores 
+// Seguridad (cambio de contraseña: Iria con perfil) Se ha de agregar sección de completación de perfil (caso registro con google auth O)
+// Suscripción (manejo de suscripción): Futuramente 
 const AccountConfigSection: React.FC = () => {
   const {
     loading,

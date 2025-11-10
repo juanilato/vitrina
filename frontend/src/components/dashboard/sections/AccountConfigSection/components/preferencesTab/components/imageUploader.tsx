@@ -22,7 +22,7 @@ export interface ImageUploaderProProps {
 }
 
 type Area = { width: number; height: number; x: number; y: number };
-
+// Image uploader (uso en dash y foto perfil)
 const ImageUploader: React.FC<ImageUploaderProProps> = ({
   label = "Imagen",
   description,
