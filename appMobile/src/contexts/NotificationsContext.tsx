@@ -139,9 +139,9 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [notifications]);
 
   /**
-   * Show popup notification
+   * Show popup notification (usando ref para evitar dependencias)
    */
-  const showNotificationPopup = useCallback((notification: Notification) => {
+  const showNotificationPopupRef = useRef((notification: Notification) => {
     // Clear existing timeout
     if (popupTimeoutRef.current) {
       clearTimeout(popupTimeoutRef.current);
@@ -155,7 +155,7 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
       setShowPopup(false);
       setCurrentPopupNotification(null);
     }, 5000);
-  }, []);
+  });
 
   /**
    * Dismiss popup manually
@@ -179,12 +179,13 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   /**
    * Listen to WebSocket notifications
+   * NOTA: Este es el ÚNICO lugar donde se debe mostrar el popup de notificaciones
    */
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const handleNewNotification = (notification: any) => {
-      console.log('🔔 New notification received:', notification);
+      console.log('🔔 [NotificationsContext] New notification received:', notification);
 
       // Add to notifications list
       setNotifications((prev) => [notification, ...prev]);
@@ -194,8 +195,8 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
         setUnreadCount((prev) => prev + 1);
       }
 
-      // Show popup
-      showNotificationPopup(notification);
+      // Show popup usando el ref para evitar re-suscripciones
+      showNotificationPopupRef.current(notification);
     };
 
     const handleNotificationCountUpdate = (data: { count: number }) => {
@@ -207,12 +208,15 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     websocketService.on('new-notification', handleNewNotification);
     websocketService.on('notification-count-update', handleNotificationCountUpdate);
 
+    console.log('✅ [NotificationsContext] WebSocket listeners registered');
+
     // Cleanup
     return () => {
+      console.log('🧹 [NotificationsContext] Cleaning up WebSocket listeners');
       websocketService.off('new-notification', handleNewNotification);
       websocketService.off('notification-count-update', handleNotificationCountUpdate);
     };
-  }, [isAuthenticated, showNotificationPopup]);
+  }, [isAuthenticated]);
 
   /**
    * Cleanup timeout on unmount

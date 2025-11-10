@@ -52,6 +52,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<OrderFilter>('all');
 
+  // Ref para acceder a fetchOrders sin crear dependencias
+  const fetchOrdersRef = React.useRef<(isRefreshing?: boolean) => Promise<void>>();
+
   const fetchOrders = useCallback(async (isRefreshing = false) => {
     try {
       // Esperar a que la autenticación termine
@@ -87,39 +90,40 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.email, authLoading]);
 
+  // Actualizar ref cuando fetchOrders cambie
+  React.useEffect(() => {
+    fetchOrdersRef.current = fetchOrders;
+  }, [fetchOrders]);
+
   // Fetch inicial
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // WebSocket listeners para actualizaciones en tiempo real (ÚNICO LUGAR)
+  // WebSocket listeners para actualizaciones en tiempo real
   useEffect(() => {
     if (!user?.email) return;
 
-    // Handler para actualizaciones de pedidos
+    // Handler para actualizaciones de pedidos (evento específico de pedidos)
     const handleOrderUpdate = (data: any) => {
       console.log('[OrdersContext] 🔔 Order updated via WebSocket:', data);
-      fetchOrders(true);
+      // Usar ref para evitar dependencias que causen re-suscripciones
+      fetchOrdersRef.current?.(true);
     };
 
-    // Handler para nuevas notificaciones
-    const handleNewNotification = (notification: any) => {
-      console.log('[OrdersContext] 🔔 New notification via WebSocket:', notification);
-      if (notification.type === 'order_created' || notification.type === 'order_updated') {
-        fetchOrders(true);
-      }
-    };
-
-    // Suscribirse a eventos WebSocket
+    // Suscribirse SOLO al evento de pedidos
+    // NOTA: NO escuchamos 'new-notification' aquí para evitar duplicación
+    // Las notificaciones se manejan exclusivamente en NotificationsContext
     websocketService.on('pedido-actualizado', handleOrderUpdate);
-    websocketService.on('new-notification', handleNewNotification);
+
+    console.log('✅ [OrdersContext] WebSocket listener registered for pedido-actualizado');
 
     // Cleanup al desmontar
     return () => {
+      console.log('🧹 [OrdersContext] Cleaning up WebSocket listener');
       websocketService.off('pedido-actualizado', handleOrderUpdate);
-      websocketService.off('new-notification', handleNewNotification);
     };
-  }, [user?.email, fetchOrders]);
+  }, [user?.email]);
 
   const refresh = useCallback(() => {
     fetchOrders(true);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../../../config/axios.config';
-import { useWebSocket } from '../../../../hooks/useWebSocket';
+import { useRepartidorSocket } from '../../../../contexts/RepartidorSocketContext';
 import './TomaPedidosSection.css';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 
@@ -22,9 +22,7 @@ const TomaPedidosSection: React.FC = () => {
   const [nuevoPedidoAlert, setNuevoPedidoAlert] = useState(false);
   const [notification, setNotification] = useState('');
 
-  const { on, off, isConnected } = useWebSocket({
-    autoConnect: true,
-  });
+  const { on, off, isConnected } = useRepartidorSocket();
 
   const cargarPedidosDisponibles = async () => {
     try {

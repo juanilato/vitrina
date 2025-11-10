@@ -83,6 +83,16 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
     }
   }
 
+  @SubscribeMessage('join-repartidor')
+  handleJoinRepartidor(@ConnectedSocket() client: AuthenticatedSocket) {
+    if (client.userId && client.userType === 'repartidor') {
+      client.join('repartidores');
+      console.log(`✅ [WS] Repartidor ${client.userId} se unió a la sala de repartidores`);
+    } else {
+      console.log(`⚠️ [WS] Usuario ${client.userId} intentó unirse a sala de repartidores sin ser repartidor`);
+    }
+  }
+
   @SubscribeMessage('mark-notification-read')
   async handleMarkNotificationRead(
     @ConnectedSocket() client: AuthenticatedSocket,
@@ -114,9 +124,10 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
     console.log(`👥 Usuarios conectados:`, Array.from(this.connectedUsers.keys()));
 
     if (socketId) {
+      // FIX: Solo emitir UNA VEZ al socketId para evitar duplicación
+      // El cliente recibe la notificación porque está conectado directamente
       this.server.to(socketId).emit('new-notification', notification);
-      this.server.to(`notifications-${userId}`).emit('new-notification', notification);
-      console.log(`✅ Notificación enviada a socket ${socketId} y room notifications-${userId}`);
+      console.log(`✅ Notificación enviada a socket ${socketId}`);
     } else {
       console.log(`⚠️ Usuario ${userId} no conectado, notificación guardada en BD pero no enviada por WebSocket`);
     }
@@ -131,8 +142,8 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
   async sendNotificationCountUpdate(userId: string, count: number) {
     const socketId = this.connectedUsers.get(userId);
     if (socketId) {
+      // FIX: Solo emitir UNA VEZ al socketId para evitar duplicación
       this.server.to(socketId).emit('notification-count-update', { count });
-      this.server.to(`notifications-${userId}`).emit('notification-count-update', { count });
     }
   }
 
@@ -173,6 +184,25 @@ export class NotificationsWebSocketGateway implements OnGatewayConnection, OnGat
     } else {
       console.log(`⚠️ [WS] Repartidor ${repartidorId} no conectado, pedido guardado en BD`);
     }
+  }
+
+  // Método para notificar a TODOS los repartidores sobre un nuevo pedido disponible
+  async sendNuevoPedidoDisponible(empresaId: string, data: any) {
+    console.log(`📤 [WS] Notificando nuevo pedido disponible a todos los repartidores`);
+    console.log(`📋 [WS] Datos del pedido:`, data);
+
+    // Emitir a todos los repartidores conectados a la sala 'repartidores'
+    this.server.to('repartidores').emit('nuevo_pedido_disponible', data);
+    console.log(`✅ [WS] Notificación de nuevo pedido disponible enviada a todos los repartidores`);
+  }
+
+  // Método para notificar a TODOS los repartidores que un pedido fue tomado/asignado
+  async sendPedidoAsignadoGlobal(pedidoId: string) {
+    console.log(`📤 [WS] Notificando que pedido ${pedidoId} fue asignado a todos los repartidores`);
+
+    // Emitir a todos los repartidores conectados a la sala 'repartidores'
+    this.server.to('repartidores').emit('pedido_asignado', { pedidoId });
+    console.log(`✅ [WS] Notificación de pedido asignado enviada a todos los repartidores`);
   }
 
   // Handler para cuando el repartidor actualiza su ubicación

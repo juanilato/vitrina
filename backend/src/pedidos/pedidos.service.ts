@@ -566,6 +566,34 @@ export class PedidosService {
         }
       }
 
+      // Si el pedido se confirma y es delivery, notificar a todos los repartidores
+      if (newStatus === 'confirmado' && pedidoActualizado.tipoEntrega === 'delivery') {
+        try {
+          console.log(`📤 [Pedido] Pedido confirmado con delivery, notificando a repartidores`);
+
+          const pedidoData = {
+            id: pedidoActualizado.id,
+            empresaId: pedidoActualizado.empresaId,
+            empresaName: existingPedido.empresa.name,
+            clienteName: pedidoActualizado.cliente.name,
+            direccion: pedidoActualizado.direccion,
+            total: parseFloat(pedidoActualizado.total.toString()),
+            tipoEntrega: pedidoActualizado.tipoEntrega,
+            createdAt: pedidoActualizado.createdAt
+          };
+
+          await this.webSocketGateway.sendNuevoPedidoDisponible(
+            pedidoActualizado.empresaId,
+            pedidoData
+          );
+
+          console.log(`✅ [Pedido] Notificación de nuevo pedido disponible enviada`);
+        } catch (wsError) {
+          console.error('Error enviando notificación de nuevo pedido disponible:', wsError);
+          // No lanzar error para no interrumpir la actualización del pedido
+        }
+      }
+
       return pedidoActualizado;
     } catch (error) {
       console.error('Error actualizando pedido:', error);
@@ -1176,8 +1204,8 @@ export class PedidosService {
       // Ubicación de la empresa
       if (pedido.empresa?.ubicacion) {
         response.empresa = {
-          latitud: pedido.empresa.ubicacion.lat,
-          longitud: pedido.empresa.ubicacion.lng,
+          latitud: parseFloat(pedido.empresa.ubicacion.lat.toString()),
+          longitud: parseFloat(pedido.empresa.ubicacion.lng.toString()),
           name: pedido.empresa.name
         };
       }
@@ -1185,23 +1213,28 @@ export class PedidosService {
       // Ubicación del cliente
       if (pedido.lat && pedido.lng) {
         response.cliente = {
-          latitud: pedido.lat,
-          longitud: pedido.lng
+          latitud: parseFloat(pedido.lat.toString()),
+          longitud: parseFloat(pedido.lng.toString())
         };
       }
 
       // Ubicación del repartidor (solo si el pedido está en camino)
       if (pedido.estado === 'en_camino' && pedido.repartidorLat && pedido.repartidorLng) {
-        console.log(`📍 [Mapa] Datos del repartidor: lat=${pedido.repartidorLat}, lng=${pedido.repartidorLng}`);
+        const repartidorLat = parseFloat(pedido.repartidorLat.toString());
+        const repartidorLng = parseFloat(pedido.repartidorLng.toString());
+
+        console.log(`📍 [Mapa] Datos del repartidor: lat=${repartidorLat}, lng=${repartidorLng}`);
 
         response.repartidor = {
-          latitud: pedido.repartidorLat,
-          longitud: pedido.repartidorLng,
-          nombre: pedido.repartidor ? "" : undefined
+          latitud: repartidorLat,
+          longitud: repartidorLng,
+          nombre: pedido.repartidor?.name || 'Repartidor'
         };
       } else {
         console.log(`📍 [Mapa] Repartidor no disponible. Estado: ${pedido.estado}, Lat: ${pedido.repartidorLat}, Lng: ${pedido.repartidorLng}`);
       }
+
+      console.log(`📍 [Mapa] Respuesta completa:`, JSON.stringify(response, null, 2));
 
       return response;
     } catch (error) {

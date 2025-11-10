@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '../../../../config/axios.config';
-import { useWebSocket } from '../../../../hooks/useWebSocket';
+import { useRepartidorSocket } from '../../../../contexts/RepartidorSocketContext';
 import './RepartidorOrdersSection.css';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -26,9 +26,7 @@ const RepartidorOrdersSection: React.FC = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { on, off, isConnected, emit } = useWebSocket({
-    autoConnect: true,
-  });
+  const { on, off, isConnected, emit } = useRepartidorSocket();
 
   const cargarMisPedidos = async () => {
     try {
@@ -107,14 +105,40 @@ const RepartidorOrdersSection: React.FC = () => {
 
   // Función para enviar la ubicación actual
   const enviarUbicacion = (pedidoId: string) => {
+    console.log(`📍 [GPS] ========== SOLICITANDO UBICACIÓN GPS ==========`);
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
+        const { latitude, longitude, accuracy, altitude, altitudeAccuracy, heading, speed } = position.coords;
 
-        console.log(`📍 [GPS] Ubicación obtenida del navegador:`);
+        console.log(`📍 [GPS] ========== UBICACIÓN GPS OBTENIDA ==========`);
+        console.log(`📍 [GPS] Coordenadas:`);
         console.log(`📍 [GPS] - Latitud: ${latitude}`);
         console.log(`📍 [GPS] - Longitud: ${longitude}`);
         console.log(`📍 [GPS] - Precisión: ${accuracy} metros`);
+        console.log(`📍 [GPS] - Altitud: ${altitude} metros`);
+        console.log(`📍 [GPS] - Precisión Altitud: ${altitudeAccuracy} metros`);
+        console.log(`📍 [GPS] - Rumbo: ${heading}°`);
+        console.log(`📍 [GPS] - Velocidad: ${speed} m/s`);
+        console.log(`📍 [GPS] - Timestamp: ${new Date(position.timestamp).toISOString()}`);
+
+        // ⚠️ ADVERTENCIA: Si la precisión es mayor a 50 metros, probablemente está usando IP/WiFi
+        if (accuracy > 50) {
+          console.warn(`⚠️ [GPS] BAJA PRECISIÓN DETECTADA: ${accuracy} metros`);
+          console.warn(`⚠️ [GPS] Esto sugiere que el navegador está usando WiFi/IP en lugar de GPS real`);
+          console.warn(`⚠️ [GPS] Recomendación: Usar un dispositivo móvil con GPS o habilitar permisos de ubicación`);
+          setLocationError(`⚠️ GPS de baja precisión (${Math.round(accuracy)}m). Puede no ser exacto.`);
+        } else {
+          console.log(`✅ [GPS] Buena precisión: ${accuracy} metros`);
+          setLocationError(null);
+        }
+
+        // Validar que las coordenadas sean válidas
+        if (latitude === 0 && longitude === 0) {
+          console.error('❌ [GPS] Coordenadas inválidas (0, 0)');
+          setLocationError('GPS devolvió coordenadas inválidas');
+          return;
+        }
 
         try {
           // Enviar al backend vía HTTP (ahora con el ID del pedido en la ruta)
@@ -123,7 +147,7 @@ const RepartidorOrdersSection: React.FC = () => {
             lng: longitude,
           });
 
-          console.log(`📍 [GPS] Ubicación enviada al backend via HTTP`);
+          console.log(`✅ [GPS] Ubicación enviada al backend via HTTP`);
 
           // Emitir vía WebSocket para actualización en tiempo real
           emit('actualizar_ubicacion_repartidor', {
@@ -132,20 +156,42 @@ const RepartidorOrdersSection: React.FC = () => {
             longitud: longitude,
           });
 
-          console.log(`📍 [GPS] Ubicación enviada via WebSocket con latitud=${latitude}, longitud=${longitude}`);
+          console.log(`✅ [GPS] Ubicación enviada via WebSocket`);
+          console.log(`📍 [GPS] ================================================`);
         } catch (err: any) {
           console.error('❌ [GPS] Error al enviar ubicación:', err);
           setLocationError('Error al enviar ubicación');
         }
       },
       (error) => {
-        console.error('❌ [GPS] Error al obtener ubicación:', error);
-        setLocationError('Error al obtener ubicación GPS');
+        console.error('❌ [GPS] ========== ERROR GPS ==========');
+        console.error('❌ [GPS] Código de error:', error.code);
+        console.error('❌ [GPS] Mensaje:', error.message);
+
+        let errorMessage = 'Error al obtener ubicación GPS';
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = '🚫 Permisos de ubicación denegados. Por favor, habilita el GPS en tu navegador.';
+            console.error('❌ [GPS] El usuario negó los permisos de ubicación');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = '📍 Ubicación no disponible. Verifica que el GPS esté habilitado.';
+            console.error('❌ [GPS] La ubicación no está disponible');
+            break;
+          case error.TIMEOUT:
+            errorMessage = '⏱️ Tiempo de espera agotado. Intentando nuevamente...';
+            console.error('❌ [GPS] Tiempo de espera agotado');
+            break;
+        }
+
+        setLocationError(errorMessage);
+        console.error('❌ [GPS] =====================================');
       },
       {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
+        enableHighAccuracy: true, // Forzar uso de GPS en lugar de WiFi/IP
+        timeout: 10000, // Aumentar timeout a 10 segundos
+        maximumAge: 0, // No usar ubicaciones en caché
       }
     );
   };

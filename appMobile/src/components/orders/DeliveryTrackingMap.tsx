@@ -110,13 +110,18 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
     const handleUbicacionActualizada = (data: any) => {
       if (data.pedidoId === pedidoId) {
-        console.log('[Map] 📍 Ubicación del repartidor actualizada via WebSocket');
-        console.log('[Map] 📍 Datos recibidos:', JSON.stringify(data, null, 2));
-        console.log('[Map] 📍 Latitud:', data.latitud, 'Longitud:', data.longitud);
+        console.log('[Map] 📍 ========== UBICACIÓN REPARTIDOR ACTUALIZADA ==========');
+        console.log('[Map] 📍 Datos recibidos completos:', JSON.stringify(data, null, 2));
+        console.log('[Map] 📍 Tipo de latitud:', typeof data.latitud, 'Valor:', data.latitud);
+        console.log('[Map] 📍 Tipo de longitud:', typeof data.longitud, 'Valor:', data.longitud);
 
         // Validar que las coordenadas sean válidas
         const lat = parseFloat(data.latitud);
         const lng = parseFloat(data.longitud);
+
+        console.log('[Map] 📍 Después de parseFloat:');
+        console.log('[Map] 📍 - Latitud parseada:', lat, '(tipo:', typeof lat, ')');
+        console.log('[Map] 📍 - Longitud parseada:', lng, '(tipo:', typeof lng, ')');
 
         if (isNaN(lat) || isNaN(lng)) {
           console.error('[Map] ❌ Coordenadas inválidas recibidas:', { lat, lng });
@@ -125,8 +130,11 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
           console.error('[Map] ❌ Coordenadas fuera de rango:', { lat, lng });
+          console.error('[Map] ❌ Rango válido: lat[-90,90], lng[-180,180]');
           return;
         }
+
+        console.log('[Map] ✅ Coordenadas validadas correctamente');
 
         setMapData((prev) => {
           if (!prev) return null;
@@ -140,7 +148,11 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
             },
           };
 
-          console.log('[Map] 📍 MapData actualizado:', JSON.stringify(newMapData.repartidor, null, 2));
+          console.log('[Map] 📍 MapData NUEVO:');
+          console.log('[Map] 📍 - Repartidor:', JSON.stringify(newMapData.repartidor, null, 2));
+          console.log('[Map] 📍 - Cliente:', JSON.stringify(newMapData.cliente, null, 2));
+          console.log('[Map] 📍 - Empresa:', JSON.stringify(newMapData.empresa, null, 2));
+          console.log('[Map] 📍 =============================================');
 
           // Actualizar ruta cuando cambie la posición del repartidor
           if (prev.cliente) {
@@ -467,6 +479,8 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
           </MapView>
         )}
 
+
+
         {/* Legend - Rediseñada */}
         {!loading && !error && mapData && (
           <View style={styles.legendContainer}>
@@ -669,6 +683,50 @@ const styles = StyleSheet.create({
 
   markerRepartidor: {
     backgroundColor: colors.orange,
+  },
+
+  // Debug Info Card
+  debugContainer: {
+    position: 'absolute',
+    top: spacing['2xl'] + spacing.sm + 60, // Debajo del header
+    right: spacing.md,
+    left: spacing.md,
+    zIndex: 9,
+  },
+
+  debugCard: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: borderRadius.lg,
+    padding: spacing.sm,
+    ...shadows.md,
+  },
+
+  debugTitle: {
+    ...typography.bodySmall,
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 11,
+    marginBottom: spacing.xs,
+  },
+
+  debugRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs / 2,
+  },
+
+  debugLabel: {
+    ...typography.bodySmall,
+    color: colors.gray300,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
+  debugValue: {
+    ...typography.bodySmall,
+    color: colors.white,
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
 
   // Leyenda rediseñada

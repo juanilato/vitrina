@@ -241,6 +241,15 @@ export class RepartidoresService {
       },
     });
 
+    // Notificar a todos los repartidores que el pedido fue tomado
+    try {
+      await this.wsGateway.sendPedidoAsignadoGlobal(pedidoId);
+      console.log(`✅ [Repartidor] Notificación de pedido tomado enviada a todos los repartidores`);
+    } catch (wsError) {
+      console.error('Error enviando notificación de pedido tomado:', wsError);
+      // No lanzar error para no interrumpir la asignación
+    }
+
     return { message: 'Pedido asignado exitosamente', pedidoId };
   }
 
@@ -350,11 +359,17 @@ export class RepartidoresService {
     console.log(`📍 [Ubicación] Actualizando ubicación del repartidor para pedido ${pedidoId}`);
     console.log(`📍 [Ubicación] Coordenadas recibidas: lat=${dto.lat}, lng=${dto.lng}`);
 
+    // Asegurar que las coordenadas son números válidos
+    const latitud = parseFloat(dto.lat.toString());
+    const longitud = parseFloat(dto.lng.toString());
+
+    console.log(`📍 [Ubicación] Coordenadas parseadas: lat=${latitud}, lng=${longitud}`);
+
     const pedidoActualizado = await this.prisma.pedido.update({
       where: { id: pedidoId },
       data: {
-        repartidorLat: dto.lat,
-        repartidorLng: dto.lng,
+        repartidorLat: latitud,
+        repartidorLng: longitud,
         repartidorUltActualizacion: new Date()
       }
     });
@@ -362,12 +377,12 @@ export class RepartidoresService {
     // Enviar actualización por WebSocket a cliente y empresa
     const ubicacionData = {
       pedidoId,
-      latitud: dto.lat,
-      longitud: dto.lng,
+      latitud: latitud,
+      longitud: longitud,
       timestamp: pedidoActualizado.repartidorUltActualizacion
     };
 
-    console.log(`📍 [Ubicación] Datos a enviar por WebSocket:`, ubicacionData);
+    console.log(`📍 [Ubicación] Datos a enviar por WebSocket:`, JSON.stringify(ubicacionData, null, 2));
 
     try {
       await this.wsGateway.sendUbicacionRepartidorUpdate(
@@ -382,8 +397,8 @@ export class RepartidoresService {
 
     return {
       message: 'Ubicación actualizada correctamente',
-      lat: dto.lat,
-      lng: dto.lng,
+      lat: latitud,
+      lng: longitud,
       timestamp: pedidoActualizado.repartidorUltActualizacion
     };
   }
