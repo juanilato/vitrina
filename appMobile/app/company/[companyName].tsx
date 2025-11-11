@@ -20,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCompanyStore } from '../../src/hooks/useCompanyStore';
+import { usePublicCompanyStore } from '../../src/hooks/usePublicCompanyStore';
 import { useCart } from '../../src/contexts/CartContext';
 import { ProductCard } from '../../src/components/products/ProductCard';
 import { ProductModal } from '../../src/components/products/ProductModal';
@@ -33,10 +33,10 @@ import { Product, Agregado } from '../../src/types/company';
 import { CartIngredienteExtra } from '../../src/types/cart';
 import { Animated, Easing, LayoutAnimation, Platform, UIManager } from 'react-native';
 export default function CompanyStoreScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { companyName } = useLocalSearchParams<{ companyName: string }>();
   const router = useRouter();
 
-  const { company, loading, error, refreshing, refresh } = useCompanyStore(id);
+  const { company, loading, error, refreshing, refresh } = usePublicCompanyStore(companyName);
   const { addItem, cart } = useCart();
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);

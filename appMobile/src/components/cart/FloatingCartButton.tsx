@@ -3,7 +3,7 @@
  * Contraste automático basado en buttonColor
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -14,6 +14,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { AuthModal } from '../auth/AuthModal';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 import { formatPrice } from '../../utils/formatPrice';
@@ -37,10 +39,23 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
 }) => {
   const router = useRouter();
   const { cart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   if (cart.totalItems === 0) return null;
 
-  const handlePress = () => router.push('/(tabs)/cart');
+  const handlePress = () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    router.push('/(tabs)/cart');
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+    router.push('/(tabs)/cart');
+  };
 
   const dark = isColorDark(buttonColor);
   const textColor = dark ? '#f5f5f5' : '#1a1a1a';
@@ -55,39 +70,48 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
     : 'rgba(0,0,0,0.08)';
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.container,
-        {
-          backgroundColor: buttonColor,
-          borderColor,
-        },
-      ]}
-      onPress={handlePress}
-      activeOpacity={0.9}
-    >
-      {/* Ícono */}
-      <View style={styles.iconContainer}>
-        <Ionicons name="basket-outline" size={22} color={textColor} />
-        {cart.totalItems > 0 && (
-          <View style={[styles.counter, { backgroundColor: counterBg }]}>
-            <Text style={[styles.counterText, { color: textColor }]}>
-              {cart.totalItems > 99 ? '99+' : cart.totalItems}
-            </Text>
-          </View>
-        )}
-      </View>
+    <>
+      <TouchableOpacity
+        style={[
+          styles.container,
+          {
+            backgroundColor: buttonColor,
+            borderColor,
+          },
+        ]}
+        onPress={handlePress}
+        activeOpacity={0.9}
+      >
+        {/* Ícono */}
+        <View style={styles.iconContainer}>
+          <Ionicons name="basket-outline" size={22} color={textColor} />
+          {cart.totalItems > 0 && (
+            <View style={[styles.counter, { backgroundColor: counterBg }]}>
+              <Text style={[styles.counterText, { color: textColor }]}>
+                {cart.totalItems > 99 ? '99+' : cart.totalItems}
+              </Text>
+            </View>
+          )}
+        </View>
 
-      {/* Texto */}
-      <View style={styles.textContainer}>
-        <Text style={[styles.totalText, { color: textColor }]}>
-          ${formatPrice(cart.total)}
-        </Text>
-        <Text style={[styles.subText, { color: subTextColor }]}>
-          Sin envío
-        </Text>
-      </View>
-    </TouchableOpacity>
+        {/* Texto */}
+        <View style={styles.textContainer}>
+          <Text style={[styles.totalText, { color: textColor }]}>
+            ${formatPrice(cart.total)}
+          </Text>
+          <Text style={[styles.subText, { color: subTextColor }]}>
+            Sin envío
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Auth Modal */}
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+      />
+    </>
   );
 };
 

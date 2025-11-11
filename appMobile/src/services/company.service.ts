@@ -38,6 +38,16 @@ export const companyService = {
   },
 
   /**
+   * Get company by name (public)
+   */
+  async getCompanyByName(companyName: string): Promise<Company> {
+    const response = await api.get<Company>(
+      `/auth/companies/by-name/${encodeURIComponent(companyName)}`
+    );
+    return response.data;
+  },
+
+  /**
    * Get company with products
    */
   async getCompanyWithProducts(companyId: string): Promise<CompanyWithProducts> {
@@ -45,6 +55,19 @@ export const companyService = {
       this.getCompanyById(companyId),
       this.getCompanyProducts(companyId),
     ]);
+
+    return {
+      ...company,
+      products,
+    };
+  },
+
+  /**
+   * Get company with products by name (public)
+   */
+  async getCompanyWithProductsByName(companyName: string): Promise<CompanyWithProducts> {
+    const company = await this.getCompanyByName(companyName);
+    const products = await this.getCompanyProducts(company.id);
 
     return {
       ...company,

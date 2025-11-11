@@ -92,8 +92,10 @@ export default function CategoryScreen() {
     setSelectedSubcategoryId(subcategoryId);
   };
 
-  const handleCompanyPress = (companyId: string) => {
-    router.push(`/company/${companyId}`);
+  const handleCompanyPress = (companyName: string) => {
+    // Remove spaces from company name for the URL
+    const normalizedName = companyName.replace(/\s+/g, '');
+    router.push(`/company/${normalizedName}`);
   };
 
   // Renderizar chip de subcategoría en la barra horizontal
@@ -136,7 +138,7 @@ export default function CategoryScreen() {
       return (
         <TouchableOpacity
           style={styles.companyCard}
-          onPress={() => handleCompanyPress(item.id)}
+          onPress={() => handleCompanyPress(item.name)}
           activeOpacity={0.7}
         >
           <ImageBackground
@@ -226,7 +228,7 @@ export default function CategoryScreen() {
     return (
       <TouchableOpacity
         style={styles.companyCard}
-        onPress={() => handleCompanyPress(item.id)}
+        onPress={() => handleCompanyPress(item.name)}
         activeOpacity={0.7}
       >
         <View style={styles.companyCardContent}>

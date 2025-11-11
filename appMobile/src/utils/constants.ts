@@ -38,6 +38,6 @@ export const ROUTES = {
     PROFILE: '/(tabs)/profile',
   },
   COMPANY: {
-    STORE: '/company/[id]',
+    STORE: '/company/[companyName]',
   },
 } as const;

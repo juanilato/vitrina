@@ -6,7 +6,11 @@ import { SupabaseModule } from '../supabase/supabase.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 
 @Module({
-  imports: [PrismaModule, SupabaseModule, WebSocketModule],
+  imports: [
+    PrismaModule,
+    SupabaseModule,
+    WebSocketModule,
+  ],
   controllers: [EmpresasController],
   providers: [EmpresasService],
   exports: [EmpresasService],

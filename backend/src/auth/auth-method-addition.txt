@@ -1,0 +1,45 @@
+  // obtener empresa por nombre (público - sin guard)
+  async getCompanyByName(name: string) {
+    try {
+      // Buscar empresa por nombre exacto (sin espacios)
+      const normalizedName = name.replace(/\s+/g, '');
+      
+      const company = await this.prisma.empresa.findFirst({
+        where: {
+          name: {
+            equals: normalizedName,
+            mode: 'insensitive' // Case insensitive
+          },
+          isVerified: true
+        },
+        include: {
+          ubicacion: true,
+          preferenciasWeb: {
+            include: {
+              horarios: true
+            }
+          },
+          redesSociales: true
+        }
+      });
+
+      if (!company) {
+        throw new NotFoundException('Empresa no encontrada');
+      }
+
+      // Remover la contraseña del objeto de respuesta
+      const { password, ubicacion, ...empresaSinPassword } = company as any;
+      return {
+        ...empresaSinPassword,
+        logo: company.logo,
+        description: company.description,
+        ubicaciones: ubicacion ? [ubicacion] : []
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener empresa');
+    }
+  }
+

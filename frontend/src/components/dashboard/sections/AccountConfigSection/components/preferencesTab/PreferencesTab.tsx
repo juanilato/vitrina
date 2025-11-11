@@ -321,6 +321,7 @@ const PreferencesTab: React.FC = () => {
               <LiveSitePreview
                 empresa={{
                   id: empresaData?.id || '',
+                  name: empresaData?.name || '',
                 }}
                
               />

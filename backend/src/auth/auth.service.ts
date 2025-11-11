@@ -860,6 +860,79 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
     }
   }
 
+  // obtener empresa por nombre (público - sin guard)
+  async getCompanyByName(name: string) {
+    try {
+      // Normalizar el nombre recibido (remover espacios)
+      const normalizedSearchName = name.replace(/\s+/g, '').toLowerCase();
+
+      // Buscar empresas verificadas
+      const companies = await this.prisma.empresa.findMany({
+        where: {
+          isVerified: true
+        },
+        include: {
+          ubicacion: true,
+          preferenciasWeb: {
+            include: {
+              horarios: true
+            }
+          }
+        }
+      });
+
+      // Buscar la empresa que coincida con el nombre normalizado
+      const company = companies.find(c =>
+        c.name.replace(/\s+/g, '').toLowerCase() === normalizedSearchName
+      );
+
+      if (!company) {
+        throw new NotFoundException('Empresa no encontrada');
+      }
+
+      // Remover la contraseña del objeto de respuesta
+      const { password, ubicacion, ...empresaSinPassword } = company as any;
+      return {
+        ...empresaSinPassword,
+        logo: company.logo,
+        redesSociales: company.redesSociales,
+        ubicaciones: ubicacion ? [ubicacion] : []
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener empresa');
+    }
+  }
+
+  // Generar token de preview para live webpage (público - sin guard)
+  async generatePreviewToken(empresaId: string): Promise<{ token: string }> {
+    // Verificar que la empresa existe
+    const empresa = await this.prisma.empresa.findUnique({
+      where: { id: empresaId },
+      select: { id: true, name: true },
+    });
+
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    // Generar token JWT temporal con el ID y nombre de la empresa
+    const token = this.jwtService.sign(
+      {
+        empresaId: empresa.id,
+        empresaName: empresa.name,
+        type: 'preview',
+      },
+      {
+        expiresIn: '1h', // Token válido por 1 hora
+      }
+    );
+
+    return { token };
+  }
+
   // Actualizar perfil del cliente
   async updateClientProfile(userId: string, updateData: { name?: string; email?: string }) {
     try {

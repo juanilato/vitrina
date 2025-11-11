@@ -332,4 +332,5 @@ export class EmpresasController {
   async getEstadisticas(@Param('id') id: string) {
     return this.empresasService.getEstadisticas(id);
   }
+
 }

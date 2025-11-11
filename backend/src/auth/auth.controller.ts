@@ -130,6 +130,18 @@ export class AuthController {
     return this.authService.getCompanyWithLocations(id);
   }
 
+  // obtener empresa por nombre (público - sin guard)
+  @Get('companies/by-name/:name')
+  async getCompanyByName(@Param('name') name: string) {
+    return this.authService.getCompanyByName(name);
+  }
+
+  // generar token de preview para live webpage (público - sin guard)
+  @Get('companies/preview-token/:id')
+  async generatePreviewToken(@Param('id') id: string) {
+    return this.authService.generatePreviewToken(id);
+  }
+
   // Actualizar perfil del cliente
   @UseGuards(JwtAuthGuard)
   @Put('profile')
