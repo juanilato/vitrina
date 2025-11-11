@@ -1,11 +1,11 @@
 import React from 'react';
 import useAccountConfig from './hooks/useAccountConfig';
-import { ProfileTab, SecurityTab, PreferencesTab, PreciosEnvioTab, CategoriesTab } from './components';
+import { PreferencesTab, PreciosEnvioTab, CategoriesTab } from './components';
+import UnifiedProfileTab from './components/UnifiedProfileTab';
 import './AccountConfigSection.css';
 
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
@@ -15,12 +15,12 @@ import ChargeUbicacionModule from './components/ChargeUbicacionModule';
 
 import MopedIcon from '@mui/icons-material/Moped';
 import RepartidoresTab from './components/RepartidoresTab';
-// Sección de manejo de settings de la cuenta: 
-// Perfil : Por ahora nada, idea de que combine con seguridad y cambie nombre y contraseña
+// Sección de manejo de settings de la cuenta:
+// Perfil unificado: Datos básicos, cambio de contraseña y completación de perfil
 // Categorías Selección de categorías y subcategorías de la empresa
 // Precios de envío: Manejo de los precios de envío
-// Repartidores: Manejo de los repartidores 
-// Seguridad (cambio de contraseña: Iria con perfil) Se ha de agregar sección de completación de perfil (caso registro con google auth O)
+// Repartidores: Manejo de los repartidores
+// Preferencias Web: Apariencia y configuración de la web
 // Suscripción (manejo de suscripción): Futuramente 
 const AccountConfigSection: React.FC = () => {
   const {
@@ -65,7 +65,6 @@ const AccountConfigSection: React.FC = () => {
     { id: 'categories',  label: 'Categorías',        icon: <CategoryOutlinedIcon fontSize="small" /> },
     { id: 'locations',   label: 'Precios Envío',     icon: <LocalShippingOutlinedIcon fontSize="small" /> },
     { id: 'delivery',    label: 'Repartidores',      icon: <MopedIcon fontSize="small" /> },
-    { id: 'security',    label: 'Seguridad',         icon: <LockOutlinedIcon fontSize="small" /> },
     { id: 'preferences', label: 'Preferencias Web',  icon: <TuneOutlinedIcon fontSize="small" /> },
   ] as const;
 
@@ -73,7 +72,7 @@ const AccountConfigSection: React.FC = () => {
     const ubicacion = formData.ubicaciones?.[0];
     switch (activeTab) {
       case 'profile':
-        return <ProfileTab />;
+        return <UnifiedProfileTab />;
       case 'categories':
         return <CategoriesTab />;
       case 'locations':
@@ -101,14 +100,12 @@ const AccountConfigSection: React.FC = () => {
             onClose={() => {}}
           />
         );
-      case 'security':
-        return <SecurityTab />;
       case 'preferences':
         return <PreferencesTab />;
       case 'delivery':
         return <RepartidoresTab />;
       default:
-        return <ProfileTab />;
+        return <UnifiedProfileTab />;
     }
   };
 

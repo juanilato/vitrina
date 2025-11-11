@@ -130,6 +130,31 @@
   border: 1px solid #D7E3FF;
 }
 
+/* Badge de alerta (perfil incompleto) */
+.cnav-badge-alert {
+  justify-self: end;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+  color: #dc2626;
+  font-weight: 800;
+  font-size: 11px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+}
+
 /* Dropdown (notificaciones) */
 .cnav-group {
   position: relative;
