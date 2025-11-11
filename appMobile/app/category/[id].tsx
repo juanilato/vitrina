@@ -53,7 +53,14 @@ export default function CategoryScreen() {
 
   // Obtener empresas de la categoría
   const categoryCompanies = useMemo(() => {
-    return companies.filter((c) => c.categoriaId === categoryId);
+    const filtered = companies.filter((c) => c.categoriaId === categoryId);
+    console.log('[CategoryScreen] Empresas filtradas por categoría:', {
+      categoryId,
+      totalCompanies: companies.length,
+      filteredCount: filtered.length,
+      companies: filtered.map(c => ({ id: c.id, name: c.name, categoriaId: c.categoriaId }))
+    });
+    return filtered;
   }, [companies, categoryId]);
 
   // Filtrar empresas por subcategoría seleccionada
@@ -92,9 +99,14 @@ export default function CategoryScreen() {
     setSelectedSubcategoryId(subcategoryId);
   };
 
-  const handleCompanyPress = (companyName: string) => {
+  const handleCompanyPress = (company: Company) => {
     // Remove spaces from company name for the URL
-    const normalizedName = companyName.replace(/\s+/g, '');
+    const normalizedName = company.name.replace(/\s+/g, '');
+    console.log('[CategoryScreen] Navegando a empresa:', {
+      original: company.name,
+      normalized: normalizedName,
+      companyId: company.id
+    });
     router.push(`/company/${normalizedName}`);
   };
 
@@ -138,7 +150,7 @@ export default function CategoryScreen() {
       return (
         <TouchableOpacity
           style={styles.companyCard}
-          onPress={() => handleCompanyPress(item.name)}
+          onPress={() => handleCompanyPress(item)}
           activeOpacity={0.7}
         >
           <ImageBackground
@@ -228,7 +240,7 @@ export default function CategoryScreen() {
     return (
       <TouchableOpacity
         style={styles.companyCard}
-        onPress={() => handleCompanyPress(item.name)}
+        onPress={() => handleCompanyPress(item)}
         activeOpacity={0.7}
       >
         <View style={styles.companyCardContent}>
