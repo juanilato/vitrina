@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 type EmpresaLite = {
   id: string;
@@ -12,20 +12,34 @@ type Props = {
   empresa: EmpresaLite | null | undefined;
 };
 //Live webpage para empresa visualizar compania en vivo con sus preferencias 
-export const LiveSitePreview: React.FC<Props> = ({ empresa }) => {
-  if (!empresa?.id) return <p>No hay empresa cargada</p>;
+export const LiveSitePreview: React.FC<{ empresa?: { id?: string } }> = ({ empresa }) => {
+  const [token, setToken] = useState<string | null>(null);
+useEffect(() => {
+  if (!empresa?.id) return;
 
-  const src = `https://vitrina.com.ar/company/${empresa.id}`;
+  console.log('🌎 API URL:', process.env.NEXT_PUBLIC_API_URL);
+
+  const url = `http://localhost:3001/empresas/preview-token/${empresa.id}`;
+  console.log('🔗 Fetching token from:', url);
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      console.log('✅ Token recibido:', data);
+      setToken(data.token);
+    })
+    .catch(err => console.error('❌ Error fetching token:', err));
+}, [empresa?.id]);
+
+  if (!empresa?.id || !token) return <p>Cargando vista previa...</p>;
+
+  const src = `http://localhost:8081/company/${empresa.id}?previewToken=${token}`;
 
   return (
-    <div className="live-preview-root">
-      <iframe
-        src={src}
-        title="Vista previa del sitio"
-        width="100%"
-        height="100%"
-        style={{ border: 0, minHeight: "100vh" }}
-      />
-    </div>
+    <iframe
+      src={src}
+      title="Vista previa"
+      style={{ border: 0, width: "100%", height: "100vh", borderRadius: 12 }}
+    />
   );
 };

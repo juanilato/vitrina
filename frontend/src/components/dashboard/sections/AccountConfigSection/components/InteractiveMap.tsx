@@ -10,7 +10,7 @@ interface InteractiveMapProps {
   initialRadius?: number;
   height?: string;
 }
-
+// Mapa interactivo con circulos indicando precio envío
 const InteractiveMap: React.FC<InteractiveMapProps> = ({
   center,
   onCircleChange,

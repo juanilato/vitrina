@@ -8,7 +8,7 @@ import RoomOutlinedIcon from '@mui/icons-material/RoomOutlined';
 import './ChargeUbicacionModule.css';
 import { Ubicacion } from '../types';
 
-// Trae ubicación de empresa para el maps
+// Trae ubicación de empresa para el maps 
 interface Props {
   empresaId: string;
   onSaved: (empresaId: string, dto: Ubicacion) => void | Promise<void>;
