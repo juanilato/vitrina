@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import './Login.css';
 
 import { GoogleLogin } from '@react-oauth/google';
+import Mariposa from '../common/logo';
 // Login de usuario con google auth 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -62,6 +63,7 @@ const Login: React.FC = () => {
             <div className="auth-form active">
               <div className="auth-header">
                 <div className="logo-container">
+
                   <img src={'/vitrina-logo.png'} alt="Logo" />
                 </div>
               </div>
@@ -108,13 +110,21 @@ const Login: React.FC = () => {
                 </button>
               </form>
 
+              {/* Separador */}
+              <div className="auth-divider">
+                <span>O</span>
+              </div>
 
               {/* Botón Google */}
-              <div className="google-wrapper">
+              <div className="google-login-container">
                 <GoogleLogin
                   onSuccess={handleGoogle}
                   onError={() => setFormError('Error con Google')}
                   useOneTap
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  width="100%"
                 />
               </div>
               

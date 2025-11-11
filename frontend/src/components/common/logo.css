@@ -1,0 +1,40 @@
+/* --- Utilitarias --- */
+.logoRoot {
+  display: inline-block;
+  line-height: 0;
+  will-change: transform;
+  /* sobreescalar sin pixelación en HiDPI */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Variables de animación */
+  --flap-dur: 2.6s;            /* entre 2.2s y 3.0s */
+  --flap-rot: 2.6deg;          /* entre 2° y 3° */
+  --flap-scale: 0.98;          /* 0.96–1.02 según gusto */
+  --flap-skew: 2.2deg;         /* 2–4deg aprox */
+}
+
+/* El <svg> ocupa su contenedor de forma fluida */
+.logoRoot svg { width: 100%; height: auto; display:block; }
+
+/* Animación aplicada a cada ala (grupos ya tienen transform-origin definido) */
+.wingLeft, .wingRight {
+  animation: wingFlap var(--flap-dur) ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Keyframes: rotación leve + scale/ skew alternos (transform-only => sin reflow) */
+@keyframes wingFlap {
+  0%   { transform: rotate(0deg) skewX(0deg) scale(1); }
+  100% { transform: rotate(var(--flap-rot)) skewX(var(--flap-skew)) scale(var(--flap-scale)); }
+}
+
+/* Respeto de accesibilidad */
+/* 1) Si el usuario solicita menos animación */
+@media (prefers-reduced-motion: reduce) {
+  .wingLeft, .wingRight { animation: none !important; }
+}
+/* 2) Variante manual por atributo de datos en el contenedor */
+[data-reduced-motion] .wingLeft,
+[data-reduced-motion] .wingRight {
+  animation: none !important;
+}

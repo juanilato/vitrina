@@ -22,6 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button, Input } from '../common';
 import { Logo } from '../common/Logo';
+import { VerificationModal } from './VerificationModal';
 import { colors, spacing, textStyles, borderRadius } from '../../theme';
 import { useGoogleSignIn } from '../../hooks/useGoogleSignIn';
 import { normalize } from '../../utils/responsive';
@@ -56,6 +57,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     password?: string;
     confirmPassword?: string;
   }>({});
+
+  // Estado para modal de verificación
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const resetForm = () => {
     setName('');
@@ -143,9 +148,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     setLoading(true);
     try {
-      await register({ name, email, password });
-      resetForm();
-      onSuccess?.();
+      // El registro ahora devuelve un mensaje de verificación pendiente
+      const response = await register({ name, email, password });
+
+      // Si el backend devuelve que necesita verificación
+      if (response?.message?.includes('verificación')) {
+        setRegisteredEmail(email);
+        setShowVerificationModal(true);
+        Alert.alert(
+          'Verificación Requerida',
+          'Hemos enviado un código de verificación a tu email. Por favor verifica tu cuenta para continuar.'
+        );
+      } else {
+        // Si no requiere verificación (por ejemplo, login automático después de registro)
+        resetForm();
+        onSuccess?.();
+      }
     } catch (error: any) {
       console.error('Register error:', error);
       Alert.alert(
@@ -155,6 +173,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerificationSuccess = () => {
+    resetForm();
+    setShowVerificationModal(false);
+    Alert.alert(
+      '¡Cuenta Verificada!',
+      'Tu cuenta ha sido verificada exitosamente. Ya puedes iniciar sesión.',
+      [
+        {
+          text: 'Iniciar Sesión',
+          onPress: () => {
+            setMode('login');
+            setEmail(registeredEmail);
+          },
+        },
+      ]
+    );
   };
 
   const handleGoogleSignIn = async () => {
@@ -359,6 +395,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </LinearGradient>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Modal de Verificación */}
+      <VerificationModal
+        visible={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        email={registeredEmail}
+        userType="cliente"
+        onVerificationSuccess={handleVerificationSuccess}
+      />
     </Modal>
   );
 };

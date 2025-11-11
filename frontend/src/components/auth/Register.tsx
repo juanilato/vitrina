@@ -5,7 +5,6 @@ import VerificationModal from './VerificationModal';
 import './Register.css';
 import { GoogleLogin } from '@react-oauth/google';
 
-
 // Register de usuario con google auth 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -138,8 +137,8 @@ const Register: React.FC = () => {
             <div className="auth-form-container">
 
               <div className="auth-form active">
-       
-                
+          
+
                 <form onSubmit={handleSubmit} className="auth-form-content">
                   <div className="form-group">
                     <div className="input-wrapper">
@@ -226,14 +225,31 @@ const Register: React.FC = () => {
                     </div>
                   )}
                   
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn btn-primary"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Creando cuenta...' : 'REGISTRATE'}
                   </button>
                 </form>
+
+                {/* Separador */}
+                <div className="auth-divider register-divider">
+                  <span>O</span>
+                </div>
+
+                {/* Botón Google */}
+                <div className="google-login-container">
+                  <GoogleLogin
+                    onSuccess={handleGoogleRegister}
+                    onError={() => setFormError('Error con Google')}
+                    theme="filled_blue"
+                    size="large"
+                    text="signup_with"
+                    width="100%"
+                  />
+                </div>
 
                 <div className="auth-footer">
                   <p>
@@ -258,12 +274,6 @@ const Register: React.FC = () => {
                 <p>
                   Sumate a las miles de empresas que ya estan en VITRINA, mostrandote a tu publico.
                 </p>
-                                                            <div className="google-wrapper">
-                <GoogleLogin
-                  onSuccess={handleGoogleRegister}
-                  onError={() => setFormError('Error con Google')}
-                />
-              </div>
               </div>
             </div>
             

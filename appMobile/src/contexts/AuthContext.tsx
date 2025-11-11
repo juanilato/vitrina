@@ -24,7 +24,7 @@ interface AuthContextData {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<any>;
   googleLogin: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -153,7 +153,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = useCallback(async (data: RegisterRequest) => {
     try {
       const response = await authService.register(data);
-      await saveAuth(response.accessToken, response.user);
+
+      // Si la respuesta incluye accessToken, el usuario se registró y autenticó automáticamente
+      if (response.accessToken && response.user) {
+        await saveAuth(response.accessToken, response.user);
+      }
+
+      // Devolver la respuesta completa para que el componente pueda manejar la verificación
+      return response;
     } catch (error) {
       console.error('Register error:', error);
       throw error;

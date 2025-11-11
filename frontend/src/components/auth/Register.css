@@ -522,8 +522,50 @@ select.form-input {
   color: rgba(255, 255, 255, 0.8);
 }
 
+/* Separador "O" */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  animation: fadeInUp 3.7s ease-out;
+}
 
-.auth-divider { display:flex; align-items:center; gap:.75rem; margin:1rem 0; }
-.auth-divider::before, .auth-divider::after { content:""; flex:1; height:1px; background:rgba(0,0,0,.1); }
-.auth-divider span { color:#6b7280; font-size:.9rem; }
-.google-wrapper { display:flex; justify-content:center; }
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.auth-divider.register-divider span {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0 0.5rem;
+}
+
+/* Contenedor del botón de Google */
+.google-login-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 3.9s ease-out;
+}
+
+.google-login-container > div {
+  width: 100% !important;
+}
+
+.google-login-container iframe {
+  width: 100% !important;
+  border-radius: var(--vitrina-border-radius) !important;
+  transition: all 0.3s ease !important;
+}
+
+.google-login-container iframe:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15) !important;
+}
