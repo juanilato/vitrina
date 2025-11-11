@@ -49,7 +49,7 @@ export const LiveSitePreview: React.FC<{ empresa?: { id?: string; name?: string 
 
   // Usar el nombre de la empresa en la URL en lugar del ID
   const companyNameSlug = empresa.name.replace(/\s+/g, '');
-  const src = `http://localhost:8081/company/${companyNameSlug}?previewToken=${token}`;
+  const src = `https://vitrina.com.ar/company/${companyNameSlug}?previewToken=${token}`;
 
   return (
     <div style={{

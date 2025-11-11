@@ -176,8 +176,10 @@ export const FloatingSocialLinks: React.FC<FloatingSocialLinksProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 60,
-    right: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.md,
+    right:-10,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 100,
