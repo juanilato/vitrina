@@ -15,6 +15,8 @@ import ChargeUbicacionModule from './components/ChargeUbicacionModule';
 
 import MopedIcon from '@mui/icons-material/Moped';
 import RepartidoresTab from './components/RepartidoresTab';
+import CreditCardOutlinedIcon from '@mui/icons-material/CreditCardOutlined';
+import SubscriptionTab from './components/SubscriptionTab';
 // Sección de manejo de settings de la cuenta:
 // Perfil unificado: Datos básicos, cambio de contraseña y completación de perfil
 // Categorías Selección de categorías y subcategorías de la empresa
@@ -66,6 +68,7 @@ const AccountConfigSection: React.FC = () => {
     { id: 'locations',   label: 'Precios Envío',     icon: <LocalShippingOutlinedIcon fontSize="small" /> },
     { id: 'delivery',    label: 'Repartidores',      icon: <MopedIcon fontSize="small" /> },
     { id: 'preferences', label: 'Preferencias Web',  icon: <TuneOutlinedIcon fontSize="small" /> },
+    { id: 'subscription', label: 'Suscripción',      icon: <CreditCardOutlinedIcon fontSize="small" /> },
   ] as const;
 
   const renderActiveTab = () => {
@@ -104,6 +107,8 @@ const AccountConfigSection: React.FC = () => {
         return <PreferencesTab />;
       case 'delivery':
         return <RepartidoresTab />;
+      case 'subscription':
+        return <SubscriptionTab />;
       default:
         return <UnifiedProfileTab />;
     }

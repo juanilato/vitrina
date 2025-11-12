@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import VerificationModal from './VerificationModal';
+import AccountTypeSelector from './AccountTypeSelector';
 import './Register.css';
 import { GoogleLogin } from '@react-oauth/google';
 
-// Register de usuario con google auth 
+// Register de usuario con google auth
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -18,31 +19,44 @@ const Register: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState('');
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showAccountTypeSelector, setShowAccountTypeSelector] = useState(false);
+  const [selectedAccountType, setSelectedAccountType] = useState<'empresa' | 'repartidor'>('empresa');
+  const [pendingGoogleCredential, setPendingGoogleCredential] = useState<any>(null);
   const [registeredUser, setRegisteredUser] = useState<{
     email: string;
     type: 'cliente' | 'empresa' | 'repartidor';
   } | null>(null);
-  
+
   const { register, error, user, googleRegister } = useAuth();
   const navigate = useNavigate();
   const handleGoogleRegister = async (cred: any) => {
-  try {
-    setFormError('');
-    setIsLoading(true);
-    const idToken = cred?.credential;
-    if (!idToken) throw new Error('Token de Google inválido');
+    // Guardar credencial y mostrar selector de tipo de cuenta
+    setPendingGoogleCredential(cred);
+    setShowAccountTypeSelector(true);
+  };
 
-    // usamos el tipo seleccionado en el select
-    await googleRegister(idToken, formData.type);
+  const handleAccountTypeSelected = async () => {
+    if (!pendingGoogleCredential) return;
 
-    // si el backend devuelve tokens, ya estás autenticado:
-    navigate('/dashboard');
-  } catch (e: any) {
-    setFormError(e.message || 'No se pudo registrar con Google');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      setFormError('');
+      setIsLoading(true);
+      setShowAccountTypeSelector(false);
+      const idToken = pendingGoogleCredential?.credential;
+      if (!idToken) throw new Error('Token de Google inválido');
+
+      // Usar el tipo seleccionado del selector
+      await googleRegister(idToken, selectedAccountType);
+
+      // Si el backend devuelve tokens, ya estás autenticado:
+      navigate('/dashboard');
+    } catch (e: any) {
+      setFormError(e.message || 'No se pudo registrar con Google');
+    } finally {
+      setIsLoading(false);
+      setPendingGoogleCredential(null);
+    }
+  };
 
   // Verificar si el usuario ya está autenticado al cargar el componente
   useEffect(() => {
@@ -130,6 +144,18 @@ const Register: React.FC = () => {
 
   return (
     <>
+      {showAccountTypeSelector && (
+        <AccountTypeSelector
+          selectedType={selectedAccountType}
+          onSelectType={setSelectedAccountType}
+          onClose={() => {
+            setShowAccountTypeSelector(false);
+            setPendingGoogleCredential(null);
+          }}
+          onContinue={handleAccountTypeSelected}
+        />
+      )}
+
       <div className="auth-container">
         <div className="auth-split-panel">
           {/* Panel Izquierdo - Formulario de Registro */}

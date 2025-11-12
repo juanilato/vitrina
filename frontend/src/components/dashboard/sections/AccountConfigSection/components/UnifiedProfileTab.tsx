@@ -131,8 +131,16 @@ const UnifiedProfileTab: React.FC = () => {
 
   // Handler para cambiar contraseña
   const handleChangePassword = async () => {
-    if (!passwordData.currentPassword || !passwordData.newPassword) {
-      alert('Todos los campos son requeridos');
+    const isGoogleUser = empresaData?.authMethod === 'google';
+
+    // Si NO es usuario de Google, la contraseña actual es requerida
+    if (!isGoogleUser && !passwordData.currentPassword) {
+      alert('La contraseña actual es requerida');
+      return;
+    }
+
+    if (!passwordData.newPassword) {
+      alert('La nueva contraseña es requerida');
       return;
     }
 
@@ -147,14 +155,18 @@ const UnifiedProfileTab: React.FC = () => {
     }
 
     try {
-      await changePassword(passwordData.currentPassword, passwordData.newPassword);
+      // Si es usuario de Google, pasar cadena vacía como contraseña actual
+      const currentPwd = isGoogleUser ? '' : passwordData.currentPassword;
+      await changePassword(currentPwd, passwordData.newPassword);
       setPasswordData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
       setShowPasswordSection(false);
-      alert('Contraseña actualizada exitosamente');
+      alert(isGoogleUser
+        ? 'Contraseña establecida exitosamente. Ahora puedes iniciar sesión con email y contraseña además de Google.'
+        : 'Contraseña actualizada exitosamente');
     } catch (error) {
       console.error('Error al cambiar contraseña:', error);
     }
@@ -321,35 +333,44 @@ const UnifiedProfileTab: React.FC = () => {
         <h3>Seguridad</h3>
 
         {!showPasswordSection ? (
-          <button
-            className="btn btn-secondary"
-            onClick={() => setShowPasswordSection(true)}
-          >
-            Cambiar Contraseña
-          </button>
+          <>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowPasswordSection(true)}
+            >
+              {empresaData?.authMethod === 'google' ? 'Establecer Contraseña' : 'Cambiar Contraseña'}
+            </button>
+            {empresaData?.authMethod === 'google' && (
+              <p style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
+                Te registraste con Google. Puedes establecer una contraseña para también iniciar sesión con email y contraseña.
+              </p>
+            )}
+          </>
         ) : (
           <div className="password-change-section">
-            <div className="form-group">
-              <label htmlFor="current-password">Contraseña Actual</label>
-              <div className="password-input-container">
-                <input
-                  id="current-password"
-                  type={showPasswords.current ? 'text' : 'password'}
-                  value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="form-input"
-                  placeholder="Ingresa tu contraseña actual"
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => togglePasswordVisibility('current')}
-                  aria-label="Mostrar/ocultar contraseña"
-                >
-                  {showPasswords.current ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}
-                </button>
+            {empresaData?.authMethod !== 'google' && (
+              <div className="form-group">
+                <label htmlFor="current-password">Contraseña Actual</label>
+                <div className="password-input-container">
+                  <input
+                    id="current-password"
+                    type={showPasswords.current ? 'text' : 'password'}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    className="form-input"
+                    placeholder="Ingresa tu contraseña actual"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => togglePasswordVisibility('current')}
+                    aria-label="Mostrar/ocultar contraseña"
+                  >
+                    {showPasswords.current ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="new-password">Nueva Contraseña</label>
@@ -414,9 +435,18 @@ const UnifiedProfileTab: React.FC = () => {
               <button
                 className="btn btn-primary"
                 onClick={handleChangePassword}
-                disabled={saving || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                disabled={
+                  saving ||
+                  !passwordData.newPassword ||
+                  !passwordData.confirmPassword ||
+                  (empresaData?.authMethod !== 'google' && !passwordData.currentPassword)
+                }
               >
-                {saving ? 'Cambiando...' : 'Cambiar Contraseña'}
+                {saving
+                  ? 'Guardando...'
+                  : empresaData?.authMethod === 'google'
+                  ? 'Establecer Contraseña'
+                  : 'Cambiar Contraseña'}
               </button>
             </div>
           </div>

@@ -125,6 +125,7 @@ export class AuthService {
           name: name ?? '',
           // password: null o vacío — NO se usa para Google
           password: '', // evita null si tu esquema no lo permite
+          authMethod: 'google', // ✅ Marcar que se registró con Google
           isVerified: true, // ✅ auto-verificada por Google
           // Si tenés campo para foto/logo:
           // logo: picture ?? null,
@@ -199,6 +200,7 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
           email,
           name: name ?? '',
           password,
+          authMethod: 'google', // ✅ Marcar que se registró con Google
           isVerified: true,
         },
       });
@@ -208,8 +210,9 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
           email,
           name: name ?? '',
           password,
+          authMethod: 'google', // ✅ Marcar que se registró con Google
           isVerified: true,
-          logo: picture ?? null, 
+          logo: picture ?? null,
         },
       });
     }
@@ -991,21 +994,26 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      // Verificar contraseña actual (solo si tiene contraseña - puede no tener si se registró con Google)
-      if (user.password) {
-        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-        if (!isPasswordValid) {
-          throw new UnauthorizedException('Contraseña actual incorrecta');
+      // Verificar contraseña actual SOLO si NO se registró con Google
+      if (user.authMethod !== 'google') {
+        if (user.password) {
+          const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+          if (!isPasswordValid) {
+            throw new UnauthorizedException('Contraseña actual incorrecta');
+          }
         }
       }
 
       // Encriptar nueva contraseña
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      // Actualizar contraseña
+      // Actualizar contraseña y cambiar authMethod a 'normal' si era Google
       await this.prisma.cliente.update({
         where: { id: userId },
-        data: { password: hashedPassword }
+        data: {
+          password: hashedPassword,
+          authMethod: 'normal' // ✅ Cambiar a normal porque ahora tiene contraseña
+        }
       });
 
       return {

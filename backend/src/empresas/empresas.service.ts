@@ -170,10 +170,12 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
       throw new NotFoundException('Empresa no encontrada');
     }
 
-    // Verificar contraseña actual
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, empresa.password);
-    if (!isCurrentPasswordValid) {
-      throw new UnauthorizedException('Contraseña actual incorrecta');
+    // Verificar contraseña actual SOLO si NO se registró con Google
+    if (empresa.authMethod !== 'google') {
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, empresa.password);
+      if (!isCurrentPasswordValid) {
+        throw new UnauthorizedException('Contraseña actual incorrecta');
+      }
     }
 
     // Hash de la nueva contraseña
@@ -181,7 +183,10 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
 
     await this.prisma.empresa.update({
       where: { id },
-      data: { password: hashedNewPassword },
+      data: {
+        password: hashedNewPassword,
+        authMethod: 'normal' // ✅ Cambiar a normal porque ahora tiene contraseña
+      },
     });
 
     return { message: 'Contraseña actualizada exitosamente' };

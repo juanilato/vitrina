@@ -14,13 +14,15 @@ import { IngredientesModule } from './ingredientes/ingredientes.module';
 import { RepartidoresModule } from './repartidores/repartidores.module';
 import { UbicacionesClienteModule } from './ubicaciones-cliente/ubicaciones-cliente.module';
 import { CategoriasModule } from './categorias/categorias.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
 
 
 @Module({
   imports: [
-    AuthModule, 
-    PrismaModule, 
-    ProductosModule, 
+    AuthModule,
+    PrismaModule,
+    ProductosModule,
     PedidosModule,
     NotificationsModule,
     WebSocketModule,
@@ -29,6 +31,8 @@ import { CategoriasModule } from './categorias/categorias.module';
     RepartidoresModule,
     UbicacionesClienteModule,
     CategoriasModule,
+    SubscriptionsModule,
+    PaymentMethodsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

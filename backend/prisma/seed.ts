@@ -166,9 +166,38 @@ const categoriesData = [
   },
 ];
 
-async function main() {
-  console.log('🌱 Iniciando seed de categorías y subcategorías...');
+const planesData = [
+  {
+    nombre: 'Vitrina Tu Mundo',
+    descripcion: 'Plan gratuito para empezar',
+    precio: 0,
+    moneda: 'ARS',
+    intervalo: 'mensual',
+    limites: {
+      maxProductos: 30,
+      maxPedidosMes: 500,
+      maxFotos: 30,
+      soportePrioritario: true,
+      estadisticasAvanzadas: true,
+    },
+    caracteristicas: [
+      'Hasta 10 productos',
+      'Hasta 50 pedidos por mes',
+      'Catálogo web básico',
+      'Soporte por email',
+    ],
+    activo: true,
+    esPopular: false,
+    orden: 1,
+  },
 
+];
+
+async function main() {
+  console.log('🌱 Iniciando seed...');
+
+  // Seed de categorías y subcategorías
+  console.log('\n📦 Seeding categorías y subcategorías...');
   for (const categoryData of categoriesData) {
     const { subcategorias, ...categoriaInfo } = categoryData;
 
@@ -199,6 +228,24 @@ async function main() {
       });
       console.log(`  ➡️ Subcategoría creada: ${subcat.nombre}`);
     }
+  }
+
+  // Seed de planes de suscripción
+  console.log('\n💳 Seeding planes de suscripción...');
+  for (const planData of planesData) {
+    const plan = await prisma.planSuscripcion.upsert({
+      where: { nombre: planData.nombre },
+      update: {
+        descripcion: planData.descripcion,
+        precio: planData.precio,
+        limites: planData.limites,
+        caracteristicas: planData.caracteristicas,
+        esPopular: planData.esPopular,
+        orden: planData.orden,
+      },
+      create: planData,
+    });
+    console.log(`✅ Plan creado: ${plan.nombre} - $${plan.precio}/${plan.intervalo}`);
   }
 
   console.log('\n✨ Seed completado exitosamente!');

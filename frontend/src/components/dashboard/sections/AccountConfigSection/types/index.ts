@@ -67,6 +67,7 @@ export interface EmpresaData {
   email: string;
   name: string;
   logo?: string;
+  authMethod?: string; // "normal" o "google"
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;

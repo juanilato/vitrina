@@ -20,6 +20,7 @@ model Cliente {
   email       String    @unique
   name        String
   password    String
+  authMethod  String    @default("normal") // "normal" o "google"
   isVerified  Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -102,6 +103,7 @@ model Empresa {
   email       String     @unique
   name        String
   password    String
+  authMethod  String     @default("normal") // "normal" o "google"
   logo        String?
   ubicacion   Ubicacion?
   isVerified  Boolean    @default(false)
@@ -119,6 +121,11 @@ model Empresa {
   categoria       Categoria?              @relation(fields: [categoriaId], references: [id])
   subcategorias   EmpresaSubcategoria[]   // Relación muchos a muchos con subcategorías
 
+  // Relaciones con suscripciones
+  suscripciones   Suscripcion[]
+  metodosPago     MetodoPago[]
+  pagos           Pago[]
+
   @@index([categoriaId])
 }
 // ——— Cuenta repartidor ———
@@ -128,6 +135,7 @@ model Repartidor {
   email          String    @unique
   telefono        String?
   password        String
+  authMethod      String    @default("normal") // "normal" o "google"
   codigoVinculo   String    @unique
   empresas         EmpresaRepartidor[]
   pedidos          Pedido[]
@@ -404,27 +412,221 @@ model Mensaje {
 // --- Notificaciones ---
 model Notificacion {
   id          String    @id @default(cuid())
-  
+
   // Usuario que recibe la notificación
   userId      String
   userType    String    // 'cliente' o 'empresa'
-  
+
   // Contenido de la notificación
   titulo      String
   mensaje     String
   tipo        String    // 'pedido_creado', 'pedido_actualizado', 'general', etc.
-  
+
   // Estado de la notificación
   leida       Boolean   @default(false)
-  
+
   // Datos adicionales (JSON)
   metadata    Json?     // Información extra como ID del pedido, etc.
-  
+
   // Timestamps
   createdAt   DateTime  @default(now())
   leidaAt     DateTime?
-  
+
   @@index([userId, userType])
   @@index([leida, createdAt])
   @@index([tipo, createdAt])
+}
+
+// ——— Sistema de Suscripciones ———
+
+// ——— Planes de Suscripción ———
+model PlanSuscripcion {
+  id              String    @id @default(cuid())
+  nombre          String    @unique // "Free", "Basic", "Premium", "Enterprise"
+  descripcion     String?
+
+  // Precio
+  precio          Decimal   @db.Decimal(12, 2)
+  moneda          String    @default("USD")
+  intervalo       String    @default("mensual") // "mensual", "anual"
+
+  // Límites y características del plan
+  limites         Json      // { maxProductos: 100, maxPedidosMes: 1000, etc. }
+  caracteristicas Json      // [ "Estadísticas avanzadas", "Soporte prioritario", etc. ]
+
+  // Estado del plan
+  activo          Boolean   @default(true)
+  esPopular       Boolean   @default(false) // Para destacar en UI
+  orden           Int       @default(0)     // Para ordenar en UI
+
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relaciones
+  suscripciones   Suscripcion[]
+
+  @@index([activo, orden])
+}
+
+// ——— Suscripciones Activas ———
+model Suscripcion {
+  id              String    @id @default(cuid())
+
+  // Empresa suscrita
+  empresaId       String
+  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  // Plan actual
+  planId          String
+  plan            PlanSuscripcion @relation(fields: [planId], references: [id])
+
+  // Estado de la suscripción
+  estado          EstadoSuscripcion @default(ACTIVA)
+
+  // Fechas importantes
+  inicioAt        DateTime  @default(now())
+  finalizaAt      DateTime? // Fecha de próxima renovación o finalización
+  canceladaAt     DateTime? // Fecha de cancelación (si aplica)
+
+  // Renovación automática
+  renovacionAuto  Boolean   @default(true)
+
+  // Método de pago asociado (opcional)
+  metodoPagoId    String?
+  metodoPago      MetodoPago? @relation(fields: [metodoPagoId], references: [id], onDelete: SetNull)
+
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relaciones
+  pagos           Pago[]
+
+  @@index([empresaId])
+  @@index([planId])
+  @@index([estado])
+  @@index([finalizaAt])
+}
+
+// ——— Estados de Suscripción ———
+enum EstadoSuscripcion {
+  ACTIVA
+  CANCELADA
+  SUSPENDIDA
+  VENCIDA
+  PENDIENTE_PAGO
+}
+
+// ——— Métodos de Pago ———
+model MetodoPago {
+  id              String    @id @default(cuid())
+
+  // Empresa propietaria
+  empresaId       String
+  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  // Tipo de método de pago
+  tipo            TipoMetodoPago
+
+  // Datos de la tarjeta (encriptados o tokenizados)
+  ultimos4        String?   // Últimos 4 dígitos
+  marca           String?   // "Visa", "Mastercard", "Amex", etc.
+  expiraMes       Int?
+  expiraAnio      Int?
+
+  // Token del procesador de pagos (Stripe, PayPal, etc.)
+  tokenProcesador String?   @unique // Token del gateway de pagos
+  procesador      String?   @default("stripe") // "stripe", "paypal", "mercadopago"
+
+  // Datos adicionales según tipo
+  metadata        Json?     // Datos adicionales según el tipo de pago
+
+  // Estado
+  activo          Boolean   @default(true)
+  esPredeterminado Boolean  @default(false)
+
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relaciones
+  suscripciones   Suscripcion[]
+  pagos           Pago[]
+
+  @@index([empresaId])
+  @@index([activo])
+}
+
+// ——— Tipos de Método de Pago ———
+enum TipoMetodoPago {
+  TARJETA_CREDITO
+  TARJETA_DEBITO
+  PAYPAL
+  TRANSFERENCIA
+  OTRO
+}
+
+// ——— Historial de Pagos/Facturas ———
+model Pago {
+  id              String    @id @default(cuid())
+
+  // Suscripción asociada
+  suscripcionId   String
+  suscripcion     Suscripcion @relation(fields: [suscripcionId], references: [id], onDelete: Cascade)
+
+  // Empresa (denormalizado para facilitar búsquedas)
+  empresaId       String
+  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  // Método de pago utilizado
+  metodoPagoId    String?
+  metodoPago      MetodoPago? @relation(fields: [metodoPagoId], references: [id], onDelete: SetNull)
+
+  // Detalles del pago
+  monto           Decimal   @db.Decimal(12, 2)
+  moneda          String    @default("USD")
+
+  // Estado del pago
+  estado          EstadoPago @default(PENDIENTE)
+
+  // Referencia externa (del procesador de pagos)
+  referenciaExterna String? @unique // ID de transacción en Stripe, PayPal, etc.
+  procesador        String? // "stripe", "paypal", etc.
+
+  // Período que cubre este pago
+  periodoInicio   DateTime
+  periodoFin      DateTime
+
+  // Metadata de facturación
+  numeroFactura   String?   @unique
+  urlFactura      String?   // URL del PDF de la factura
+
+  // Fechas importantes
+  fechaPago       DateTime?
+  intentosRetry   Int       @default(0)
+  proximoRetry    DateTime?
+
+  // Metadata adicional
+  metadata        Json?     // Datos adicionales del pago
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([suscripcionId])
+  @@index([empresaId])
+  @@index([estado])
+  @@index([fechaPago])
+  @@index([periodoInicio, periodoFin])
+}
+
+// ——— Estados de Pago ———
+enum EstadoPago {
+  PENDIENTE
+  PROCESANDO
+  COMPLETADO
+  FALLIDO
+  REEMBOLSADO
+  CANCELADO
 }
