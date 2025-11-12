@@ -181,8 +181,8 @@ export default function RegisterScreen() {
 
               {/* Header */}
               <View style={styles.header}>
-                <Text style={styles.title}>Crear Cuenta</Text>
-                <Text style={styles.subtitle}>Regístrate y empieza a explorar</Text>
+                <Text style={styles.title}>Crear Cuenta ✨</Text>
+                <Text style={styles.subtitle}>Únete y descubre lugares increíbles</Text>
               </View>
 
               {/* Form Card */}
@@ -254,8 +254,8 @@ export default function RegisterScreen() {
                     {/* Terms */}
                     <Text style={styles.termsText}>
                       Al registrarte, aceptas nuestros{' '}
-                      <Text style={styles.termsLink}>Términos de Servicio</Text> y{' '}
-                      <Text style={styles.termsLink}>Política de Privacidad</Text>
+                      <Text style={styles.termsLink}>Términos</Text> y{' '}
+                      <Text style={styles.termsLink}>Privacidad</Text>
                     </Text>
 
                     {/* Register Button */}
@@ -352,45 +352,45 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing['2xl'],
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.xl,
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.sm,
     marginTop: spacing.xs,
   },
 
   logoCard: {
-    width: normalize(90),
-    height: normalize(90),
-    borderRadius: normalize(22),
+    width: normalize(70),
+    height: normalize(70),
+    borderRadius: normalize(18),
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
-    shadowRadius: 14,
-    elevation: 6,
+    shadowRadius: 12,
+    elevation: 5,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
   },
 
   logoIconContainer: {
-    width: normalize(72),
-    height: normalize(72),
-    borderRadius: normalize(18),
+    width: normalize(58),
+    height: normalize(58),
+    borderRadius: normalize(15),
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   brandName: {
-    fontSize: normalize(24),
+    fontSize: normalize(20),
     fontWeight: '800',
     color: colors.primary,
     letterSpacing: -0.5,
@@ -398,11 +398,11 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
   },
 
   title: {
-    fontSize: normalize(24),
+    fontSize: normalize(20),
     fontWeight: '700',
     color: colors.gray900,
     marginBottom: spacing.xs,
@@ -410,17 +410,17 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: normalize(20),
+    lineHeight: normalize(17),
   },
 
   // Form Card
   formCard: {
-    borderRadius: normalize(20),
+    borderRadius: normalize(18),
     overflow: 'hidden',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -429,10 +429,10 @@ const styles = StyleSheet.create({
   },
 
   formCardGradient: {
-    padding: spacing.lg,
+    padding: spacing.md,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: normalize(20),
+    borderRadius: normalize(18),
   },
 
   form: {
@@ -440,12 +440,12 @@ const styles = StyleSheet.create({
   },
 
   termsText: {
-    fontSize: normalize(11),
+    fontSize: normalize(10),
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
     marginTop: spacing.xs,
-    lineHeight: normalize(16),
+    lineHeight: normalize(14),
   },
 
   termsLink: {
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.md,
+    marginVertical: spacing.sm,
   },
 
   dividerLine: {
@@ -466,15 +466,15 @@ const styles = StyleSheet.create({
   },
 
   dividerText: {
-    fontSize: normalize(12),
+    fontSize: normalize(10),
     color: colors.textTertiary,
-    marginHorizontal: spacing.md,
+    marginHorizontal: spacing.sm,
     fontWeight: '500',
   },
 
   // Google Button
   googleButton: {
-    borderRadius: normalize(14),
+    borderRadius: normalize(12),
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -487,16 +487,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: normalize(15),
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
+    paddingVertical: normalize(12),
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
     borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: normalize(14),
+    borderRadius: normalize(12),
   },
 
   googleButtonText: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontWeight: '600',
     color: colors.gray800,
   },
@@ -507,16 +507,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 'auto',
-    paddingTop: spacing.lg,
+    paddingTop: spacing.sm,
   },
 
   footerText: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     color: colors.textSecondary,
   },
 
   footerLink: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     color: colors.primary,
     fontWeight: '700',
   },
