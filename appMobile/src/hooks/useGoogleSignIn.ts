@@ -30,12 +30,22 @@ export const useGoogleSignIn = (mode: 'login' | 'register' = 'login') => {
   useEffect(() => {
     if (response?.type === 'success') {
       handleGoogleResponse(response.authentication?.idToken);
+    } else if (response?.type === 'error') {
+      console.error('Google auth error:', response.error);
+      setLoading(false);
+    } else if (response?.type === 'cancel') {
+      console.log('Google auth cancelled by user');
+      setLoading(false);
+    } else if (response?.type === 'dismiss') {
+      console.log('Google auth dismissed');
+      setLoading(false);
     }
   }, [response]);
 
   const handleGoogleResponse = async (idToken: string | undefined) => {
     if (!idToken) {
       console.error('No ID token received from Google');
+      setLoading(false);
       return;
     }
 

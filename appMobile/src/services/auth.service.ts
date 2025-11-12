@@ -18,13 +18,9 @@ export const authService = {
     const response = await api.post<AuthResponse>('/auth/login', credentials);
     const data = response.data;
 
-    // 🚦 Si no es cliente → limpiar token y redirigir
+    // 🚦 Si no es cliente → rechazar
     if (data.user?.type !== 'cliente') {
       console.warn(`🚫 Usuario tipo "${data.user?.type}" no permitido en este portal.`);
-      localStorage.removeItem('token');
-      setTimeout(() => {
-        window.location.href = 'https://company.vitrina.com.ar';
-      }, 100);
       throw new Error('Usuario no permitido en esta aplicación.');
     }
 
@@ -52,13 +48,9 @@ export const authService = {
 
     const data = response.data;
 
-    // 🚦 Si no es cliente → limpiar token y redirigir
+    // 🚦 Si no es cliente → rechazar
     if (data.user?.type !== 'cliente') {
       console.warn(`🚫 Usuario tipo "${data.user?.type}" no permitido en este portal.`);
-      localStorage.removeItem('token');
-      setTimeout(() => {
-        window.location.href = 'https://company.vitrina.com.ar';
-      }, 100);
       throw new Error('Usuario no permitido en esta aplicación.');
     }
 
@@ -76,13 +68,9 @@ export const authService = {
 
     const data = response.data;
 
-    // 🚦 Si no es cliente → limpiar token y redirigir
+    // 🚦 Si no es cliente → rechazar
     if (data.user?.type !== 'cliente') {
       console.warn(`🚫 Usuario tipo "${data.user?.type}" no permitido en este portal.`);
-      localStorage.removeItem('token');
-      setTimeout(() => {
-        window.location.href = 'https://company.vitrina.com.ar';
-      }, 100);
       throw new Error('Usuario no permitido en esta aplicación.');
     }
 
@@ -96,13 +84,9 @@ export const authService = {
     const response = await api.get<User>('/auth/profile');
     const user = response.data as User;
 
-    // 🚦 Si no es cliente → limpiar token y redirigir
+    // 🚦 Si no es cliente → rechazar
     if (user?.type !== 'cliente') {
       console.warn(`🚫 Usuario tipo "${user?.type}" no permitido en este portal.`);
-      localStorage.removeItem('token');
-      setTimeout(() => {
-        window.location.href = 'https://company.vitrina.com.ar';
-      }, 100);
       throw new Error('Usuario no permitido en esta aplicación.');
     }
 
@@ -117,9 +101,7 @@ export const authService = {
       await api.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      // 🧹 Limpieza local
-      localStorage.removeItem('token');
     }
+    // Nota: La limpieza del storage se maneja en AuthContext
   },
 };
