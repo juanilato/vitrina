@@ -32,7 +32,7 @@ const { width } = Dimensions.get('window');
 export default function RegisterScreen() {
   const { register, loginAfterVerification } = useAuth();
   const router = useRouter();
-  const { signInWithGoogle, loading: googleLoading, disabled: googleDisabled } = useGoogleSignIn();
+  const { signInWithGoogle, loading: googleLoading, disabled: googleDisabled } = useGoogleSignIn('register');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -173,7 +173,7 @@ export default function RegisterScreen() {
               <View style={styles.logoSection}>
                 <View style={styles.logoCard}>
                   <View style={styles.logoIconContainer}>
-                    <Logo variant="icon" size={normalize(44)} />
+                    <Logo variant="icon" size={normalize(40)} />
                   </View>
                 </View>
                 <Text style={styles.brandName}>Vitrina</Text>
@@ -281,8 +281,30 @@ export default function RegisterScreen() {
                       onPress={async () => {
                         try {
                           await signInWithGoogle();
-                        } catch (error) {
-                          Alert.alert('Error', 'No se pudo registrar con Google');
+                          // La navegación se maneja automáticamente por AuthContext
+                        } catch (error: any) {
+                          console.error('Google register error:', error);
+                          const errorMessage =
+                            error.response?.data?.message ||
+                            error.message ||
+                            'No se pudo registrar con Google';
+
+                          // Si el error es que el usuario ya existe, sugerir login
+                          if (errorMessage.includes('ya está registrado')) {
+                            Alert.alert(
+                              'Cuenta Existente',
+                              'Ya tienes una cuenta con este email. ¿Deseas iniciar sesión?',
+                              [
+                                { text: 'Cancelar', style: 'cancel' },
+                                {
+                                  text: 'Iniciar Sesión',
+                                  onPress: () => router.replace('/auth/login'),
+                                },
+                              ]
+                            );
+                          } else {
+                            Alert.alert('Error', errorMessage);
+                          }
                         }
                       }}
                       disabled={loading || googleDisabled || googleLoading}

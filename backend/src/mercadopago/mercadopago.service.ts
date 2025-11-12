@@ -1,0 +1,139 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
+
+interface CreatePreferenceData {
+  planId: string;
+  planName: string;
+  planPrice: number;
+  empresaId: string;
+  empresaEmail: string;
+  empresaName: string;
+}
+
+interface PreferenceItem {
+  id: string;
+  title: string;
+  description?: string;
+  quantity: number;
+  currency_id: 'ARS';
+  unit_price: number;
+}
+
+interface CreatePreferenceBody {
+  items: PreferenceItem[];
+  payer?: {
+    name?: string;
+    email?: string;
+  };
+  back_urls?: {
+    success?: string;
+    failure?: string;
+    pending?: string;
+  };
+  auto_return?: 'approved' | 'all';
+  external_reference?: string;
+  notification_url?: string;
+}
+
+@Injectable()
+export class MercadoPagoService {
+  private client: MercadoPagoConfig;
+  private preference: Preference;
+  private payment: Payment;
+  private readonly logger = new Logger(MercadoPagoService.name);
+
+  constructor() {
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+
+    if (!accessToken) {
+      this.logger.warn('MERCADOPAGO_ACCESS_TOKEN no configurado en el archivo .env');
+      return;
+    }
+
+    // Configurar cliente de MercadoPago
+    this.client = new MercadoPagoConfig({
+      accessToken: accessToken,
+    });
+
+    this.preference = new Preference(this.client);
+    this.payment = new Payment(this.client);
+
+    this.logger.log('MercadoPago configurado correctamente');
+  }
+
+  /**
+   * Crear una preferencia de pago para suscripción
+   */
+  async createPreference(data: CreatePreferenceData) {
+    try {
+      // Asegurar que el precio sea un número válido
+      const unitPrice = typeof data.planPrice === 'number'
+        ? data.planPrice
+        : parseFloat(data.planPrice);
+
+      if (isNaN(unitPrice) || unitPrice <= 0) {
+        throw new Error(`Precio inválido: ${data.planPrice}. El precio debe ser mayor a 0.`);
+      }
+
+      const preferenceData: CreatePreferenceBody = {
+        items: [
+          {
+            id: data.planId,
+            title: `Suscripción ${data.planName}`,
+            description: `Plan de suscripción ${data.planName}`,
+            quantity: 1,
+            currency_id: 'ARS',
+            unit_price: unitPrice,
+          },
+        ],
+        payer: {
+          name: data.empresaName,
+          email: data.empresaEmail,
+        },
+        back_urls: {
+          success: `${process.env.FRONTEND_URL}/dashboard/account-config?payment=success`,
+          failure: `${process.env.FRONTEND_URL}/dashboard/account-config?payment=failure`,
+          pending: `${process.env.FRONTEND_URL}/dashboard/account-config?payment=pending`,
+        },
+        auto_return: 'approved',
+        external_reference: `${data.empresaId}-${data.planId}-${Date.now()}`,
+        notification_url: `${process.env.BACKEND_URL}/webhooks/mercadopago`,
+      };
+
+      this.logger.log('Creando preferencia de pago:', JSON.stringify(preferenceData, null, 2));
+
+      const response = await this.preference.create({ body: preferenceData });
+
+      this.logger.log('Preferencia creada exitosamente:', response.id);
+
+      return {
+        id: response.id,
+        init_point: response.init_point,
+        sandbox_init_point: response.sandbox_init_point,
+      };
+    } catch (error) {
+      this.logger.error('Error al crear preferencia:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener información de un pago
+   */
+  async getPayment(paymentId: string) {
+    try {
+      const response = await this.payment.get({ id: paymentId });
+      return response;
+    } catch (error) {
+      this.logger.error(`Error al obtener pago ${paymentId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verificar si MercadoPago está configurado
+   */
+  isConfigured(): boolean {
+    return !!this.client;
+  }
+}

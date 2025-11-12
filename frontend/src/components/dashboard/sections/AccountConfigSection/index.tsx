@@ -39,6 +39,11 @@ const AccountConfigSection: React.FC = () => {
     cargaUbicacionInicial,
   } = useAccountConfig();
 
+  // Log para debug
+  React.useEffect(() => {
+    console.log('📍 [INDEX] activeTab cambió a:', activeTab);
+  }, [activeTab]);
+
   if (loading) {
     return (
       <div className="account-shell">
@@ -73,9 +78,11 @@ const AccountConfigSection: React.FC = () => {
 
   const renderActiveTab = () => {
     const ubicacion = formData.ubicaciones?.[0];
+    console.log('🎨 [RENDER_ACTIVE_TAB] Tab actual:', activeTab, 'Ubicación:', ubicacion);
+
     switch (activeTab) {
       case 'profile':
-        return <UnifiedProfileTab />;
+        return <UnifiedProfileTab setActiveTab={setActiveTab} />;
       case 'categories':
         return <CategoriesTab />;
       case 'locations':
@@ -110,7 +117,7 @@ const AccountConfigSection: React.FC = () => {
       case 'subscription':
         return <SubscriptionTab />;
       default:
-        return <UnifiedProfileTab />;
+        return <UnifiedProfileTab setActiveTab={setActiveTab} />;
     }
   };
 

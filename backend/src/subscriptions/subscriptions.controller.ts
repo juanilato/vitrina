@@ -11,10 +11,14 @@ import {
 } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { MercadoPagoService } from '../mercadopago/mercadopago.service';
 
 @Controller('subscriptions')
 export class SubscriptionsController {
-  constructor(private readonly subscriptionsService: SubscriptionsService) {}
+  constructor(
+    private readonly subscriptionsService: SubscriptionsService,
+    private readonly mercadoPagoService: MercadoPagoService,
+  ) {}
 
   // ============ PLANES DE SUSCRIPCIÓN (Públicos) ============
 
@@ -77,5 +81,30 @@ export class SubscriptionsController {
   @Get('payments/:id')
   async getPagoById(@Param('id') id: string) {
     return this.subscriptionsService.getPagoById(id);
+  }
+
+  // ============ MERCADOPAGO INTEGRATION ============
+
+  @UseGuards(JwtAuthGuard)
+  @Post('mercadopago/create-preference')
+  @HttpCode(HttpStatus.OK)
+  async createMercadoPagoPreference(
+    @Body()
+    body: {
+      planId: string;
+      planName: string;
+      planPrice: number;
+      empresaId: string;
+      empresaEmail: string;
+      empresaName: string;
+    },
+  ) {
+    return this.mercadoPagoService.createPreference(body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('mercadopago/payment/:paymentId')
+  async getMercadoPagoPayment(@Param('paymentId') paymentId: string) {
+    return this.mercadoPagoService.getPayment(paymentId);
   }
 }

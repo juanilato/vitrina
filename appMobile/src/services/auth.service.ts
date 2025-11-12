@@ -66,6 +66,30 @@ export const authService = {
   },
 
   /**
+   * Register with Google
+   */
+  async googleRegister(idToken: string): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>('/auth/google/register', {
+      idToken,
+      type: 'cliente', // fuerza tipo cliente
+    });
+
+    const data = response.data;
+
+    // 🚦 Si no es cliente → limpiar token y redirigir
+    if (data.user?.type !== 'cliente') {
+      console.warn(`🚫 Usuario tipo "${data.user?.type}" no permitido en este portal.`);
+      localStorage.removeItem('token');
+      setTimeout(() => {
+        window.location.href = 'https://company.vitrina.com.ar';
+      }, 100);
+      throw new Error('Usuario no permitido en esta aplicación.');
+    }
+
+    return data;
+  },
+
+  /**
    * Get current user profile
    */
   async getProfile(): Promise<User> {

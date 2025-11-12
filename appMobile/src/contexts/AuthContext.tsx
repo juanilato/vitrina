@@ -26,6 +26,7 @@ interface AuthContextData {
   login: (credentials: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<any>;
   googleLogin: (idToken: string) => Promise<void>;
+  googleRegister: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   loginAfterVerification: (verificationResponse: any) => Promise<void>;
@@ -181,6 +182,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  const googleRegister = useCallback(async (idToken: string) => {
+    try {
+      const response = await authService.googleRegister(idToken);
+      await saveAuth(response.accessToken, response.user);
+    } catch (error) {
+      console.error('Google register error:', error);
+      throw error;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authService.logout();
@@ -227,6 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         register,
         googleLogin,
+        googleRegister,
         logout,
         refreshUser,
         loginAfterVerification,

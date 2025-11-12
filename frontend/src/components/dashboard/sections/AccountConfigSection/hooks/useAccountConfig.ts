@@ -401,6 +401,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
 
   // Cambiar tab activo
   const setActiveTab = useCallback((tab: AccountConfigState['activeTab']) => {
+    console.log('🔄 [SET_ACTIVE_TAB] Cambiando tab a:', tab);
     setState(prev => ({ ...prev, activeTab: tab }));
   }, []);
 

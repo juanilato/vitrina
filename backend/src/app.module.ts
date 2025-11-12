@@ -16,6 +16,7 @@ import { UbicacionesClienteModule } from './ubicaciones-cliente/ubicaciones-clie
 import { CategoriasModule } from './categorias/categorias.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 
 
 @Module({
@@ -33,6 +34,7 @@ import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
     CategoriasModule,
     SubscriptionsModule,
     PaymentMethodsModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

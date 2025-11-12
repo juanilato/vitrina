@@ -17,21 +17,16 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  TextField,
-  IconButton,
   Grid,
 } from '@mui/material';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import useAccountConfig from '../hooks/useAccountConfig';
 import axiosInstance from '../../../../../config/axios.config';
+import MercadoPagoCheckout from './MercadoPagoCheckout';
 
 interface Plan {
   id: string;
@@ -73,14 +68,12 @@ const SubscriptionTab: React.FC = () => {
   const { empresaData } = useAccountConfig();
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [suscripcionActual, setSuscripcionActual] = useState<Suscripcion | null>(null);
-  const [metodosPago, setMetodosPago] = useState<MetodoPago[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
 
   // Estados para diálogos
-  const [openPlanDialog, setOpenPlanDialog] = useState(false);
-  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
+  const [openCheckoutDialog, setOpenCheckoutDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
@@ -95,7 +88,6 @@ const SubscriptionTab: React.FC = () => {
       await Promise.all([
         fetchPlanes(),
         fetchSuscripcionActual(),
-        fetchMetodosPago(),
       ]);
     } catch (err) {
       console.error('Error cargando datos de suscripción:', err);
@@ -127,41 +119,21 @@ const SubscriptionTab: React.FC = () => {
     }
   };
 
-  const fetchMetodosPago = async () => {
-    try {
-      if (!empresaData) return;
-      const { data } = await axiosInstance.get(`/payment-methods/empresa/${empresaData.id}`);
-      setMetodosPago(data);
-    } catch (err) {
-      console.error('Error al cargar métodos de pago:', err);
-    }
-  };
-
   const handleSelectPlan = (plan: Plan) => {
     setSelectedPlan(plan);
-    setOpenPlanDialog(true);
+    setOpenCheckoutDialog(true);
   };
 
-  const handleSubscribe = async () => {
-    if (!selectedPlan || !empresaData) return;
+  const handleCheckoutSuccess = async () => {
+    setOpenCheckoutDialog(false);
+    setSuccess('¡Suscripción procesada exitosamente! Recibirás una confirmación en tu email.');
+    await fetchSuscripcionActual();
+    setTimeout(() => setSuccess(''), 5000);
+  };
 
-    try {
-      setLoading(true);
-      const { data } = await axiosInstance.post('/subscriptions', {
-        empresaId: empresaData.id,
-        planId: selectedPlan.id,
-      });
-      setSuscripcionActual(data);
-      setSuccess('¡Suscripción activada exitosamente!');
-      setOpenPlanDialog(false);
-      setTimeout(() => setSuccess(''), 5000);
-    } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || 'Error al activar la suscripción';
-      setError(errorMsg);
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setLoading(false);
-    }
+  const handleCheckoutCancel = () => {
+    setOpenCheckoutDialog(false);
+    setSelectedPlan(null);
   };
 
   const handleCancelSubscription = async () => {
@@ -413,133 +385,28 @@ const SubscriptionTab: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Métodos de Pago */}
-      <Box mt={5}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6" fontWeight="600">
-            Métodos de Pago
-          </Typography>
-          <Button
-            startIcon={<AddCircleOutlineIcon />}
-            variant="outlined"
-            size="small"
-            onClick={() => setOpenPaymentDialog(true)}
-          >
-            Agregar Tarjeta
-          </Button>
-        </Box>
-
-        {metodosPago.length === 0 ? (
-          <Alert severity="info" icon={<InfoOutlinedIcon />}>
-            No tienes métodos de pago guardados. Agrega uno para facilitar tus pagos.
-          </Alert>
-        ) : (
-          <Grid container spacing={2}>
-            {metodosPago.map((metodo) => (
-              <Grid size={{ xs: 12, md: 6 }} key={metodo.id}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                      <Box display="flex" gap={2}>
-                        <CreditCardIcon color="action" />
-                        <Box>
-                          <Typography variant="body1" fontWeight="500">
-                            {metodo.marca} •••• {metodo.ultimos4}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Expira {metodo.expiraMes}/{metodo.expiraAnio}
-                          </Typography>
-                          {metodo.esPredeterminado && (
-                            <Chip label="Predeterminada" size="small" color="primary" sx={{ mt: 1 }} />
-                          )}
-                        </Box>
-                      </Box>
-                      <IconButton size="small" color="error">
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Box>
-
-      {/* Dialog para confirmar suscripción */}
-      <Dialog open={openPlanDialog} onClose={() => setOpenPlanDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Confirmar Suscripción</DialogTitle>
+      {/* Dialog para Checkout con MercadoPago */}
+      <Dialog
+        open={openCheckoutDialog}
+        onClose={handleCheckoutCancel}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Completar Suscripción</DialogTitle>
         <DialogContent>
-          {selectedPlan && (
-            <Box>
-              <Typography variant="body1" gutterBottom>
-                Estás por suscribirte al plan <strong>{selectedPlan.nombre}</strong>
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Precio: {formatCurrency(Number(selectedPlan.precio), selectedPlan.moneda)} / {selectedPlan.intervalo}
-              </Typography>
-
-              {metodosPago.length === 0 && (
-                <Alert severity="warning" sx={{ mt: 2 }}>
-                  Necesitas agregar un método de pago antes de suscribirte.
-                </Alert>
-              )}
-            </Box>
+          {selectedPlan && empresaData && (
+            <MercadoPagoCheckout
+              planId={selectedPlan.id}
+              planName={selectedPlan.nombre}
+              planPrice={Number(selectedPlan.precio)}
+              empresaId={empresaData.id}
+              empresaEmail={empresaData.email}
+              empresaName={empresaData.name}
+              onSuccess={handleCheckoutSuccess}
+              onCancel={handleCheckoutCancel}
+            />
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenPlanDialog(false)}>Cancelar</Button>
-          <Button
-            onClick={handleSubscribe}
-            variant="contained"
-            disabled={loading || metodosPago.length === 0}
-          >
-            {loading ? <CircularProgress size={20} /> : 'Confirmar Suscripción'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Dialog para agregar método de pago */}
-      <Dialog open={openPaymentDialog} onClose={() => setOpenPaymentDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Agregar Método de Pago</DialogTitle>
-        <DialogContent>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            La integración con procesadores de pago está en desarrollo. Por ahora, esta funcionalidad no está disponible.
-          </Alert>
-          <TextField
-            label="Número de tarjeta"
-            fullWidth
-            margin="normal"
-            placeholder="1234 5678 9012 3456"
-            disabled
-          />
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                label="Fecha de expiración"
-                fullWidth
-                margin="normal"
-                placeholder="MM/AA"
-                disabled
-              />
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                label="CVV"
-                fullWidth
-                margin="normal"
-                placeholder="123"
-                disabled
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenPaymentDialog(false)}>Cerrar</Button>
-          <Button variant="contained" disabled>
-            Agregar Tarjeta
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );

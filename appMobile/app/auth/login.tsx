@@ -16,7 +16,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -30,6 +30,7 @@ const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const router = useRouter();
   const { signInWithGoogle, loading: googleLoading, disabled: googleDisabled } = useGoogleSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -96,7 +97,7 @@ export default function LoginScreen() {
               <View style={styles.logoSection}>
                 <View style={styles.logoCard}>
                   <View style={styles.logoIconContainer}>
-                    <Logo variant="icon" size={normalize(48)} />
+                    <Logo variant="icon" size={normalize(42)} />
                   </View>
                 </View>
                 <Text style={styles.brandName}>Vitrina</Text>
@@ -176,8 +177,30 @@ export default function LoginScreen() {
                       onPress={async () => {
                         try {
                           await signInWithGoogle();
-                        } catch (error) {
-                          Alert.alert('Error', 'No se pudo iniciar sesión con Google');
+                          // La navegación se maneja automáticamente por AuthContext
+                        } catch (error: any) {
+                          console.error('Google login error:', error);
+                          const errorMessage =
+                            error.response?.data?.message ||
+                            error.message ||
+                            'No se pudo iniciar sesión con Google';
+
+                          // Si el error es que el usuario no existe, sugerir registro
+                          if (errorMessage.includes('No existe una cuenta')) {
+                            Alert.alert(
+                              'Cuenta No Encontrada',
+                              'No existe una cuenta con este email. ¿Deseas registrarte?',
+                              [
+                                { text: 'Cancelar', style: 'cancel' },
+                                {
+                                  text: 'Registrarse',
+                                  onPress: () => router.replace('/auth/register'),
+                                },
+                              ]
+                            );
+                          } else {
+                            Alert.alert('Error', errorMessage);
+                          }
                         }
                       }}
                       disabled={loading || googleDisabled || googleLoading}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
+import { AccountConfigState } from '../types';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -30,14 +31,17 @@ interface ProfileCompletionStatus {
   overallPercentage: number;
 }
 
-const UnifiedProfileTab: React.FC = () => {
+interface UnifiedProfileTabProps {
+  setActiveTab: (tab: AccountConfigState['activeTab']) => void;
+}
+
+const UnifiedProfileTab: React.FC<UnifiedProfileTabProps> = ({ setActiveTab }) => {
   const {
     empresaData,
     formData,
     saving,
     updateProfile,
     changePassword,
-    setActiveTab,
   } = useAccountConfig();
 
   // Estado para nombre
@@ -189,7 +193,12 @@ const UnifiedProfileTab: React.FC = () => {
   ) => (
     <div
       className={`check-item ${isComplete ? 'completed' : 'incomplete'} ${onClick ? 'clickable' : ''}`}
-      onClick={onClick}
+      onClick={() => {
+        if (onClick) {
+          console.log('🔘 [CLICK] Item clicado:', label);
+          onClick();
+        }
+      }}
     >
       {isComplete ? (
         <CheckCircleOutlineIcon className="check-icon completed" fontSize="small" />

@@ -47,6 +47,7 @@
     "class-validator": "^0.14.2",
     "google-auth-library": "^10.4.0",
     "mapped-types": "^0.0.1",
+    "mercadopago": "^2.10.0",
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

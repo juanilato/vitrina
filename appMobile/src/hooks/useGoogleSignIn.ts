@@ -17,8 +17,8 @@ const GOOGLE_CLIENT_ID = {
   web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "594374983119-9v4m67ml05lkeafou7hmasb20m1oj7c6.apps.googleusercontent.com",
 };
 
-export const useGoogleSignIn = () => {
-  const { googleLogin } = useAuth();
+export const useGoogleSignIn = (mode: 'login' | 'register' = 'login') => {
+  const { googleLogin, googleRegister } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -41,7 +41,11 @@ export const useGoogleSignIn = () => {
 
     setLoading(true);
     try {
-      await googleLogin(idToken);
+      if (mode === 'register') {
+        await googleRegister(idToken);
+      } else {
+        await googleLogin(idToken);
+      }
       // Navigation is handled by AuthContext
     } catch (error) {
       console.error('Google sign-in error:', error);

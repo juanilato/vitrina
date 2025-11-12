@@ -1700,6 +1700,18 @@
   resolved "https://registry.npmjs.org/@leichtgewicht/ip-codec/-/ip-codec-2.0.5.tgz"
   integrity sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==
 
+"@mercadopago/sdk-js@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.npmjs.org/@mercadopago/sdk-js/-/sdk-js-0.0.3.tgz"
+  integrity sha512-kO48DNLHdfFAp3on12nuKdqNlEmw1x3+nM6wLd04BdWOXoFcAhkNMQV3AyUIanXdO/bB/dENakdacLT29297EQ==
+
+"@mercadopago/sdk-react@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.npmjs.org/@mercadopago/sdk-react/-/sdk-react-1.0.6.tgz"
+  integrity sha512-tfKvU6LceJKh1kuYh2HAWXozmfBcfvgQfroL3e2A583RfStF0C9kcr0SacdDAkz89XwZc7QCzVh4HBh/8QRuvA==
+  dependencies:
+    "@mercadopago/sdk-js" "^0.0.3"
+
 "@mui/core-downloads-tracker@^7.3.5":
   version "7.3.5"
   resolved "https://registry.npmjs.org/@mui/core-downloads-tracker/-/core-downloads-tracker-7.3.5.tgz"
