@@ -44,21 +44,26 @@ export const useGoogleSignIn = (mode: 'login' | 'register' = 'login') => {
 
   const handleGoogleResponse = async (idToken: string | undefined) => {
     if (!idToken) {
-      console.error('No ID token received from Google');
+      console.error('❌ No ID token received from Google');
       setLoading(false);
       return;
     }
 
+    console.log('✅ ID token received, processing...');
     setLoading(true);
     try {
       if (mode === 'register') {
+        console.log('📝 Registering with Google...');
         await googleRegister(idToken);
+        console.log('✅ Google register successful');
       } else {
+        console.log('🔐 Logging in with Google...');
         await googleLogin(idToken);
+        console.log('✅ Google login successful');
       }
       // Navigation is handled by AuthContext
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error('❌ Google sign-in error:', error);
       throw error;
     } finally {
       setLoading(false);
