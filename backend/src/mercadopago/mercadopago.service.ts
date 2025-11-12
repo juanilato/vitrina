@@ -44,10 +44,22 @@ export class MercadoPagoService {
 
   constructor() {
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    const backendUrl = process.env.BACKEND_URL;
+    const frontendUrl = process.env.FRONTEND_URL;
 
     if (!accessToken) {
       this.logger.warn('MERCADOPAGO_ACCESS_TOKEN no configurado en el archivo .env');
       return;
+    }
+
+    if (!backendUrl) {
+      this.logger.error('BACKEND_URL no configurado en el archivo .env - requerido para webhooks de MercadoPago');
+      throw new Error('BACKEND_URL no configurado');
+    }
+
+    if (!frontendUrl) {
+      this.logger.error('FRONTEND_URL no configurado en el archivo .env - requerido para URLs de retorno');
+      throw new Error('FRONTEND_URL no configurado');
     }
 
     // Configurar cliente de MercadoPago
@@ -59,6 +71,8 @@ export class MercadoPagoService {
     this.payment = new Payment(this.client);
 
     this.logger.log('MercadoPago configurado correctamente');
+    this.logger.log(`Backend URL: ${backendUrl}`);
+    this.logger.log(`Frontend URL: ${frontendUrl}`);
   }
 
   /**
