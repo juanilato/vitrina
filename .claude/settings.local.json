@@ -46,7 +46,10 @@
       "Bash(npm run web:*)",
       "Bash(move:*)",
       "Bash(mv:*)",
-      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\backend\\src\\auth\\auth.service.new.ts\")"
+      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\backend\\src\\auth\\auth.service.new.ts\")",
+      "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\.babelrc\")",
+      "Bash(npm start)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

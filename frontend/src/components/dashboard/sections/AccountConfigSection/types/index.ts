@@ -169,7 +169,7 @@ export interface AccountConfigState {
   empresaData: EmpresaData | null;
   formData: AccountConfigFormData;
   hasChanges: boolean;
-  activeTab: 'profile' | 'locations' | 'security' | 'preferences' | 'delivery' | 'categories';
+  activeTab: 'profile' | 'locations' | 'security' | 'preferences' | 'delivery' | 'categories' | 'subscription';
 }
 
 export interface UpdateEmpresaExtrasPayload {

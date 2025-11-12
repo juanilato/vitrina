@@ -20,8 +20,9 @@ import {
   DialogActions,
   TextField,
   IconButton,
+  Grid,
 } from '@mui/material';
-import Grid2 from '@mui/material/Unstable_Grid2';
+
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
@@ -253,47 +254,47 @@ const SubscriptionTab: React.FC = () => {
               {getEstadoChip(suscripcionActual.estado)}
             </Box>
 
-            <Grid2 container spacing={2}>
-              <Grid2 xs={12} md={6}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" color="text.secondary">
                   Plan
                 </Typography>
                 <Typography variant="body1" fontWeight="500">
                   {suscripcionActual.plan.nombre}
                 </Typography>
-              </Grid2>
+              </Grid>
 
-              <Grid2 xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" color="text.secondary">
                   Precio
                 </Typography>
                 <Typography variant="body1" fontWeight="500">
                   {formatCurrency(Number(suscripcionActual.plan.precio), suscripcionActual.plan.moneda)} / {suscripcionActual.plan.intervalo}
                 </Typography>
-              </Grid2>
+              </Grid>
 
-              <Grid2 xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" color="text.secondary">
                   Fecha de inicio
                 </Typography>
                 <Typography variant="body1">
                   {formatDate(suscripcionActual.inicioAt)}
                 </Typography>
-              </Grid2>
+              </Grid>
 
               {suscripcionActual.finalizaAt && (
-                <Grid2 xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="body2" color="text.secondary">
                     {suscripcionActual.renovacionAuto ? 'Próxima renovación' : 'Finaliza el'}
                   </Typography>
                   <Typography variant="body1">
                     {formatDate(suscripcionActual.finalizaAt)}
                   </Typography>
-                </Grid2>
+                </Grid>
               )}
 
               {suscripcionActual.metodoPago && (
-                <Grid2 xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="body2" color="text.secondary">
                     Método de pago
                   </Typography>
@@ -303,9 +304,9 @@ const SubscriptionTab: React.FC = () => {
                       {suscripcionActual.metodoPago.marca} •••• {suscripcionActual.metodoPago.ultimos4}
                     </Typography>
                   </Box>
-                </Grid2>
+                </Grid>
               )}
-            </Grid2>
+            </Grid>
           </CardContent>
 
           {suscripcionActual.estado === 'ACTIVA' && (
@@ -328,9 +329,9 @@ const SubscriptionTab: React.FC = () => {
         {suscripcionActual ? 'Cambiar de Plan' : 'Planes Disponibles'}
       </Typography>
 
-      <Grid2 container spacing={3}>
+      <Grid container spacing={3}>
         {planes.map((plan) => (
-          <Grid2 xs={12} md={6} lg={4} key={plan.id}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={plan.id}>
             <Card
               sx={{
                 height: '100%',
@@ -408,9 +409,9 @@ const SubscriptionTab: React.FC = () => {
                 </Button>
               </CardActions>
             </Card>
-          </Grid2>
+          </Grid>
         ))}
-      </Grid2>
+      </Grid>
 
       {/* Métodos de Pago */}
       <Box mt={5}>
@@ -433,9 +434,9 @@ const SubscriptionTab: React.FC = () => {
             No tienes métodos de pago guardados. Agrega uno para facilitar tus pagos.
           </Alert>
         ) : (
-          <Grid2 container spacing={2}>
+          <Grid container spacing={2}>
             {metodosPago.map((metodo) => (
-              <Grid2 xs={12} md={6} key={metodo.id}>
+              <Grid size={{ xs: 12, md: 6 }} key={metodo.id}>
                 <Card variant="outlined">
                   <CardContent>
                     <Box display="flex" justifyContent="space-between" alignItems="flex-start">
@@ -459,9 +460,9 @@ const SubscriptionTab: React.FC = () => {
                     </Box>
                   </CardContent>
                 </Card>
-              </Grid2>
+              </Grid>
             ))}
-          </Grid2>
+          </Grid>
         )}
       </Box>
 
@@ -512,8 +513,8 @@ const SubscriptionTab: React.FC = () => {
             placeholder="1234 5678 9012 3456"
             disabled
           />
-          <Grid2 container spacing={2}>
-            <Grid2 xs={6}>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 label="Fecha de expiración"
                 fullWidth
@@ -521,8 +522,8 @@ const SubscriptionTab: React.FC = () => {
                 placeholder="MM/AA"
                 disabled
               />
-            </Grid2>
-            <Grid2 xs={6}>
+            </Grid>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 label="CVV"
                 fullWidth
@@ -530,8 +531,8 @@ const SubscriptionTab: React.FC = () => {
                 placeholder="123"
                 disabled
               />
-            </Grid2>
-          </Grid2>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenPaymentDialog(false)}>Cerrar</Button>

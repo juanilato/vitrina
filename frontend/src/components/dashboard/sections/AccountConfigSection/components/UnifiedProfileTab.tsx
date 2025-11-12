@@ -6,6 +6,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import BusinessIcon from '@mui/icons-material/Business';
 import TuneIcon from '@mui/icons-material/Tune';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import './UnifiedProfileTab.css';
 
 interface ProfileCompletionStatus {
@@ -36,6 +37,7 @@ const UnifiedProfileTab: React.FC = () => {
     saving,
     updateProfile,
     changePassword,
+    setActiveTab,
   } = useAccountConfig();
 
   // Estado para nombre
@@ -195,6 +197,13 @@ const UnifiedProfileTab: React.FC = () => {
         <RadioButtonUncheckedIcon className="check-icon incomplete" fontSize="small" />
       )}
       <span className="check-label">{label}</span>
+      {onClick && (
+        <ChevronRightIcon
+          className="check-arrow"
+          fontSize="small"
+          style={{ marginLeft: 'auto', color: '#9CA3AF' }}
+        />
+      )}
     </div>
   );
 
@@ -245,10 +254,10 @@ const UnifiedProfileTab: React.FC = () => {
         <div className="checklist">
           {renderCheckItem('Nombre de empresa', completion.hasName, () => setIsEditingName(true))}
           {renderCheckItem('Email configurado', completion.hasEmail)}
-          {renderCheckItem('Logo de empresa', completion.hasLogo)}
-          {renderCheckItem('Ubicación registrada', completion.hasLocation)}
-          {renderCheckItem('Categoría asignada', completion.hasCategoria)}
-          {renderCheckItem('Subcategorías configuradas', completion.hasSubcategorias)}
+          {renderCheckItem('Logo de empresa', completion.hasLogo, () => setActiveTab('preferences'))}
+          {renderCheckItem('Ubicación registrada', completion.hasLocation, () => setActiveTab('locations'))}
+          {renderCheckItem('Categoría asignada', completion.hasCategoria, () => setActiveTab('categories'))}
+          {renderCheckItem('Subcategorías configuradas', completion.hasSubcategorias, () => setActiveTab('categories'))}
         </div>
       </div>
 
@@ -267,10 +276,10 @@ const UnifiedProfileTab: React.FC = () => {
         </div>
 
         <div className="checklist">
-          {renderCheckItem('Colores personalizados', completion.hasColors)}
-          {renderCheckItem('Horarios de atención', completion.hasSchedule)}
-          {renderCheckItem('Redes sociales', completion.hasSocialLinks)}
-          {renderCheckItem('Alias personalizado', completion.hasAlias)}
+          {renderCheckItem('Colores personalizados', completion.hasColors, () => setActiveTab('preferences'))}
+          {renderCheckItem('Horarios de atención', completion.hasSchedule, () => setActiveTab('preferences'))}
+          {renderCheckItem('Redes sociales', completion.hasSocialLinks, () => setActiveTab('preferences'))}
+          {renderCheckItem('Alias personalizado', completion.hasAlias, () => setActiveTab('preferences'))}
         </div>
       </div>
 

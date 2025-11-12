@@ -170,6 +170,15 @@
   transform: translateX(2px);
 }
 
+.check-item.clickable:hover .check-arrow {
+  color: #374151 !important;
+  transform: translateX(2px);
+}
+
+.check-arrow {
+  transition: all 0.2s ease;
+}
+
 .check-item.completed {
   background: #ECFDF5;
   border-color: #A7F3D0;
