@@ -12,7 +12,7 @@ export class VerifyCodeDto {
 
   @IsString()
   @IsNotEmpty()
-  userType: 'cliente' | 'empresa';
+  userType: 'cliente' | 'empresa' | 'repartidor';
 }
 
 // DTO para reenviar el código de verificación
@@ -23,7 +23,7 @@ export class ResendCodeDto {
 
   @IsString()
   @IsNotEmpty()
-  userType: 'cliente' | 'empresa';
+  userType: 'cliente' | 'empresa' | 'repartidor';
 }
 
 // DTO para la respuesta de verificación
@@ -36,4 +36,9 @@ export class VerificationResponseDto {
     name: string;
     type: string;
   };
+  // Tokens para auto-login después de verificación
+  accessToken?: string;
+  refreshToken?: string;
+  tokenType?: string;
+  expiresIn?: number;
 }

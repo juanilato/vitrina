@@ -66,13 +66,19 @@ export class AuthService {
       throw new UnauthorizedException('Cuenta no verificada. Por favor verifica tu email antes de iniciar sesión.');
     }
 
-    // Verificar contraseña (hashed)
-    /*
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+    // Verificar contraseña (hashed) - SOLO si NO se registró con Google
+    if (user.authMethod !== 'google') {
+      if (!user.password) {
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
+    } else {
+      // Si el usuario se registró con Google, NO puede hacer login con contraseña
+      throw new UnauthorizedException('Esta cuenta fue creada con Google. Por favor inicia sesión con Google.');
     }
-      */
 
     // Generar tokens
     const tokens = await this.generateTokens(user.id, user.email, userType);
@@ -108,46 +114,39 @@ export class AuthService {
     if (!email) throw new UnauthorizedException('Google no devolvió email');
     if (!email_verified) throw new UnauthorizedException('Email de Google no verificado');
 
-    // 3) Buscar usuario en ambas tablas
+    // 3) Buscar usuario en las tres tablas (cliente, empresa, repartidor)
     let user: any = await this.prisma.cliente.findUnique({ where: { email } });
-    let userType: 'cliente' | 'empresa' = 'cliente';
+    let userType: 'cliente' | 'empresa' | 'repartidor' = 'cliente';
 
     if (!user) {
       user = await this.prisma.empresa.findUnique({ where: { email } });
       if (user) userType = 'empresa';
     }
 
-    // 4) Si no existe en ninguna, crear por defecto como 'cliente' (ajustá si querés otra lógica)
     if (!user) {
-      user = await this.prisma.cliente.create({
-        data: {
-          email,
-          name: name ?? '',
-          // password: null o vacío — NO se usa para Google
-          password: '', // evita null si tu esquema no lo permite
-          authMethod: 'google', // ✅ Marcar que se registró con Google
-          isVerified: true, // ✅ auto-verificada por Google
-          // Si tenés campo para foto/logo:
-          // logo: picture ?? null,
-          // Si querés guardar el sub (ID único de Google):
-          // googleSub: sub,
-        },
-      });
-      userType = 'cliente';
-    } else {
-      // 5) Mantener actualizado nombre/foto y marcar verificada si no lo estaba
-      const updateData: any = {};
-      if (name && user.name !== name) updateData.name = name;
-      // Si tu modelo tiene logo/foto:
-      // if (picture && user.logo !== picture) updateData.logo = picture;
-      if (user.isVerified === false) updateData.isVerified = true;
+      user = await this.prisma.repartidor.findUnique({ where: { email } });
+      if (user) userType = 'repartidor';
+    }
 
-      if (Object.keys(updateData).length > 0) {
-        if (userType === 'cliente') {
-          user = await this.prisma.cliente.update({ where: { id: user.id }, data: updateData });
-        } else {
-          user = await this.prisma.empresa.update({ where: { id: user.id }, data: updateData });
-        }
+    // 4) ❌ NO crear usuario automáticamente - debe registrarse primero
+    if (!user) {
+      throw new UnauthorizedException('No existe una cuenta con este email. Por favor regístrate primero.');
+    }
+
+    // 5) Mantener actualizado nombre/foto y marcar verificada si no lo estaba
+    const updateData: any = {};
+    if (name && user.name !== name) updateData.name = name;
+    // Si tu modelo tiene logo/foto:
+    // if (picture && user.logo !== picture) updateData.logo = picture;
+    if (user.isVerified === false) updateData.isVerified = true;
+
+    if (Object.keys(updateData).length > 0) {
+      if (userType === 'cliente') {
+        user = await this.prisma.cliente.update({ where: { id: user.id }, data: updateData });
+      } else if (userType === 'empresa') {
+        user = await this.prisma.empresa.update({ where: { id: user.id }, data: updateData });
+      } else {
+        user = await this.prisma.repartidor.update({ where: { id: user.id }, data: updateData });
       }
     }
 
@@ -169,7 +168,7 @@ export class AuthService {
       },
     };
   }
-async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
+async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa' | 'repartidor') {
     // 1) Verificar token de Google
     const ticket = await this.google.verifyIdToken({
       idToken,
@@ -185,7 +184,9 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
     // 2) Debe NO existir en ninguna tabla
     const existsCliente = await this.prisma.cliente.findUnique({ where: { email } });
     const existsEmpresa = await this.prisma.empresa.findUnique({ where: { email } });
-    if (existsCliente || existsEmpresa) {
+    const existsRepartidor = await this.prisma.repartidor.findUnique({ where: { email } });
+
+    if (existsCliente || existsEmpresa || existsRepartidor) {
       throw new BadRequestException('El email ya está registrado. Probá iniciar sesión con Google.');
     }
 
@@ -204,7 +205,7 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
           isVerified: true,
         },
       });
-    } else {
+    } else if (type === 'empresa') {
       created = await this.prisma.empresa.create({
         data: {
           email,
@@ -213,6 +214,36 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa') {
           authMethod: 'google', // ✅ Marcar que se registró con Google
           isVerified: true,
           logo: picture ?? null,
+        },
+      });
+    } else {
+      // repartidor
+      // 🧩 Generar un código de vinculación único
+      let codigoVinculo: string;
+      let isUnique = false;
+
+      while (!isUnique) {
+        codigoVinculo = [...Array(6)]
+          .map(() => Math.random().toString(36).charAt(2).toUpperCase())
+          .join('');
+
+        const existingCodigo = await this.prisma.repartidor.findFirst({
+          where: { codigoVinculo },
+        });
+
+        if (!existingCodigo) {
+          isUnique = true;
+        }
+      }
+
+      created = await this.prisma.repartidor.create({
+        data: {
+          email,
+          name: name ?? '',
+          password,
+          authMethod: 'google', // ✅ Marcar que se registró con Google
+          isVerified: true,
+          codigoVinculo,
         },
       });
     }
@@ -486,8 +517,12 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
       user = await this.prisma.cliente.findUnique({
         where: { email }
       });
-    } else {
+    } else if (userType === 'empresa') {
       user = await this.prisma.empresa.findUnique({
+        where: { email }
+      });
+    } else if (userType === 'repartidor') {
+      user = await this.prisma.repartidor.findUnique({
         where: { email }
       });
     }
@@ -499,9 +534,10 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
     // Enviar email de bienvenida
     await this.verificationService.sendWelcomeEmail(email, user.name, userType);
 
-    const { password: _, ...userWithoutPassword } = user;
-    
-    // devuelve usuario sin contraseña
+    // Generar tokens JWT para auto-login
+    const tokens = await this.generateTokens(user.id, user.email, userType);
+
+    // devuelve usuario sin contraseña + tokens para auto-login
     return {
       message: 'Cuenta verificada exitosamente. Ya puedes iniciar sesión.',
       isVerified: true,
@@ -510,12 +546,17 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
         email: user.email,
         name: user.name,
         type: userType
-      }
+      },
+      // Agregar tokens para auto-login
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: 80 * 60
     };
   }
 
   // reenvío de código de verificación
-  async resendVerificationCode(email: string, userType: 'cliente' | 'empresa') {
+  async resendVerificationCode(email: string, userType: 'cliente' | 'empresa' | 'repartidor') {
     // Verificar que existe un registro de verificación pendiente
     const existingCode = await this.prisma.verificationCode.findFirst({
       where: {

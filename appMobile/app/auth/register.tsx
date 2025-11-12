@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Button, Input } from '../../src/components/common';
 import { Logo } from '../../src/components/common/Logo';
+import { VerificationModal } from '../../src/components/auth/VerificationModal';
 import { colors, spacing, textStyles } from '../../src/theme';
 import { useGoogleSignIn } from '../../src/hooks/useGoogleSignIn';
 import { normalize } from '../../src/utils/responsive';
@@ -29,7 +30,7 @@ import { normalize } from '../../src/utils/responsive';
 const { width } = Dimensions.get('window');
 
 export default function RegisterScreen() {
-  const { register } = useAuth();
+  const { register, loginAfterVerification } = useAuth();
   const router = useRouter();
   const { signInWithGoogle, loading: googleLoading, disabled: googleDisabled } = useGoogleSignIn();
 
@@ -44,6 +45,10 @@ export default function RegisterScreen() {
     password?: string;
     confirmPassword?: string;
   }>({});
+
+  // Estado para modal de verificación
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const validateForm = (): boolean => {
     const newErrors: {
@@ -86,12 +91,25 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      await register({
+      // El registro ahora devuelve un mensaje de verificación pendiente
+      const response = await register({
         name,
         email,
         password,
       });
-      // Navigation is handled by AuthContext
+
+      // Si el backend devuelve que necesita verificación
+      if (response?.message?.includes('verificación')) {
+        setRegisteredEmail(email);
+        setShowVerificationModal(true);
+        Alert.alert(
+          'Verificación Requerida',
+          'Hemos enviado un código de verificación a tu email. Por favor verifica tu cuenta para continuar.'
+        );
+      } else if (response?.accessToken) {
+        // Si no requiere verificación (por ejemplo, login automático después de registro con Google)
+        // La navegación se maneja automáticamente por AuthContext
+      }
     } catch (error: any) {
       console.error('Register error:', error);
 
@@ -103,6 +121,35 @@ export default function RegisterScreen() {
       Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerificationSuccess = async (verificationResponse: any) => {
+    try {
+      setShowVerificationModal(false);
+
+      // Auto-login con los tokens de la respuesta de verificación
+      await loginAfterVerification(verificationResponse);
+
+      // La navegación se maneja automáticamente por el AuthContext
+      Alert.alert(
+        '¡Cuenta Verificada!',
+        'Tu cuenta ha sido verificada exitosamente. ¡Bienvenido a Vitrina!'
+      );
+    } catch (error: any) {
+      console.error('Error en auto-login:', error);
+      Alert.alert(
+        'Error',
+        'Hubo un problema al iniciar sesión. Por favor intenta iniciar sesión manualmente.',
+        [
+          {
+            text: 'Ir a Login',
+            onPress: () => {
+              router.replace('/auth/login');
+            },
+          },
+        ]
+      );
     }
   };
 
@@ -272,6 +319,15 @@ export default function RegisterScreen() {
           </KeyboardAvoidingView>
         </SafeAreaView>
       </LinearGradient>
+
+      {/* Modal de Verificación */}
+      <VerificationModal
+        visible={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        email={registeredEmail}
+        userType="cliente"
+        onVerificationSuccess={handleVerificationSuccess}
+      />
     </View>
   );
 }

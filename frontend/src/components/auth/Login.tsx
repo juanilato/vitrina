@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './Login.css';
-import AccountTypeSelector from './AccountTypeSelector';
 
 import { GoogleLogin } from '@react-oauth/google';
 import Mariposa from '../common/logo';
@@ -12,9 +11,6 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState('');
-  const [showAccountTypeSelector, setShowAccountTypeSelector] = useState(false);
-  const [selectedAccountType, setSelectedAccountType] = useState<'empresa' | 'repartidor'>('empresa');
-  const [pendingGoogleCredential, setPendingGoogleCredential] = useState<any>(null);
 
   const { login, googleLogin, error, user } = useAuth();
   const navigate = useNavigate();
@@ -45,18 +41,10 @@ const Login: React.FC = () => {
   };
 
   const handleGoogle = async (cred: any) => {
-    // Guardar credencial y mostrar selector de tipo de cuenta
-    setPendingGoogleCredential(cred);
-    setShowAccountTypeSelector(true);
-  };
-
-  const handleAccountTypeSelected = async () => {
-    if (!pendingGoogleCredential) return;
-
     try {
       setIsLoading(true);
-      setShowAccountTypeSelector(false);
-      const idToken = pendingGoogleCredential?.credential;
+      setFormError('');
+      const idToken = cred?.credential;
       if (!idToken) throw new Error('Token de Google inválido');
       await googleLogin(idToken);
       navigate('/dashboard');
@@ -64,24 +52,11 @@ const Login: React.FC = () => {
       setFormError(e.message || 'No se pudo iniciar con Google');
     } finally {
       setIsLoading(false);
-      setPendingGoogleCredential(null);
     }
   };
 
   return (
     <>
-      {showAccountTypeSelector && (
-        <AccountTypeSelector
-          selectedType={selectedAccountType}
-          onSelectType={setSelectedAccountType}
-          onClose={() => {
-            setShowAccountTypeSelector(false);
-            setPendingGoogleCredential(null);
-          }}
-          onContinue={handleAccountTypeSelected}
-        />
-      )}
-
       <div className="auth-container">
         <div className="auth-split-panel">
         {/* Panel Izquierdo - Formulario de Login */}

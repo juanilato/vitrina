@@ -28,6 +28,7 @@ interface AuthContextData {
   googleLogin: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  loginAfterVerification: (verificationResponse: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -155,9 +156,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await authService.register(data);
 
       // Si la respuesta incluye accessToken, el usuario se registró y autenticó automáticamente
+      // (por ejemplo, con Google)
       if (response.accessToken && response.user) {
         await saveAuth(response.accessToken, response.user);
       }
+      // Si no tiene accessToken, significa que requiere verificación por email
+      // El componente manejará el flujo de verificación
 
       // Devolver la respuesta completa para que el componente pueda manejar la verificación
       return response;
@@ -199,6 +203,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  const loginAfterVerification = useCallback(async (verificationResponse: any) => {
+    try {
+      // La respuesta de verificación debe contener accessToken y user
+      if (verificationResponse.accessToken && verificationResponse.user) {
+        await saveAuth(verificationResponse.accessToken, verificationResponse.user);
+      } else {
+        throw new Error('Respuesta de verificación inválida');
+      }
+    } catch (error) {
+      console.error('Error en auto-login después de verificación:', error);
+      throw error;
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -211,6 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         googleLogin,
         logout,
         refreshUser,
+        loginAfterVerification,
       }}
     >
       {children}

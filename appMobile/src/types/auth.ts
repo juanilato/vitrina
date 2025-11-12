@@ -13,16 +13,19 @@ export interface User {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-  expiresIn: number;
-  user: {
+  accessToken?: string;
+  refreshToken?: string;
+  tokenType?: string;
+  expiresIn?: number;
+  user?: {
     id: string;
     email: string;
     name: string;
     type: string;
   };
+  message?: string; // Para respuestas de verificación pendiente
+  email?: string;   // Email del usuario que necesita verificación
+  userType?: 'cliente' | 'empresa' | 'repartidor';
 }
 
 export interface LoginRequest {

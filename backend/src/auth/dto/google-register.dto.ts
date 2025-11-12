@@ -8,6 +8,6 @@ export class GoogleRegisterDto {
   @MinLength(10)
   idToken!: string;
 
-  @IsIn(['cliente', 'empresa'])
-  type!: 'cliente' | 'empresa';
+  @IsIn(['cliente', 'empresa', 'repartidor'])
+  type!: 'cliente' | 'empresa' | 'repartidor';
 }

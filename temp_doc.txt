@@ -1,0 +1,126 @@
+# FLUJO DE VERIFICATION CODE EN APPMOBILE
+
+## Componentes Clave
+
+### Frontend (appMobile)
+
+1. register.tsx (app/auth/)
+   - Formulario de registro
+   - Valida nombre, email, password
+   - Llama a register() del AuthContext
+   - NO muestra modal de verificación
+
+2. AuthModal.tsx (src/components/auth/)
+   - Modal dual: login/registro
+   - Contiene VerificationModal
+   - Estados: showVerificationModal, registeredEmail
+   - Si response incluye "verificación" → mostrar VerificationModal
+   - Método: handleVerificationSuccess() después de verificar
+
+3. VerificationModal.tsx (src/components/auth/)
+   - Input para 6 dígitos (solo números)
+   - Botón "Verificar Código"
+   - Botón "Reenviar Código"
+   - POST /auth/verify con {email, code, userType}
+   - POST /auth/resend-code con {email, userType}
+
+### Backend
+
+1. auth.controller.ts (backend/src/auth/)
+   - POST /auth/register/cliente → registerCliente()
+   - POST /auth/verify → verifyCode()
+   - POST /auth/resend-code → resendVerificationCode()
+
+2. auth.service.ts (backend/src/auth/)
+   - registerCliente():
+     * Verifica email no exista
+     * Valida rate limiting (código pendiente)
+     * Hashea password
+     * Genera código de 6 dígitos
+     * Crea registro en verificationCode (NO crea usuario)
+     * Envía email
+     * Retorna mensaje
+   
+   - verifyCode():
+     * Llama a verification.service.verifyCode()
+     * Busca usuario creado
+     * Envía bienvenida
+     * Retorna user info
+   
+   - resendVerificationCode():
+     * Valida código pendiente existe
+     * Llama a verification.service.resendVerificationCode()
+     * Retorna mensaje
+
+3. verification.service.ts (backend/src/verification/)
+   - generateVerificationCode(): Genera 6 dígitos (100000-999999)
+   
+   - verifyCode():
+     * Busca verificationCode
+     * Valida: no expirado, no usado
+     * CREA usuario en cliente tabla con isVerified=true
+     * Marca código como usado
+     * Elimina registros
+   
+   - resendVerificationCode():
+     * Marca previos como usados
+     * Genera nuevo código
+     * Crea con mismos datos
+     * Envía email
+
+## Base de Datos
+
+Tabla: verificationCode
+- id (cuid)
+- email
+- code (6 dígitos)
+- userType ('cliente', 'empresa', 'repartidor')
+- expiresAt (1 minuto desde ahora)
+- isUsed (false)
+- pendingUserData (JSON: {name, password hasheado, logo?})
+- createdAt
+
+## Flujo Completo
+
+1. Usuario registra en register.tsx
+2. POST /auth/register/cliente → Backend
+3. Backend crea verificationCode record (NO crea usuario)
+4. Envía email con código
+5. Frontend recibe response con "verificación"
+6. Muestra VerificationModal
+7. Usuario ingresa 6 dígitos
+8. POST /auth/verify → Backend
+9. Backend:
+   - Busca verificationCode
+   - Valida código
+   - CREA usuario con isVerified=true
+   - Marca código como usado
+   - Elimina verificationCode
+10. Frontend recibe success
+11. Muestra confirmación
+12. Usuario puede hacer login
+
+## Puntos Importantes
+
+- Código: 6 dígitos numéricos (100000-999999)
+- Expiración: 1 minuto
+- Usuario se crea solo cuando verifica el código
+- Rate limiting: Máximo 1 código sin usar por email
+- Datos pendientes: Se guardan en JSON hasta verificar
+- Reenvío: Genera nuevo código, mantiene datos pendientes
+
+## Archivos Principais
+
+Frontend:
+- appMobile/app/auth/register.tsx
+- appMobile/src/components/auth/AuthModal.tsx
+- appMobile/src/components/auth/VerificationModal.tsx
+- appMobile/src/contexts/AuthContext.tsx
+- appMobile/src/services/auth.service.ts
+
+Backend:
+- backend/src/auth/auth.controller.ts
+- backend/src/auth/auth.service.ts
+- backend/src/auth/dto/verification.dto.ts
+- backend/src/verification/verification.service.ts
+- backend/src/email/email.service.ts

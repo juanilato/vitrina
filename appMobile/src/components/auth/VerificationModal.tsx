@@ -27,7 +27,7 @@ interface VerificationModalProps {
   onClose: () => void;
   email: string;
   userType: 'cliente' | 'empresa' | 'repartidor';
-  onVerificationSuccess: () => void;
+  onVerificationSuccess: (response: any) => void;
 }
 
 export const VerificationModal: React.FC<VerificationModalProps> = ({
@@ -56,19 +56,11 @@ export const VerificationModal: React.FC<VerificationModalProps> = ({
       });
 
       if (response.status === 200 || response.status === 201) {
-        Alert.alert(
-          'Verificación Exitosa',
-          '¡Tu cuenta ha sido verificada! Ya puedes iniciar sesión.',
-          [
-            {
-              text: 'Continuar',
-              onPress: () => {
-                onVerificationSuccess();
-                handleClose();
-              },
-            },
-          ]
-        );
+        // Cerrar el modal inmediatamente
+        handleClose();
+
+        // Llamar al callback con la respuesta que contiene los tokens
+        onVerificationSuccess(response.data);
       }
     } catch (error: any) {
       console.error('Error en verificación:', error);
