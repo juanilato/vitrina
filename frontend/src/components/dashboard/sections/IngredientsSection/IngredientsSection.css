@@ -313,15 +313,100 @@
 
 /* Responsive lista */
 @media (max-width: 980px){
-  .products-section{ grid-template-columns: 1fr; }
+  .products-section{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .products-sidebar {
+    max-height: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
   .products-list-header{ display: none; }
+
   .products-row{
     grid-template-columns: 1fr;
-    gap: 8px; padding: 12px;
+    gap: 12px;
+    padding: 16px;
   }
-  .cell-product{ grid-template-columns: 64px 1fr; }
+
+  .cell-product{
+    grid-template-columns: 80px 1fr;
+    gap: 12px;
+  }
+
   .cell-price{ text-align: left; }
-  .cell-actions{ justify-content: flex-start; }
+
+  .cell-actions{
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .btn-action,
+  .btn-ghost {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .products-section {
+    gap: 8px;
+  }
+
+  .products-main,
+  .products-sidebar {
+    border-radius: 0;
+  }
+
+  .products-row {
+    padding: 12px;
+  }
+
+  .cell-product {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .stock-indicator {
+    margin: 0 auto;
+  }
+
+  .cell-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-action,
+  .btn-ghost {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-sidebar {
+    padding: 0;
+  }
+
+  .sidebar-header {
+    padding: 10px 12px 8px;
+  }
+
+  .sidebar-content {
+    padding: 8px;
+  }
+
+  .modal-content {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
 }
 
 /* ===================== MODAL PRODUCTO (2 columnas) ===================== */

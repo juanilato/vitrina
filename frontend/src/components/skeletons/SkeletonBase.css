@@ -1,0 +1,229 @@
+/* ============================================
+   SKELETON BASE STYLES
+   Estilos base para todos los skeletons
+   ============================================ */
+
+/* Animación de pulso */
+@keyframes skeleton-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+/* Clase base para todos los skeletons */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0px,
+    #f8f8f8 40px,
+    #f0f0f0 80px
+  );
+  background-size: 200%;
+  border-radius: 8px;
+  animation: skeleton-shimmer 1.5s infinite linear;
+}
+
+.skeleton-pulse {
+  background: #f0f0f0;
+  border-radius: 8px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Skeleton para textos */
+.skeleton-text {
+  height: 16px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-text.large {
+  height: 24px;
+}
+
+.skeleton-text.small {
+  height: 12px;
+}
+
+.skeleton-text.title {
+  height: 32px;
+  width: 60%;
+}
+
+/* Skeleton para botones */
+.skeleton-button {
+  height: 40px;
+  border-radius: 8px;
+  width: 120px;
+}
+
+.skeleton-button.wide {
+  width: 100%;
+}
+
+.skeleton-button.small {
+  height: 32px;
+  width: 80px;
+}
+
+/* Skeleton para círculos (avatares, íconos) */
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-avatar.large {
+  width: 80px;
+  height: 80px;
+}
+
+.skeleton-avatar.small {
+  width: 24px;
+  height: 24px;
+}
+
+/* Skeleton para imágenes */
+.skeleton-image {
+  width: 100%;
+  padding-bottom: 75%; /* 4:3 aspect ratio */
+  border-radius: 8px;
+  position: relative;
+}
+
+.skeleton-image.square {
+  padding-bottom: 100%; /* 1:1 aspect ratio */
+}
+
+.skeleton-image.wide {
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+/* Skeleton para inputs */
+.skeleton-input {
+  height: 40px;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.skeleton-input.textarea {
+  height: 100px;
+}
+
+/* Skeleton para cards */
+.skeleton-card {
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+/* Skeleton para badges */
+.skeleton-badge {
+  height: 24px;
+  width: 60px;
+  border-radius: 12px;
+}
+
+/* Skeleton para iconos */
+.skeleton-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.skeleton-icon.large {
+  width: 48px;
+  height: 48px;
+}
+
+/* Skeleton para tablas */
+.skeleton-table-row {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.skeleton-table-cell {
+  flex: 1;
+}
+
+/* Skeleton para estadísticas */
+.skeleton-stat-card {
+  padding: 20px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Layout helpers */
+.skeleton-flex {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.skeleton-flex.column {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.skeleton-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.skeleton-grid.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.skeleton-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.skeleton-grid.cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Spacing utilities */
+.skeleton-mb-1 { margin-bottom: 8px; }
+.skeleton-mb-2 { margin-bottom: 16px; }
+.skeleton-mb-3 { margin-bottom: 24px; }
+.skeleton-mt-1 { margin-top: 8px; }
+.skeleton-mt-2 { margin-top: 16px; }
+.skeleton-mt-3 { margin-top: 24px; }
+
+/* Width utilities */
+.skeleton-w-25 { width: 25%; }
+.skeleton-w-50 { width: 50%; }
+.skeleton-w-75 { width: 75%; }
+.skeleton-w-100 { width: 100%; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .skeleton-grid.cols-2,
+  .skeleton-grid.cols-3,
+  .skeleton-grid.cols-4 {
+    grid-template-columns: 1fr;
+  }
+}

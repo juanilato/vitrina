@@ -298,13 +298,132 @@
 
 /* responsive */
 @media (max-width: 980px){
+  .orders-section {
+    gap: 12px;
+  }
+
+  .orders-sidebar {
+    max-height: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
   .olist-header{ display:none; }
+
   .olist-row{
     grid-template-columns: 1fr;
-    gap:8px;
+    gap: 12px;
+    padding: 16px;
   }
+
   .ocell-actions{ text-align:left; }
-  .oactions{ justify-content:flex-start; flex-wrap:wrap; }
+
+  .oactions{
+    justify-content:flex-start;
+    flex-wrap:wrap;
+    gap: 10px;
+  }
+
+  .btn-action {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .orders-section {
+    gap: 8px;
+  }
+
+  .orders-main,
+  .orders-sidebar {
+    border-radius: 0;
+  }
+
+  .olist-row {
+    padding: 12px;
+  }
+
+  .ocell-order {
+    gap: 8px;
+  }
+
+  .ohead {
+    flex-wrap: wrap;
+  }
+
+  .ocell-meta,
+  .ocell-qty {
+    grid-auto-flow: row;
+    gap: 8px;
+  }
+
+  .oactions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-action,
+  .btn-ghost,
+  .btn-primary,
+  .btn-danger {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  /* Order cards responsive */
+  .modern-order-card {
+    border-radius: 0;
+    margin: 0 -1px;
+  }
+
+  .order-card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .order-chip {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .order-timeline {
+    gap: 2px;
+  }
+
+  .timeline-step {
+    height: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .orders-sidebar {
+    padding: 0;
+  }
+
+  .sidebar-header {
+    padding: 10px 12px 8px;
+  }
+
+  .sidebar-content {
+    padding: 8px;
+  }
+
+  .sidebar-time-filters {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .time-filter-btn {
+    padding: 12px;
+  }
+
+  .order-chip {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
 }
 
 /* ===== Status Reference Modal ===== */

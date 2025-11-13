@@ -5,7 +5,83 @@
   gap: 16px;
 }
 @media (max-width: 980px){
-  .account-shell{ grid-template-columns: 1fr; }
+  .account-shell{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .acs-sidebar {
+    max-height: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}
+
+@media (max-width: 768px) {
+  .account-shell {
+    gap: 8px;
+  }
+
+  .acs-sidebar,
+  .acs-content .card,
+  .acs-content .tab-card {
+    border-radius: 0;
+  }
+
+  .acs-header-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .acs-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Tabs en mobile */
+  .cnav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cnav2-item {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .acs-sidebar {
+    padding: 0;
+  }
+
+  .sidebar-header {
+    padding: 10px 12px 8px;
+  }
+
+  .sidebar-content {
+    padding: 8px;
+  }
+
+  .acs-content .tab-card {
+    padding: 8px;
+  }
+
+  .security-tab {
+    padding: 10px;
+  }
 }
 
 .card{
@@ -148,11 +224,4 @@
 .sidebar-header{ padding: 12px 12px 8px; }
 .sidebar-title{ font-size: 14px; }
 
-.account-shell{
-  display: grid;
-  grid-template-columns: minmax(240px, 300px) 1fr;
-  gap: 16px;
-}
-@media (max-width: 980px){
-  .account-shell{ grid-template-columns: 1fr; }
-}
+/* Ya definido arriba - eliminado duplicado */

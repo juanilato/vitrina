@@ -567,20 +567,61 @@
 }
 
 /* -------- Responsive -------- */
+@media (max-width: 980px) {
+  .stats-grid-main,
+  .stats-grid-secondary,
+  .stats-grid-tertiary {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .stat-rates-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .stats-section {
+    padding: 0;
+    gap: 8px;
+  }
+
+  .stats-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
     padding: 16px;
-    gap: 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
   }
 
   .stats-title {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .stats-subtitle {
+    font-size: 13px;
+  }
+
+  .btn-refresh {
+    width: 100%;
+    justify-content: center;
   }
 
   .stats-grid-main,
   .stats-grid-secondary,
   .stats-grid-tertiary {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    border-radius: 0;
+    margin: 0 -1px;
+  }
+
+  .stat-card-compact {
+    border-radius: 0;
+    margin: 0 -1px;
   }
 
   .stat-value {
@@ -594,15 +635,89 @@
 
   .top-product-item {
     flex-wrap: wrap;
+    border-radius: 0;
+    margin: 0 -1px;
   }
 
   .top-product-stats {
     width: 100%;
     justify-content: space-around;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
   }
 
   .stat-rates-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .stat-rate-item {
+    border-radius: 0;
+    margin: 0 -1px;
+  }
+
+  .stat-status-item {
+    border-radius: 0;
+    margin: 0 -1px;
+  }
+
+  .stats-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-repartidores-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-header {
+    padding: 12px;
+  }
+
+  .stats-title {
+    font-size: 20px;
+  }
+
+  .stat-card,
+  .stat-card-compact {
+    padding: 14px;
+  }
+
+  .stat-card-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .stat-compact-value {
+    font-size: 20px;
+  }
+
+  .top-product-item {
+    padding: 12px;
+  }
+
+  .top-product-rank {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .top-product-image {
+    width: 48px;
+    height: 48px;
+  }
+
+  .btn-refresh {
+    padding: 8px 14px;
+    font-size: 13px;
   }
 }
 

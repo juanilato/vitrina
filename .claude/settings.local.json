@@ -50,7 +50,8 @@
       "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\.babelrc\")",
       "Bash(npm start)",
       "Bash(/dev/null)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

@@ -82,7 +82,15 @@ const CompanyMainDashboard: React.FC = () => {
         {/* 🔥 Se mantiene el hot-edge si querés abrir al acercar, pero ahora es opcional */}
         {/* <div className="hot-edge" onMouseEnter={() => setIsSideOpen(true)} aria-hidden /> */}
 
-        <div className={`app-body ${!isSideOpen ? 'is-collapsed' : ''}`}>
+        <div className={`app-body ${!isSideOpen ? 'is-collapsed' : ''}`}
+             onClick={(e) => {
+               // Cerrar sidebar al hacer clic en el backdrop (solo en mobile)
+               if (!isSideOpen || window.innerWidth > 768) return;
+               const target = e.target as HTMLElement;
+               if (target.classList.contains('app-body')) {
+                 setIsSideOpen(false);
+               }
+             }}>
           {/* Sidebar SIN auto-ocultar por hover */}
           <aside className="sidebar">
             <div className="cnav-userhint" title={user.email}>
