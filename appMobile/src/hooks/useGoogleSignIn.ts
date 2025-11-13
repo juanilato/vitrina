@@ -46,45 +46,61 @@ if (Platform.OS === 'web') {
 }
 
 
-  useEffect(() => {
-    console.log('🔵 [useGoogleSignIn] Response type:', response?.type);
+useEffect(() => {
+  console.log('🔵 [useGoogleSignIn] Response type:', response?.type);
 
-    if (response?.type === 'success') {
-      console.log('✅ [useGoogleSignIn] Google auth success');
-      handleGoogleResponse(response.authentication?.idToken);
-    } else if (response?.type === 'error') {
-      console.error('❌ [useGoogleSignIn] Google auth error:', response.error);
-      setLoading(false);
-    } else if (response?.type === 'cancel') {
-      console.log('⚠️ [useGoogleSignIn] Google auth cancelled by user');
-      setLoading(false);
-    } else if (response?.type === 'dismiss') {
-      console.log('⚠️ [useGoogleSignIn] Google auth dismissed');
-      setLoading(false);
-    }
-  }, [response]);
+  if (response?.type === 'success') {
+    console.log('✅ [useGoogleSignIn] Google auth success');
 
-  const handleGoogleResponse = async (idToken: string | undefined) => {
-    if (!idToken) {
-      console.error('❌ [useGoogleSignIn] No ID token received from Google');
-      setLoading(false);
-      return;
-    }
+    // Google a veces envía idToken y a veces solo accessToken
+    const token =
+      response.authentication?.idToken ||
+      response.authentication?.accessToken;
 
-    console.log('✅ [useGoogleSignIn] ID token received, processing...');
-    setLoading(true);
-    try {
-      console.log('🔐 [useGoogleSignIn] Calling googleAuth...');
-      await googleAuth(idToken);
-      console.log('✅ [useGoogleSignIn] Google auth successful');
-      // Navigation is handled by AuthContext
-    } catch (error) {
-      console.error('❌ [useGoogleSignIn] Google auth error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log('🔵 [useGoogleSignIn] Received token type:', 
+      response.authentication?.idToken ? 'id_token' :
+      response.authentication?.accessToken ? 'access_token' :
+      'NONE'
+    );
+
+    handleGoogleResponse(token);
+  } 
+  else if (response?.type === 'error') {
+    console.error('❌ [useGoogleSignIn] Google auth error:', response.error);
+    setLoading(false);
+  }
+  else if (response?.type === 'cancel') {
+    console.log('⚠️ [useGoogleSignIn] Google auth cancelled by user');
+    setLoading(false);
+  }
+  else if (response?.type === 'dismiss') {
+    console.log('⚠️ [useGoogleSignIn] Google auth dismissed');
+    setLoading(false);
+  }
+}, [response]);
+
+
+const handleGoogleResponse = async (token: string | undefined) => {
+  if (!token) {
+    console.error('❌ [useGoogleSignIn] No token received from Google (id_token or access_token)');
+    setLoading(false);
+    return;
+  }
+
+  console.log('🔐 [useGoogleSignIn] Sending token to backend...');
+
+  setLoading(true);
+  try {
+    await googleAuth(token);
+    console.log('✅ [useGoogleSignIn] Google auth successful');
+  } catch (error) {
+    console.error('❌ [useGoogleSignIn] Google auth error:', error);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const signInWithGoogle = async () => {
     try {
