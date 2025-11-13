@@ -30,7 +30,6 @@ export const useGoogleSignIn = () => {
 const redirectUri = makeRedirectUri({
   scheme: 'vitrina',
   preferLocalhost: true,
-  path: Platform.OS === 'web' ? undefined : 'auth/google/callback',
 });
 
   console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
