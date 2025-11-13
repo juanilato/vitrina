@@ -34,10 +34,14 @@ const redirectUri = makeRedirectUri({
 
   console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+  // IMPORTANT: useAuthRequest with responseType:'id_token' to force ID Token
+  // This is required for backend JWT verification
+  const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: GOOGLE_CLIENT_ID.android,
     iosClientId: GOOGLE_CLIENT_ID.ios,
     webClientId: GOOGLE_CLIENT_ID.web,
+    responseType: 'id_token',
+    scopes: ['openid', 'email', 'profile'],
     redirectUri,
   });
 
@@ -52,19 +56,29 @@ useEffect(() => {
   if (response?.type === 'success') {
     console.log('✅ [useGoogleSignIn] Google auth success');
 
-    // Google a veces envía idToken y a veces solo accessToken
-    const token =
-      response.authentication?.idToken ||
-      response.authentication?.accessToken;
+    // ONLY accept id_token (JWT format), NOT access_token
+    const idToken = response.authentication?.idToken;
 
-    console.log('🔵 [useGoogleSignIn] Received token type:', 
-      response.authentication?.idToken ? 'id_token' :
-      response.authentication?.accessToken ? 'access_token' :
-      'NONE'
-    );
+    if (!idToken) {
+      console.error('❌ [useGoogleSignIn] No ID token received from Google');
+      console.error('❌ Received:', {
+        hasAccessToken: !!response.authentication?.accessToken,
+        hasIdToken: !!response.authentication?.idToken,
+      });
+      setLoading(false);
+      Alert.alert(
+        'Error de configuración',
+        'No se recibió un ID token válido de Google. Verifica la configuración en Google Cloud Console.',
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
 
-    handleGoogleResponse(token);
-  } 
+    console.log('✅ [useGoogleSignIn] ID Token received (JWT format)');
+    console.log('🔵 [useGoogleSignIn] Token starts with:', idToken.substring(0, 20) + '...');
+
+    handleGoogleResponse(idToken);
+  }
   else if (response?.type === 'error') {
     console.error('❌ [useGoogleSignIn] Google auth error:', response.error);
     setLoading(false);
@@ -80,21 +94,21 @@ useEffect(() => {
 }, [response]);
 
 
-const handleGoogleResponse = async (token: string | undefined) => {
-  if (!token) {
-    console.error('❌ [useGoogleSignIn] No token received from Google (id_token or access_token)');
+const handleGoogleResponse = async (idToken: string | undefined) => {
+  if (!idToken) {
+    console.error('❌ [useGoogleSignIn] No ID token provided');
     setLoading(false);
     return;
   }
 
-  console.log('🔐 [useGoogleSignIn] Sending token to backend...');
+  console.log('🔐 [useGoogleSignIn] Sending ID token to backend for verification...');
 
   setLoading(true);
   try {
-    await googleAuth(token);
-    console.log('✅ [useGoogleSignIn] Google auth successful');
+    await googleAuth(idToken);
+    console.log('✅ [useGoogleSignIn] Google auth successful - backend verified JWT');
   } catch (error) {
-    console.error('❌ [useGoogleSignIn] Google auth error:', error);
+    console.error('❌ [useGoogleSignIn] Backend rejected ID token:', error);
     throw error;
   } finally {
     setLoading(false);
