@@ -11,13 +11,15 @@ import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../contexts/AuthContext';
 import { makeRedirectUri } from 'expo-auth-session';
 
-WebBrowser.maybeCompleteAuthSession();
+if (Platform.OS === 'web') {
+  WebBrowser.maybeCompleteAuthSession();
+}
 
 // Google OAuth Client IDs from environment variables
 const GOOGLE_CLIENT_ID = {
-  android: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "594374983119-XXXXandroid.apps.googleusercontent.com",
-  ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "594374983119-fim5bq8eo4o2nn919cgl9d7cml4qvohn.apps.googleusercontent.com",
-  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "594374983119-9v4m67ml05lkeafou7hmasb20m1oj7c6.apps.googleusercontent.com",
+  android: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+  ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID 
 };
 
 export const useGoogleSignIn = () => {
@@ -25,10 +27,11 @@ export const useGoogleSignIn = () => {
   const [loading, setLoading] = useState(false);
 
   // Create redirect URI - on web this will be the current origin + /auth/google/callback
-  const redirectUri = makeRedirectUri({
-    scheme: 'vitrina',
-    path: 'auth/google/callback',
-  });
+const redirectUri = makeRedirectUri({
+  scheme: 'vitrina',
+  preferLocalhost: true,
+  path: Platform.OS === 'web' ? undefined : 'auth/google/callback',
+});
 
   console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
 
@@ -36,8 +39,13 @@ export const useGoogleSignIn = () => {
     androidClientId: GOOGLE_CLIENT_ID.android,
     iosClientId: GOOGLE_CLIENT_ID.ios,
     webClientId: GOOGLE_CLIENT_ID.web,
-    redirectUri: redirectUri,
+    redirectUri,
   });
+
+if (Platform.OS === 'web') {
+  WebBrowser.maybeCompleteAuthSession();
+}
+
 
   useEffect(() => {
     console.log('🔵 [useGoogleSignIn] Response type:', response?.type);
@@ -91,7 +99,7 @@ export const useGoogleSignIn = () => {
         console.log('🌐 [useGoogleSignIn] Using web-optimized OAuth flow');
         // En web, promptAsync abre una nueva pestaña/ventana para auth
         // El COOP error es una advertencia, no un error fatal
-        const result = await promptAsync({ useProxy: false });
+        const result = await promptAsync();
         console.log('🔵 [useGoogleSignIn] Prompt result:', result?.type);
       } else {
         // En móvil, usar el flujo normal
