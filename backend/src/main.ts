@@ -19,8 +19,21 @@ async function bootstrap() {
     transform: true,
   }));
   
-  // 🌐 Habilitar CORS
-  app.enableCors();
+  // 🌐 Habilitar CORS con dominios específicos
+  app.enableCors({
+    origin: [
+      'https://vitrina.com.ar',
+      'https://company.vitrina.com.ar',
+      'https://api.vitrina.com.ar',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:8081',
+      'http://localhost:19006',
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  });
   
   // 🗂️ Servir archivos estáticos (ej: imágenes subidas)
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {

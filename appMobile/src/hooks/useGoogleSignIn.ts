@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Platform, Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,6 +27,10 @@ export const useGoogleSignIn = () => {
     androidClientId: GOOGLE_CLIENT_ID.android,
     iosClientId: GOOGLE_CLIENT_ID.ios,
     webClientId: GOOGLE_CLIENT_ID.web,
+    // Configuración adicional para web
+    redirectUri: Platform.OS === 'web'
+      ? 'https://vitrina.com.ar/auth/google/callback'
+      : undefined,
   });
 
   useEffect(() => {
@@ -70,12 +75,29 @@ export const useGoogleSignIn = () => {
 
   const signInWithGoogle = async () => {
     try {
+      // Advertencia para plataforma web
+      if (Platform.OS === 'web') {
+        console.warn('⚠️ [useGoogleSignIn] Google Auth en web puede tener problemas CORS');
+        console.warn('⚠️ [useGoogleSignIn] Recomendamos usar en dispositivo móvil o emulador');
+      }
+
       console.log('🔵 [useGoogleSignIn] Starting Google sign-in prompt...');
+      console.log('🔵 [useGoogleSignIn] Platform:', Platform.OS);
       setLoading(true);
       await promptAsync();
     } catch (error) {
       console.error('❌ [useGoogleSignIn] Error prompting Google sign-in:', error);
       setLoading(false);
+
+      // Mensaje más descriptivo en web
+      if (Platform.OS === 'web') {
+        Alert.alert(
+          'Error de Google Auth',
+          'Google Auth tiene problemas en el navegador web debido a políticas CORS. Por favor, prueba en un dispositivo móvil o emulador (Android/iOS).',
+          [{ text: 'Entendido' }]
+        );
+      }
+
       throw error;
     }
   };

@@ -1,40 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
-
-type EmpresaLite = {
-  id: string;
-  name: string;
-  description?: string | null;
-  logo?: string | null;
-};
-
-type Props = {
-  empresa: EmpresaLite | null | undefined;
-};
+import React from "react";
 
 //Live webpage para empresa visualizar compania en vivo con sus preferencias
 export const LiveSitePreview: React.FC<{ empresa?: { id?: string; name?: string } }> = ({ empresa }) => {
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!empresa?.id) return;
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const url = `${apiUrl}/auth/companies/preview-token/${empresa.id}`;
-
-    console.log('🌎 API URL:', apiUrl);
-    console.log('🔗 Fetching token from:', url);
-
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        console.log('✅ Token recibido:', data);
-        setToken(data.token);
-      })
-      .catch(err => console.error('❌ Error fetching token:', err));
-  }, [empresa?.id]);
-
-  if (!empresa?.id || !empresa?.name || !token) {
+  if (!empresa?.name) {
     return (
       <div style={{
         display: 'flex',
@@ -48,9 +17,9 @@ export const LiveSitePreview: React.FC<{ empresa?: { id?: string; name?: string 
     );
   }
 
-  // Usar el nombre de la empresa en la URL en lugar del ID
+  // Usar el nombre de la empresa en la URL
   const companyNameSlug = empresa.name.replace(/\s+/g, '');
-  const src = `https://vitrina.com.ar/company/${companyNameSlug}?previewToken=${token}`;
+  const src = `https://vitrina.com.ar/company/${companyNameSlug}`;
 
   return (
     <div style={{
