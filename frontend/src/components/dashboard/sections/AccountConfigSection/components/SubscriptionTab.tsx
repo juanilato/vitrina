@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -19,6 +19,7 @@ import {
   DialogContent,
   Grid,
 } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
@@ -66,6 +67,7 @@ interface MetodoPago {
 
 const SubscriptionTab: React.FC = () => {
   const { empresaData } = useAccountConfig();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [suscripcionActual, setSuscripcionActual] = useState<Suscripcion | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,13 +78,30 @@ const SubscriptionTab: React.FC = () => {
   const [openCheckoutDialog, setOpenCheckoutDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
-  useEffect(() => {
-    if (empresaData?.id) {
-      fetchData();
+  // Funciones de carga de datos
+  const fetchPlanes = async () => {
+    try {
+      const { data } = await axiosInstance.get('/subscriptions/plans');
+      setPlanes(data);
+    } catch (err) {
+      console.error('Error al cargar planes:', err);
+    }
+  };
+
+  const fetchSuscripcionActual = useCallback(async () => {
+    try {
+      if (!empresaData) return;
+      const { data } = await axiosInstance.get(`/subscriptions/empresa/${empresaData.id}`);
+      setSuscripcionActual(data);
+    } catch (err: any) {
+      // Si no hay suscripción activa, no es un error
+      if (err?.response?.status !== 404) {
+        console.error('Error al cargar suscripción:', err);
+      }
     }
   }, [empresaData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       await Promise.all([
@@ -95,29 +114,79 @@ const SubscriptionTab: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchSuscripcionActual]);
 
-  const fetchPlanes = async () => {
-    try {
-      const { data } = await axiosInstance.get('/subscriptions/plans');
-      setPlanes(data);
-    } catch (err) {
-      console.error('Error al cargar planes:', err);
-    }
-  };
+  const processSubscription = useCallback(
+    async (
+      preferenceId: string,
+      collectionId: string | null,
+      externalReference: string
+    ) => {
+      try {
+        setLoading(true);
 
-  const fetchSuscripcionActual = async () => {
-    try {
-      if (!empresaData) return;
-      const { data } = await axiosInstance.get(`/subscriptions/empresa/${empresaData.id}`);
-      setSuscripcionActual(data);
-    } catch (err: any) {
-      // Si no hay suscripción activa, no es un error
-      if (err?.response?.status !== 404) {
-        console.error('Error al cargar suscripción:', err);
+        // Extraer planId y empresaId de la referencia externa
+        const [extractedEmpresaId, extractedPlanId] = externalReference.split('-');
+
+        // Crear la suscripción en el backend
+        await axiosInstance.post('/subscriptions', {
+          empresaId: extractedEmpresaId,
+          planId: extractedPlanId,
+          mercadoPagoData: {
+            preferenceId,
+            paymentId: collectionId,
+            externalReference,
+          },
+        });
+
+        // Recargar la suscripción actual
+        await fetchSuscripcionActual();
+        setSuccess('¡Suscripción activada exitosamente!');
+      } catch (err: any) {
+        console.error('Error al procesar suscripción:', err);
+        setError('Error al activar la suscripción. Contacta a soporte.');
+      } finally {
+        setLoading(false);
       }
+    },
+    [fetchSuscripcionActual]
+  );
+
+  // Manejar el retorno de MercadoPago
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const collectionId = searchParams.get('collection_id');
+    const collectionStatus = searchParams.get('collection_status');
+    const preferenceId = searchParams.get('preference_id');
+    const externalReference = searchParams.get('external_reference');
+
+    if (paymentStatus) {
+      if (paymentStatus === 'success' && collectionStatus === 'approved') {
+        setSuccess('¡Pago aprobado! Tu suscripción se activará en breve.');
+        // Procesar la suscripción en el backend
+        if (preferenceId && externalReference) {
+          processSubscription(preferenceId, collectionId, externalReference);
+        }
+      } else if (paymentStatus === 'pending') {
+        setSuccess('Pago pendiente. Recibirás una confirmación cuando se procese.');
+      } else if (paymentStatus === 'failure') {
+        setError('El pago no pudo ser procesado. Por favor, intenta nuevamente.');
+      }
+
+      // Limpiar los parámetros de la URL
+      setTimeout(() => {
+        setSearchParams({});
+        setSuccess('');
+        setError('');
+      }, 8000);
     }
-  };
+  }, [searchParams, setSearchParams, processSubscription]);
+
+  useEffect(() => {
+    if (empresaData?.id) {
+      fetchData();
+    }
+  }, [empresaData, fetchData]);
 
   const handleSelectPlan = (plan: Plan) => {
     setSelectedPlan(plan);

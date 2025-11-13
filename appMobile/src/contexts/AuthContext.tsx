@@ -25,8 +25,7 @@ interface AuthContextData {
   isAuthenticated: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<any>;
-  googleLogin: (idToken: string) => Promise<void>;
-  googleRegister: (idToken: string) => Promise<void>;
+  googleAuth: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   loginAfterVerification: (verificationResponse: any) => Promise<void>;
@@ -172,22 +171,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  const googleLogin = useCallback(async (idToken: string) => {
+  const googleAuth = useCallback(async (idToken: string) => {
+    console.log('🔵 [AuthContext] Iniciando Google Auth');
     try {
-      const response = await authService.googleLogin(idToken);
+      const response = await authService.googleAuth(idToken);
+      console.log('✅ [AuthContext] Auth exitoso, guardando tokens');
       await saveAuth(response.accessToken, response.user);
+      console.log('✅ [AuthContext] Tokens guardados correctamente');
     } catch (error) {
-      console.error('Google login error:', error);
-      throw error;
-    }
-  }, []);
-
-  const googleRegister = useCallback(async (idToken: string) => {
-    try {
-      const response = await authService.googleRegister(idToken);
-      await saveAuth(response.accessToken, response.user);
-    } catch (error) {
-      console.error('Google register error:', error);
+      console.error('❌ [AuthContext] Error en Google Auth:', error);
       throw error;
     }
   }, []);
@@ -237,8 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isAuthenticated: !!user,
         login,
         register,
-        googleLogin,
-        googleRegister,
+        googleAuth,
         logout,
         refreshUser,
         loginAfterVerification,

@@ -49,6 +49,11 @@ export class SubscriptionsController {
       empresaId: string;
       planId: string;
       metodoPagoId?: string;
+      mercadoPagoData?: {
+        preferenceId: string;
+        paymentId: string | null;
+        externalReference: string;
+      };
     },
   ) {
     return this.subscriptionsService.createSuscripcion(body);

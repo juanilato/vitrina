@@ -55,6 +55,11 @@ export class SubscriptionsService {
     empresaId: string;
     planId: string;
     metodoPagoId?: string;
+    mercadoPagoData?: {
+      preferenceId: string;
+      paymentId: string | null;
+      externalReference: string;
+    };
   }) {
     // Verificar que el plan existe
     const plan = await this.getPlanById(data.planId);
@@ -99,19 +104,32 @@ export class SubscriptionsService {
     });
 
     // Crear el primer pago
-    await this.prisma.pago.create({
-      data: {
-        suscripcionId: suscripcion.id,
-        empresaId: data.empresaId,
-        metodoPagoId: data.metodoPagoId,
-        monto: plan.precio,
-        moneda: plan.moneda,
-        estado: 'COMPLETADO',
-        periodoInicio: now,
-        periodoFin: finalizaAt,
-        fechaPago: now,
-      },
-    });
+    const pagoData: any = {
+      suscripcionId: suscripcion.id,
+      empresaId: data.empresaId,
+      metodoPagoId: data.metodoPagoId,
+      monto: plan.precio,
+      moneda: plan.moneda,
+      estado: 'COMPLETADO',
+      periodoInicio: now,
+      periodoFin: finalizaAt,
+      fechaPago: now,
+    };
+
+    // Si hay datos de MercadoPago, guardarlos en metadata
+    if (data.mercadoPagoData) {
+      pagoData.metadata = {
+        mercadopago: {
+          preferenceId: data.mercadoPagoData.preferenceId,
+          paymentId: data.mercadoPagoData.paymentId,
+          externalReference: data.mercadoPagoData.externalReference,
+          processedAt: new Date().toISOString(),
+        },
+      };
+      pagoData.procesador = 'mercadopago';
+    }
+
+    await this.prisma.pago.create({ data: pagoData });
 
     return suscripcion;
   }

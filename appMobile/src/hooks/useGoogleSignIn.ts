@@ -1,6 +1,7 @@
 /**
- * Google Sign-In Hook
+ * Google Sign-In Hook (Simplificado)
  * Using Expo AuthSession
+ * Maneja login/registro automáticamente con un solo flujo
  */
 
 import { useState, useEffect } from 'react';
@@ -17,8 +18,8 @@ const GOOGLE_CLIENT_ID = {
   web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "594374983119-9v4m67ml05lkeafou7hmasb20m1oj7c6.apps.googleusercontent.com",
 };
 
-export const useGoogleSignIn = (mode: 'login' | 'register' = 'login') => {
-  const { googleLogin, googleRegister } = useAuth();
+export const useGoogleSignIn = () => {
+  const { googleAuth } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -28,42 +29,39 @@ export const useGoogleSignIn = (mode: 'login' | 'register' = 'login') => {
   });
 
   useEffect(() => {
+    console.log('🔵 [useGoogleSignIn] Response type:', response?.type);
+
     if (response?.type === 'success') {
+      console.log('✅ [useGoogleSignIn] Google auth success');
       handleGoogleResponse(response.authentication?.idToken);
     } else if (response?.type === 'error') {
-      console.error('Google auth error:', response.error);
+      console.error('❌ [useGoogleSignIn] Google auth error:', response.error);
       setLoading(false);
     } else if (response?.type === 'cancel') {
-      console.log('Google auth cancelled by user');
+      console.log('⚠️ [useGoogleSignIn] Google auth cancelled by user');
       setLoading(false);
     } else if (response?.type === 'dismiss') {
-      console.log('Google auth dismissed');
+      console.log('⚠️ [useGoogleSignIn] Google auth dismissed');
       setLoading(false);
     }
   }, [response]);
 
   const handleGoogleResponse = async (idToken: string | undefined) => {
     if (!idToken) {
-      console.error('❌ No ID token received from Google');
+      console.error('❌ [useGoogleSignIn] No ID token received from Google');
       setLoading(false);
       return;
     }
 
-    console.log('✅ ID token received, processing...');
+    console.log('✅ [useGoogleSignIn] ID token received, processing...');
     setLoading(true);
     try {
-      if (mode === 'register') {
-        console.log('📝 Registering with Google...');
-        await googleRegister(idToken);
-        console.log('✅ Google register successful');
-      } else {
-        console.log('🔐 Logging in with Google...');
-        await googleLogin(idToken);
-        console.log('✅ Google login successful');
-      }
+      console.log('🔐 [useGoogleSignIn] Calling googleAuth...');
+      await googleAuth(idToken);
+      console.log('✅ [useGoogleSignIn] Google auth successful');
       // Navigation is handled by AuthContext
     } catch (error) {
-      console.error('❌ Google sign-in error:', error);
+      console.error('❌ [useGoogleSignIn] Google auth error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -72,10 +70,11 @@ export const useGoogleSignIn = (mode: 'login' | 'register' = 'login') => {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('🔵 [useGoogleSignIn] Starting Google sign-in prompt...');
       setLoading(true);
       await promptAsync();
     } catch (error) {
-      console.error('Error prompting Google sign-in:', error);
+      console.error('❌ [useGoogleSignIn] Error prompting Google sign-in:', error);
       setLoading(false);
       throw error;
     }

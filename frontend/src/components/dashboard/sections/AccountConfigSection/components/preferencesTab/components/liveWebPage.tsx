@@ -19,9 +19,10 @@ export const LiveSitePreview: React.FC<{ empresa?: { id?: string; name?: string 
   useEffect(() => {
     if (!empresa?.id) return;
 
-    console.log('🌎 API URL:', process.env.NEXT_PUBLIC_API_URL);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const url = `${apiUrl}/auth/companies/preview-token/${empresa.id}`;
 
-    const url = `http://localhost:3001/auth/companies/preview-token/${empresa.id}`;
+    console.log('🌎 API URL:', apiUrl);
     console.log('🔗 Fetching token from:', url);
 
     fetch(url)

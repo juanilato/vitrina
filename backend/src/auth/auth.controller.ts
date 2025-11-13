@@ -19,11 +19,12 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  // login de user (google id token)
+  // login de user (google id token) - también crea usuario si no existe
   @Post('google')
   async loginWithGoogle(@Body() dto: GoogleLoginDto) {
-    const { accessToken, user } = await this.authService.loginWithGoogle(dto.idToken);
-    return { accessToken, user };
+    // Si el DTO tiene 'role', lo usamos como tipo solicitado
+    const requestedType = dto.role as 'cliente' | 'empresa' | 'repartidor' | undefined;
+    return await this.authService.loginWithGoogle(dto.idToken, requestedType);
   }
 
   // registro de cliente

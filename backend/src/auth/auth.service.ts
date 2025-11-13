@@ -99,16 +99,22 @@ export class AuthService {
   }
 
   
-  async loginWithGoogle(idToken: string)/*: Promise<TokenResponseDto>*/ {
+async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | 'repartidor')/*: Promise<TokenResponseDto>*/ {
+    console.log('🔵 [Google Auth] Iniciando - Tipo solicitado:', requestedType || 'no especificado');
+
     // 1) Verificar token de Google (firma + audiencia)
     const ticket = await this.google.verifyIdToken({
       idToken,
       audience: this.audiences,
     });
     const payload = ticket.getPayload() as TokenPayload | undefined;
-    if (!payload) throw new UnauthorizedException('Token de Google inválido');
+    if (!payload) {
+      console.error('❌ [Google Auth] Token inválido');
+      throw new UnauthorizedException('Token de Google inválido');
+    }
 
     const { email, name, picture, email_verified, sub } = payload;
+    console.log(`✅ [Google Auth] Token verificado - Email: ${email}`);
 
     // 2) Reglas de seguridad mínimas
     if (!email) throw new UnauthorizedException('Google no devolvió email');
@@ -128,19 +134,80 @@ export class AuthService {
       if (user) userType = 'repartidor';
     }
 
-    // 4) ❌ NO crear usuario automáticamente - debe registrarse primero
+    // 4) Si NO existe, crear automáticamente con el tipo solicitado (o 'cliente' por defecto)
     if (!user) {
-      throw new UnauthorizedException('No existe una cuenta con este email. Por favor regístrate primero.');
+      const typeToCreate = requestedType || 'cliente';
+      console.log(`📝 [Google Auth] Creando usuario como: ${typeToCreate}`);
+
+      const password = randomBytes(32).toString('hex');
+
+      if (typeToCreate === 'cliente') {
+        user = await this.prisma.cliente.create({
+          data: {
+            email,
+            name: name || '',
+            password,
+            authMethod: 'google',
+            isVerified: true,
+          },
+        });
+        userType = 'cliente';
+      } else if (typeToCreate === 'empresa') {
+        user = await this.prisma.empresa.create({
+          data: {
+            email,
+            name: name || '',
+            password,
+            authMethod: 'google',
+            isVerified: true,
+            logo: picture || null,
+          },
+        });
+        userType = 'empresa';
+      } else {
+        // repartidor - generar código de vinculación único
+        let codigoVinculo: string;
+        let isUnique = false;
+
+        while (!isUnique) {
+          codigoVinculo = [...Array(6)]
+            .map(() => Math.random().toString(36).charAt(2).toUpperCase())
+            .join('');
+
+          const existingCodigo = await this.prisma.repartidor.findFirst({
+            where: { codigoVinculo },
+          });
+
+          if (!existingCodigo) {
+            isUnique = true;
+          }
+        }
+
+        user = await this.prisma.repartidor.create({
+          data: {
+            email,
+            name: name || '',
+            password,
+            authMethod: 'google',
+            isVerified: true,
+            codigoVinculo,
+          },
+        });
+        userType = 'repartidor';
+      }
+      console.log(`✅ [Google Auth] Usuario creado con ID: ${user.id}`);
+    } else {
+      console.log(`✅ [Google Auth] Usuario existente - Tipo: ${userType}`);
     }
 
     // 5) Mantener actualizado nombre/foto y marcar verificada si no lo estaba
     const updateData: any = {};
     if (name && user.name !== name) updateData.name = name;
-    // Si tu modelo tiene logo/foto:
-    // if (picture && user.logo !== picture) updateData.logo = picture;
+    if (picture && userType === 'empresa' && user.logo !== picture) updateData.logo = picture;
     if (user.isVerified === false) updateData.isVerified = true;
 
     if (Object.keys(updateData).length > 0) {
+      console.log(`🔄 [Google Auth] Actualizando usuario`);
       if (userType === 'cliente') {
         user = await this.prisma.cliente.update({ where: { id: user.id }, data: updateData });
       } else if (userType === 'empresa') {
@@ -150,21 +217,23 @@ export class AuthService {
       }
     }
 
-    // 6) Generar tokens como en tu login(email/password)
+    // 6) Generar tokens
+    console.log(`🎫 [Google Auth] Generando tokens`);
     const tokens = await this.generateTokens(user.id, user.email, userType);
 
-    // 7) Responder con el MISMO shape que ya espera tu frontend/AuthContext
+    // 7) Respuesta
+    console.log(`✅ [Google Auth] Completado exitosamente`);
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       tokenType: 'Bearer',
-      expiresIn: 80 * 60, // 80 min (igual que en tu login)
+      expiresIn: 80 * 60,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
         type: userType,
-        // logo: user.logo ?? undefined,
+        logo: userType === 'empresa' ? user.logo : undefined,
       },
     };
   }

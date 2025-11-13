@@ -38,35 +38,22 @@ export const authService = {
   },
 
   /**
-   * Login with Google
+   * Login/Register with Google (unificado)
+   * Usa un solo endpoint que crea el usuario si no existe
    */
-  async googleLogin(idToken: string): Promise<AuthResponse> {
+  async googleAuth(idToken: string): Promise<AuthResponse> {
+    console.log('🔵 [Auth Service] Iniciando Google Auth');
+
     const response = await api.post<AuthResponse>('/auth/google', {
       idToken,
-      role: 'cliente', // fuerza tipo cliente
+      role: 'cliente', // fuerza tipo cliente para appMobile
     });
 
     const data = response.data;
-
-    // 🚦 Si no es cliente → rechazar
-    if (data.user?.type !== 'cliente') {
-      console.warn(`🚫 Usuario tipo "${data.user?.type}" no permitido en este portal.`);
-      throw new Error('Usuario no permitido en esta aplicación.');
-    }
-
-    return data;
-  },
-
-  /**
-   * Register with Google
-   */
-  async googleRegister(idToken: string): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/google/register', {
-      idToken,
-      type: 'cliente', // fuerza tipo cliente
+    console.log('✅ [Auth Service] Respuesta recibida:', {
+      hasToken: !!data.accessToken,
+      userType: data.user?.type
     });
-
-    const data = response.data;
 
     // 🚦 Si no es cliente → rechazar
     if (data.user?.type !== 'cliente') {
