@@ -26,9 +26,9 @@ interface CreatePreferenceBody {
     email?: string;
   };
   back_urls?: {
-    success?: string;
-    failure?: string;
-    pending?: string;
+    success: string;
+    failure: string;
+    pending: string;
   };
   auto_return?: 'approved' | 'all';
   external_reference?: string;

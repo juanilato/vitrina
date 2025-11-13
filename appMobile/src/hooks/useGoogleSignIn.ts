@@ -23,14 +23,10 @@ export const useGoogleSignIn = () => {
   const { googleAuth } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId: GOOGLE_CLIENT_ID.android,
     iosClientId: GOOGLE_CLIENT_ID.ios,
     webClientId: GOOGLE_CLIENT_ID.web,
-    // Configuración adicional para web
-    redirectUri: Platform.OS === 'web'
-      ? 'https://vitrina.com.ar/auth/google/callback'
-      : undefined,
   });
 
   useEffect(() => {
