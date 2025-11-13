@@ -9,6 +9,7 @@ import { Platform, Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../contexts/AuthContext';
+import { makeRedirectUri } from 'expo-auth-session';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -23,10 +24,19 @@ export const useGoogleSignIn = () => {
   const { googleAuth } = useAuth();
   const [loading, setLoading] = useState(false);
 
+  // Create redirect URI - on web this will be the current origin + /auth/google/callback
+  const redirectUri = makeRedirectUri({
+    scheme: 'vitrina',
+    path: 'auth/google/callback',
+  });
+
+  console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
+
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId: GOOGLE_CLIENT_ID.android,
     iosClientId: GOOGLE_CLIENT_ID.ios,
     webClientId: GOOGLE_CLIENT_ID.web,
+    redirectUri: redirectUri,
   });
 
   useEffect(() => {
@@ -71,28 +81,31 @@ export const useGoogleSignIn = () => {
 
   const signInWithGoogle = async () => {
     try {
-      // Advertencia para plataforma web
-      if (Platform.OS === 'web') {
-        console.warn('⚠️ [useGoogleSignIn] Google Auth en web puede tener problemas CORS');
-        console.warn('⚠️ [useGoogleSignIn] Recomendamos usar en dispositivo móvil o emulador');
-      }
-
       console.log('🔵 [useGoogleSignIn] Starting Google sign-in prompt...');
       console.log('🔵 [useGoogleSignIn] Platform:', Platform.OS);
+      console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
+
       setLoading(true);
-      await promptAsync();
+
+      if (Platform.OS === 'web') {
+        console.log('🌐 [useGoogleSignIn] Using web-optimized OAuth flow');
+        // En web, promptAsync abre una nueva pestaña/ventana para auth
+        // El COOP error es una advertencia, no un error fatal
+        const result = await promptAsync({ useProxy: false });
+        console.log('🔵 [useGoogleSignIn] Prompt result:', result?.type);
+      } else {
+        // En móvil, usar el flujo normal
+        await promptAsync();
+      }
     } catch (error) {
       console.error('❌ [useGoogleSignIn] Error prompting Google sign-in:', error);
       setLoading(false);
 
-      // Mensaje más descriptivo en web
-      if (Platform.OS === 'web') {
-        Alert.alert(
-          'Error de Google Auth',
-          'Google Auth tiene problemas en el navegador web debido a políticas CORS. Por favor, prueba en un dispositivo móvil o emulador (Android/iOS).',
-          [{ text: 'Entendido' }]
-        );
-      }
+      Alert.alert(
+        'Error de autenticación',
+        'No se pudo iniciar sesión con Google. Por favor, intenta nuevamente.',
+        [{ text: 'Entendido' }]
+      );
 
       throw error;
     }
