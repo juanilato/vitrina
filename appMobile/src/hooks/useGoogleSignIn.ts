@@ -28,10 +28,21 @@ export const useGoogleSignIn = () => {
   const [loading, setLoading] = useState(false);
 
   // Memoize redirect URI to prevent infinite re-renders
-  const redirectUri = useMemo(() => makeRedirectUri({
-    scheme: 'vitrina',
-    preferLocalhost: true,
-  }), []);
+  const redirectUri = useMemo(() => {
+    if (Platform.OS === 'web') {
+      // En web, usar la URL actual del navegador (funciona en dev y producción)
+      // Esto permite que funcione tanto en localhost como en tu dominio
+      if (typeof window !== 'undefined') {
+        return window.location.origin; // http://localhost:8081 o https://tudominio.com
+      }
+    }
+
+    // Para móvil, usar el scheme personalizado
+    return makeRedirectUri({
+      scheme: 'vitrina',
+      preferLocalhost: true,
+    });
+  }, []);
 
   // Log ONCE when hook is first created
   useEffect(() => {
@@ -81,9 +92,10 @@ useEffect(() => {
         console.log('🔍 [useGoogleSignIn] Checking hash:', window.location.hash);
         const hash = window.location.hash.substring(1);
         const hashParams = new URLSearchParams(hash);
-        idToken = hashParams.get('id_token');
+        const hashToken = hashParams.get('id_token');
 
-        if (idToken) {
+        if (hashToken) {
+          idToken = hashToken;
           console.log('✅ [useGoogleSignIn] ID Token extracted from URL hash');
           // Clean the hash from URL
           window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -94,9 +106,10 @@ useEffect(() => {
       if (!idToken && window.location.search) {
         console.log('🔍 [useGoogleSignIn] Checking query params:', window.location.search);
         const queryParams = new URLSearchParams(window.location.search);
-        idToken = queryParams.get('id_token');
+        const queryToken = queryParams.get('id_token');
 
-        if (idToken) {
+        if (queryToken) {
+          idToken = queryToken;
           console.log('✅ [useGoogleSignIn] ID Token extracted from query params');
         }
       }
