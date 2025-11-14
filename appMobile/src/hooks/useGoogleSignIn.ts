@@ -67,6 +67,13 @@ useEffect(() => {
 
   if (response?.type === 'success') {
     console.log('✅ [useGoogleSignIn] Google auth success');
+    console.log('🔵 [useGoogleSignIn] Full response object:', JSON.stringify({
+      type: response.type,
+      authentication: response.authentication,
+      params: response.params,
+      url: response.url,
+    }, null, 2));
+
     console.log('🔵 [useGoogleSignIn] Response authentication:', {
       hasAccessToken: !!response.authentication?.accessToken,
       hasIdToken: !!response.authentication?.idToken,
@@ -86,6 +93,7 @@ useEffect(() => {
     if (!idToken && Platform.OS === 'web' && typeof window !== 'undefined') {
       console.log('🔍 [useGoogleSignIn] Attempting manual token extraction from URL');
       console.log('🔍 [useGoogleSignIn] Current URL:', window.location.href);
+      console.log('🔍 [useGoogleSignIn] Response URL:', response.url);
 
       // Try hash fragment first (#id_token=...)
       if (window.location.hash) {
@@ -111,6 +119,35 @@ useEffect(() => {
         if (queryToken) {
           idToken = queryToken;
           console.log('✅ [useGoogleSignIn] ID Token extracted from query params');
+        }
+      }
+
+      // Last resort: try parsing response.url if available
+      if (!idToken && response.url) {
+        console.log('🔍 [useGoogleSignIn] Trying to parse response.url:', response.url);
+        try {
+          const url = new URL(response.url);
+
+          // Check hash in response.url
+          if (url.hash) {
+            const urlHashParams = new URLSearchParams(url.hash.substring(1));
+            const urlHashToken = urlHashParams.get('id_token');
+            if (urlHashToken) {
+              idToken = urlHashToken;
+              console.log('✅ [useGoogleSignIn] ID Token extracted from response.url hash');
+            }
+          }
+
+          // Check query params in response.url
+          if (!idToken) {
+            const urlQueryToken = url.searchParams.get('id_token');
+            if (urlQueryToken) {
+              idToken = urlQueryToken;
+              console.log('✅ [useGoogleSignIn] ID Token extracted from response.url query');
+            }
+          }
+        } catch (e) {
+          console.error('❌ [useGoogleSignIn] Error parsing response.url:', e);
         }
       }
 
