@@ -4,13 +4,14 @@
  * Maneja login/registro automáticamente con un solo flujo
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Platform, Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../contexts/AuthContext';
 import { makeRedirectUri, ResponseType } from 'expo-auth-session';
 
+// Complete auth session ONCE at module level
 if (Platform.OS === 'web') {
   WebBrowser.maybeCompleteAuthSession();
 }
@@ -19,40 +20,35 @@ if (Platform.OS === 'web') {
 const GOOGLE_CLIENT_ID = {
   android: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID 
+  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
 };
 
 export const useGoogleSignIn = () => {
   const { googleAuth } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  // Create redirect URI - on web this will be the current origin + /auth/google/callback
-const redirectUri = makeRedirectUri({
-  scheme: 'vitrina',
-  preferLocalhost: true,
-});
+  // Memoize redirect URI to prevent infinite re-renders
+  const redirectUri = useMemo(() => makeRedirectUri({
+    scheme: 'vitrina',
+    preferLocalhost: true,
+  }), []);
 
-  console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
+  // Log ONCE when hook is first created
+  useEffect(() => {
+    console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
+  }, [redirectUri]);
 
-  // IMPORTANT: Use Authorization Code Flow for better token handling
-  // ResponseType.Code gets both access_token AND id_token
+  // IMPORTANT: Use IdToken response type to get the JWT directly
+  // This is the proper way to get id_token on web without client_secret
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: GOOGLE_CLIENT_ID.android,
     iosClientId: GOOGLE_CLIENT_ID.ios,
     webClientId: GOOGLE_CLIENT_ID.web,
-    // Use code flow - Expo will exchange the code for tokens automatically
-    responseType: ResponseType.Code,
+    // Use IdToken response type - returns JWT directly
+    responseType: ResponseType.IdToken,
     scopes: ['openid', 'email', 'profile'],
     redirectUri,
-    // Ensure we get id_token in the response
-    extraParams: {
-      access_type: 'offline',
-    },
   });
-
-if (Platform.OS === 'web') {
-  WebBrowser.maybeCompleteAuthSession();
-}
 
 
 useEffect(() => {
@@ -60,16 +56,60 @@ useEffect(() => {
 
   if (response?.type === 'success') {
     console.log('✅ [useGoogleSignIn] Google auth success');
+    console.log('🔵 [useGoogleSignIn] Response authentication:', {
+      hasAccessToken: !!response.authentication?.accessToken,
+      hasIdToken: !!response.authentication?.idToken,
+      hasRefreshToken: !!response.authentication?.refreshToken,
+    });
 
-    // ONLY accept id_token (JWT format), NOT access_token
-    const idToken = response.authentication?.idToken;
+    // Try to get idToken from response first
+    let idToken = response.authentication?.idToken;
+
+    // If not in authentication object, check response.params (Expo sometimes puts it there)
+    if (!idToken && response.params?.id_token) {
+      console.log('🔍 [useGoogleSignIn] ID Token found in response.params');
+      idToken = response.params.id_token as string;
+    }
+
+    // On web, if still not found, extract manually from URL (hash or query params)
+    if (!idToken && Platform.OS === 'web' && typeof window !== 'undefined') {
+      console.log('🔍 [useGoogleSignIn] Attempting manual token extraction from URL');
+      console.log('🔍 [useGoogleSignIn] Current URL:', window.location.href);
+
+      // Try hash fragment first (#id_token=...)
+      if (window.location.hash) {
+        console.log('🔍 [useGoogleSignIn] Checking hash:', window.location.hash);
+        const hash = window.location.hash.substring(1);
+        const hashParams = new URLSearchParams(hash);
+        idToken = hashParams.get('id_token');
+
+        if (idToken) {
+          console.log('✅ [useGoogleSignIn] ID Token extracted from URL hash');
+          // Clean the hash from URL
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      }
+
+      // If not in hash, try query params (?id_token=...)
+      if (!idToken && window.location.search) {
+        console.log('🔍 [useGoogleSignIn] Checking query params:', window.location.search);
+        const queryParams = new URLSearchParams(window.location.search);
+        idToken = queryParams.get('id_token');
+
+        if (idToken) {
+          console.log('✅ [useGoogleSignIn] ID Token extracted from query params');
+        }
+      }
+
+      if (idToken) {
+        console.log('🔵 [useGoogleSignIn] Token starts with:', idToken.substring(0, 20) + '...');
+      }
+    }
 
     if (!idToken) {
       console.error('❌ [useGoogleSignIn] No ID token received from Google');
-      console.error('❌ Received:', {
-        hasAccessToken: !!response.authentication?.accessToken,
-        hasIdToken: !!response.authentication?.idToken,
-      });
+      console.error('❌ Full authentication object:', response.authentication);
+      console.error('❌ Response params:', response.params);
       setLoading(false);
       Alert.alert(
         'Error de configuración',
@@ -125,7 +165,6 @@ const handleGoogleResponse = async (idToken: string | undefined) => {
     try {
       console.log('🔵 [useGoogleSignIn] Starting Google sign-in prompt...');
       console.log('🔵 [useGoogleSignIn] Platform:', Platform.OS);
-      console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
 
       setLoading(true);
 
