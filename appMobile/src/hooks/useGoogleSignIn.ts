@@ -9,7 +9,7 @@ import { Platform, Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../contexts/AuthContext';
-import { makeRedirectUri } from 'expo-auth-session';
+import { makeRedirectUri, ResponseType } from 'expo-auth-session';
 
 if (Platform.OS === 'web') {
   WebBrowser.maybeCompleteAuthSession();
@@ -34,15 +34,20 @@ const redirectUri = makeRedirectUri({
 
   console.log('🔵 [useGoogleSignIn] Redirect URI:', redirectUri);
 
-  // IMPORTANT: useAuthRequest with responseType:'id_token' to force ID Token
-  // This is required for backend JWT verification
+  // IMPORTANT: Use Authorization Code Flow for better token handling
+  // ResponseType.Code gets both access_token AND id_token
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: GOOGLE_CLIENT_ID.android,
     iosClientId: GOOGLE_CLIENT_ID.ios,
     webClientId: GOOGLE_CLIENT_ID.web,
-    responseType: 'id_token',
+    // Use code flow - Expo will exchange the code for tokens automatically
+    responseType: ResponseType.Code,
     scopes: ['openid', 'email', 'profile'],
     redirectUri,
+    // Ensure we get id_token in the response
+    extraParams: {
+      access_type: 'offline',
+    },
   });
 
 if (Platform.OS === 'web') {
