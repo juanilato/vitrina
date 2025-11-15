@@ -80,13 +80,23 @@ useEffect(() => {
       hasRefreshToken: !!response.authentication?.refreshToken,
     });
 
-    // Try to get idToken from response first
-    let idToken = response.authentication?.idToken;
+    // DEBUG: Log all available properties
+    console.log('🔍 [useGoogleSignIn] ALL response properties:', Object.keys(response));
+    console.log('🔍 [useGoogleSignIn] ALL params properties:', response.params ? Object.keys(response.params) : 'null');
 
-    // If not in authentication object, check response.params (Expo sometimes puts it there)
-    if (!idToken && response.params?.id_token) {
-      console.log('🔍 [useGoogleSignIn] ID Token found in response.params');
+    // PRIORITY 1: Check response.params.id_token FIRST (most reliable on web)
+    // This is where Expo AuthSession puts the token on web with ResponseType.IdToken
+    let idToken: string | undefined = undefined;
+
+    if (response.params?.id_token) {
+      console.log('✅ [useGoogleSignIn] ID Token found in response.params.id_token');
       idToken = response.params.id_token as string;
+    }
+
+    // PRIORITY 2: Check authentication.idToken (fallback for native)
+    if (!idToken && response.authentication?.idToken) {
+      console.log('✅ [useGoogleSignIn] ID Token found in response.authentication.idToken');
+      idToken = response.authentication.idToken;
     }
 
     // On web, if still not found, extract manually from URL (hash or query params)
