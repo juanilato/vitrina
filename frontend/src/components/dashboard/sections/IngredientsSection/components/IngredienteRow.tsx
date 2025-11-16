@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { IngredienteRowProps } from '../types';
-import * as MuiIcons from '@mui/icons-material';
 import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 import StraightenOutlinedIcon from '@mui/icons-material/StraightenOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import { DEFAULT_EMOJI } from './emojiData';
 
 const IngredienteRow: React.FC<IngredienteRowProps> = ({ ingrediente, onEdit, onDelete }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!ingrediente || !ingrediente.id) return null;
 
-  // Renderización dinámica del icono
-  const IconComponent = MuiIcons[ingrediente.icono as keyof typeof MuiIcons] || MuiIcons.LocalGroceryStore;
+  // Usar emoji del ingrediente o emoji por defecto
+  const emoji = ingrediente.icono || DEFAULT_EMOJI;
 
   const stock = ingrediente.stockDisponible ?? 0;
   const unidad = ingrediente.unidadMedida || 'unidades';
@@ -27,10 +27,10 @@ const IngredienteRow: React.FC<IngredienteRowProps> = ({ ingrediente, onEdit, on
   return (
     <>
       <div className="ingredient-row">
-        {/* Columna: Ingrediente (Icono + textos + chips) */}
+        {/* Columna: Ingrediente (Emoji + textos + chips) */}
         <div className="cell cell-ingredient">
-          <div className="ingredient-icon-wrapper">
-            <IconComponent fontSize="large" style={{ color: getStockColor() }} />
+          <div className="ingredient-icon-wrapper" style={{ fontSize: '2.5rem' }}>
+            {emoji}
           </div>
           <div className="ingredient-info">
             <h4 className="ingredient-name">{ingrediente.nombre}</h4>

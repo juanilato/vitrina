@@ -1,16 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IngredienteModalProps } from '../types';
 import './IngredienteModal.css';
-import IconPickerModal from './IconPickerModal';
-import { DynamicMuiIcon } from './DynamicMuiIcon';
-import type { IconName } from './IconoModal';
+import EmojiPickerModal from './EmojiPickerModal';
+import { DEFAULT_EMOJI } from './emojiData';
 
 const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     nombre: ingrediente?.nombre || '',
     stockDisponible: ingrediente?.stockDisponible ?? 0,
     unidadMedida: ingrediente?.unidadMedida || 'unidades',
-    icono: (ingrediente?.icono as IconName) || 'Grass',
+    icono: ingrediente?.icono || DEFAULT_EMOJI,
   });
 
   const [stockStr, setStockStr] = useState(
@@ -59,8 +58,14 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
 
   const stockStatus = getStockStatus();
 
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    // No cerrar si el emoji picker está abierto
+    if (showIconPicker) return;
+    onClose();
+  };
+
   return (
-    <div className="pm2-overlay" onClick={onClose}>
+    <div className="pm2-overlay" onClick={handleOverlayClick}>
       <section
         className="pm2-dialog order-modal-modern ingredient-modal-modern"
         role="dialog"
@@ -88,7 +93,7 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
           {/* Chips informativos */}
           <div className="order-modal-chips-section">
             <div className="order-chip order-chip-delivery" style={{ backgroundColor: stockStatus.bg, color: stockStatus.color, borderColor: stockStatus.color }}>
-              <DynamicMuiIcon name={formData.icono} fontSize="small" />
+              <span style={{ fontSize: '1.2rem' }}>{formData.icono}</span>
               <span>{stockStatus.label}</span>
             </div>
             {stock > 0 && (
@@ -160,14 +165,14 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
               </div>
             </div>
 
-            {/* Selector de ícono */}
+            {/* Selector de emoji */}
             <div className="pm2-field">
-              <label>Ícono</label>
+              <label>Emoji</label>
               <div className="icon-row" style={{ alignItems: 'center' }}>
                 <span
                   className="icon-chip"
                   role="img"
-                  aria-label={`Ícono seleccionado: ${formData.icono}`}
+                  aria-label={`Emoji seleccionado: ${formData.icono}`}
                   style={{
                     width: '52px',
                     height: '52px',
@@ -177,21 +182,20 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
                     borderRadius: '12px',
                     border: `2px solid ${stockStatus.color}`,
                     background: 'var(--surface-alt)',
-                    color: stockStatus.color,
+                    fontSize: '2rem',
                   }}
                 >
-                  <DynamicMuiIcon name={formData.icono} fontSize="large" />
-                  <span className="visually-hidden">{formData.icono}</span>
+                  {formData.icono}
                 </span>
                 <button
                   type="button"
                   className="btn-secondary"
                   onClick={() => setShowIconPicker(true)}
                 >
-                  {ingrediente ? 'Cambiar ícono' : 'Elegir ícono'}
+                  {ingrediente ? 'Cambiar emoji' : 'Elegir emoji'}
                 </button>
               </div>
-              <p className="pm2-help">Se guardará el nombre del ícono MUI, y se mostrará visualmente en las listas.</p>
+              <p className="pm2-help">Elige un emoji que represente este ingrediente.</p>
             </div>
 
           </form>
@@ -223,14 +227,14 @@ const IngredienteModal: React.FC<IngredienteModalProps> = ({ ingrediente, onSave
         </div>
       </section>
 
-      {/* Modal selector de íconos */}
-      <IconPickerModal
+      {/* Modal selector de emojis */}
+      <EmojiPickerModal
         open={showIconPicker}
         onClose={() => setShowIconPicker(false)}
-        onSelect={(iconName) => {
-          setField('icono', iconName);
-          setShowIconPicker(false);
+        onSelectEmoji={(emoji) => {
+          setField('icono', emoji);
         }}
+        currentEmoji={formData.icono}
       />
     </div>
   );
