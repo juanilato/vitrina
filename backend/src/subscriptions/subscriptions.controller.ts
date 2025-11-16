@@ -91,9 +91,9 @@ export class SubscriptionsController {
   // ============ MERCADOPAGO INTEGRATION ============
 
   @UseGuards(JwtAuthGuard)
-  @Post('mercadopago/create-preference')
+  @Post('mercadopago/create-subscription')
   @HttpCode(HttpStatus.OK)
-  async createMercadoPagoPreference(
+  async createMercadoPagoSubscription(
     @Body()
     body: {
       planId: string;
@@ -104,7 +104,7 @@ export class SubscriptionsController {
       empresaName: string;
     },
   ) {
-    return this.mercadoPagoService.createPreference(body);
+    return this.mercadoPagoService.createSubscription(body);
   }
 
   @UseGuards(JwtAuthGuard)

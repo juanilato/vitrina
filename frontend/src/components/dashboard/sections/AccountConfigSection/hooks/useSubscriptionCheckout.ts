@@ -56,7 +56,7 @@ export const useSubscriptionCheckout = ({
       }
 
       const response = await axios.post<MercadoPagoPreapprovalResponse>(
-        `${API_URL}/subscriptions/mercadopago/create-preference`,
+        `${API_URL}/subscriptions/mercadopago/create-subscription`,
         {
           planId,
           planName: plan.nombre,
