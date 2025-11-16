@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '../../../contexts/NotificationsContext';
 import './NotificationsSection.css';
+import { NotificationsSectionSkeleton } from '../../skeletons';
 
 const NotificationsSection: React.FC = () => {
   const { 
@@ -111,10 +112,7 @@ const NotificationsSection: React.FC = () => {
 
       <div className="notifications-content">
         {loading ? (
-          <div className="notifications-loading">
-            <div className="loading-spinner"></div>
-            <p>Cargando notificaciones...</p>
-          </div>
+          <NotificationsSectionSkeleton />
         ) : filteredNotifications.length === 0 ? (
           <div className="no-notifications">
             <span className="no-notifications-icon">📭</span>

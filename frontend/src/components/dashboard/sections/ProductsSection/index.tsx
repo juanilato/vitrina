@@ -264,17 +264,19 @@ const ProductsSection: React.FC = () => {
 
         {filteredProducts.length === 0 && (
           <div className="empty-state">
-            <div className="empty-icon">📦</div>
-            <h3>No se encontraron productos</h3>
-            <p>
-              {searchTerm 
+            <div className="empty-state-icon-wrapper">
+              <div className="empty-state-icon">📦</div>
+            </div>
+            <h3 className="empty-state-title">No se encontraron productos</h3>
+            <p className="empty-state-description">
+              {searchTerm
                 ? `No hay productos que coincidan con "${searchTerm}"`
-                : 'No tienes productos registrados aún'
+                : 'Comienza agregando productos para que tus clientes puedan realizar pedidos desde tu vitrina.'
               }
             </p>
             <button className="btn-empty-state" onClick={handleAddProduct}>
-              <span className="btn-icon">+</span>
-              {searchTerm ? 'Agregar Nuevo Producto' : 'Agregar Primer Producto'}
+              <AddOutlinedIcon fontSize="small" />
+              <span>{searchTerm ? 'Agregar Nuevo Producto' : 'Agregar Primer Producto'}</span>
             </button>
           </div>
         )}

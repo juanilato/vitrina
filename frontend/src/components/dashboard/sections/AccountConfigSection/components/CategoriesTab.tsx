@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useAccountConfig from '../hooks/useAccountConfig';
 import { CategoriaData, SubcategoriaData } from '../types';
 import './CategoriesTab.css';
+import { SkeletonForm } from '../../../../skeletons';
 
   //Seleccionador de categorías y subcategorías correspondientes
 const CategoriesTab: React.FC = () => {
@@ -97,9 +98,8 @@ const CategoriesTab: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="categories-tab loading-container">
-        <div className="loading-spinner" />
-        <p>Cargando categorías...</p>
+      <div className="categories-tab">
+        <SkeletonForm fields={3} hasSelect hasImageUpload={false} />
       </div>
     );
   }

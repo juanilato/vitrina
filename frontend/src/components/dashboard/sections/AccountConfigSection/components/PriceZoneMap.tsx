@@ -88,11 +88,8 @@ const PriceZoneMap: React.FC<PriceZoneMapProps> = ({
   if (!isLoaded || !isValidCenter) {
     return (
       <div className="pzm-container">
-        <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="loading-spinner" />
-          <span style={{ marginLeft: 10 }}>
-            {!isLoaded ? 'Cargando mapa...' : 'Cargando ubicación...'}
-          </span>
+        <div style={{ height, position: 'relative' }}>
+          <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
         </div>
       </div>
     );

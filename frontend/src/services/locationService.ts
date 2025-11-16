@@ -9,6 +9,7 @@ export interface SavedLocation {
   lng: number;
   referencia?: string;
   esPrincipal: boolean;
+  esFavorita?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +22,7 @@ export interface CreateLocationDto {
   lng: number;
   referencia?: string;
   esPrincipal?: boolean;
+  esFavorita?: boolean;
 }
 
 export interface UpdateLocationDto {
@@ -30,6 +32,7 @@ export interface UpdateLocationDto {
   lng?: number;
   referencia?: string;
   esPrincipal?: boolean;
+  esFavorita?: boolean;
 }
 
 export class LocationService {
@@ -119,6 +122,19 @@ export class LocationService {
       return response.data;
     } catch (error) {
       console.error('Error setting principal location:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Marcar/desmarcar una ubicación como favorita
+   */
+  static async toggleFavorite(id: number, esFavorita: boolean): Promise<SavedLocation> {
+    try {
+      const response = await axiosInstance.put(`/ubicaciones-cliente/${id}`, { esFavorita });
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling favorite location:', error);
       throw error;
     }
   }

@@ -5,6 +5,7 @@ import PriceZoneMap from './PriceZoneMap';
 import './PreciosEnvioTab.css';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
+import { SkeletonForm } from '../../../../skeletons';
 interface PreciosEnvioTabProps {
   ubicacionId: number;
   ubicacionDireccion: string;
@@ -106,10 +107,7 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
   if (loading) {
     return (
       <div className="pe-shell">
-        <div className="card center-card">
-          <div className="loading-spinner" />
-          <p className="muted">Cargando precios de envío…</p>
-        </div>
+        <SkeletonForm fields={4} hasImageUpload={false} />
       </div>
     );
   }
@@ -237,9 +235,8 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
 </div>
             </div>
           ) : (
-            <div className="map-skeleton">
-              <div className="loading-spinner" />
-              <span className="muted">Cargando ubicación…</span>
+            <div className="map-skeleton" style={{ position: 'relative', height: '400px' }}>
+              <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
             </div>
           )}
         </section>

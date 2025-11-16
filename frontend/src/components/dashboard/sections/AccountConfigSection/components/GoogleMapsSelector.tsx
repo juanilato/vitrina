@@ -294,10 +294,8 @@ const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
       <div ref={mapRef} className="google-map bordered" style={{ height }} />
 
       {(isLoading || !isLoaded) && (
-        <div className="map-loading">
-          <div className="loading-spinner"></div>
-          <p>{isLoading ? 'Cargando Google Maps…' : 'Inicializando mapa…'}</p>
-          <small className="muted">Esto puede tomar unos segundos</small>
+        <div className="map-loading" style={{ position: 'absolute', inset: 0, zIndex: 10 }}>
+          <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
         </div>
       )}
 

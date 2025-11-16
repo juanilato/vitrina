@@ -26,6 +26,10 @@ export class CreateUbicacionDto {
   @IsBoolean()
   esPrincipal?: boolean;
 
+  @IsOptional()
+  @IsBoolean()
+  esFavorita?: boolean;
+
   @IsString()
   clienteId!: string;
 }

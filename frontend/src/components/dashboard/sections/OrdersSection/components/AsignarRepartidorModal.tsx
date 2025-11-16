@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../../../../config/axios.config';
 import { useWebSocket } from '../../../../../hooks/useWebSocket';
 import './AsignarRepartidorModal.css';
+import { SkeletonModal } from '../../../../skeletons';
 
 interface Repartidor {
   id: string;
@@ -87,10 +88,7 @@ const AsignarRepartidorModal: React.FC<AsignarRepartidorModalProps> = ({
 
         <div className="modal-body">
           {loading && (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Cargando repartidores...</p>
-            </div>
+            <SkeletonModal size="medium" hasItemList itemCount={4} />
           )}
 
           {error && (

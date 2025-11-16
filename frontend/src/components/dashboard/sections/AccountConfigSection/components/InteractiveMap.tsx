@@ -64,9 +64,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   if (!isLoaded) {
     return (
-      <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="loading-spinner"></div>
-        <span style={{ marginLeft: '10px' }}>Cargando mapa...</span>
+      <div style={{ height, position: 'relative' }}>
+        <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
       </div>
     );
   }

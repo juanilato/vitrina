@@ -57,6 +57,7 @@ async create(clienteId: string, createUbicacionDto: CreateUbicacionDto) {
       lng: createUbicacionDto.lng,
       referencia: createUbicacionDto.referencia ?? "Sin referencia",
       esPrincipal: createUbicacionDto.esPrincipal ?? false,
+      esFavorita: createUbicacionDto.esFavorita ?? false,
       // ✅ Relación correcta
       cliente: {
         connect: { id: createUbicacionDto.clienteId },

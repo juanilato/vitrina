@@ -141,6 +141,9 @@ async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | '
 
       const password = randomBytes(32).toString('hex');
 
+      // Extraer el nombre de usuario del email (parte antes del @)
+      const usernameFromEmail = email.split('@')[0];
+
       if (typeToCreate === 'cliente') {
         user = await this.prisma.cliente.create({
           data: {
@@ -156,7 +159,7 @@ async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | '
         user = await this.prisma.empresa.create({
           data: {
             email,
-            name: name || '',
+            name: usernameFromEmail,
             password,
             authMethod: 'google',
             isVerified: true,
@@ -202,7 +205,16 @@ async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | '
 
     // 5) Mantener actualizado nombre/foto y marcar verificada si no lo estaba
     const updateData: any = {};
-    if (name && user.name !== name) updateData.name = name;
+
+    // Para empresas, extraer nombre de usuario del email
+    const usernameFromEmail = email.split('@')[0];
+
+    if (userType === 'empresa' && user.name !== usernameFromEmail) {
+      updateData.name = usernameFromEmail;
+    } else if (userType !== 'empresa' && name && user.name !== name) {
+      updateData.name = name;
+    }
+
     if (picture && userType === 'empresa' && user.logo !== picture) updateData.logo = picture;
     if (user.isVerified === false) updateData.isVerified = true;
 
@@ -264,6 +276,9 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa' | 'reparti
     const password = randomBytes(32).toString('hex');
     let created: any;
 
+    // Extraer el nombre de usuario del email (parte antes del @)
+    const usernameFromEmail = email.split('@')[0];
+
     if (type === 'cliente') {
       created = await this.prisma.cliente.create({
         data: {
@@ -278,7 +293,7 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa' | 'reparti
       created = await this.prisma.empresa.create({
         data: {
           email,
-          name: name ?? '',
+          name: usernameFromEmail,
           password,
           authMethod: 'google', // ✅ Marcar que se registró con Google
           isVerified: true,

@@ -8,6 +8,7 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import '../../ProductsSection/ProductsSection.css';
+import { SkeletonModal } from '../../../../skeletons';
 
 interface StockControlModalProps {
   onClose: () => void;
@@ -222,10 +223,7 @@ const StockControlModal: React.FC<StockControlModalProps> = ({ onClose, onUpdate
         {/* Body */}
         <div className="order-modal-body" style={{ maxHeight: '600px', overflowY: 'auto' }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-              <div className="loading-spinner" style={{ margin: '0 auto 16px' }}></div>
-              <p>Cargando datos...</p>
-            </div>
+            <SkeletonModal size="large" hasItemList itemCount={5} />
           ) : (
             <>
               {/* Sección de Productos */}

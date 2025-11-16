@@ -12,6 +12,7 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import './StatsSection.css';
+import { StatsSectionSkeleton } from '../../../skeletons';
 
 const StatsSection: React.FC = () => {
   const { user } = useAuthOptimized();
@@ -59,14 +60,7 @@ const StatsSection: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="stats-section">
-        <div className="stats-loading">
-          <div className="loading-spinner"></div>
-          <p>Cargando estadísticas...</p>
-        </div>
-      </div>
-    );
+    return <StatsSectionSkeleton />;
   }
 
   if (error || !stats) {

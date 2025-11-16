@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { LocationProvider } from './contexts/LocationContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
 
 import Login from './components/auth/Login';
@@ -28,12 +29,12 @@ const RootRedirect: React.FC = () => {
 
 // App envuelta
 //      -> Auth Provider (autenticacion)
-//         
+//         -> Location Provider (ubicaciones)
 //            -> notificaciones
 function App() {
   return (
     <AuthProvider>
- 
+      <LocationProvider>
         <NotificationsProvider>
           <Router>
             <div className="App">
@@ -57,7 +58,7 @@ function App() {
             </div>
           </Router>
         </NotificationsProvider>
- 
+      </LocationProvider>
     </AuthProvider>
   );
 }

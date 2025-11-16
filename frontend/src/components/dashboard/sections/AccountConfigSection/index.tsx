@@ -17,6 +17,7 @@ import MopedIcon from '@mui/icons-material/Moped';
 import RepartidoresTab from './components/RepartidoresTab';
 import CreditCardOutlinedIcon from '@mui/icons-material/CreditCardOutlined';
 import SubscriptionTab from './components/SubscriptionTab';
+import { AccountConfigSectionSkeleton } from '../../../skeletons';
 // Sección de manejo de settings de la cuenta:
 // Perfil unificado: Datos básicos, cambio de contraseña y completación de perfil
 // Categorías Selección de categorías y subcategorías de la empresa
@@ -45,14 +46,7 @@ const AccountConfigSection: React.FC = () => {
   }, [activeTab]);
 
   if (loading) {
-    return (
-      <div className="account-shell">
-        <div className="card center-card">
-          <div className="loading-spinner large" />
-          <p className="muted">Cargando configuración de cuenta…</p>
-        </div>
-      </div>
-    );
+    return <AccountConfigSectionSkeleton />;
   }
 
   if (!empresaData) {

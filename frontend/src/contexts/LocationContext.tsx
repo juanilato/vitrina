@@ -14,6 +14,7 @@ interface LocationContextType {
   updateLocation: (id: number, data: Partial<SavedLocation>) => Promise<SavedLocation>;
   deleteLocation: (id: number) => Promise<void>;
   setPrincipalLocation: (id: number) => Promise<void>;
+  toggleFavorite: (id: number, esFavorita: boolean) => Promise<void>;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -188,6 +189,22 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     }
   };
 
+  const toggleFavorite = async (id: number, esFavorita: boolean): Promise<void> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      await LocationService.toggleFavorite(id, esFavorita);
+      await loadLocations();
+    } catch (err) {
+      console.error('Error toggling favorite location:', err);
+      setError('Error al marcar/desmarcar ubicación como favorita');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value: LocationContextType = {
     locations,
     selectedLocation,
@@ -199,7 +216,8 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     createLocation,
     updateLocation,
     deleteLocation,
-    setPrincipalLocation
+    setPrincipalLocation,
+    toggleFavorite
   };
 
   return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>;

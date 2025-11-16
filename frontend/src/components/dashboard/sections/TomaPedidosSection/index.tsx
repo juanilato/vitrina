@@ -3,6 +3,7 @@ import axiosInstance from '../../../../config/axios.config';
 import { useRepartidorSocket } from '../../../../contexts/RepartidorSocketContext';
 import './TomaPedidosSection.css';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import { TomaPedidosSectionSkeleton } from '../../../skeletons';
 
 interface PedidoDisponible {
   id: string;
@@ -88,14 +89,7 @@ const TomaPedidosSection: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="toma-pedidos-section">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando pedidos disponibles...</p>
-        </div>
-      </div>
-    );
+    return <TomaPedidosSectionSkeleton />;
   }
 
   if (error) {

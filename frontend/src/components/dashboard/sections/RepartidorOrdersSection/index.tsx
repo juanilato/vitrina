@@ -4,6 +4,7 @@ import { useRepartidorSocket } from '../../../../contexts/RepartidorSocketContex
 import './RepartidorOrdersSection.css';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { RepartidorOrdersSectionSkeleton } from '../../../skeletons';
 
 interface MiPedido {
   id: string;
@@ -230,14 +231,7 @@ const RepartidorOrdersSection: React.FC = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="mis-pedidos-section">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando mis pedidos...</p>
-        </div>
-      </div>
-    );
+    return <RepartidorOrdersSectionSkeleton />;
   }
 
   if (error) {

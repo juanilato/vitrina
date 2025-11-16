@@ -13,6 +13,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlined';
 import StockControlModal from './components/StockControlModal';
+import { IngredientsSectionSkeleton } from '../../../skeletons';
 
 const IngredientesSection: React.FC = () => {
   const {
@@ -90,14 +91,7 @@ const IngredientesSection: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="products-section">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Cargando ingredientes...</p>
-        </div>
-      </div>
-    );
+    return <IngredientsSectionSkeleton />;
   }
 
   if (error) {
@@ -259,17 +253,19 @@ const IngredientesSection: React.FC = () => {
 
         {filteredIngredientes.length === 0 && (
           <div className="empty-state">
-            <div className="empty-icon">🌱</div>
-            <h3>No se encontraron ingredientes</h3>
-            <p>
-              {searchTerm 
+            <div className="empty-state-icon-wrapper">
+              <div className="empty-state-icon">🌱</div>
+            </div>
+            <h3 className="empty-state-title">No se encontraron ingredientes</h3>
+            <p className="empty-state-description">
+              {searchTerm
                 ? `No hay ingredientes que coincidan con "${searchTerm}"`
-                : 'No tienes ingredientes registrados aún'
+                : 'Comienza agregando ingredientes para gestionar tu inventario y crear productos compuestos.'
               }
             </p>
             <button className="btn-empty-state" onClick={handleAddIngrediente}>
-              <span className="btn-icon">+</span>
-              {searchTerm ? 'Agregar Nuevo Ingrediente' : 'Agregar Primer Ingrediente'}
+              <AddOutlinedIcon fontSize="small" />
+              <span>{searchTerm ? 'Agregar Nuevo Ingrediente' : 'Agregar Primer Ingrediente'}</span>
             </button>
           </div>
         )}
