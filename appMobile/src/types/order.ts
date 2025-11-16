@@ -45,6 +45,7 @@ export interface Pedido {
   referenciaEntrega?: string;
   notas?: string;
   motivoRechazo?: string;
+  entregadoAt?: string; // Timestamp de cuando se entregó el pedido
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +62,13 @@ export interface ItemPedido {
 
 export interface PedidoWithDetails extends Pedido {
   items?: ItemPedido[];
+  ItemPedido?: Array<{
+    id: string;
+    producto: {
+      id: string;
+      nombre: string;
+    };
+  }>;
   cliente?: {
     id: string;
     name: string;

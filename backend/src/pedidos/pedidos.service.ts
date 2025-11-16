@@ -511,10 +511,18 @@ export class PedidosService {
       const oldStatus = existingPedido.estado;
       const newStatus = updatePedidoDto.estado;
 
+      // Preparar datos de actualización
+      const updateData: any = { ...updatePedidoDto };
+
+      // Si el pedido pasa a estado "entregado", guardar timestamp
+      if (newStatus === 'entregado' && oldStatus !== 'entregado') {
+        updateData.entregadoAt = new Date();
+      }
+
       // Actualizar el pedido
       await this.prisma.pedido.update({
         where: { id },
-        data: updatePedidoDto
+        data: updateData
       });
 
       const pedidoActualizado = await this.findOne(id);

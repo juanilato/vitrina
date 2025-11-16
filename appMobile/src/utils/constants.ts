@@ -41,3 +41,28 @@ export const ROUTES = {
     STORE: '/company/[companyName]',
   },
 } as const;
+
+// Valoraciones - Tiempo en milisegundos para solicitar valoración después de entrega
+export const RATING_REQUEST_DELAY = 10 * 60 * 1000; // 10 minutos
+
+// Etiquetas legibles para aspectos de empresa
+export const ASPECTOS_EMPRESA_LABELS = {
+  EXCELENTE_CALIDAD: 'Excelente calidad',
+  BUENA_PRESENTACION: 'Buena presentación',
+  PORCIONES_GENEROSAS: 'Porciones generosas',
+  RAPIDO: 'Rápido',
+  BUENA_ATENCION: 'Buena atención',
+  BUENA_RELACION_PRECIO_CALIDAD: 'Buena relación precio-calidad',
+  MUY_RICO: 'Muy rico',
+  FRESCO: 'Fresco',
+  BIEN_EMPAQUETADO: 'Bien empaquetado',
+} as const;
+
+// Etiquetas legibles para aspectos de repartidor
+export const ASPECTOS_REPARTIDOR_LABELS = {
+  PUNTUAL: 'Puntual',
+  AMABLE: 'Amable',
+  CUIDADOSO: 'Cuidadoso',
+  BUENA_COMUNICACION: 'Buena comunicación',
+  PROFESIONAL: 'Profesional',
+} as const;

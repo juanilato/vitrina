@@ -25,8 +25,9 @@ model Cliente {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  Pedidos     Pedido[]
-  ubicaciones UbicacionCliente[]
+  Pedidos      Pedido[]
+  ubicaciones  UbicacionCliente[]
+  Valoraciones Valoracion[]
 }
 
 // ——— Ubicaciones guardadas del cliente ———
@@ -127,6 +128,9 @@ model Empresa {
   metodosPago     MetodoPago[]
   pagos           Pago[]
 
+  // Valoraciones recibidas
+  Valoraciones    Valoracion[]
+
   @@index([categoriaId])
 }
 // ——— Cuenta repartidor ———
@@ -143,6 +147,9 @@ model Repartidor {
   isVerified  Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  // Valoraciones recibidas
+  Valoraciones    Valoracion[]
 }
 
 // ——— Relación empresa repartidor  ———
@@ -354,11 +361,15 @@ model Pedido {
   costoEnvio Decimal?   @db.Decimal(12, 2) // Costo de envío calculado
   total      Decimal?   @db.Decimal(12, 2) // Total final (subtotal + envío)
 
+  // Control de valoración
+  entregadoAt DateTime? // Fecha y hora de entrega para calcular tiempo de solicitud de valoración
+
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
   ItemPedido ItemPedido[]
   Mensajes   Mensaje[]
+  Valoracion Valoracion?
 
   repartidorId    String?
   repartidor      Repartidor?  @relation(fields: [repartidorId], references: [id])
@@ -630,4 +641,80 @@ enum EstadoPago {
   FALLIDO
   REEMBOLSADO
   CANCELADO
+}
+
+// ——— Sistema de Valoraciones ———
+
+// ——— Aspectos destacables de empresa ———
+enum AspectosEmpresa {
+  EXCELENTE_CALIDAD
+  BUENA_PRESENTACION
+  PORCIONES_GENEROSAS
+  RAPIDO
+  BUENA_ATENCION
+  BUENA_RELACION_PRECIO_CALIDAD
+  MUY_RICO
+  FRESCO
+  BIEN_EMPAQUETADO
+}
+
+// ——— Aspectos destacables de repartidor ———
+enum AspectosRepartidor {
+  PUNTUAL
+  AMABLE
+  CUIDADOSO
+  BUENA_COMUNICACION
+  PROFESIONAL
+}
+
+// ——— Valoración de pedido ———
+model Valoracion {
+  id              String    @id @default(cuid())
+
+  // Relación con pedido (1:1)
+  pedidoId        String    @unique
+  pedido          Pedido    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  // Cliente que valora
+  clienteId       String
+  cliente         Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  // Empresa valorada
+  empresaId       String
+  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  // Repartidor valorado (opcional, solo para delivery)
+  repartidorId    String?
+  repartidor      Repartidor? @relation(fields: [repartidorId], references: [id], onDelete: SetNull)
+
+  // ——— Valoración General de la Empresa (1-5 estrellas) ———
+  calificacionEmpresa Int // 1-5
+
+  // Comentario general sobre la empresa
+  comentarioEmpresa String?
+
+  // Aspectos destacados de la empresa (array de enums)
+  aspectosEmpresa AspectosEmpresa[] @default([])
+
+  // ——— Valoración de Productos (array JSON) ———
+  // Estructura: [{ productoId: string, nombreProducto: string, calificacion: 1-5, comentario?: string }]
+  valoracionProductos Json? // Array de valoraciones por producto
+
+  // ——— Valoración del Repartidor (solo para delivery) ———
+  calificacionRepartidor Int? // 1-5 (null si es retiro)
+
+  // Comentario sobre el repartidor
+  comentarioRepartidor String?
+
+  // Aspectos destacados del repartidor
+  aspectosRepartidor AspectosRepartidor[] @default([])
+
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([empresaId, calificacionEmpresa])
+  @@index([clienteId])
+  @@index([repartidorId])
+  @@index([createdAt])
 }
