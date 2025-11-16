@@ -253,7 +253,8 @@
 }
 
 /* ====== RESPONSIVE MOBILE ====== */
-@media (max-width: 768px) {
+/* Solo activar en dispositivos móviles reales, no al cerrar el sidebar */
+@media (max-width: 640px) {
   .toma-pedidos-section {
     padding: 1rem;
     width: 100%;

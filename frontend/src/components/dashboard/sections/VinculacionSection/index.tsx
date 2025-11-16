@@ -6,6 +6,7 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 interface EmpresaVinculada {
   id: string;
@@ -17,16 +18,35 @@ interface EmpresaVinculada {
   vinculacionId?: number;
 }
 
+interface RepartidorData {
+  id: string;
+  name: string;
+  email: string;
+  telefono: string;
+  codigoVinculo: string;
+}
+
 const VinculacionSection: React.FC = () => {
   const [empresasVinculadas, setEmpresasVinculadas] = useState<EmpresaVinculada[]>([]);
+  const [repartidorData, setRepartidorData] = useState<RepartidorData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [nuevaSolicitud, setNuevaSolicitud] = useState(false);
+  const [copiado, setCopiado] = useState(false);
 
   const { on, off, isConnected } = useWebSocket({
     autoConnect: true,
   });
+
+  const cargarDatosRepartidor = async () => {
+    try {
+      const response = await axiosInstance.get('/repartidores/mis-datos');
+      setRepartidorData(response.data);
+    } catch (err: any) {
+      console.error('Error cargando datos del repartidor:', err);
+    }
+  };
 
   const cargarVinculaciones = async () => {
     try {
@@ -38,6 +58,7 @@ const VinculacionSection: React.FC = () => {
   };
 
   useEffect(() => {
+    cargarDatosRepartidor();
     cargarVinculaciones();
   }, []);
 
@@ -139,6 +160,14 @@ const VinculacionSection: React.FC = () => {
     }
   };
 
+  const copiarCodigo = () => {
+    if (repartidorData?.codigoVinculo) {
+      navigator.clipboard.writeText(repartidorData.codigoVinculo);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    }
+  };
+
   return (
     <div className="vinculacion-section">
       <div className="vinculacion-header">
@@ -147,8 +176,27 @@ const VinculacionSection: React.FC = () => {
           {isConnected && <span className="ws-status connected">● En vivo</span>}
           {!isConnected && <span className="ws-status disconnected">○ Sin conexión</span>}
         </div>
-        <p className="muted">Las empresas pueden solicitarte vinculación. Aceptá o rechazá según corresponda</p>
+        <p className="muted">Compartí tu código de vinculación con empresas para que puedan solicitarte vinculación</p>
       </div>
+
+      {/* Código de Vinculación */}
+      {repartidorData && (
+        <div className="codigo-vinculacion-card">
+          <h3>Tu Código de Vinculación</h3>
+          <p className="codigo-info">Dictá este código a las empresas para que puedan vincularse con vos</p>
+          <div className="codigo-display">
+            <span className="codigo-texto">{repartidorData.codigoVinculo}</span>
+            <button
+              className="btn-copiar"
+              onClick={copiarCodigo}
+              title="Copiar código"
+            >
+              <ContentCopyIcon />
+              {copiado ? ' Copiado!' : ' Copiar'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && (

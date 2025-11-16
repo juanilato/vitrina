@@ -15,6 +15,77 @@
   margin-bottom: 0.5rem;
 }
 
+.codigo-vinculacion-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.codigo-vinculacion-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.codigo-info {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.codigo-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.codigo-texto {
+  flex: 1;
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.3em;
+  color: white;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-copiar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-copiar:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-copiar:active {
+  transform: translateY(0);
+}
+
 .vinculacion-header h2 {
   font-size: 1.75rem;
   font-weight: 600;
@@ -323,7 +394,8 @@
 }
 
 /* ====== RESPONSIVE MOBILE ====== */
-@media (max-width: 768px) {
+/* Solo activar en dispositivos móviles reales, no al cerrar el sidebar */
+@media (max-width: 640px) {
   .vinculacion-section {
     padding: 1rem;
     width: 100%;
@@ -342,6 +414,37 @@
 
   .vinculacion-header h2 {
     font-size: 1.5rem;
+  }
+
+  .codigo-vinculacion-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .codigo-vinculacion-card h3 {
+    font-size: 1.25rem;
+  }
+
+  .codigo-info {
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .codigo-display {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .codigo-texto {
+    font-size: 1.5rem;
+    letter-spacing: 0.25em;
+  }
+
+  .btn-copiar {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem 1rem;
   }
 
   .ws-status {

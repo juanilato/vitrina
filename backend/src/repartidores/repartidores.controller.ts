@@ -10,6 +10,11 @@ import { UpdateUbicacionRepartidorDto } from './dto/update-ubicacion-repartidor.
 export class RepartidoresController {
   constructor(private readonly repartidoresService: RepartidoresService) {}
 
+  @Get('mis-datos')
+  async getMisDatos(@Request() req) {
+    return this.repartidoresService.getMisDatos(req.user.id);
+  }
+
   @Get('mis-empresas')
   async getMisEmpresas(@Request() req) {
     return this.repartidoresService.getMisEmpresas(req.user.id);

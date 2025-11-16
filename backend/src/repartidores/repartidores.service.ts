@@ -13,6 +13,28 @@ export class RepartidoresService {
   ) {}
 
   /**
+   * Obtener los datos del repartidor (incluido código de vinculación)
+   */
+  async getMisDatos(repartidorId: string) {
+    const repartidor = await this.prisma.repartidor.findUnique({
+      where: { id: repartidorId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        telefono: true,
+        codigoVinculo: true,
+      },
+    });
+
+    if (!repartidor) {
+      throw new NotFoundException('Repartidor no encontrado');
+    }
+
+    return repartidor;
+  }
+
+  /**
    * Obtener las empresas vinculadas de un repartidor
    */
   async getMisEmpresas(repartidorId: string) {
