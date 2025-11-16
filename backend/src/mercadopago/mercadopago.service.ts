@@ -80,13 +80,22 @@ export class MercadoPagoService {
    */
   async createPreference(data: CreatePreferenceData) {
     try {
+      // Validar que MercadoPago esté configurado
+      if (!this.isConfigured()) {
+        const errorMsg = 'MercadoPago no está configurado. Verifica que MERCADOPAGO_ACCESS_TOKEN, BACKEND_URL y FRONTEND_URL estén en el .env';
+        this.logger.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+
       // Asegurar que el precio sea un número válido
       const unitPrice = typeof data.planPrice === 'number'
         ? data.planPrice
         : parseFloat(data.planPrice);
 
       if (isNaN(unitPrice) || unitPrice <= 0) {
-        throw new Error(`Precio inválido: ${data.planPrice}. El precio debe ser mayor a 0.`);
+        const errorMsg = `Precio inválido: ${data.planPrice}. El precio debe ser mayor a 0.`;
+        this.logger.error(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const preferenceData: CreatePreferenceBody = {
@@ -126,7 +135,12 @@ export class MercadoPagoService {
         sandbox_init_point: response.sandbox_init_point,
       };
     } catch (error) {
-      this.logger.error('Error al crear preferencia:', error);
+      this.logger.error('Error detallado al crear preferencia:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       throw error;
     }
   }

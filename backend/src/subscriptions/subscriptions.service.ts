@@ -44,11 +44,9 @@ export class SubscriptionsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (!suscripcion) {
-      throw new NotFoundException('No hay suscripción activa para esta empresa');
-    }
-
-    return suscripcion;
+    // No lanzar error si no hay suscripción - es un estado válido
+    // El frontend debe manejar el caso de null
+    return suscripcion || null;
   }
 
   async createSuscripcion(data: {
