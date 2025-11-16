@@ -281,5 +281,208 @@ export const Polyline: React.FC<PolylineProps> = () => {
   return null;
 };
 
-// MapFallback exportado para compatibilidad
-export const MapFallback = MapView;
+/**
+ * MapFallback - Componente específico para web con funcionalidades adicionales
+ * Soporta clicks en el mapa, marcadores arrastrables, etc.
+ */
+interface MapFallbackProps {
+  height?: number;
+  markers?: Array<{
+    lat: number;
+    lng: number;
+    title?: string;
+    color?: string;
+  }>;
+  center?: { lat: number; lng: number };
+  zoom?: number;
+  onMapClick?: (lat: number, lng: number) => void;
+  draggableMarker?: boolean;
+}
+
+export const MapFallback: React.FC<MapFallbackProps> = ({
+  height = 400,
+  markers = [],
+  center,
+  zoom = 13,
+  onMapClick,
+  draggableMarker = false,
+}) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Cargar script de Google Maps
+  useEffect(() => {
+    const loadGoogleMapsScript = () => {
+      if (typeof window === 'undefined') return;
+
+      // Si ya está cargado
+      if ((window as any).google?.maps) {
+        setMapLoaded(true);
+        return;
+      }
+
+      // Si ya existe el script, esperar a que cargue
+      const existingScript = document.getElementById('google-maps-script');
+      if (existingScript) {
+        existingScript.addEventListener('load', () => setMapLoaded(true));
+        return;
+      }
+
+      // Crear nuevo script
+      const script = document.createElement('script');
+      script.id = 'google-maps-script';
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => setMapLoaded(true);
+      script.onerror = () => setError('Error al cargar Google Maps');
+      document.head.appendChild(script);
+    };
+
+    loadGoogleMapsScript();
+  }, []);
+
+  // Inicializar mapa
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+
+    try {
+      const google = (window as any).google;
+      if (!google?.maps) return;
+
+      const mapCenter = center || { lat: -31.4201, lng: -64.1888 };
+
+      const mapOptions = {
+        center: mapCenter,
+        zoom: zoom,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        zoomControl: true,
+      };
+
+      googleMapRef.current = new google.maps.Map(mapRef.current, mapOptions);
+
+      // Agregar listener de click si está habilitado
+      if (onMapClick) {
+        googleMapRef.current.addListener('click', (e: any) => {
+          const lat = e.latLng.lat();
+          const lng = e.latLng.lng();
+          onMapClick(lat, lng);
+        });
+      }
+    } catch (err) {
+      console.error('Error inicializando mapa:', err);
+      setError('Error al inicializar el mapa');
+    }
+  }, [mapLoaded, center, zoom, onMapClick]);
+
+  // Actualizar marcadores
+  useEffect(() => {
+    if (!googleMapRef.current || !mapLoaded) return;
+
+    const google = (window as any).google;
+    if (!google?.maps) return;
+
+    // Limpiar marcadores anteriores
+    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current = [];
+
+    // Agregar nuevos marcadores
+    markers.forEach((markerData) => {
+      const marker = new google.maps.Marker({
+        position: { lat: markerData.lat, lng: markerData.lng },
+        map: googleMapRef.current,
+        title: markerData.title || '',
+        draggable: draggableMarker,
+        icon: markerData.color
+          ? {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: markerData.color,
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 2,
+            }
+          : undefined,
+      });
+
+      // Si el marcador es arrastrable, agregar evento de drag
+      if (draggableMarker && onMapClick) {
+        marker.addListener('dragend', (e: any) => {
+          const lat = e.latLng.lat();
+          const lng = e.latLng.lng();
+          onMapClick(lat, lng);
+        });
+      }
+
+      // Agregar info window si hay título
+      if (markerData.title) {
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<div style="font-weight: 600; color: #333;">${markerData.title}</div>`,
+        });
+        marker.addListener('click', () => {
+          infoWindow.open(googleMapRef.current, marker);
+        });
+      }
+
+      markersRef.current.push(marker);
+    });
+
+    // Centrar el mapa en el primer marcador si existe
+    if (markers.length > 0 && center) {
+      googleMapRef.current.setCenter({ lat: center.lat, lng: center.lng });
+    }
+  }, [markers, mapLoaded, draggableMarker, onMapClick, center]);
+
+  if (error) {
+    return (
+      <View
+        style={{
+          height: height,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#fee',
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: '#fcc',
+        }}
+      >
+        <Text style={{ color: '#c33' }}>⚠️ {error}</Text>
+      </View>
+    );
+  }
+
+  if (!mapLoaded) {
+    return (
+      <View
+        style={{
+          height: height,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#f4f4f4',
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: '#ddd',
+        }}
+      >
+        <Text style={{ color: '#666' }}>Cargando mapa...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <div
+      ref={mapRef}
+      style={{
+        width: '100%',
+        height: height,
+        borderRadius: 12,
+        overflow: 'hidden',
+      }}
+    />
+  );
+};
