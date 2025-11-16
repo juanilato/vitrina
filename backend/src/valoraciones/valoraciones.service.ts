@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateValoracionDto } from './dto/create-valoracion.dto';
 import { UpdateValoracionDto } from './dto/update-valoracion.dto';
 
@@ -55,7 +55,7 @@ export class ValoracionesService {
         calificacionEmpresa: createValoracionDto.calificacionEmpresa,
         comentarioEmpresa: createValoracionDto.comentarioEmpresa,
         aspectosEmpresa: createValoracionDto.aspectosEmpresa || [],
-        valoracionProductos: createValoracionDto.valoracionProductos || null,
+        valoracionProductos: createValoracionDto.valoracionProductos as any || null,
         calificacionRepartidor: createValoracionDto.calificacionRepartidor,
         comentarioRepartidor: createValoracionDto.comentarioRepartidor,
         aspectosRepartidor: createValoracionDto.aspectosRepartidor || [],
