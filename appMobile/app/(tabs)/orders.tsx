@@ -94,9 +94,29 @@ export default function OrdersScreen() {
     setShowManualRatingModal(true);
   };
 
-  const handleManualRatingSuccess = () => {
+  const handleManualRatingSuccess = async () => {
     setShowManualRatingModal(false);
+    const orderId = manualRatingOrder?.id;
     setManualRatingOrder(null);
+
+    // Cargar la nueva valoración inmediatamente
+    if (orderId) {
+      try {
+        const rating = await ratingService.getRatingByOrder(orderId);
+        if (rating) {
+          setOrderRatings(prev => ({
+            ...prev,
+            [orderId]: {
+              promedio: rating.calificacionEmpresa,
+              totalValoraciones: 1
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading new rating:', error);
+      }
+    }
+
     refresh(); // Refrescar pedidos después de calificar
   };
 
@@ -323,8 +343,25 @@ export default function OrdersScreen() {
               nombre: item.producto?.nombre || 'Producto'
             }
           }))}
-          onSuccess={() => {
+          onSuccess={async () => {
             markAsRated();
+
+            // Cargar la nueva valoración inmediatamente
+            try {
+              const rating = await ratingService.getRatingByOrder(orderToRate.id);
+              if (rating) {
+                setOrderRatings(prev => ({
+                  ...prev,
+                  [orderToRate.id]: {
+                    promedio: rating.calificacionEmpresa,
+                    totalValoraciones: 1
+                  }
+                }));
+              }
+            } catch (error) {
+              console.error('Error loading new rating:', error);
+            }
+
             refresh(); // Refrescar pedidos después de calificar
           }}
         />

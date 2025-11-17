@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: `${colors.gray100}80`,
-    height: normalize(90),
+    minHeight: normalize(90),
   },
 
   inactiveContainer: {
@@ -131,17 +131,19 @@ const styles = StyleSheet.create({
 
   imageContainer: {
     width: normalize(90),
-    height: normalize(90),
+    minHeight: normalize(90),
     position: 'relative',
   },
 
   image: {
     width: '100%',
+    minHeight: normalize(90),
     height: '100%',
   },
 
   placeholder: {
     width: '100%',
+    minHeight: normalize(90),
     height: '100%',
     backgroundColor: `${colors.primary}08`,
     justifyContent: 'center',

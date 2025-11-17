@@ -241,6 +241,11 @@ export default function CheckoutScreen() {
       return false;
     }
 
+    if (deliveryType === 'delivery' && calculatingShipping) {
+      Alert.alert('Error', 'Espera a que se calcule el precio de envío');
+      return false;
+    }
+
     if (paymentMethod === 'transferencia' && !receiptImage) {
       Alert.alert('Error', 'Por favor sube el comprobante de transferencia');
       return false;
@@ -700,12 +705,18 @@ export default function CheckoutScreen() {
       {/* Bottom Button */}
       <View style={styles.bottomContainer}>
         <Button
-          title={loading ? 'Procesando...' : 'Confirmar pedido'}
+          title={
+            loading
+              ? 'Procesando...'
+              : calculatingShipping
+              ? 'Calculando envío...'
+              : 'Confirmar pedido'
+          }
           onPress={handleSubmitOrder}
-          disabled={loading}
-          icon={loading ? undefined : 'checkmark-circle'}
+          disabled={loading || calculatingShipping}
+          icon={loading || calculatingShipping ? undefined : 'checkmark-circle'}
         />
-        {loading && <ActivityIndicator style={styles.loader} color={colors.white} />}
+        {(loading || calculatingShipping) && <ActivityIndicator style={styles.loader} color={colors.white} />}
       </View>
 
       {/* Location Picker Modal */}

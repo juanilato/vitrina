@@ -55,7 +55,8 @@
       "Bash(npm run web:dev:*)",
       "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\IngredientsSection\\components\\IconPickerModal.tsx\")",
       "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\IngredientsSection\\components\\IconoModal.ts\")",
-      "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\IngredientsSection\\components\\DynamicMuiIcon.tsx\")"
+      "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\IngredientsSection\\components\\DynamicMuiIcon.tsx\")",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
