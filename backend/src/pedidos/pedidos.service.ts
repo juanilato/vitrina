@@ -47,8 +47,7 @@ export class PedidosService {
       const productos = await this.prisma.productos.findMany({
         where: {
           id: { in: uniqueProductIds },
-          empresaId: createPedidoDto.empresaId,
-          activo: true
+          empresaId: createPedidoDto.empresaId
         },
         include: {
           ingredientes: {
@@ -60,7 +59,7 @@ export class PedidosService {
       });
 
       if (productos.length !== uniqueProductIds.length) {
-        throw new BadRequestException('Algunos productos no existen o no están activos');
+        throw new BadRequestException('Algunos productos no existen');
       }
 
       // Calcular subtotal (precio de productos + ingredientes extras)
