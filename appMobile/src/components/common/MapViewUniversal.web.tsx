@@ -104,48 +104,36 @@ const extractMarkerConfig = (children: any): { icon: string; color: string; labe
 const createCustomMarkerIcon = (config: { icon: string; color: string; label?: string }): any => {
   const svgPath = ioniconsToSVG[config.icon] || ioniconsToSVG['home'];
 
-  // Create SVG marker with icon - simplified for better compatibility
-  const svg = `<svg width="56" height="70" viewBox="0 0 56 70" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <filter id="shadow-${config.icon}" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-      <feOffset dx="0" dy="1" result="offsetblur"/>
-      <feComponentTransfer>
-        <feFuncA type="linear" slope="0.3"/>
-      </feComponentTransfer>
-      <feMerge>
-        <feMergeNode/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  <circle cx="28" cy="28" r="26" fill="${config.color}" opacity="0.2"/>
-  <circle cx="28" cy="28" r="28" fill="none" stroke="${colors.white}" stroke-width="4"/>
-  <circle cx="28" cy="28" r="24" fill="${config.color}"/>
-  <g transform="translate(10, 10) scale(0.055)">
+  // Create SVG marker with icon - optimizado para Google Maps Web
+  const svg = `<svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="20" cy="20" r="18" fill="${config.color}" opacity="0.3"/>
+  <circle cx="20" cy="20" r="20" fill="none" stroke="${colors.white}" stroke-width="3"/>
+  <circle cx="20" cy="20" r="17" fill="${config.color}"/>
+  <g transform="translate(6, 6) scale(0.055, 0.055)">
     <path d="${svgPath}" fill="${colors.white}"/>
   </g>
-  <path d="M 28 56 L 20 68 L 36 68 Z" fill="${config.color}"/>
+  <path d="M 20 40 L 14 48 L 26 48 Z" fill="${config.color}"/>
 </svg>`;
 
-  const encodedSvg = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg.trim());
+  const encodedSvg = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
 
-  console.log('[MapView Web] Creating icon for:', config.icon, 'color:', config.color);
+  console.log('[createCustomMarkerIcon] Icon created:', config.icon, 'color:', config.color, 'SVG preview:', svg.substring(0, 150));
 
   const google = (window as any).google;
   if (google?.maps) {
     return {
       url: encodedSvg,
-      scaledSize: new google.maps.Size(56, 70),
-      anchor: new google.maps.Point(28, 70),
+      scaledSize: new google.maps.Size(40, 50),
+      anchor: new google.maps.Point(20, 50),
+      optimized: false, // Importante: deshabilitar optimización para SVG custom
     };
   }
 
   // Fallback si Google Maps aún no está cargado
   return {
     url: encodedSvg,
-    scaledSize: { width: 56, height: 70 },
-    anchor: { x: 28, y: 70 },
+    scaledSize: { width: 40, height: 50 },
+    anchor: { x: 20, y: 50 },
   };
 };
 

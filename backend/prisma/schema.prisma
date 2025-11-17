@@ -10,20 +10,19 @@ datasource db {
 
 generator erd {
   provider = "prisma-erd-generator"
-  output   = "./ERD.svg"   // o "./ERD.png"
+  output   = "./ERD.svg" // o "./ERD.png"
 }
-
 
 // ——— Cuenta cliente ———
 model Cliente {
-  id          String    @id @default(cuid())
-  email       String    @unique
-  name        String
-  password    String
-  authMethod  String    @default("normal") // "normal" o "google"
-  isVerified  Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String
+  password   String
+  authMethod String   @default("normal") // "normal" o "google"
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   Pedidos      Pedido[]
   ubicaciones  UbicacionCliente[]
@@ -32,21 +31,21 @@ model Cliente {
 
 // ——— Ubicaciones guardadas del cliente ———
 model UbicacionCliente {
-  id          Int       @id @default(autoincrement())
-  clienteId   String
-  cliente     Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  clienteId String
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
-  nombre      String    // "Casa", "Trabajo", etc.
-  direccion   String
-  lat         Float
-  lng         Float
-  referencia  String?   // Piso, depto, timbre, etc.
+  nombre     String // "Casa", "Trabajo", etc.
+  direccion  String
+  lat        Float
+  lng        Float
+  referencia String? // Piso, depto, timbre, etc.
 
-  esPrincipal Boolean   @default(false) // Ubicación por defecto
-  esFavorita  Boolean   @default(false) // Ubicación marcada como favorita
+  esPrincipal Boolean @default(false) // Ubicación por defecto
+  esFavorita  Boolean @default(false) // Ubicación marcada como favorita
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([clienteId])
   @@index([clienteId, esPrincipal])
@@ -54,13 +53,13 @@ model UbicacionCliente {
 
 // ——— Categorías y Subcategorías ———
 model Categoria {
-  id            String        @id @default(cuid())
-  nombre        String        @unique
-  icono         String?       // Emoji o nombre de icono
-  orden         Int           @default(0)
-  activo        Boolean       @default(true)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id        String   @id @default(cuid())
+  nombre    String   @unique
+  icono     String? // Emoji o nombre de icono
+  orden     Int      @default(0)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   subcategorias Subcategoria[]
   empresas      Empresa[]
@@ -69,17 +68,17 @@ model Categoria {
 }
 
 model Subcategoria {
-  id            String     @id @default(cuid())
-  nombre        String
-  categoriaId   String
-  categoria     Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
-  icono         String?    // Emoji o nombre de icono
-  orden         Int        @default(0)
-  activo        Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id          String    @id @default(cuid())
+  nombre      String
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  icono       String? // Emoji o nombre de icono
+  orden       Int       @default(0)
+  activo      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  empresas      EmpresaSubcategoria[]
+  empresas EmpresaSubcategoria[]
 
   @@unique([categoriaId, nombre])
   @@index([categoriaId, activo, orden])
@@ -87,12 +86,12 @@ model Subcategoria {
 
 // ——— Relación muchos a muchos entre Empresa y Subcategoria ———
 model EmpresaSubcategoria {
-  id              Int          @id @default(autoincrement())
-  empresaId       String
-  subcategoriaId  String
-  empresa         Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  subcategoria    Subcategoria @relation(fields: [subcategoriaId], references: [id], onDelete: Cascade)
-  createdAt       DateTime     @default(now())
+  id             Int          @id @default(autoincrement())
+  empresaId      String
+  subcategoriaId String
+  empresa        Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  subcategoria   Subcategoria @relation(fields: [subcategoriaId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
 
   @@unique([empresaId, subcategoriaId])
   @@index([empresaId])
@@ -101,65 +100,66 @@ model EmpresaSubcategoria {
 
 // ——— Cuenta empresa ———
 model Empresa {
-  id          String     @id @default(cuid())
-  email       String     @unique
-  name        String
-  password    String
-  authMethod  String     @default("normal") // "normal" o "google"
-  logo        String?
-  ubicacion   Ubicacion?
-  isVerified  Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  alias         String?
-  redesSociales Json?
+  id              String              @id @default(cuid())
+  email           String              @unique
+  name            String
+  password        String
+  authMethod      String              @default("normal") // "normal" o "google"
+  logo            String?
+  ubicacion       Ubicacion?
+  isVerified      Boolean             @default(false)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  alias           String?
+  redesSociales   Json?
   preferenciasWeb Preferencias?
-  productos   Productos[]
-  Pedidos     Pedido[]
-  repartidores  EmpresaRepartidor[]
+  productos       Productos[]
+  Pedidos         Pedido[]
+  repartidores    EmpresaRepartidor[]
 
   // Relación con categorías y subcategorías
-  categoriaId     String?
-  categoria       Categoria?              @relation(fields: [categoriaId], references: [id])
-  subcategorias   EmpresaSubcategoria[]   // Relación muchos a muchos con subcategorías
+  categoriaId   String?
+  categoria     Categoria?            @relation(fields: [categoriaId], references: [id])
+  subcategorias EmpresaSubcategoria[] // Relación muchos a muchos con subcategorías
 
   // Relaciones con suscripciones
-  suscripciones   Suscripcion[]
-  metodosPago     MetodoPago[]
-  pagos           Pago[]
+  suscripciones Suscripcion[]
+  metodosPago   MetodoPago[]
+  pagos         Pago[]
 
   // Valoraciones recibidas
-  Valoraciones    Valoracion[]
+  Valoraciones Valoracion[]
 
   @@index([categoriaId])
 }
+
 // ——— Cuenta repartidor ———
 model Repartidor {
-  id              String            @id @default(cuid())
+  id            String              @id @default(cuid())
   name          String
-  email          String    @unique
-  telefono        String?
-  password        String
-  authMethod      String    @default("normal") // "normal" o "google"
-  codigoVinculo   String    @unique
-  empresas         EmpresaRepartidor[]
-  pedidos          Pedido[]
-  isVerified  Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  email         String              @unique
+  telefono      String?
+  password      String
+  authMethod    String              @default("normal") // "normal" o "google"
+  codigoVinculo String              @unique
+  empresas      EmpresaRepartidor[]
+  pedidos       Pedido[]
+  isVerified    Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
   // Valoraciones recibidas
-  Valoraciones    Valoracion[]
+  Valoraciones Valoracion[]
 }
 
 // ——— Relación empresa repartidor  ———
 model EmpresaRepartidor {
-  id          Int       @id @default(autoincrement())
-  empresaId   String
+  id           Int           @id @default(autoincrement())
+  empresaId    String
   repartidorId String
-  estado      VinculoEstado @default(PENDIENTE)
-  empresa     Empresa   @relation(fields: [empresaId], references: [id])
-  repartidor  Repartidor @relation(fields: [repartidorId], references: [id])
+  estado       VinculoEstado @default(PENDIENTE)
+  empresa      Empresa       @relation(fields: [empresaId], references: [id])
+  repartidor   Repartidor    @relation(fields: [repartidorId], references: [id])
 }
 
 // ——— Estado Vínculo entre repartidor empresa ———
@@ -168,6 +168,7 @@ enum VinculoEstado {
   ACEPTADO
   RECHAZADO
 }
+
 // ——— Días de la semana para horarios empresa ———
 enum DayOfWeek {
   LUN
@@ -178,99 +179,100 @@ enum DayOfWeek {
   SAB
   DOM
 }
+
 // ——— Preferencias empresa ———
 model Preferencias {
   // hacemos 1:1 usando el mismo id que Empresa
-  empresaId       String        @id
-  empresa         Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  empresaId String  @id
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   // personalización UI
-  colorBotones    String?       // ej: "#0d6efd"
-  colorFondo      String?       // ej: "#ffffff"
+  colorBotones String? // ej: "#0d6efd"
+  colorFondo   String? // ej: "#ffffff"
 
   // features
-  envioDomicilio  Boolean       @default(false)
-  dashboardFoto   String?       // URL en storage
+  envioDomicilio Boolean @default(false)
+  dashboardFoto  String? // URL en storage
 
   // relación a horarios
-  horarios        HorarioAtencion[]
+  horarios HorarioAtencion[]
 }
 
 // ——— Horarios de atención ———
 model HorarioAtencion {
-  id              Int           @id @default(autoincrement())
-  empresaId       String
-  preferencias    Preferencias  @relation(fields: [empresaId], references: [empresaId], onDelete: Cascade)
+  id           Int          @id @default(autoincrement())
+  empresaId    String
+  preferencias Preferencias @relation(fields: [empresaId], references: [empresaId], onDelete: Cascade)
 
-  day             DayOfWeek
+  day       DayOfWeek
   // Soportar corte al mediodía -> múltiples franjas por día
-  slotIndex       Int           // 0,1,... para cada franja del día
+  slotIndex Int // 0,1,... para cada franja del día
 
   // minutos desde medianoche (local)
-  abreMin         Int           // ej: 9*60 = 540
-  cierraMin       Int           // ej: 13*60 = 780
+  abreMin   Int // ej: 9*60 = 540
+  cierraMin Int // ej: 13*60 = 780
 
   // cerrado: no crear filas para ese día; o si querés marcar explícito:
-  cerrado         Boolean       @default(false)
+  cerrado Boolean @default(false)
 
   @@unique([empresaId, day, slotIndex])
 }
+
 // ——— Precios de envío ———
 model PreciosEnvio {
-  id         Int      @id @default(autoincrement())
-  empresaId  String
-  precio     Decimal  @db.Decimal(12, 2)
-  distancia  Float
-  ubicacion    Ubicacion  @relation(fields: [ubicacionId], references: [id])
+  id          Int       @id @default(autoincrement())
+  empresaId   String
+  precio      Decimal   @db.Decimal(12, 2)
+  distancia   Float
+  ubicacion   Ubicacion @relation(fields: [ubicacionId], references: [id])
   ubicacionId Int
+
   @@unique([ubicacionId, distancia])
 }
 
 // ——— Ubicación empresa ———
 model Ubicacion {
-  id          Int         @id @default(autoincrement())
-  empresaId   String      @unique
-  direccion   String?
-  lat         Float?
-  lng         Float?
+  id        Int     @id @default(autoincrement())
+  empresaId String  @unique
+  direccion String?
+  lat       Float?
+  lng       Float?
 
-  empresa     Empresa     @relation(fields: [empresaId], references: [id])
+  empresa      Empresa        @relation(fields: [empresaId], references: [id])
   preciosEnvio PreciosEnvio[]
 }
 
 // ——— Productos de empresa ———
 model Productos {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   nombre      String
   descripcion String?
-  precio      Decimal  @db.Decimal(12, 2)
-  fotoUrl    String?    
-  fotoPath   String?     
+  precio      Decimal      @db.Decimal(12, 2)
+  fotoUrl     String?
+  fotoPath    String?
   empresaId   String
-  empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  activo      Boolean  @default(true)
-  @@unique([empresaId, nombre])
-  @@index([empresaId])
-  ItemPedido ItemPedido[]
-
-
-
+  empresa     Empresa      @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  activo      Boolean      @default(true)
+  ItemPedido  ItemPedido[]
 
   // --- Campos para la gestión de Stock ---
-  tipoStock       String         @default("individual") // "individual" o "compuesto"
+  tipoStock       String @default("individual") // "individual" o "compuesto"
   // Stock individual: la cantidad en stock de este producto (ej: 50 unidades de hamburguesa)
-  stockIndividual Int?           // Nullable si el tipoStock es "compuesto"
+  stockIndividual Int? // Nullable si el tipoStock es "compuesto"
 
   // Flag para permitir que el cliente agregue ingredientes extra al producto
-  permiteExtras   Boolean        @default(false)
+  permiteExtras Boolean @default(false)
 
   // Relación con ingredientes (para stock compuesto o extras)
-  ingredientes    ProductoIngrediente[]
+  ingredientes ProductoIngrediente[]
+
+  @@unique([empresaId, nombre])
+  @@index([empresaId])
 }
 
 // ——— Ingredientes particulares (stock compuesto) ———
 model Ingrediente {
-  id              String         @id @default(cuid())
+  id              String @id @default(cuid())
   nombre          String
   empresaId       String
   // Stock del ingrediente (ej: 10000 gramos de carne, 50 panes)
@@ -279,34 +281,34 @@ model Ingrediente {
   unidadMedida    String
 
   // Relación con los productos que utilizan este ingrediente
-  productosUsan   ProductoIngrediente[]
-  icono       String? 
+  productosUsan ProductoIngrediente[]
+  icono         String?
+
   @@unique([empresaId, nombre])
   @@index([empresaId])
 }
 
 // ——— Relación entre producto e ingrediente ———
 model ProductoIngrediente {
-  id              Int            @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  productoId      String
-  producto        Productos      @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  productoId String
+  producto   Productos @relation(fields: [productoId], references: [id], onDelete: Cascade)
 
-  ingredienteId   String
-  ingrediente     Ingrediente    @relation(fields: [ingredienteId], references: [id], onDelete: Restrict)
+  ingredienteId String
+  ingrediente   Ingrediente @relation(fields: [ingredienteId], references: [id], onDelete: Restrict)
 
   // Cantidad de este ingrediente que se requiere para UNA unidad del producto.
   // Ej: 200 (gramos) de 'Carne' para 1 'Hamburguesa Clásica'.
   cantidadRequerida Float
 
-
   // Indica si este ingrediente puede ser añadido como un extra por el cliente (si 'Productos.permiteExtras' es true)
   esExtraPermitido Boolean @default(false)
 
   // Campos para extras: precio, mínimo y máximo cuando se permite como extra
-  precioExtra     Decimal? @db.Decimal(12, 2) // Precio adicional cuando se agrega como extra
-  minimoExtra     Int?     @default(1)         // Cantidad mínima cuando se agrega (null = 1)
-  maximoExtra     Int?                         // Cantidad máxima permitida (null = sin límite)
+  precioExtra Decimal? @db.Decimal(12, 2) // Precio adicional cuando se agrega como extra
+  minimoExtra Int?     @default(1) // Cantidad mínima cuando se agrega (null = 1)
+  maximoExtra Int? // Cantidad máxima permitida (null = sin límite)
 
   @@unique([productoId, ingredienteId])
   @@index([productoId])
@@ -315,15 +317,15 @@ model ProductoIngrediente {
 
 // ——— Código de verificación ———
 model VerificationCode {
-  id              String    @id @default(cuid())
+  id              String   @id @default(cuid())
   email           String
   code            String
   userType        String
   expiresAt       DateTime
-  isUsed          Boolean   @default(false)
-  pendingUserData Json?     // JSON real
+  isUsed          Boolean  @default(false)
+  pendingUserData Json? // JSON real
 
-  createdAt       DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([email, userType, code])
   @@index([email, userType])
@@ -333,46 +335,47 @@ model VerificationCode {
 
 // ——— Pedido ———
 model Pedido {
-  id         String     @id @default(cuid())
+  id String @id @default(cuid())
 
-  clienteId  String
-  cliente    Cliente    @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  clienteId String
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
-  empresaId  String
-  empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
-  estado     String     @default("pendiente_confirmacion")
-  tipoEntrega String    @default("delivery")
-  formaPago  String     @default("transferencia")
+  estado        String  @default("pendiente_confirmacion")
+  tipoEntrega   String  @default("delivery")
+  formaPago     String  @default("transferencia")
   motivoRechazo String?
 
   // Ubicación del pedido (para delivery)
-  direccion  String?
-  lat        Float?
-  lng        Float?
+  direccion String?
+  lat       Float?
+  lng       Float?
 
   // Ubicación en tiempo real del repartidor
-  repartidorLat    Float?     // Última latitud reportada del repartidor
-  repartidorLng    Float?     // Última longitud reportada del repartidor
+  repartidorLat              Float? // Última latitud reportada del repartidor
+  repartidorLng              Float? // Última longitud reportada del repartidor
   repartidorUltActualizacion DateTime? // Última vez que se actualizó la ubicación
 
   // Costos del pedido
-  subtotal   Decimal?   @db.Decimal(12, 2) // Total de productos sin envío
-  costoEnvio Decimal?   @db.Decimal(12, 2) // Costo de envío calculado
-  total      Decimal?   @db.Decimal(12, 2) // Total final (subtotal + envío)
+  subtotal   Decimal? @db.Decimal(12, 2) // Total de productos sin envío
+  costoEnvio Decimal? @db.Decimal(12, 2) // Costo de envío calculado
+  total      Decimal? @db.Decimal(12, 2) // Total final (subtotal + envío)
 
   // Control de valoración
   entregadoAt DateTime? // Fecha y hora de entrega para calcular tiempo de solicitud de valoración
 
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   ItemPedido ItemPedido[]
   Mensajes   Mensaje[]
   Valoracion Valoracion?
 
-  repartidorId    String?
-  repartidor      Repartidor?  @relation(fields: [repartidorId], references: [id])
+  repartidorId String?
+  repartidor   Repartidor? @relation(fields: [repartidorId], references: [id])
+
   @@index([clienteId])
   @@index([empresaId])
   @@index([estado, createdAt])
@@ -380,19 +383,19 @@ model Pedido {
 
 // ——— Ítems del pedido ———
 model ItemPedido {
-  id         String     @id @default(cuid())
+  id String @id @default(cuid())
 
-  pedidoId   String
-  pedido     Pedido     @relation(fields: [pedidoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   productoId String
-  producto   Productos  @relation(fields: [productoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  producto   Productos @relation(fields: [productoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
-  cantidad   Int
-  precio     Decimal    @db.Decimal(12, 2)
+  cantidad Int
+  precio   Decimal @db.Decimal(12, 2)
 
   // Notas específicas para este item del pedido
-  notas      String?
+  notas String?
 
   // Ingredientes extras agregados al producto (JSON)
   // Estructura: [{ productoIngredienteId: number, cantidad: number }]
@@ -404,18 +407,18 @@ model ItemPedido {
 
 // --- Mensajes --- (No Implementado prox chat en vivo)
 model Mensaje {
-  id             String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  pedidoId       String
-  pedido         Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  remitenteId    String   // Puede ser ID de Cliente o Empresa segun remitenteTipo
-  remitenteTipo  String   // 'cliente' o 'empresa'
+  remitenteId   String // Puede ser ID de Cliente o Empresa segun remitenteTipo
+  remitenteTipo String // 'cliente' o 'empresa'
 
-  contenido      String
-  enviadoAt      DateTime @default(now())
-  leido          Boolean  @default(false)
-  leidoAt        DateTime?
+  contenido String
+  enviadoAt DateTime  @default(now())
+  leido     Boolean   @default(false)
+  leidoAt   DateTime?
 
   @@index([pedidoId, enviadoAt])
   @@index([remitenteId, remitenteTipo])
@@ -423,26 +426,26 @@ model Mensaje {
 
 // --- Notificaciones ---
 model Notificacion {
-  id          String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Usuario que recibe la notificación
-  userId      String
-  userType    String    // 'cliente' o 'empresa'
+  userId   String
+  userType String // 'cliente' o 'empresa'
 
   // Contenido de la notificación
-  titulo      String
-  mensaje     String
-  tipo        String    // 'pedido_creado', 'pedido_actualizado', 'general', etc.
+  titulo  String
+  mensaje String
+  tipo    String // 'pedido_creado', 'pedido_actualizado', 'general', etc.
 
   // Estado de la notificación
-  leida       Boolean   @default(false)
+  leida Boolean @default(false)
 
   // Datos adicionales (JSON)
-  metadata    Json?     // Información extra como ID del pedido, etc.
+  metadata Json? // Información extra como ID del pedido, etc.
 
   // Timestamps
-  createdAt   DateTime  @default(now())
-  leidaAt     DateTime?
+  createdAt DateTime  @default(now())
+  leidaAt   DateTime?
 
   @@index([userId, userType])
   @@index([leida, createdAt])
@@ -453,67 +456,67 @@ model Notificacion {
 
 // ——— Planes de Suscripción ———
 model PlanSuscripcion {
-  id              String    @id @default(cuid())
-  nombre          String    @unique // "Free", "Basic", "Premium", "Enterprise"
-  descripcion     String?
+  id          String  @id @default(cuid())
+  nombre      String  @unique // "Free", "Basic", "Premium", "Enterprise"
+  descripcion String?
 
   // Precio
-  precio          Decimal   @db.Decimal(12, 2)
-  moneda          String    @default("USD")
-  intervalo       String    @default("mensual") // "mensual", "anual"
+  precio    Decimal @db.Decimal(12, 2)
+  moneda    String  @default("USD")
+  intervalo String  @default("mensual") // "mensual", "anual"
 
   // Límites y características del plan
-  limites         Json      // { maxProductos: 100, maxPedidosMes: 1000, etc. }
-  caracteristicas Json      // [ "Estadísticas avanzadas", "Soporte prioritario", etc. ]
+  limites         Json // { maxProductos: 100, maxPedidosMes: 1000, etc. }
+  caracteristicas Json // [ "Estadísticas avanzadas", "Soporte prioritario", etc. ]
 
   // Estado del plan
-  activo          Boolean   @default(true)
-  esPopular       Boolean   @default(false) // Para destacar en UI
-  orden           Int       @default(0)     // Para ordenar en UI
+  activo    Boolean @default(true)
+  esPopular Boolean @default(false) // Para destacar en UI
+  orden     Int     @default(0) // Para ordenar en UI
 
   // Metadata
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  suscripciones   Suscripcion[]
+  suscripciones Suscripcion[]
 
   @@index([activo, orden])
 }
 
 // ——— Suscripciones Activas ———
 model Suscripcion {
-  id              String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Empresa suscrita
-  empresaId       String
-  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   // Plan actual
-  planId          String
-  plan            PlanSuscripcion @relation(fields: [planId], references: [id])
+  planId String
+  plan   PlanSuscripcion @relation(fields: [planId], references: [id])
 
   // Estado de la suscripción
-  estado          EstadoSuscripcion @default(ACTIVA)
+  estado EstadoSuscripcion @default(ACTIVA)
 
   // Fechas importantes
-  inicioAt        DateTime  @default(now())
-  finalizaAt      DateTime? // Fecha de próxima renovación o finalización
-  canceladaAt     DateTime? // Fecha de cancelación (si aplica)
+  inicioAt    DateTime  @default(now())
+  finalizaAt  DateTime? // Fecha de próxima renovación o finalización
+  canceladaAt DateTime? // Fecha de cancelación (si aplica)
 
   // Renovación automática
-  renovacionAuto  Boolean   @default(true)
+  renovacionAuto Boolean @default(true)
 
   // Método de pago asociado (opcional)
-  metodoPagoId    String?
-  metodoPago      MetodoPago? @relation(fields: [metodoPagoId], references: [id], onDelete: SetNull)
+  metodoPagoId String?
+  metodoPago   MetodoPago? @relation(fields: [metodoPagoId], references: [id], onDelete: SetNull)
 
   // Metadata
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  pagos           Pago[]
+  pagos Pago[]
 
   @@index([empresaId])
   @@index([planId])
@@ -532,39 +535,39 @@ enum EstadoSuscripcion {
 
 // ——— Métodos de Pago ———
 model MetodoPago {
-  id              String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Empresa propietaria
-  empresaId       String
-  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   // Tipo de método de pago
-  tipo            TipoMetodoPago
+  tipo TipoMetodoPago
 
   // Datos de la tarjeta (encriptados o tokenizados)
-  ultimos4        String?   // Últimos 4 dígitos
-  marca           String?   // "Visa", "Mastercard", "Amex", etc.
-  expiraMes       Int?
-  expiraAnio      Int?
+  ultimos4   String? // Últimos 4 dígitos
+  marca      String? // "Visa", "Mastercard", "Amex", etc.
+  expiraMes  Int?
+  expiraAnio Int?
 
   // Token del procesador de pagos (Stripe, PayPal, etc.)
-  tokenProcesador String?   @unique // Token del gateway de pagos
-  procesador      String?   @default("stripe") // "stripe", "paypal", "mercadopago"
+  tokenProcesador String? @unique // Token del gateway de pagos
+  procesador      String? @default("stripe") // "stripe", "paypal", "mercadopago"
 
   // Datos adicionales según tipo
-  metadata        Json?     // Datos adicionales según el tipo de pago
+  metadata Json? // Datos adicionales según el tipo de pago
 
   // Estado
-  activo          Boolean   @default(true)
-  esPredeterminado Boolean  @default(false)
+  activo           Boolean @default(true)
+  esPredeterminado Boolean @default(false)
 
   // Metadata
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relaciones
-  suscripciones   Suscripcion[]
-  pagos           Pago[]
+  suscripciones Suscripcion[]
+  pagos         Pago[]
 
   @@index([empresaId])
   @@index([activo])
@@ -581,50 +584,50 @@ enum TipoMetodoPago {
 
 // ——— Historial de Pagos/Facturas ———
 model Pago {
-  id              String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Suscripción asociada
-  suscripcionId   String
-  suscripcion     Suscripcion @relation(fields: [suscripcionId], references: [id], onDelete: Cascade)
+  suscripcionId String
+  suscripcion   Suscripcion @relation(fields: [suscripcionId], references: [id], onDelete: Cascade)
 
   // Empresa (denormalizado para facilitar búsquedas)
-  empresaId       String
-  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   // Método de pago utilizado
-  metodoPagoId    String?
-  metodoPago      MetodoPago? @relation(fields: [metodoPagoId], references: [id], onDelete: SetNull)
+  metodoPagoId String?
+  metodoPago   MetodoPago? @relation(fields: [metodoPagoId], references: [id], onDelete: SetNull)
 
   // Detalles del pago
-  monto           Decimal   @db.Decimal(12, 2)
-  moneda          String    @default("USD")
+  monto  Decimal @db.Decimal(12, 2)
+  moneda String  @default("USD")
 
   // Estado del pago
-  estado          EstadoPago @default(PENDIENTE)
+  estado EstadoPago @default(PENDIENTE)
 
   // Referencia externa (del procesador de pagos)
   referenciaExterna String? @unique // ID de transacción en Stripe, PayPal, etc.
   procesador        String? // "stripe", "paypal", etc.
 
   // Período que cubre este pago
-  periodoInicio   DateTime
-  periodoFin      DateTime
+  periodoInicio DateTime
+  periodoFin    DateTime
 
   // Metadata de facturación
-  numeroFactura   String?   @unique
-  urlFactura      String?   // URL del PDF de la factura
+  numeroFactura String? @unique
+  urlFactura    String? // URL del PDF de la factura
 
   // Fechas importantes
-  fechaPago       DateTime?
-  intentosRetry   Int       @default(0)
-  proximoRetry    DateTime?
+  fechaPago     DateTime?
+  intentosRetry Int       @default(0)
+  proximoRetry  DateTime?
 
   // Metadata adicional
-  metadata        Json?     // Datos adicionales del pago
+  metadata Json? // Datos adicionales del pago
 
   // Timestamps
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([suscripcionId])
   @@index([empresaId])
@@ -669,23 +672,23 @@ enum AspectosRepartidor {
 
 // ——— Valoración de pedido ———
 model Valoracion {
-  id              String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Relación con pedido (1:1)
-  pedidoId        String    @unique
-  pedido          Pedido    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  pedidoId String @unique
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
 
   // Cliente que valora
-  clienteId       String
-  cliente         Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId String
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
   // Empresa valorada
-  empresaId       String
-  empresa         Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   // Repartidor valorado (opcional, solo para delivery)
-  repartidorId    String?
-  repartidor      Repartidor? @relation(fields: [repartidorId], references: [id], onDelete: SetNull)
+  repartidorId String?
+  repartidor   Repartidor? @relation(fields: [repartidorId], references: [id], onDelete: SetNull)
 
   // ——— Valoración General de la Empresa (1-5 estrellas) ———
   calificacionEmpresa Int // 1-5
@@ -710,8 +713,8 @@ model Valoracion {
   aspectosRepartidor AspectosRepartidor[] @default([])
 
   // Metadata
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([empresaId, calificacionEmpresa])
   @@index([clienteId])

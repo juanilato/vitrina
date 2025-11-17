@@ -48,6 +48,7 @@ export class PedidosService {
         where: {
           id: { in: uniqueProductIds },
           empresaId: createPedidoDto.empresaId
+          // Eliminado el filtro de activo para permitir productos inactivos
         },
         include: {
           ingredientes: {
