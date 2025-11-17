@@ -415,7 +415,7 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
               />
             )}
 
-            {/* Marcador del Local - Con logo */}
+            {/* Marcador del Local - Con logo y etiqueta */}
             {mapData.empresa && (
               <Marker
                 coordinate={{
@@ -426,6 +426,9 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
                 description="Local"
               >
                 <View style={styles.markerContainer}>
+                  <View style={styles.markerLabel}>
+                    <Text style={styles.markerLabelText}>Local</Text>
+                  </View>
                   <View style={[styles.marker, styles.markerEmpresa]}>
                     {mapData.empresa.logoUrl ? (
                       <Image
@@ -434,14 +437,15 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
                         resizeMode="cover"
                       />
                     ) : (
-                      <Ionicons name="storefront" size={24} color={colors.white} />
+                      <Ionicons name="storefront" size={28} color={colors.white} />
                     )}
                   </View>
+                  <View style={styles.markerPin} />
                 </View>
               </Marker>
             )}
 
-            {/* Marcador del Cliente - Simple */}
+            {/* Marcador del Cliente - Con icono de casa y etiqueta */}
             {mapData.cliente && (
               <Marker
                 coordinate={{
@@ -452,14 +456,18 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
                 description="Tu ubicación"
               >
                 <View style={styles.markerContainer}>
-                  <View style={[styles.marker, styles.markerCliente]}>
-                    <Ionicons name="home" size={24} color={colors.white} />
+                  <View style={[styles.markerLabel, styles.markerLabelCliente]}>
+                    <Text style={[styles.markerLabelText, styles.markerLabelTextCliente]}>Tu dirección</Text>
                   </View>
+                  <View style={[styles.marker, styles.markerCliente]}>
+                    <Ionicons name="home" size={28} color={colors.white} />
+                  </View>
+                  <View style={[styles.markerPin, styles.markerPinCliente]} />
                 </View>
               </Marker>
             )}
 
-            {/* Marcador del Repartidor - Simple */}
+            {/* Marcador del Repartidor - Animado con pulso y etiqueta */}
             {mapData.repartidor && (
               <Marker
                 coordinate={{
@@ -470,9 +478,19 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
                 description="En camino"
               >
                 <View style={styles.markerContainer}>
-                  <View style={[styles.marker, styles.markerRepartidor]}>
-                    <Ionicons name="bicycle" size={24} color={colors.white} />
+                  <View style={[styles.markerLabel, styles.markerLabelRepartidor]}>
+                    <Ionicons name="bicycle" size={14} color={colors.orange} />
+                    <Text style={[styles.markerLabelText, styles.markerLabelTextRepartidor]}>
+                      {mapData.repartidor.nombre || 'Repartidor'}
+                    </Text>
                   </View>
+                  <View style={styles.markerPulse}>
+                    <View style={styles.markerPulseRing} />
+                  </View>
+                  <View style={[styles.marker, styles.markerRepartidor]}>
+                    <Ionicons name="bicycle" size={28} color={colors.white} />
+                  </View>
+                  <View style={[styles.markerPin, styles.markerPinRepartidor]} />
                 </View>
               </Marker>
             )}
@@ -649,19 +667,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Marcadores simples
+  // Marcadores mejorados con etiquetas
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   marker: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
+    borderWidth: 4,
     borderColor: colors.white,
     ...shadows.xl,
   },
@@ -672,9 +690,9 @@ const styles = StyleSheet.create({
   },
 
   markerLogo: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
 
   markerCliente: {
@@ -683,6 +701,84 @@ const styles = StyleSheet.create({
 
   markerRepartidor: {
     backgroundColor: colors.orange,
+  },
+
+  // Pin debajo del marcador
+  markerPin: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: colors.primary,
+    marginTop: -4,
+  },
+
+  markerPinCliente: {
+    borderTopColor: colors.secondary,
+  },
+
+  markerPinRepartidor: {
+    borderTopColor: colors.orange,
+  },
+
+  // Etiquetas sobre los marcadores
+  markerLabel: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.xs,
+    ...shadows.md,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+
+  markerLabelCliente: {
+    backgroundColor: colors.secondary,
+  },
+
+  markerLabelRepartidor: {
+    backgroundColor: colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+
+  markerLabelText: {
+    ...typography.bodySmall,
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 10,
+  },
+
+  markerLabelTextCliente: {
+    color: colors.white,
+  },
+
+  markerLabelTextRepartidor: {
+    color: colors.orange,
+  },
+
+  // Efecto de pulso para el repartidor
+  markerPulse: {
+    position: 'absolute',
+    top: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  markerPulseRing: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: colors.orange + '30',
+    borderWidth: 2,
+    borderColor: colors.orange + '50',
   },
 
   // Debug Info Card

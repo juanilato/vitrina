@@ -55,7 +55,9 @@ const OrderModal: React.FC<OrderModalProps> = ({
     if (Array.isArray(extras)) return extras;
     if (typeof extras === 'string') {
       try {
-        return JSON.parse(extras);
+        const parsed = JSON.parse(extras);
+        console.log('📦 Ingredientes extras parseados:', parsed);
+        return parsed;
       } catch (e) {
         console.error('Error parseando ingredientesExtras:', e);
         return [];

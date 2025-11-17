@@ -145,18 +145,58 @@ export function LocationPicker({
 
       if (results && results.length > 0) {
         const result = results[0];
-        const addressParts = [
-          result.street,
-          result.streetNumber,
-          result.city,
-          result.region,
-        ].filter(Boolean);
 
-        setAddress(addressParts.join(', ') || 'Ubicación seleccionada');
+        // Construir dirección con más detalle
+        const addressParts = [];
+
+        // Agregar calle y número
+        if (result.street) {
+          if (result.streetNumber) {
+            addressParts.push(`${result.street} ${result.streetNumber}`);
+          } else {
+            addressParts.push(result.street);
+          }
+        } else if (result.name && result.name !== result.city) {
+          addressParts.push(result.name);
+        }
+
+        // Agregar barrio o distrito si existe
+        if (result.district && result.district !== result.city) {
+          addressParts.push(result.district);
+        } else if (result.subregion && result.subregion !== result.city) {
+          addressParts.push(result.subregion);
+        }
+
+        // Agregar ciudad
+        if (result.city) {
+          addressParts.push(result.city);
+        }
+
+        // Agregar región/provincia si es diferente de la ciudad
+        if (result.region && result.region !== result.city) {
+          addressParts.push(result.region);
+        }
+
+        // Si no se encontró ninguna parte, intentar con postalCode o país
+        if (addressParts.length === 0) {
+          if (result.postalCode) {
+            addressParts.push(`Código Postal ${result.postalCode}`);
+          }
+          if (result.country) {
+            addressParts.push(result.country);
+          }
+        }
+
+        const fullAddress = addressParts.join(', ');
+        setAddress(fullAddress || `Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+      } else {
+        // Si no hay resultados, mostrar coordenadas
+        setAddress(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       }
     } catch (error) {
       console.error('Error getting address:', error);
-      setAddress('Ubicación seleccionada');
+      // En caso de error, mostrar coordenadas en lugar de "desconocida"
+      setAddress(`Ubicación: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
     }
   };
 
@@ -201,15 +241,20 @@ export function LocationPicker({
             onPress={handleMapPress}
             showsUserLocation
             showsMyLocationButton={false}
+            showsTraffic={false}
+            showsBuildings={true}
+            showsIndoors={false}
           >
             <Marker coordinate={markerPosition} draggable onDragEnd={handleMapPress}>
               <View style={styles.markerContainer}>
-                <Ionicons name="location" size={40} color={colors.primary} />
+                <View style={styles.customMarker}>
+                  <Ionicons name="location" size={40} color={colors.primary} />
+                </View>
               </View>
             </Marker>
           </MapView>
 
-          {/* Current Location Button */}
+          {/* Current Location Button - Único botón de movilidad */}
           <TouchableOpacity
             style={styles.currentLocationButton}
             onPress={getCurrentLocation}
@@ -218,7 +263,10 @@ export function LocationPicker({
             {loading ? (
               <ActivityIndicator color={colors.primary} />
             ) : (
-              <Ionicons name="locate" size={24} color={colors.primary} />
+              <>
+                <Ionicons name="navigate" size={24} color={colors.primary} />
+                <Text style={styles.currentLocationButtonText}>Mi ubicación</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>
@@ -291,24 +339,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  customMarker: {
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+
   currentLocationButton: {
     position: 'absolute',
     bottom: spacing.xl,
     right: spacing.lg,
     backgroundColor: colors.white,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 24,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.xs,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: colors.primary + '30',
+  },
+
+  currentLocationButtonText: {
+    ...typography.bodyMedium,
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: 14,
   },
 
   addressContainer: {
