@@ -9,15 +9,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { PedidoWithDetails } from '../../types/order';
 import { OrderStatusBadge } from './OrderStatusBadge';
+import { RatingStars } from '../common/RatingStars';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 
 interface OrderCardProps {
   order: PedidoWithDetails;
+  rating?: { promedio: number; totalValoraciones: number } | null;
+  onRatePress?: () => void;
 }
 
-export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
+export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress }) => {
   const router = useRouter();
 
   const handlePress = () => {
@@ -110,6 +113,41 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
           </View>
           <Ionicons name="map" size={20} color={colors.white} />
         </TouchableOpacity>
+      )}
+
+      {/* Rating Section - Solo para pedidos entregados */}
+      {order.estado === 'entregado' && (
+        <View style={styles.ratingSection}>
+          {rating ? (
+            // Mostrar calificación existente
+            <View style={styles.ratingDisplay}>
+              <View style={styles.ratingHeader}>
+                <Ionicons name="star" size={18} color={colors.orange} />
+                <Text style={styles.ratingTitle}>Tu calificación</Text>
+              </View>
+              <View style={styles.ratingContent}>
+                <RatingStars rating={rating.promedio} size="md" readonly />
+                <Text style={styles.ratingValue}>{rating.promedio.toFixed(1)}</Text>
+              </View>
+            </View>
+          ) : (
+            // Botón para calificar
+            <TouchableOpacity
+              style={styles.rateButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                onRatePress?.();
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.rateButtonContent}>
+                <Ionicons name="star-outline" size={20} color={colors.orange} />
+                <Text style={styles.rateButtonText}>Calificar pedido</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.orange} />
+            </TouchableOpacity>
+          )}
+        </View>
       )}
 
       {/* Footer */}
@@ -315,5 +353,70 @@ const styles = StyleSheet.create({
     ...typography.bodyMedium,
     color: colors.white,
     fontWeight: '700',
+  },
+
+  // Rating Section
+  ratingSection: {
+    marginBottom: spacing.md,
+  },
+
+  ratingDisplay: {
+    backgroundColor: colors.gray50,
+    borderRadius: 12,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.gray100,
+  },
+
+  ratingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+
+  ratingTitle: {
+    ...typography.bodyMedium,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.gray700,
+  },
+
+  ratingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+
+  ratingValue: {
+    ...typography.h3,
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.gray900,
+  },
+
+  rateButton: {
+    backgroundColor: colors.orange + '10',
+    borderRadius: 12,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: colors.orange + '30',
+    borderStyle: 'dashed',
+  },
+
+  rateButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  rateButtonText: {
+    ...typography.bodyMedium,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.orange,
   },
 });

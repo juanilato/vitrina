@@ -254,13 +254,15 @@ export default function CompanyStoreScreen() {
     </View>
   )}
 
-  {/* Título sobrio + acento mínimo */}
-  <Text
-    numberOfLines={1}
-    style={[styles.brandTitleSoft, { color: textoColor }]}
-  >
-    {company.name}
-  </Text>
+  {/* Título sobrio + acento mínimo con fondo para contraste */}
+  <View style={styles.nameBackdrop}>
+    <Text
+      numberOfLines={1}
+      style={[styles.brandTitleSoft, { color: textoColor }]}
+    >
+      {company.name}
+    </Text>
+  </View>
 
   {/* Calificación promedio */}
   {companyRating && companyRating.totalValoraciones > 0 && (
@@ -529,14 +531,21 @@ const styles = StyleSheet.create({
   gap: 4,                       // antes 6
 },
 
+nameBackdrop: {
+  backgroundColor: 'rgba(253, 253, 253, 0.4)',
+  paddingHorizontal: spacing.md,
+  paddingVertical: spacing.xs,
+  borderRadius: 12,
+  marginTop: 4,
+  marginBottom: spacing.xs,
+},
+
 brandTitleSoft: {
   ...textStyles.title2,
   fontWeight: '800',
   fontSize: 22,
   letterSpacing: -0.3,
   textAlign: 'center',
-  marginTop: 4,
-  marginBottom: spacing.xs,
   textShadowColor: 'rgba(0, 0, 0, 0.5)',
   textShadowOffset: { width: 0, height: 2 },
   textShadowRadius: 8,

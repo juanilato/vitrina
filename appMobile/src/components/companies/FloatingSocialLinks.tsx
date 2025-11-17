@@ -178,7 +178,7 @@ export const FloatingSocialLinks: React.FC<FloatingSocialLinksProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: spacing.md,
+    top: 3, // Más pegado al techo (más arriba que spacing.md)
     right: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
@@ -218,7 +218,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 1,
+
   },
   mainButton: {
     width: 48,

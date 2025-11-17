@@ -3,7 +3,7 @@
  * Muestra los items del carrito y el resumen de compra
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +26,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function CartScreen() {
   const router = useRouter();
   const { cart, loading, removeItem, updateQuantity, deliveryFee } = useCart();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Simular una recarga del carrito
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setRefreshing(false);
+  };
 
   const handleCheckout = () => {
     // Navegar a la pantalla de checkout
@@ -220,6 +229,13 @@ export default function CartScreen() {
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={colors.primary}
+              />
+            }
           >
             {/* Company Info */}
             {cart.items.length > 0 && cart.items[0].companyName && (

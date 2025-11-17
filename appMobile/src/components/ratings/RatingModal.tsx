@@ -263,30 +263,42 @@ export const RatingModal: React.FC<RatingModalProps> = ({
       <Text style={styles.stepTitle}>¿Cómo calificarías los productos?</Text>
       <Text style={styles.stepSubtitle}>Opcional - Puedes saltar este paso</Text>
 
-      {productos.map((item) => {
-        const valoracion = valoracionProductos.find((v) => v.productoId === item.producto.id);
-        return (
-          <View key={item.id} style={styles.productoItem}>
-            <Text style={styles.productoNombre}>{item.producto.nombre}</Text>
-            <RatingStars
-              rating={valoracion?.calificacion || 0}
-              onRatingChange={(rating) =>
-                handleProductRating(item.producto.id, item.producto.nombre, rating)
-              }
-              size="md"
-            />
-            {valoracion && valoracion.calificacion > 0 && (
-              <TextInput
-                style={styles.productoComentario}
-                value={valoracion.comentario || ''}
-                onChangeText={(text) => handleProductComment(item.producto.id, text)}
-                placeholder="Comentario opcional..."
-                placeholderTextColor={colors.gray400}
+      {productos.length === 0 ? (
+        <View style={styles.emptyProductsContainer}>
+          <Ionicons name="cube-outline" size={48} color={colors.gray300} />
+          <Text style={styles.emptyProductsText}>
+            No hay productos para calificar
+          </Text>
+          <Text style={styles.emptyProductsSubtext}>
+            Puedes continuar para calificar otros aspectos
+          </Text>
+        </View>
+      ) : (
+        productos.map((item) => {
+          const valoracion = valoracionProductos.find((v) => v.productoId === item.producto.id);
+          return (
+            <View key={item.id} style={styles.productoItem}>
+              <Text style={styles.productoNombre}>{item.producto.nombre}</Text>
+              <RatingStars
+                rating={valoracion?.calificacion || 0}
+                onRatingChange={(rating) =>
+                  handleProductRating(item.producto.id, item.producto.nombre, rating)
+                }
+                size="md"
               />
-            )}
-          </View>
-        );
-      })}
+              {valoracion && valoracion.calificacion > 0 && (
+                <TextInput
+                  style={styles.productoComentario}
+                  value={valoracion.comentario || ''}
+                  onChangeText={(text) => handleProductComment(item.producto.id, text)}
+                  placeholder="Comentario opcional..."
+                  placeholderTextColor={colors.gray400}
+                />
+              )}
+            </View>
+          );
+        })
+      )}
     </View>
   );
 
@@ -549,6 +561,25 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     fontSize: fontSizes.sm,
     color: colors.text,
+  },
+  emptyProductsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing['2xl'],
+    paddingHorizontal: spacing.lg,
+  },
+  emptyProductsText: {
+    fontSize: fontSizes.lg,
+    fontWeight: fontWeights.semibold,
+    color: colors.gray600,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  emptyProductsSubtext: {
+    fontSize: fontSizes.sm,
+    color: colors.gray400,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
   footer: {
     flexDirection: 'row',

@@ -757,12 +757,7 @@ const styles = StyleSheet.create({
 
   // Estilos para versión CON dashboard foto
   backgroundImage: {
-    width: '100%',
-    height: 100,
-    marginLeft: -spacing.md,
-    marginRight: -spacing.md,
-    marginTop: -spacing.md,
-    marginBottom: -spacing.md,
+
   },
 
   backgroundImageStyle: {

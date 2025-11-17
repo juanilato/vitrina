@@ -19,7 +19,7 @@ import { colors, spacing, fontSizes } from '../../theme';
 import { normalize } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
-const TAB_BAR_HEIGHT = normalize(100); // Total height including padding
+const TAB_BAR_HEIGHT = normalize(85); // Total height including padding (reducido para 4 tabs)
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const [isVisible, setIsVisible] = useState(true);
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   // Toggle Button
   toggleContainer: {
     position: 'absolute',
-    bottom: TAB_BAR_HEIGHT + normalize(25), // Position just above the tab bar
+    bottom: TAB_BAR_HEIGHT + normalize(20), // Position just above the tab bar
     left: width / 2 - normalize(24),
     zIndex: 1000,
   },
@@ -235,9 +235,11 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    paddingVertical: normalize(10),
-    paddingHorizontal: spacing.xs,
+    paddingVertical: normalize(8),
+    paddingHorizontal: spacing.sm,
     alignItems: 'center',
+    justifyContent: 'space-evenly',
+    gap: spacing.xs,
   },
 
   // Tab Item
@@ -245,16 +247,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: normalize(4),
+    paddingVertical: normalize(2),
+    maxWidth: normalize(90), // Limitar ancho máximo para mejor distribución
   },
   tabContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: normalize(8),
-    paddingHorizontal: normalize(10),
-    borderRadius: normalize(14),
-    minWidth: normalize(64),
-    minHeight: normalize(56),
+    paddingVertical: normalize(6),
+    paddingHorizontal: normalize(12),
+    borderRadius: normalize(16),
+    minWidth: normalize(60),
+    minHeight: normalize(52),
+    width: '100%',
   },
   tabContentActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -265,11 +269,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   iconContainer: {
-    marginBottom: 2,
+    marginBottom: normalize(3),
   },
   tabLabel: {
-    fontSize: fontSizes.xs,
+    fontSize: normalize(10),
     fontWeight: '700',
-    marginTop: 2,
+    marginTop: normalize(2),
+    textAlign: 'center',
   },
 });

@@ -3,7 +3,7 @@
  * Lista de pedidos del usuario con diseño moderno
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,8 @@ import { EmptyState } from '../../src/components/common/EmptyState';
 import { colors, spacing } from '../../src/theme';
 import { textStyles as typography } from '../../src/theme/typography';
 import { useRatingRequest, RatingModal } from '../../src/components/ratings';
+import ratingService from '../../src/services/rating.service';
+import { PedidoWithDetails } from '../../src/types/order';
 
 type FilterOption = 'all' | 'active' | 'completed' | 'cancelled';
 
@@ -53,6 +55,50 @@ export default function OrdersScreen() {
 
   // Sistema de calificación de pedidos
   const { shouldShowRatingModal, orderToRate, dismissRatingRequest, markAsRated } = useRatingRequest(orders);
+
+  // Estado para manejar calificaciones manuales
+  const [manualRatingOrder, setManualRatingOrder] = useState<PedidoWithDetails | null>(null);
+  const [showManualRatingModal, setShowManualRatingModal] = useState(false);
+  const [orderRatings, setOrderRatings] = useState<Record<string, { promedio: number; totalValoraciones: number }>>({});
+
+  // Cargar calificaciones para todos los pedidos entregados
+  useEffect(() => {
+    const loadRatings = async () => {
+      const deliveredOrders = orders.filter(order => order.estado === 'entregado');
+
+      for (const order of deliveredOrders) {
+        try {
+          const rating = await ratingService.getRatingByOrder(order.id);
+          if (rating) {
+            setOrderRatings(prev => ({
+              ...prev,
+              [order.id]: {
+                promedio: rating.calificacionEmpresa,
+                totalValoraciones: 1
+              }
+            }));
+          }
+        } catch (error) {
+          console.error(`Error loading rating for order ${order.id}:`, error);
+        }
+      }
+    };
+
+    if (orders.length > 0) {
+      loadRatings();
+    }
+  }, [orders]);
+
+  const handleRatePress = (order: PedidoWithDetails) => {
+    setManualRatingOrder(order);
+    setShowManualRatingModal(true);
+  };
+
+  const handleManualRatingSuccess = () => {
+    setShowManualRatingModal(false);
+    setManualRatingOrder(null);
+    refresh(); // Refrescar pedidos después de calificar
+  };
 
   // Obtener estadísticas de pedidos
   const getOrderStats = () => {
@@ -243,7 +289,13 @@ export default function OrdersScreen() {
         <FlatList
           data={filteredOrders}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <OrderCard order={item} />}
+          renderItem={({ item }) => (
+            <OrderCard
+              order={item}
+              rating={orderRatings[item.id]}
+              onRatePress={() => handleRatePress(item)}
+            />
+          )}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
@@ -256,7 +308,7 @@ export default function OrdersScreen() {
         />
       )}
 
-      {/* Modal de calificación */}
+      {/* Modal de calificación automático (después de 10 minutos) */}
       {shouldShowRatingModal && orderToRate && (
         <RatingModal
           visible={shouldShowRatingModal}
@@ -264,11 +316,39 @@ export default function OrdersScreen() {
           pedidoId={orderToRate.id}
           empresaNombre={orderToRate.empresa?.name || 'la empresa'}
           tipoEntrega={orderToRate.tipoEntrega}
-          productos={orderToRate.ItemPedido || []}
+          productos={(orderToRate.items || orderToRate.ItemPedido || []).map((item: any) => ({
+            id: item.id,
+            producto: {
+              id: item.producto?.id || item.productoId || '',
+              nombre: item.producto?.nombre || 'Producto'
+            }
+          }))}
           onSuccess={() => {
             markAsRated();
             refresh(); // Refrescar pedidos después de calificar
           }}
+        />
+      )}
+
+      {/* Modal de calificación manual (al presionar botón) */}
+      {showManualRatingModal && manualRatingOrder && (
+        <RatingModal
+          visible={showManualRatingModal}
+          onClose={() => {
+            setShowManualRatingModal(false);
+            setManualRatingOrder(null);
+          }}
+          pedidoId={manualRatingOrder.id}
+          empresaNombre={manualRatingOrder.empresa?.name || 'la empresa'}
+          tipoEntrega={manualRatingOrder.tipoEntrega}
+          productos={(manualRatingOrder.items || manualRatingOrder.ItemPedido || []).map((item: any) => ({
+            id: item.id,
+            producto: {
+              id: item.producto?.id || item.productoId || '',
+              nombre: item.producto?.nombre || 'Producto'
+            }
+          }))}
+          onSuccess={handleManualRatingSuccess}
         />
       )}
     </SafeAreaView>
