@@ -8,6 +8,136 @@ import { View, Text, StyleSheet } from 'react-native';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyANk5MpfxAkPg0krpULl3xUR3e4wDigkOs';
 
+// Color palette (matching mobile theme)
+const colors = {
+  primary: '#2563EB',
+  secondary: '#10B981',
+  orange: '#F26B1D',
+  white: '#FFFFFF',
+};
+
+// Ionicons to SVG mapping
+const ioniconsToSVG: Record<string, string> = {
+  'storefront': `<path d="M448 448V320h64v128c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V320h64v128h384zM112 224c0-8.8-7.2-16-16-16s-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V224zm48 0c0-8.8-7.2-16-16-16s-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V224zm112-16c-8.8 0-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V224c0-8.8-7.2-16-16-16zm48 16c0-8.8-7.2-16-16-16s-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V224zm112-16c-8.8 0-16 7.2-16 16v64c0 8.8 7.2 16 16 16s16-7.2 16-16V224c0-8.8-7.2-16-16-16zM456.8 111.7l27.8 40.1c4.1 5.9 .5 13.9-6.5 14.1h-1.1c-5.6 0-10.9-2.6-14.3-7.2L432 118.4V192h-48V118.4l-30.7 40.3c-3.4 4.5-8.7 7.2-14.3 7.2h-1.1c-7 .2-10.6-8.2-6.5-14.1l27.8-40.1L331 71.6c-3.4-4.9-3.4-11.3 0-16.2s9.6-7.8 16-7.8h.2l42.5 .6c6.4 .1 12.3 3.2 15.8 8.4l28.6 42.5z"/>`,
+  'home': `<path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>`,
+  'bicycle': `<path d="M400 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm-4 121.2l-32.9 81.2c-5.9 14.5-1.5 31.4 10.9 41.5l96.9 78.5c10.9 8.8 26.7 7.1 35.4-3.8s7.1-26.7-3.8-35.4L420.6 320l30.8-75.8L468 266.7V360c0 13.3 10.7 24 24 24s24-10.7 24-24V258.5c0-8.9-3.9-17.3-10.7-23.1l-62.6-53.9c-10.6-9.2-26.5-10.3-38.1-2.6L305.3 242.1c-23.9 15.9-38.7 43.3-38.7 72.5V400c0 13.3 10.7 24 24 24s24-10.7 24-24V314.6c0-12.2 6.2-23.6 16.4-30.3l41.8-27.9-25 61.9L301.5 353c-9.5 9.5-9.3 25 .4 34.3s25 9.9 34.3 .4l55.1-54.6c6.1-6 9.6-14.1 9.6-22.6c0-7.3-2.5-14.4-7.1-20.1l-31.6-39.5zM128 416a96 96 0 1 0 0-192 96 96 0 1 0 0 192zM96 320a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm288 96a96 96 0 1 0 0-192 96 96 0 1 0 0 192zm-32-96a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/>`,
+};
+
+// Extract marker configuration from React children
+const extractMarkerConfig = (children: any): { icon: string; color: string; label?: string } => {
+  let iconName = 'home';
+  let iconColor = colors.primary;
+  let label = '';
+
+  // Recursively search for marker info in children
+  const findMarkerInfo = (node: any): void => {
+    if (!node) return;
+
+    if (Array.isArray(node)) {
+      node.forEach(findMarkerInfo);
+      return;
+    }
+
+    const props = node.props || {};
+
+    // Check for marker styles to determine type
+    if (props.style) {
+      const styles = Array.isArray(props.style) ? props.style : [props.style];
+      const flatStyle = Object.assign({}, ...styles.map((s: any) => s || {}));
+
+      // Detect marker type by background color
+      if (flatStyle.backgroundColor === colors.primary || JSON.stringify(flatStyle).includes('markerEmpresa')) {
+        iconColor = colors.primary;
+      } else if (flatStyle.backgroundColor === colors.secondary || JSON.stringify(flatStyle).includes('markerCliente')) {
+        iconColor = colors.secondary;
+      } else if (flatStyle.backgroundColor === colors.orange || JSON.stringify(flatStyle).includes('markerRepartidor')) {
+        iconColor = colors.orange;
+      }
+    }
+
+    // Look for Ionicons to get icon name
+    if (props.name && typeof props.name === 'string') {
+      iconName = props.name;
+      if (props.color) iconColor = props.color;
+    }
+
+    // Look for text labels
+    if (node.type === 'Text' || (typeof node === 'object' && node.children)) {
+      const text = extractText(node);
+      if (text && text.length > 0) {
+        label = text;
+      }
+    }
+
+    // Recurse into children
+    if (props.children) {
+      findMarkerInfo(props.children);
+    }
+  };
+
+  const extractText = (node: any): string => {
+    if (typeof node === 'string') return node;
+    if (typeof node === 'number') return String(node);
+    if (!node) return '';
+    if (Array.isArray(node)) return node.map(extractText).join('');
+    if (node.props?.children) return extractText(node.props.children);
+    return '';
+  };
+
+  findMarkerInfo(children);
+
+  return { icon: iconName, color: iconColor, label };
+};
+
+// Create custom marker icon for Google Maps
+const createCustomMarkerIcon = (config: { icon: string; color: string; label?: string }): any => {
+  const svgPath = ioniconsToSVG[config.icon] || ioniconsToSVG['home'];
+
+  // Create SVG marker with icon
+  const svg = `
+    <svg width="56" height="70" viewBox="0 0 56 70" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+          <feOffset dx="0" dy="2" result="offsetblur"/>
+          <feComponentTransfer>
+            <feFuncA type="linear" slope="0.3"/>
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- Shadow circle -->
+      <circle cx="28" cy="28" r="28" fill="${config.color}" filter="url(#shadow)"/>
+
+      <!-- White border -->
+      <circle cx="28" cy="28" r="28" fill="none" stroke="${colors.white}" stroke-width="4"/>
+
+      <!-- Colored background -->
+      <circle cx="28" cy="28" r="24" fill="${config.color}"/>
+
+      <!-- Icon -->
+      <g transform="translate(14, 14) scale(0.04)">
+        <path d="${svgPath}" fill="${colors.white}"/>
+      </g>
+
+      <!-- Pin below -->
+      <path d="M 28 56 L 20 68 L 36 68 Z" fill="${config.color}"/>
+    </svg>
+  `;
+
+  const encodedSvg = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+
+  return {
+    url: encodedSvg,
+    scaledSize: { width: 56, height: 70 },
+    anchor: { x: 28, y: 70 },
+  };
+};
+
 // Types
 export interface Region {
   latitude: number;
@@ -175,22 +305,47 @@ export const MapView: React.FC<MapViewProps> = ({
       if (child.type === Marker) {
         const { coordinate, title, description, children: markerChildren } = child.props;
 
-        const marker = new google.maps.Marker({
-          position: { lat: coordinate.latitude, lng: coordinate.longitude },
-          map: googleMapRef.current,
-          title: title || '',
-        });
+        // Si hay children personalizados (iconos custom), crear marker HTML
+        if (markerChildren) {
+          const markerConfig = extractMarkerConfig(markerChildren);
+          const customIcon = createCustomMarkerIcon(markerConfig);
 
-        if (title || description) {
-          const infoWindow = new google.maps.InfoWindow({
-            content: `<div><strong>${title || ''}</strong><br/>${description || ''}</div>`,
+          const marker = new google.maps.Marker({
+            position: { lat: coordinate.latitude, lng: coordinate.longitude },
+            map: googleMapRef.current,
+            title: title || '',
+            icon: customIcon,
           });
-          marker.addListener('click', () => {
-            infoWindow.open(googleMapRef.current, marker);
+
+          if (title || description) {
+            const infoWindow = new google.maps.InfoWindow({
+              content: `<div><strong>${title || ''}</strong><br/>${description || ''}</div>`,
+            });
+            marker.addListener('click', () => {
+              infoWindow.open(googleMapRef.current, marker);
+            });
+          }
+
+          markersRef.current.push(marker);
+        } else {
+          // Marker estándar sin children
+          const marker = new google.maps.Marker({
+            position: { lat: coordinate.latitude, lng: coordinate.longitude },
+            map: googleMapRef.current,
+            title: title || '',
           });
+
+          if (title || description) {
+            const infoWindow = new google.maps.InfoWindow({
+              content: `<div><strong>${title || ''}</strong><br/>${description || ''}</div>`,
+            });
+            marker.addListener('click', () => {
+              infoWindow.open(googleMapRef.current, marker);
+            });
+          }
+
+          markersRef.current.push(marker);
         }
-
-        markersRef.current.push(marker);
       }
 
       // Procesar Polyline

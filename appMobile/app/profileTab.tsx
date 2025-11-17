@@ -18,9 +18,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { colors, spacing } from '../../src/theme';
-import { textStyles as typography } from '../../src/theme/typography';
-import { useAuth } from '../../src/contexts/AuthContext';
+import { colors, spacing } from '../src/theme';
+import { textStyles as typography } from '../src/theme/typography';
+import { useAuth } from '../src/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
