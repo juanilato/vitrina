@@ -4,12 +4,10 @@
 
 import Constants from 'expo-constants';
 
-
-
 // ✅ Lee la URL desde el .env
 const ENV_API_URL = Constants.expoConfig?.extra?.apiUrl || process.env.EXPO_PUBLIC_API_URL;
 
-// ✅ Fallback a local solo en modo desarrollo
+// ✅ API URL con detección automática de IP local en desarrollo
 export const API_URL = __DEV__
   ? (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.100:3001')
   : (ENV_API_URL || 'https://api.vitrina.com.ar');

@@ -224,19 +224,52 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
   // Obtener ruta real usando Google Directions API
   const fetchRoute = async (origin: { lat: number; lng: number }, destination: { lat: number; lng: number }) => {
     try {
-      const apiKey = 'AIzaSyC38M7FX0xjywUeF8uRXvS8ZbZPEZ0k7LY'; // Tu API key de Google Maps
-      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&key=${apiKey}`;
+      // Para web, usar DirectionsService de Google Maps JavaScript API
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const google = (window as any).google;
+        if (google?.maps?.DirectionsService) {
+          const directionsService = new google.maps.DirectionsService();
 
-      const response = await fetch(url);
-      const data = await response.json();
+          const request = {
+            origin: { lat: origin.lat, lng: origin.lng },
+            destination: { lat: destination.lat, lng: destination.lng },
+            travelMode: google.maps.TravelMode.DRIVING,
+          };
 
-      if (data.routes && data.routes.length > 0) {
-        const points = data.routes[0].overview_polyline.points;
-        const coordinates = decodePolyline(points);
-        setRouteCoordinates(coordinates);
+          directionsService.route(request, (result: any, status: string) => {
+            if (status === 'OK' && result?.routes?.[0]) {
+              const route = result.routes[0];
+              const coordinates = route.overview_path.map((point: any) => ({
+                latitude: point.lat(),
+                longitude: point.lng(),
+              }));
+              setRouteCoordinates(coordinates);
+              console.log('[Map] ✅ Ruta obtenida (web):', coordinates.length, 'puntos');
+            } else {
+              console.warn('[Map] No se pudo obtener ruta:', status);
+              // Fallback: línea recta
+              setRouteCoordinates([
+                { latitude: origin.lat, longitude: origin.lng },
+                { latitude: destination.lat, longitude: destination.lng },
+              ]);
+            }
+          });
+          return;
+        }
       }
+
+      // Para mobile: línea recta simple (o implementar endpoint en backend)
+      setRouteCoordinates([
+        { latitude: origin.lat, longitude: origin.lng },
+        { latitude: destination.lat, longitude: destination.lng },
+      ]);
     } catch (error) {
       console.error('[Map] Error al obtener ruta:', error);
+      // Fallback: línea recta
+      setRouteCoordinates([
+        { latitude: origin.lat, longitude: origin.lng },
+        { latitude: destination.lat, longitude: destination.lng },
+      ]);
     }
   };
 

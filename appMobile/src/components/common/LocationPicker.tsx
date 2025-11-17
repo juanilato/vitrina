@@ -66,16 +66,18 @@ export function LocationPicker({
   }
 
   const [region, setRegion] = useState({
-    latitude: initialLocation?.lat || -31.4201, // Córdoba, Argentina por defecto
-    longitude: initialLocation?.lng || -64.1888,
+    latitude: initialLocation?.lat || -31.522816, // San Juan, Argentina por defecto
+    longitude: initialLocation?.lng || -68.5637632,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
 
   const [markerPosition, setMarkerPosition] = useState({
-    latitude: initialLocation?.lat || -31.4201,
-    longitude: initialLocation?.lng || -64.1888,
+    latitude: initialLocation?.lat || -31.522816,
+    longitude: initialLocation?.lng || -68.5637632,
   });
+
+  const [mapKey, setMapKey] = useState(0); // Key para forzar re-render del mapa
 
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState('Ubicación seleccionada');
@@ -123,6 +125,9 @@ export function LocationPicker({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
+
+      // Forzar re-render del mapa para centrar en nueva ubicación
+      setMapKey(prev => prev + 1);
 
       await getAddressFromCoordinates(
         location.coords.latitude,
@@ -202,6 +207,7 @@ export function LocationPicker({
 
   const handleMapPress = async (event: any) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
+    console.log('[LocationPicker] 📍 Nueva ubicación seleccionada:', { latitude, longitude });
     setMarkerPosition({ latitude, longitude });
     await getAddressFromCoordinates(latitude, longitude);
   };
@@ -235,6 +241,7 @@ export function LocationPicker({
         {/* Map */}
         <View style={styles.mapContainer}>
           <MapView
+
             provider={PROVIDER_GOOGLE}
             style={styles.map}
             region={region}
@@ -245,13 +252,12 @@ export function LocationPicker({
             showsBuildings={true}
             showsIndoors={false}
           >
-            <Marker coordinate={markerPosition} draggable onDragEnd={handleMapPress}>
-              <View style={styles.markerContainer}>
-                <View style={styles.customMarker}>
-                  <Ionicons name="location" size={40} color={colors.primary} />
-                </View>
-              </View>
-            </Marker>
+            <Marker
+              coordinate={markerPosition}
+              draggable
+              onDragEnd={handleMapPress}
+              title="Ubicación seleccionada"
+            />
           </MapView>
 
           {/* Current Location Button - Único botón de movilidad */}
