@@ -203,23 +203,16 @@ async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | '
       console.log(`✅ [Google Auth] Usuario existente - Tipo: ${userType}`);
     }
 
-    // 5) Mantener actualizado nombre/foto y marcar verificada si no lo estaba
+    // 5) Solo marcar como verificada si no lo estaba (NO actualizar nombre ni foto)
     const updateData: any = {};
 
-    // Para empresas, extraer nombre de usuario del email
-    const usernameFromEmail = email.split('@')[0];
-
-    if (userType === 'empresa' && user.name !== usernameFromEmail) {
-      updateData.name = usernameFromEmail;
-    } else if (userType !== 'empresa' && name && user.name !== name) {
-      updateData.name = name;
+    // Solo actualizar isVerified si es false
+    if (user.isVerified === false) {
+      updateData.isVerified = true;
     }
 
-    if (picture && userType === 'empresa' && user.logo !== picture) updateData.logo = picture;
-    if (user.isVerified === false) updateData.isVerified = true;
-
     if (Object.keys(updateData).length > 0) {
-      console.log(`🔄 [Google Auth] Actualizando usuario`);
+      console.log(`🔄 [Google Auth] Marcando usuario como verificado`);
       if (userType === 'cliente') {
         user = await this.prisma.cliente.update({ where: { id: user.id }, data: updateData });
       } else if (userType === 'empresa') {
