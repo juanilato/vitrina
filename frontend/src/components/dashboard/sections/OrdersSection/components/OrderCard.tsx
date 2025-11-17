@@ -182,24 +182,56 @@ const OrderRow: React.FC<OrderCardProps> = ({
           {showItems && (
             <div className="order-items-dropdown">
               <div className="order-items-list">
-                {pedido.items?.map((item, index) => (
-                  <div key={item.id} className="order-item-row">
-                    <div className="order-item-info">
-                      <div className="order-item-name">
-                        {item.producto?.nombre || 'Producto no disponible'}
+                {pedido.items?.map((item, index) => {
+                  // Helper para parsear ingredientes extras
+                  const parseIngredientesExtras = (extras: any) => {
+                    if (!extras) return [];
+                    if (Array.isArray(extras)) return extras;
+                    if (typeof extras === 'string') {
+                      try {
+                        return JSON.parse(extras);
+                      } catch (e) {
+                        return [];
+                      }
+                    }
+                    return [];
+                  };
+
+                  const ingredientesExtras = parseIngredientesExtras(item.ingredientesExtras);
+
+                  return (
+                    <div key={item.id} className="order-item-row">
+                      <div className="order-item-info">
+                        <div className="order-item-name">
+                          {item.producto?.nombre || 'Producto no disponible'}
+                        </div>
+                        {ingredientesExtras.length > 0 && (
+                          <div className="order-item-extras">
+                            {ingredientesExtras.map((extra: any, extraIndex: number) => (
+                              <div key={extraIndex} className="order-item-extra">
+                                + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
+                                {extra.precioExtra && extra.precioExtra > 0 && (
+                                  <span className="order-item-extra-price">
+                                    (+${extra.precioExtra.toFixed(2)})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {item.notas && (
+                          <div className="order-item-notes">💬 {item.notas}</div>
+                        )}
                       </div>
-                      {item.notas && (
-                        <div className="order-item-notes">💬 {item.notas}</div>
-                      )}
+                      <div className="order-item-qty">
+                        {item.cantidad} × {fmtMoney(item.precio)}
+                      </div>
+                      <div className="order-item-subtotal">
+                        {fmtMoney(item.precio * item.cantidad)}
+                      </div>
                     </div>
-                    <div className="order-item-qty">
-                      {item.cantidad} × {fmtMoney(item.precio)}
-                    </div>
-                    <div className="order-item-subtotal">
-                      {fmtMoney(item.precio * item.cantidad)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="order-items-footer">
                 {pedido.subtotal !== undefined && (

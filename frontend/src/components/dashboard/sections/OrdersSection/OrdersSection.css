@@ -1205,6 +1205,29 @@
   font-style: italic;
 }
 
+.order-item-extras {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.order-item-extra {
+  font-size: 11px;
+  color: #059669;
+  font-style: italic;
+  padding-left: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.order-item-extra-price {
+  font-size: 10px;
+  color: #047857;
+  font-weight: 600;
+}
+
 .order-item-qty {
   font-size: 12px;
   font-weight: 600;

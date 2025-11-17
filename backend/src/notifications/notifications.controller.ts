@@ -32,7 +32,7 @@ export class NotificationsController {
     @Query('unread') unread?: string,
   ) {
     const userId = req.user.id;
-    const userType = req.user.userType;
+    const userType = req.user.type;
     const limitNum = limit ? parseInt(limit) : 50;
 
     if (unread === 'true') {
@@ -45,28 +45,28 @@ export class NotificationsController {
   @Get('unread-count')
   async getUnreadCount(@Request() req: any) {
     const userId = req.user.id;
-    const userType = req.user.userType;
+    const userType = req.user.type;
     return this.notificationsService.countUnreadByUser(userId, userType);
   }
 
   @Patch(':id/read')
   async markAsRead(@Param('id') id: string, @Request() req: any) {
     const userId = req.user.id;
-    const userType = req.user.userType;
+    const userType = req.user.type;
     return this.notificationsService.markAsRead(id, userId, userType);
   }
 
   @Patch('mark-all-read')
   async markAllAsRead(@Request() req: any) {
     const userId = req.user.id;
-    const userType = req.user.userType;
+    const userType = req.user.type;
     return this.notificationsService.markAllAsRead(userId, userType);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req: any) {
     const userId = req.user.id;
-    const userType = req.user.userType;
+    const userType = req.user.type;
     return this.notificationsService.remove(id, userId, userType);
   }
 }

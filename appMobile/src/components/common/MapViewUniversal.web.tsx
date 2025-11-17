@@ -28,6 +28,7 @@ const extractMarkerConfig = (children: any): { icon: string; color: string; labe
   let iconName = 'home';
   let iconColor = colors.primary;
   let label = '';
+  let foundIcon = false;
 
   // Recursively search for marker info in children
   const findMarkerInfo = (node: any): void => {
@@ -39,6 +40,16 @@ const extractMarkerConfig = (children: any): { icon: string; color: string; labe
     }
 
     const props = node.props || {};
+    const nodeString = JSON.stringify(node);
+
+    // Check for marker styles to determine type by searching in the serialized node
+    if (nodeString.includes('markerEmpresa') || nodeString.includes(colors.primary)) {
+      iconColor = colors.primary;
+    } else if (nodeString.includes('markerCliente') || nodeString.includes(colors.secondary)) {
+      iconColor = colors.secondary;
+    } else if (nodeString.includes('markerRepartidor') || nodeString.includes(colors.orange)) {
+      iconColor = colors.orange;
+    }
 
     // Check for marker styles to determine type
     if (props.style) {
@@ -46,26 +57,23 @@ const extractMarkerConfig = (children: any): { icon: string; color: string; labe
       const flatStyle = Object.assign({}, ...styles.map((s: any) => s || {}));
 
       // Detect marker type by background color
-      if (flatStyle.backgroundColor === colors.primary || JSON.stringify(flatStyle).includes('markerEmpresa')) {
+      if (flatStyle.backgroundColor === colors.primary) {
         iconColor = colors.primary;
-      } else if (flatStyle.backgroundColor === colors.secondary || JSON.stringify(flatStyle).includes('markerCliente')) {
+      } else if (flatStyle.backgroundColor === colors.secondary) {
         iconColor = colors.secondary;
-      } else if (flatStyle.backgroundColor === colors.orange || JSON.stringify(flatStyle).includes('markerRepartidor')) {
+      } else if (flatStyle.backgroundColor === colors.orange) {
         iconColor = colors.orange;
       }
     }
 
     // Look for Ionicons to get icon name
-    if (props.name && typeof props.name === 'string') {
-      iconName = props.name;
-      if (props.color) iconColor = props.color;
-    }
-
-    // Look for text labels
-    if (node.type === 'Text' || (typeof node === 'object' && node.children)) {
-      const text = extractText(node);
-      if (text && text.length > 0) {
-        label = text;
+    if (props.name && typeof props.name === 'string' && !foundIcon) {
+      // Only take the first icon found (the main marker icon, not label icons)
+      const potentialIcons = ['storefront', 'home', 'bicycle'];
+      if (potentialIcons.includes(props.name)) {
+        iconName = props.name;
+        foundIcon = true;
+        if (props.color) iconColor = props.color;
       }
     }
 
@@ -73,15 +81,6 @@ const extractMarkerConfig = (children: any): { icon: string; color: string; labe
     if (props.children) {
       findMarkerInfo(props.children);
     }
-  };
-
-  const extractText = (node: any): string => {
-    if (typeof node === 'string') return node;
-    if (typeof node === 'number') return String(node);
-    if (!node) return '';
-    if (Array.isArray(node)) return node.map(extractText).join('');
-    if (node.props?.children) return extractText(node.props.children);
-    return '';
   };
 
   findMarkerInfo(children);
@@ -93,44 +92,44 @@ const extractMarkerConfig = (children: any): { icon: string; color: string; labe
 const createCustomMarkerIcon = (config: { icon: string; color: string; label?: string }): any => {
   const svgPath = ioniconsToSVG[config.icon] || ioniconsToSVG['home'];
 
-  // Create SVG marker with icon
-  const svg = `
-    <svg width="56" height="70" viewBox="0 0 56 70" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-          <feOffset dx="0" dy="2" result="offsetblur"/>
-          <feComponentTransfer>
-            <feFuncA type="linear" slope="0.3"/>
-          </feComponentTransfer>
-          <feMerge>
-            <feMergeNode/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      </defs>
+  // Create SVG marker with icon - simplified for better compatibility
+  const svg = `<svg width="56" height="70" viewBox="0 0 56 70" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow-${config.icon}" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="1" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <circle cx="28" cy="28" r="26" fill="${config.color}" opacity="0.2"/>
+  <circle cx="28" cy="28" r="28" fill="none" stroke="${colors.white}" stroke-width="4"/>
+  <circle cx="28" cy="28" r="24" fill="${config.color}"/>
+  <g transform="translate(10, 10) scale(0.055)">
+    <path d="${svgPath}" fill="${colors.white}"/>
+  </g>
+  <path d="M 28 56 L 20 68 L 36 68 Z" fill="${config.color}"/>
+</svg>`;
 
-      <!-- Shadow circle -->
-      <circle cx="28" cy="28" r="28" fill="${config.color}" filter="url(#shadow)"/>
+  const encodedSvg = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg.trim());
 
-      <!-- White border -->
-      <circle cx="28" cy="28" r="28" fill="none" stroke="${colors.white}" stroke-width="4"/>
+  console.log('[MapView Web] Creating icon for:', config.icon, 'color:', config.color);
 
-      <!-- Colored background -->
-      <circle cx="28" cy="28" r="24" fill="${config.color}"/>
+  const google = (window as any).google;
+  if (google?.maps) {
+    return {
+      url: encodedSvg,
+      scaledSize: new google.maps.Size(56, 70),
+      anchor: new google.maps.Point(28, 70),
+    };
+  }
 
-      <!-- Icon -->
-      <g transform="translate(14, 14) scale(0.04)">
-        <path d="${svgPath}" fill="${colors.white}"/>
-      </g>
-
-      <!-- Pin below -->
-      <path d="M 28 56 L 20 68 L 36 68 Z" fill="${config.color}"/>
-    </svg>
-  `;
-
-  const encodedSvg = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-
+  // Fallback si Google Maps aún no está cargado
   return {
     url: encodedSvg,
     scaledSize: { width: 56, height: 70 },
@@ -305,9 +304,17 @@ export const MapView: React.FC<MapViewProps> = ({
       if (child.type === Marker) {
         const { coordinate, title, description, children: markerChildren } = child.props;
 
+        console.log('[MapView Web] Processing marker:', {
+          coordinate,
+          title,
+          hasChildren: !!markerChildren
+        });
+
         // Si hay children personalizados (iconos custom), crear marker HTML
         if (markerChildren) {
           const markerConfig = extractMarkerConfig(markerChildren);
+          console.log('[MapView Web] Marker config extracted:', markerConfig);
+
           const customIcon = createCustomMarkerIcon(markerConfig);
 
           const marker = new google.maps.Marker({
@@ -316,6 +323,8 @@ export const MapView: React.FC<MapViewProps> = ({
             title: title || '',
             icon: customIcon,
           });
+
+          console.log('[MapView Web] Custom marker created at:', coordinate);
 
           if (title || description) {
             const infoWindow = new google.maps.InfoWindow({
@@ -334,6 +343,8 @@ export const MapView: React.FC<MapViewProps> = ({
             map: googleMapRef.current,
             title: title || '',
           });
+
+          console.log('[MapView Web] Standard marker created at:', coordinate);
 
           if (title || description) {
             const infoWindow = new google.maps.InfoWindow({
