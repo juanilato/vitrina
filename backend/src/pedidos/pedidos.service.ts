@@ -43,9 +43,10 @@ export class PedidosService {
 
       // Verificar que todos los productos existen y obtener ingredientes
       const productIds = createPedidoDto.items.map(item => item.productoId);
+      const uniqueProductIds = [...new Set(productIds)]; // Obtener IDs únicos
       const productos = await this.prisma.productos.findMany({
         where: {
-          id: { in: productIds },
+          id: { in: uniqueProductIds },
           empresaId: createPedidoDto.empresaId,
           activo: true
         },
@@ -58,7 +59,7 @@ export class PedidosService {
         }
       });
 
-      if (productos.length !== productIds.length) {
+      if (productos.length !== uniqueProductIds.length) {
         throw new BadRequestException('Algunos productos no existen o no están activos');
       }
 
