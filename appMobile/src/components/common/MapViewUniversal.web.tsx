@@ -288,6 +288,8 @@ export const MapView: React.FC<MapViewProps> = ({
     const google = (window as any).google;
     if (!google?.maps) return;
 
+    console.log('[MapView Web] Processing children, count:', Children.count(children));
+
     // Limpiar marcadores anteriores
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
@@ -300,8 +302,12 @@ export const MapView: React.FC<MapViewProps> = ({
     Children.forEach(children, (child: any) => {
       if (!child) return;
 
-      // Procesar Marker
-      if (child.type === Marker) {
+      console.log('[MapView Web] Child type:', child.type?.name || child.type, 'props:', Object.keys(child.props || {}));
+
+      // Procesar Marker - verificar tanto por referencia como por nombre
+      const isMarker = child.type === Marker || child.type?.name === 'Marker' || child.type?.displayName === 'Marker';
+
+      if (isMarker) {
         const { coordinate, title, description, children: markerChildren } = child.props;
 
         console.log('[MapView Web] Processing marker:', {
@@ -359,8 +365,10 @@ export const MapView: React.FC<MapViewProps> = ({
         }
       }
 
-      // Procesar Polyline
-      if (child.type === Polyline) {
+      // Procesar Polyline - verificar tanto por referencia como por nombre
+      const isPolyline = child.type === Polyline || child.type?.name === 'Polyline' || child.type?.displayName === 'Polyline';
+
+      if (isPolyline) {
         const { coordinates, strokeColor, strokeWidth } = child.props;
 
         if (coordinates && coordinates.length > 0) {
@@ -559,21 +567,33 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
 
     // Agregar nuevos marcadores
     markers.forEach((markerData) => {
+      // Determinar icono basado en el título o color
+      let customIcon: any = undefined;
+
+      if (markerData.color) {
+        // Mapear color a icono y tipo
+        let iconName = 'home';
+        if (markerData.title?.toLowerCase().includes('empresa') || markerData.title?.toLowerCase().includes('local')) {
+          iconName = 'storefront';
+        } else if (markerData.title?.toLowerCase().includes('repartidor') || markerData.title?.toLowerCase().includes('delivery')) {
+          iconName = 'bicycle';
+        } else if (markerData.title?.toLowerCase().includes('cliente') || markerData.title?.toLowerCase().includes('destino')) {
+          iconName = 'home';
+        }
+
+        // Crear icono personalizado
+        customIcon = createCustomMarkerIcon({
+          icon: iconName,
+          color: markerData.color,
+        });
+      }
+
       const marker = new google.maps.Marker({
         position: { lat: markerData.lat, lng: markerData.lng },
         map: googleMapRef.current,
         title: markerData.title || '',
         draggable: draggableMarker,
-        icon: markerData.color
-          ? {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: markerData.color,
-              fillOpacity: 1,
-              strokeColor: '#ffffff',
-              strokeWeight: 2,
-            }
-          : undefined,
+        icon: customIcon,
       });
 
       // Si el marcador es arrastrable, agregar evento de drag
