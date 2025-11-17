@@ -28,14 +28,18 @@ export class PedidosController {
   @Roles('cliente')
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createPedidoDto: CreatePedidoDto, @Request() req) {
+    // Debug logging
+    console.log('🔍 [Pedidos] User from JWT:', JSON.stringify(req.user, null, 2));
+    console.log('🔍 [Pedidos] User type:', req.user?.type);
+
     // Validar que el usuario esté autenticado
     if (!req.user || !req.user.id) {
       throw new Error('Usuario no autenticado o ID no disponible');
     }
-    
+
     // Asegurar que el cliente solo pueda crear pedidos para sí mismo
     createPedidoDto.clienteId = req.user.id;
-    
+
     return this.pedidosService.create(createPedidoDto);
   }
 

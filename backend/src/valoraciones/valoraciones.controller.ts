@@ -24,6 +24,10 @@ export class ValoracionesController {
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() createValoracionDto: CreateValoracionDto, @Request() req) {
+    // Debug logging
+    console.log('🔍 [Valoraciones] User from JWT:', JSON.stringify(req.user, null, 2));
+    console.log('🔍 [Valoraciones] User type:', req.user?.type);
+
     // Verificar que el usuario sea un cliente
     if (req.user.type !== 'cliente') {
       throw new Error('Solo los clientes pueden crear valoraciones');

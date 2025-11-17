@@ -85,14 +85,14 @@ const extractMarkerConfig = (children: any): { icon: string; color: string; labe
 
   findMarkerInfo(children);
 
-  // Mapear icono a color por defecto si no se encontró color específico
-  if (iconColor === colors.primary && iconName !== 'storefront') {
-    // Si el color sigue siendo primary pero el icono no es storefront, asignar color según icono
-    if (iconName === 'home') {
-      iconColor = colors.secondary; // Verde para casa/cliente
-    } else if (iconName === 'bicycle') {
-      iconColor = colors.orange; // Naranja para repartidor
-    }
+  // SIEMPRE mapear icono a color correcto basado en el tipo de icono
+  // Esto sobrescribe cualquier color detectado para asegurar consistencia
+  if (iconName === 'storefront') {
+    iconColor = colors.primary; // Azul para local/empresa
+  } else if (iconName === 'home') {
+    iconColor = colors.secondary; // Verde para casa/cliente
+  } else if (iconName === 'bicycle') {
+    iconColor = colors.orange; // Naranja para repartidor
   }
 
   console.log('[extractMarkerConfig] Resultado final:', { iconName, iconColor });
