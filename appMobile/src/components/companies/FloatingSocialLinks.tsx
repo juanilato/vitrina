@@ -1,6 +1,6 @@
 /**
  * FloatingSocialLinks Component
- * Botón flotante que despliega redes sociales con animación
+ * Botón flotante que despliega redes sociales con animación y scroll horizontal
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -11,6 +11,7 @@ import {
   Animated,
   Linking,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, shadows } from '../../theme';
@@ -119,45 +120,46 @@ export const FloatingSocialLinks: React.FC<FloatingSocialLinksProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Botones de redes sociales */}
-      {socialLinks.map((social, index) => {
-        const translateX = animations[index].interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, -(60 * (index + 1))],
-        });
-
-        const scale = animations[index].interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 1],
-        });
-
-        const opacity = animations[index];
-
-        return (
-          <Animated.View
-            key={social.key}
-            style={[
-              styles.socialButton,
-              {
-                transform: [{ translateX }, { scale }],
-                opacity,
-              },
-            ]}
+      {/* Scroll horizontal de redes sociales */}
+      {isExpanded && (
+        <Animated.View
+          style={[
+            styles.socialScrollContainer,
+            {
+              opacity: rotateAnim,
+              transform: [
+                {
+                  translateX: rotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [50, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.socialScrollContent}
           >
-            <TouchableOpacity
-              style={styles.socialButtonInner}
-              onPress={() => handleSocialPress(social)}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={getSocialIcon(social.key)}
-                size={20}
-                color={colors.text}
-              />
-            </TouchableOpacity>
-          </Animated.View>
-        );
-      })}
+            {socialLinks.map((social, index) => (
+              <TouchableOpacity
+                key={social.key}
+                style={styles.socialButtonNew}
+                onPress={() => handleSocialPress(social)}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={getSocialIcon(social.key)}
+                  size={22}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </Animated.View>
+      )}
 
       {/* Botón principal */}
       <TouchableOpacity
@@ -166,7 +168,7 @@ export const FloatingSocialLinks: React.FC<FloatingSocialLinksProps> = ({
         activeOpacity={0.8}
       >
         <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-          <Ionicons name="ellipsis-horizontal" size={20} color={colors.text} />
+          <Ionicons name="ellipsis-horizontal" size={22} color={colors.text} />
         </Animated.View>
       </TouchableOpacity>
     </View>
@@ -176,46 +178,61 @@ export const FloatingSocialLinks: React.FC<FloatingSocialLinksProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
-    right:-10,
+    top: spacing.md,
+    right: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.md,
     zIndex: 100,
   },
-  mainButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  socialScrollContainer: {
+    maxWidth: 250,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 24,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  socialButton: {
-    position: 'absolute',
-    right: 0,
+  socialScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
-  socialButtonInner: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+  socialButtonNew: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  mainButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
 });

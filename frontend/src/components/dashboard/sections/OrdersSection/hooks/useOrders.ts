@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
+import { useWebSocket } from '../../../../../hooks/useWebSocket';
 import pedidosService from '../../../../../services/pedidosService';
 import { PedidoWithDetails, OrdersStats } from '../types';
 
 export const useOrders = () => {
   const { user } = useAuthOptimized();
+  const { socket, isConnected } = useWebSocket();
   const [orders, setOrders] = useState<PedidoWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,48 @@ export const useOrders = () => {
       loadOrders();
     }
   }, [user?.id, loadOrders]);
+
+  // Escuchar actualizaciones en tiempo real de pedidos
+  useEffect(() => {
+    if (!socket || !isConnected || !user?.id) return;
+
+    console.log('🔌 [ORDERS HOOK] Configurando listeners de WebSocket para actualizaciones de pedidos');
+
+    const handlePedidoActualizado = (data: any) => {
+      console.log('📨 [ORDERS HOOK] Pedido actualizado recibido:', data);
+
+      // Actualizar el pedido en la lista local
+      setOrders(prevOrders => {
+        const orderIndex = prevOrders.findIndex(o => o.id === data.pedidoId);
+        if (orderIndex !== -1) {
+          const updatedOrders = [...prevOrders];
+          updatedOrders[orderIndex] = {
+            ...updatedOrders[orderIndex],
+            ...data.pedido,
+            estado: data.nuevoEstado
+          };
+          console.log('✅ [ORDERS HOOK] Pedido actualizado en lista local');
+          return updatedOrders;
+        }
+        return prevOrders;
+      });
+
+      // Recargar estadísticas
+      if (user?.id) {
+        pedidosService.getPedidosStats(user.id).then(newStats => {
+          setStats(newStats);
+          console.log('📊 [ORDERS HOOK] Estadísticas actualizadas');
+        });
+      }
+    };
+
+    socket.on('pedido_actualizado', handlePedidoActualizado);
+
+    return () => {
+      console.log('🚫 [ORDERS HOOK] Removiendo listeners de WebSocket');
+      socket.off('pedido_actualizado', handlePedidoActualizado);
+    };
+  }, [socket, isConnected, user?.id]);
 
   const handleUpdateOrderStatus = async (
     pedidoId: string, 

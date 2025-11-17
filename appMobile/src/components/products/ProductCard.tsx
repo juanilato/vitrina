@@ -112,9 +112,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: normalize(12),
+    borderRadius: normalize(10),
     overflow: 'hidden',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: `${colors.gray100}80`,
+    height: normalize(90),
   },
 
   inactiveContainer: {
@@ -129,8 +130,8 @@ const styles = StyleSheet.create({
   },
 
   imageContainer: {
-    width: normalize(80),
-    height: normalize(80),
+    width: normalize(90),
+    height: normalize(90),
     position: 'relative',
   },
 
@@ -163,7 +164,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     gap: spacing.xs,
   },
 

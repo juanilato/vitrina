@@ -643,7 +643,7 @@ export class PedidosService {
             pedidoActualizado.total
           );
 
-          // Enviar notificación por WebSocket
+          // Enviar notificación por WebSocket al cliente
           await this.webSocketGateway.sendNotificationToUser(
             pedidoActualizado.clienteId,
             notification
@@ -659,6 +659,22 @@ export class PedidosService {
             pedidoActualizado.clienteId,
             clienteUnreadCount
           );
+
+          // Notificar a la empresa sobre el cambio de estado del pedido
+          console.log(`📤 [PEDIDOS] Enviando actualización de pedido a empresa: ${pedidoActualizado.empresaId}`);
+          const empresaSocketId = this.webSocketGateway['connectedUsers'].get(pedidoActualizado.empresaId);
+          if (empresaSocketId) {
+            this.webSocketGateway.server.to(empresaSocketId).emit('pedido_actualizado', {
+              pedidoId: pedidoActualizado.id,
+              nuevoEstado: newStatus,
+              estadoAnterior: oldStatus,
+              pedido: pedidoActualizado
+            });
+            console.log(`✅ [PEDIDOS] Actualización enviada a empresa`);
+          } else {
+            console.log(`⚠️ [PEDIDOS] Empresa ${pedidoActualizado.empresaId} no conectada por WebSocket`);
+          }
+
         } catch (notificationError) {
           console.error('Error enviando notificación de cambio de estado:', notificationError);
           // No lanzar error para no interrumpir la actualización del pedido
@@ -1087,6 +1103,21 @@ export class PedidosService {
         await this.webSocketGateway.sendNotificationCountUpdate(pedido.empresaId, empresaUnreadCount);
         await this.webSocketGateway.sendNotificationCountUpdate(pedido.clienteId, clienteUnreadCount);
 
+        // Notificar a la empresa sobre el cambio de estado del pedido en tiempo real
+        console.log(`📤 [PEDIDOS] Enviando actualización de pedido en camino a empresa: ${pedido.empresaId}`);
+        const empresaSocketId = this.webSocketGateway['connectedUsers'].get(pedido.empresaId);
+        if (empresaSocketId) {
+          this.webSocketGateway.server.to(empresaSocketId).emit('pedido_actualizado', {
+            pedidoId: pedidoActualizado.id,
+            nuevoEstado: 'en_camino',
+            estadoAnterior: 'esperando_delivery',
+            pedido: pedidoActualizado
+          });
+          console.log(`✅ [PEDIDOS] Actualización enviada a empresa`);
+        } else {
+          console.log(`⚠️ [PEDIDOS] Empresa ${pedido.empresaId} no conectada por WebSocket`);
+        }
+
       } catch (notificationError) {
         console.error('Error enviando notificaciones de en_camino:', notificationError);
       }
@@ -1274,6 +1305,21 @@ export class PedidosService {
 
         await this.webSocketGateway.sendNotificationCountUpdate(pedido.empresaId, empresaUnreadCount);
         await this.webSocketGateway.sendNotificationCountUpdate(pedido.clienteId, clienteUnreadCount);
+
+        // Notificar a la empresa sobre el cambio de estado del pedido en tiempo real
+        console.log(`📤 [PEDIDOS] Enviando actualización de pedido entregado a empresa: ${pedido.empresaId}`);
+        const empresaSocketId = this.webSocketGateway['connectedUsers'].get(pedido.empresaId);
+        if (empresaSocketId) {
+          this.webSocketGateway.server.to(empresaSocketId).emit('pedido_actualizado', {
+            pedidoId: pedidoActualizado.id,
+            nuevoEstado: 'entregado',
+            estadoAnterior: 'en_camino',
+            pedido: pedidoActualizado
+          });
+          console.log(`✅ [PEDIDOS] Actualización enviada a empresa`);
+        } else {
+          console.log(`⚠️ [PEDIDOS] Empresa ${pedido.empresaId} no conectada por WebSocket`);
+        }
 
       } catch (notificationError) {
         console.error('Error enviando notificaciones de entregado:', notificationError);

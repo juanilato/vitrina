@@ -3,7 +3,7 @@
  * Muestra los productos de una empresa específica con todas sus preferencias
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,8 @@ import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/th
 import { Product, Agregado } from '../../src/types/company';
 import { CartIngredienteExtra } from '../../src/types/cart';
 import { Animated, Easing, LayoutAnimation, Platform, UIManager } from 'react-native';
+import ratingService from '../../src/services/rating.service';
+import { RatingStars } from '../../src/components/common/RatingStars';
 export default function CompanyStoreScreen() {
   const { companyName } = useLocalSearchParams<{ companyName: string }>();
   const router = useRouter();
@@ -46,11 +48,27 @@ export default function CompanyStoreScreen() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [socialLinksExpanded, setSocialLinksExpanded] = useState(false);
+  const [companyRating, setCompanyRating] = useState<{ promedio: number; totalValoraciones: number } | null>(null);
 
   const buttonColor = useMemo(
     () => company?.preferenciasWeb?.colorBotones || colors.primary,
     [company]
   );
+
+  // Cargar promedio de calificaciones
+  useEffect(() => {
+    if (company?.id) {
+      ratingService.getCompanyAverage(company.id)
+        .then((data) => {
+          if (data.totalValoraciones > 0) {
+            setCompanyRating(data);
+          }
+        })
+        .catch((error) => {
+          console.error('Error loading company rating:', error);
+        });
+    }
+  }, [company?.id]);
 
     if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -216,17 +234,9 @@ export default function CompanyStoreScreen() {
                 {/* Company Info Centrado */}
  {/* Branding iOS SOFT */}
 <View style={styles.brandingSoft}>
-  {/* Avatar sobrio (sin halos, sin ring) */}
+  {/* Avatar limpio sin borde blanco */}
   {company.logo ? (
-    <View
-      style={[
-        styles.brandAvatar,
-        {
-          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
-          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
-        },
-      ]}
-    >
+    <View style={styles.brandAvatar}>
       <Image source={{ uri: company.logo }} style={styles.brandAvatarImg} />
     </View>
   ) : (
@@ -234,12 +244,11 @@ export default function CompanyStoreScreen() {
       style={[
         styles.brandAvatar,
         {
-          borderColor: fondoOscuro ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.08)',
-          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)',
+          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
         },
       ]}
     >
-      <Text style={[styles.brandAvatarMono, { color: fondoOscuro ? '#111' : '#222' }]}>
+      <Text style={[styles.brandAvatarMono, { color: textoColor }]}>
         {company.name?.slice(0, 2)?.toUpperCase() ?? 'E'}
       </Text>
     </View>
@@ -252,6 +261,16 @@ export default function CompanyStoreScreen() {
   >
     {company.name}
   </Text>
+
+  {/* Calificación promedio */}
+  {companyRating && companyRating.totalValoraciones > 0 && (
+    <View style={styles.ratingContainer}>
+      <RatingStars rating={companyRating.promedio} size="sm" readonly />
+      <Text style={[styles.ratingText, { color: textoColor }]}>
+        {companyRating.promedio.toFixed(1)} ({companyRating.totalValoraciones} {companyRating.totalValoraciones === 1 ? 'valoración' : 'valoraciones'})
+      </Text>
+    </View>
+  )}
 
   {/* Acento de color MUY sutil */}
 
@@ -314,6 +333,16 @@ export default function CompanyStoreScreen() {
                   <Text numberOfLines={2} style={[styles.titleClean, { color: textoColor }]}>
                     {company.name}
                   </Text>
+
+                  {/* Calificación promedio */}
+                  {companyRating && companyRating.totalValoraciones > 0 && (
+                    <View style={styles.ratingContainer}>
+                      <RatingStars rating={companyRating.promedio} size="sm" readonly />
+                      <Text style={[styles.ratingText, { color: textoColor }]}>
+                        {companyRating.promedio.toFixed(1)} ({companyRating.totalValoraciones} {companyRating.totalValoraciones === 1 ? 'valoración' : 'valoraciones'})
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </SafeAreaView>
             </LinearGradient>
@@ -502,32 +531,51 @@ const styles = StyleSheet.create({
 
 brandTitleSoft: {
   ...textStyles.title2,
-  fontWeight: '700',
-  fontSize: 20,
-  letterSpacing: -0.2,
+  fontWeight: '800',
+  fontSize: 22,
+  letterSpacing: -0.3,
   textAlign: 'center',
-  marginTop: 4,                 // antes 6
-  marginBottom: spacing.xs,     // NUEVO: empuja un poco hacia abajo para “pegar” al contenido
+  marginTop: 4,
+  marginBottom: spacing.xs,
+  textShadowColor: 'rgba(0, 0, 0, 0.5)',
+  textShadowOffset: { width: 0, height: 2 },
+  textShadowRadius: 8,
 },
 
-// (opcional) achicar un toque el avatar para que todo quede más compacto
+// Rating container
+ratingContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: spacing.xs,
+  marginTop: spacing.xs,
+},
+ratingText: {
+  fontSize: 12,
+  fontWeight: '600',
+  textShadowColor: 'rgba(0, 0, 0, 0.4)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+},
+
+// Avatar limpio sin borde blanco
 brandAvatar: {
-  width: 72,                    // antes 76
-  height: 72,                   // antes 76
-  borderRadius: 36,
-  borderWidth: 1,
+  width: 76,
+  height: 76,
+  borderRadius: 38,
   alignItems: 'center',
   justifyContent: 'center',
   shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 }, // más suave
-  shadowOpacity: 0.08,
-  shadowRadius: 5,
-  elevation: 2,
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.15,
+  shadowRadius: 8,
+  elevation: 4,
+  overflow: 'hidden',
 },
 brandAvatarImg: {
-  width: 60,                    // antes 64
-  height: 60,                   // antes 64
-  borderRadius: 30,
+  width: 76,
+  height: 76,
+  borderRadius: 38,
   resizeMode: 'cover',
 },
 headerFormal: {

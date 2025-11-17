@@ -6,12 +6,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { RATING_REQUEST_DELAY } from '../utils/constants';
 import ratingService from '../services/rating.service';
+import { PedidoWithDetails } from '../types/order';
 
 interface Order {
   id: string;
   estado: string;
   entregadoAt?: string;
-  empresa: {
+  empresa?: {
     name: string;
   };
   tipoEntrega: 'delivery' | 'retiro';
@@ -31,7 +32,7 @@ interface UseRatingRequestResult {
   markAsRated: () => void;
 }
 
-export const useRatingRequest = (orders: Order[]): UseRatingRequestResult => {
+export const useRatingRequest = (orders: PedidoWithDetails[]): UseRatingRequestResult => {
   const [shouldShowRatingModal, setShouldShowRatingModal] = useState(false);
   const [orderToRate, setOrderToRate] = useState<Order | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);

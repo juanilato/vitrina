@@ -21,6 +21,7 @@ import { OrderCard } from '../../src/components/orders/OrderCard';
 import { EmptyState } from '../../src/components/common/EmptyState';
 import { colors, spacing } from '../../src/theme';
 import { textStyles as typography } from '../../src/theme/typography';
+import { useRatingRequest, RatingModal } from '../../src/components/ratings';
 
 type FilterOption = 'all' | 'active' | 'completed' | 'cancelled';
 
@@ -49,6 +50,9 @@ export default function OrdersScreen() {
     filter,
     setFilter,
   } = useOrders();
+
+  // Sistema de calificación de pedidos
+  const { shouldShowRatingModal, orderToRate, dismissRatingRequest, markAsRated } = useRatingRequest(orders);
 
   // Obtener estadísticas de pedidos
   const getOrderStats = () => {
@@ -249,6 +253,22 @@ export default function OrdersScreen() {
             />
           }
           showsVerticalScrollIndicator={false}
+        />
+      )}
+
+      {/* Modal de calificación */}
+      {shouldShowRatingModal && orderToRate && (
+        <RatingModal
+          visible={shouldShowRatingModal}
+          onClose={dismissRatingRequest}
+          pedidoId={orderToRate.id}
+          empresaNombre={orderToRate.empresa?.name || 'la empresa'}
+          tipoEntrega={orderToRate.tipoEntrega}
+          productos={orderToRate.ItemPedido || []}
+          onSuccess={() => {
+            markAsRated();
+            refresh(); // Refrescar pedidos después de calificar
+          }}
         />
       )}
     </SafeAreaView>
