@@ -121,6 +121,21 @@ export default function OrderDetailScreen() {
     }
   };
 
+  // Helper para parsear ingredientes extras si vienen como string
+  const parseIngredientesExtras = (extras: any) => {
+    if (!extras) return [];
+    if (Array.isArray(extras)) return extras;
+    if (typeof extras === 'string') {
+      try {
+        return JSON.parse(extras);
+      } catch (e) {
+        console.error('Error parseando ingredientesExtras:', e);
+        return [];
+      }
+    }
+    return [];
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -360,29 +375,33 @@ export default function OrderDetailScreen() {
               <Text style={styles.cardTitle}>Productos ({order.items?.length || 0})</Text>
             </View>
             {order.items && order.items.length > 0 ? (
-              order.items.map((item, index) => (
-                <View key={index} style={[styles.productRow, index < order.items!.length - 1 && styles.productBorder]}>
-                  <View style={styles.qtyBadge}>
-                    <Text style={styles.qtyText}>{item.cantidad}</Text>
+              order.items.map((item, index) => {
+                const ingredientesExtras = parseIngredientesExtras(item.ingredientesExtras);
+
+                return (
+                  <View key={index} style={[styles.productRow, index < order.items!.length - 1 && styles.productBorder]}>
+                    <View style={styles.qtyBadge}>
+                      <Text style={styles.qtyText}>{item.cantidad}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.productName} numberOfLines={2}>{item.producto?.name || 'Producto'}</Text>
+                      {ingredientesExtras.length > 0 && (
+                        <View style={styles.extrasContainer}>
+                          {ingredientesExtras.map((extra: any, extraIndex: number) => (
+                            <Text key={extraIndex} style={styles.extraText}>
+                              + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
+                      {item.notas && (
+                        <Text style={styles.notasText}>Nota: {item.notas}</Text>
+                      )}
+                    </View>
+                    <Text style={styles.productPrice}>${((item.precioUnitario || item.precio) * item.cantidad).toFixed(2)}</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.productName} numberOfLines={2}>{item.producto?.name || 'Producto'}</Text>
-                    {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
-                      <View style={styles.extrasContainer}>
-                        {item.ingredientesExtras.map((extra, extraIndex) => (
-                          <Text key={extraIndex} style={styles.extraText}>
-                            + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
-                          </Text>
-                        ))}
-                      </View>
-                    )}
-                    {item.notas && (
-                      <Text style={styles.notasText}>Nota: {item.notas}</Text>
-                    )}
-                  </View>
-                  <Text style={styles.productPrice}>${((item.precioUnitario || item.precio) * item.cantidad).toFixed(2)}</Text>
-                </View>
-              ))
+                );
+              })
             ) : (
               <Text style={styles.emptyText}>No hay productos</Text>
             )}

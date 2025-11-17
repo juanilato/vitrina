@@ -49,6 +49,21 @@ const OrderModal: React.FC<OrderModalProps> = ({
 
   if (!pedido) return null;
 
+  // Helper para parsear ingredientes extras si vienen como string
+  const parseIngredientesExtras = (extras: any) => {
+    if (!extras) return [];
+    if (Array.isArray(extras)) return extras;
+    if (typeof extras === 'string') {
+      try {
+        return JSON.parse(extras);
+      } catch (e) {
+        console.error('Error parseando ingredientesExtras:', e);
+        return [];
+      }
+    }
+    return [];
+  };
+
   const downloadFoto = () => {
     if (!transferenciaFoto) return;
     const link = document.createElement('a');
@@ -281,40 +296,44 @@ const OrderModal: React.FC<OrderModalProps> = ({
             </h3>
 
             <div className="order-modal-items-list">
-              {pedido.items?.map((item, index) => (
-                <div key={item.id} className="order-modal-item-row">
-                  <div className="order-modal-item-info">
-                    <div className="order-modal-item-name">
-                      {item.producto?.nombre || 'Producto no disponible'}
-                    </div>
-                    <div className="order-modal-item-qty">
-                      {item.cantidad} × ${item.precio.toFixed(2)}
-                    </div>
-                    {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
-                      <div className="order-modal-item-extras">
-                        {item.ingredientesExtras.map((extra, extraIndex) => (
-                          <div key={extraIndex} className="order-modal-item-extra">
-                            + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
-                            {extra.precioExtra && extra.precioExtra > 0 && (
-                              <span className="order-modal-extra-price">
-                                (+${extra.precioExtra.toFixed(2)})
-                              </span>
-                            )}
-                          </div>
-                        ))}
+              {pedido.items?.map((item, index) => {
+                const ingredientesExtras = parseIngredientesExtras(item.ingredientesExtras);
+
+                return (
+                  <div key={item.id} className="order-modal-item-row">
+                    <div className="order-modal-item-info">
+                      <div className="order-modal-item-name">
+                        {item.producto?.nombre || 'Producto no disponible'}
                       </div>
-                    )}
-                    {item.notas && (
-                      <div className="order-modal-item-notes">
-                        💬 "{item.notas}"
+                      <div className="order-modal-item-qty">
+                        {item.cantidad} × ${item.precio.toFixed(2)}
                       </div>
-                    )}
+                      {ingredientesExtras.length > 0 && (
+                        <div className="order-modal-item-extras">
+                          {ingredientesExtras.map((extra: any, extraIndex: number) => (
+                            <div key={extraIndex} className="order-modal-item-extra">
+                              + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
+                              {extra.precioExtra && extra.precioExtra > 0 && (
+                                <span className="order-modal-extra-price">
+                                  (+${extra.precioExtra.toFixed(2)})
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {item.notas && (
+                        <div className="order-modal-item-notes">
+                          💬 "{item.notas}"
+                        </div>
+                      )}
+                    </div>
+                    <div className="order-modal-item-subtotal">
+                      ${(item.precio * item.cantidad).toFixed(2)}
+                    </div>
                   </div>
-                  <div className="order-modal-item-subtotal">
-                    ${(item.precio * item.cantidad).toFixed(2)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Totales */}
