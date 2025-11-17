@@ -365,7 +365,21 @@ export default function OrderDetailScreen() {
                   <View style={styles.qtyBadge}>
                     <Text style={styles.qtyText}>{item.cantidad}</Text>
                   </View>
-                  <Text style={styles.productName} numberOfLines={2}>{item.producto?.name || 'Producto'}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.productName} numberOfLines={2}>{item.producto?.name || 'Producto'}</Text>
+                    {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
+                      <View style={styles.extrasContainer}>
+                        {item.ingredientesExtras.map((extra, extraIndex) => (
+                          <Text key={extraIndex} style={styles.extraText}>
+                            + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                    {item.notas && (
+                      <Text style={styles.notasText}>Nota: {item.notas}</Text>
+                    )}
+                  </View>
                   <Text style={styles.productPrice}>${((item.precioUnitario || item.precio) * item.cantidad).toFixed(2)}</Text>
                 </View>
               ))
@@ -550,12 +564,15 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   companyAddress: { ...typography.caption1, color: colors.gray600, flex: 1 },
 
-  productRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
+  productRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.xs },
   productBorder: { borderBottomWidth: 1, borderBottomColor: colors.gray100 },
-  qtyBadge: { width: 24, height: 24, borderRadius: 6, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  qtyBadge: { width: 24, height: 24, borderRadius: 6, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   qtyText: { ...typography.caption2, color: colors.white, fontWeight: '700' },
-  productName: { ...typography.bodySmall, color: colors.gray900, flex: 1 },
-  productPrice: { ...typography.bodyMedium, fontWeight: '700', color: colors.gray900 },
+  productName: { ...typography.bodySmall, color: colors.gray900 },
+  productPrice: { ...typography.bodyMedium, fontWeight: '700', color: colors.gray900, marginTop: 2 },
+  extrasContainer: { marginTop: 4, gap: 2 },
+  extraText: { ...typography.caption1, color: colors.gray600, fontStyle: 'italic' },
+  notasText: { ...typography.caption1, color: colors.gray600, marginTop: 4, fontStyle: 'italic' },
 
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   infoLabel: { ...typography.caption1, color: colors.gray600, textTransform: 'uppercase', letterSpacing: 0.5 },

@@ -1,3 +1,13 @@
+export interface IngredienteExtra {
+  productoIngredienteId: number;
+  cantidad: number;
+  ingrediente?: {
+    id: string;
+    nombre: string;
+  };
+  precioExtra?: number;
+}
+
 export interface ItemPedido {
   id: string;
   pedidoId: string;
@@ -5,10 +15,7 @@ export interface ItemPedido {
   cantidad: number;
   precio: number;
   notas?: string;
-  ingredientesExtras?: Array<{
-    productoIngredienteId: number;
-    cantidad: number;
-  }>;
+  ingredientesExtras?: IngredienteExtra[];
   producto?: {
     id: string;
     nombre: string;

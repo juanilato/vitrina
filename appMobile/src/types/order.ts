@@ -50,6 +50,16 @@ export interface Pedido {
   updatedAt: string;
 }
 
+export interface IngredienteExtra {
+  productoIngredienteId: number;
+  cantidad: number;
+  ingrediente?: {
+    id: string;
+    nombre: string;
+  };
+  precioExtra?: number;
+}
+
 export interface ItemPedido {
   id: string;
   pedidoId: string;
@@ -57,6 +67,8 @@ export interface ItemPedido {
   cantidad: number;
   precio: number;
   precioUnitario: number;
+  notas?: string;
+  ingredientesExtras?: IngredienteExtra[];
   producto?: Product;
 }
 

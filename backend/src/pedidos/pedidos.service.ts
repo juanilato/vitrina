@@ -288,7 +288,7 @@ export class PedidosService {
       });
 
       // Convertir Decimal a number para compatibilidad con el frontend
-      return pedidos.map(pedido => ({
+      return await Promise.all(pedidos.map(async (pedido) => ({
         id: pedido.id,
         clienteId: pedido.clienteId,
         clienteNombre: cliente.name,
@@ -310,22 +310,56 @@ export class PedidosService {
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         empresa: pedido.empresa,
-        items: pedido.ItemPedido.map(item => ({
-          id: item.id,
-          pedidoId: item.pedidoId,
-          productoId: item.productoId,
-          cantidad: item.cantidad,
-          precio: parseFloat(item.precio.toString()), // Convert Decimal to number
-          notas: item.notas || undefined,
-          ingredientesExtras: item.ingredientesExtras ? JSON.parse(JSON.stringify(item.ingredientesExtras)) : undefined,
-          producto: {
-            id: item.producto.id,
-            nombre: item.producto.nombre,
-            name: item.producto.nombre, // Alias for frontend compatibility
-            precio: parseFloat(item.producto.precio.toString()), // Convert Decimal to number
+        items: await Promise.all(pedido.ItemPedido.map(async (item) => {
+          let ingredientesExtrasDetallados = undefined;
+
+          if (item.ingredientesExtras) {
+            const extrasArray = JSON.parse(JSON.stringify(item.ingredientesExtras));
+            if (Array.isArray(extrasArray) && extrasArray.length > 0) {
+              ingredientesExtrasDetallados = await Promise.all(
+                extrasArray.map(async (extra: any) => {
+                  const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
+                    where: { id: extra.productoIngredienteId },
+                    include: {
+                      ingrediente: {
+                        select: {
+                          id: true,
+                          nombre: true
+                        }
+                      }
+                    }
+                  });
+
+                  return {
+                    productoIngredienteId: extra.productoIngredienteId,
+                    cantidad: extra.cantidad,
+                    ingrediente: productoIngrediente?.ingrediente,
+                    precioExtra: productoIngrediente?.precioExtra
+                      ? parseFloat(productoIngrediente.precioExtra.toString())
+                      : undefined
+                  };
+                })
+              );
+            }
           }
+
+          return {
+            id: item.id,
+            pedidoId: item.pedidoId,
+            productoId: item.productoId,
+            cantidad: item.cantidad,
+            precio: parseFloat(item.precio.toString()),
+            notas: item.notas || undefined,
+            ingredientesExtras: ingredientesExtrasDetallados,
+            producto: {
+              id: item.producto.id,
+              nombre: item.producto.nombre,
+              name: item.producto.nombre,
+              precio: parseFloat(item.producto.precio.toString())
+            }
+          };
         })),
-      }));
+      })));
     } catch (error) {
       throw new BadRequestException('Error al obtener pedidos del cliente');
     }
@@ -359,7 +393,7 @@ export class PedidosService {
         orderBy: { createdAt: 'desc' }
       });
 
-      return pedidos.map((pedido) => ({
+      return await Promise.all(pedidos.map(async (pedido) => ({
         id: pedido.id,
         clienteId: pedido.clienteId,
         empresaId: pedido.empresaId,
@@ -379,22 +413,56 @@ export class PedidosService {
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
-        items: pedido.ItemPedido.map(item => ({
-          id: item.id,
-          pedidoId: item.pedidoId,
-          productoId: item.productoId,
-          cantidad: item.cantidad,
-          precio: parseFloat(item.precio.toString()),
-          notas: item.notas || undefined,
-          ingredientesExtras: item.ingredientesExtras ? JSON.parse(JSON.stringify(item.ingredientesExtras)) : undefined,
-          producto: {
-            id: item.producto.id,
-            nombre: item.producto.nombre,
-            name: item.producto.nombre, // Alias for frontend compatibility
-            precio: parseFloat(item.producto.precio.toString())
+        items: await Promise.all(pedido.ItemPedido.map(async (item) => {
+          let ingredientesExtrasDetallados = undefined;
+
+          if (item.ingredientesExtras) {
+            const extrasArray = JSON.parse(JSON.stringify(item.ingredientesExtras));
+            if (Array.isArray(extrasArray) && extrasArray.length > 0) {
+              ingredientesExtrasDetallados = await Promise.all(
+                extrasArray.map(async (extra: any) => {
+                  const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
+                    where: { id: extra.productoIngredienteId },
+                    include: {
+                      ingrediente: {
+                        select: {
+                          id: true,
+                          nombre: true
+                        }
+                      }
+                    }
+                  });
+
+                  return {
+                    productoIngredienteId: extra.productoIngredienteId,
+                    cantidad: extra.cantidad,
+                    ingrediente: productoIngrediente?.ingrediente,
+                    precioExtra: productoIngrediente?.precioExtra
+                      ? parseFloat(productoIngrediente.precioExtra.toString())
+                      : undefined
+                  };
+                })
+              );
+            }
           }
+
+          return {
+            id: item.id,
+            pedidoId: item.pedidoId,
+            productoId: item.productoId,
+            cantidad: item.cantidad,
+            precio: parseFloat(item.precio.toString()),
+            notas: item.notas || undefined,
+            ingredientesExtras: ingredientesExtrasDetallados,
+            producto: {
+              id: item.producto.id,
+              nombre: item.producto.nombre,
+              name: item.producto.nombre,
+              precio: parseFloat(item.producto.precio.toString())
+            }
+          };
         })),
-      }));
+      })));
     } catch (error) {
       console.error('Error obteniendo pedidos:', error);
       throw error;
@@ -470,20 +538,54 @@ export class PedidosService {
           logo: pedido.empresa.logo,
           address: pedido.empresa.ubicacion?.direccion
         },
-        items: pedido.ItemPedido.map(item => ({
-          id: item.id,
-          pedidoId: item.pedidoId,
-          productoId: item.productoId,
-          cantidad: item.cantidad,
-          precio: parseFloat(item.precio.toString()),
-          notas: item.notas || undefined,
-          ingredientesExtras: item.ingredientesExtras ? JSON.parse(JSON.stringify(item.ingredientesExtras)) : undefined,
-          producto: {
-            id: item.producto.id,
-            nombre: item.producto.nombre,
-            name: item.producto.nombre, // Alias for frontend compatibility
-            precio: parseFloat(item.producto.precio.toString())
+        items: await Promise.all(pedido.ItemPedido.map(async (item) => {
+          let ingredientesExtrasDetallados = undefined;
+
+          if (item.ingredientesExtras) {
+            const extrasArray = JSON.parse(JSON.stringify(item.ingredientesExtras));
+            if (Array.isArray(extrasArray) && extrasArray.length > 0) {
+              ingredientesExtrasDetallados = await Promise.all(
+                extrasArray.map(async (extra: any) => {
+                  const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
+                    where: { id: extra.productoIngredienteId },
+                    include: {
+                      ingrediente: {
+                        select: {
+                          id: true,
+                          nombre: true
+                        }
+                      }
+                    }
+                  });
+
+                  return {
+                    productoIngredienteId: extra.productoIngredienteId,
+                    cantidad: extra.cantidad,
+                    ingrediente: productoIngrediente?.ingrediente,
+                    precioExtra: productoIngrediente?.precioExtra
+                      ? parseFloat(productoIngrediente.precioExtra.toString())
+                      : undefined
+                  };
+                })
+              );
+            }
           }
+
+          return {
+            id: item.id,
+            pedidoId: item.pedidoId,
+            productoId: item.productoId,
+            cantidad: item.cantidad,
+            precio: parseFloat(item.precio.toString()),
+            notas: item.notas || undefined,
+            ingredientesExtras: ingredientesExtrasDetallados,
+            producto: {
+              id: item.producto.id,
+              nombre: item.producto.nombre,
+              name: item.producto.nombre, // Alias for frontend compatibility
+              precio: parseFloat(item.producto.precio.toString())
+            }
+          };
         })),
       } as any;
     } catch (error) {

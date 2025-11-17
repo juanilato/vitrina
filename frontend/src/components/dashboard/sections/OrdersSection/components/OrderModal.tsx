@@ -290,6 +290,20 @@ const OrderModal: React.FC<OrderModalProps> = ({
                     <div className="order-modal-item-qty">
                       {item.cantidad} × ${item.precio.toFixed(2)}
                     </div>
+                    {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
+                      <div className="order-modal-item-extras">
+                        {item.ingredientesExtras.map((extra, extraIndex) => (
+                          <div key={extraIndex} className="order-modal-item-extra">
+                            + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
+                            {extra.precioExtra && extra.precioExtra > 0 && (
+                              <span className="order-modal-extra-price">
+                                (+${extra.precioExtra.toFixed(2)})
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {item.notas && (
                       <div className="order-modal-item-notes">
                         💬 "{item.notas}"
