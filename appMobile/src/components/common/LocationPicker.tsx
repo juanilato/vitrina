@@ -234,7 +234,7 @@ export function LocationPicker({
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={28} color={colors.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Seleccionar ubicación</Text>
+          <Text style={styles.headerTitle}>Seleccionar ubicación 121231321</Text>
           <View style={{ width: 28 }} />
         </View>
 

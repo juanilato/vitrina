@@ -26,6 +26,7 @@ import { colors, textStyles, spacing } from '../../theme';
 import { useLocation } from '../../contexts/LocationContext';
 import { locationService } from '../../services/location.service';
 import { useAuth } from '../../contexts/AuthContext';
+import { MapViewPickerWeb } from '../common/MapViewPicker.web';
 
 const { width } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(width * 0.7, 320);
@@ -385,24 +386,20 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
 
             {Platform.OS === 'web' ? (
               // Mapa para WEB con Google Maps
-              <MapFallback
-                height={600}
-                markers={[
-                  {
-                    lat: newCoords.lat,
-                    lng: newCoords.lng,
-                    title: 'Ubicación seleccionada',
-                    color: '#F26B1D',
-                  },
-                ]}
-                center={{ lat: newCoords.lat, lng: newCoords.lng }}
-                zoom={15}
-                onMapClick={async (lat: number, lng: number) => {
-                  setNewCoords({ lat, lng });
-                  await updateAddressFromCoords(lat, lng);
-                }}
-                draggableMarker={true}
-              />
+<MapViewPickerWeb
+  height={600}
+  lat={newCoords.lat}
+  lng={newCoords.lng}
+  onChange={async (lat, lng) => {
+    setNewCoords({ lat, lng });
+    await updateAddressFromCoords(lat, lng);
+  }}
+  onUseMyLocation={async (lat, lng) => {
+    setNewCoords({ lat, lng });
+    await updateAddressFromCoords(lat, lng);
+  }}
+/>
+
             ) : (
               // Mapa para MOBILE con react-native-maps
               <MapView

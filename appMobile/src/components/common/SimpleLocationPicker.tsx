@@ -198,9 +198,9 @@ export function SimpleLocationPicker({
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={28} color={colors.gray900} />
+            <Ionicons name="close" size={80} color={colors.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Seleccionar ubicación</Text>
+          <Text style={styles.headerTitle}>Seleccionar ubicación 2</Text>
           <View style={{ width: 28 }} />
         </View>
 
