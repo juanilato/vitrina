@@ -780,6 +780,8 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
           name: true,
           email: true,
           logo: true,
+          alias: true,
+          redesSociales: true,
           isVerified: true,
           createdAt: true,
           updatedAt: true,
@@ -805,7 +807,8 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
         preferenciasWeb: {
                     select: {
                      
-                      dashboardFoto: true,
+                      dashboardFoto: true,
+                      horarios: true,
                
                     },
         },
@@ -861,6 +864,8 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
           name: true,
           email: true,
           logo: true,
+          alias: true,
+          redesSociales: true,
           isVerified: true,
           createdAt: true,
           updatedAt: true,
@@ -886,6 +891,7 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
           preferenciasWeb: {
             select: {
               dashboardFoto: true,
+              horarios: true,
             },
           },
           ubicacion: {

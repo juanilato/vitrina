@@ -305,9 +305,9 @@ export class PedidosService {
         repartidorLat: pedido.repartidorLat,
         repartidorLng: pedido.repartidorLng,
         repartidorUltActualizacion: pedido.repartidorUltActualizacion,
-        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
-        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
-        total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
+        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : 0,
+        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
+        total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         empresa: pedido.empresa,
@@ -373,15 +373,15 @@ export class PedidosService {
             pedidoId: item.pedidoId,
             productoId: item.productoId,
             cantidad: item.cantidad,
-            precio: parseFloat(item.precio.toString()),
-            precioUnitario: parseFloat(item.precio.toString()), // Precio unitario con extras incluidos
+            precio: item.precio ? parseFloat(item.precio.toString()) : 0,
+            precioUnitario: item.precio ? parseFloat(item.precio.toString()) : 0, // Precio unitario con extras incluidos
             notas: item.notas || undefined,
             ingredientesExtras: ingredientesExtrasDetallados,
             producto: {
               id: item.producto.id,
               nombre: item.producto.nombre,
               name: item.producto.nombre,
-              precio: parseFloat(item.producto.precio.toString())
+              precio: item.producto.precio ? parseFloat(item.producto.precio.toString()) : 0
             }
           };
         })),
@@ -434,9 +434,9 @@ export class PedidosService {
         repartidorLat: pedido.repartidorLat,
         repartidorLng: pedido.repartidorLng,
         repartidorUltActualizacion: pedido.repartidorUltActualizacion,
-        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
-        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
-        total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
+        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : 0,
+        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
+        total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -503,15 +503,15 @@ export class PedidosService {
             pedidoId: item.pedidoId,
             productoId: item.productoId,
             cantidad: item.cantidad,
-            precio: parseFloat(item.precio.toString()),
-            precioUnitario: parseFloat(item.precio.toString()), // Precio unitario con extras incluidos
+            precio: item.precio ? parseFloat(item.precio.toString()) : 0,
+            precioUnitario: item.precio ? parseFloat(item.precio.toString()) : 0, // Precio unitario con extras incluidos
             notas: item.notas || undefined,
             ingredientesExtras: ingredientesExtrasDetallados,
             producto: {
               id: item.producto.id,
               nombre: item.producto.nombre,
               name: item.producto.nombre,
-              precio: parseFloat(item.producto.precio.toString())
+              precio: item.producto.precio ? parseFloat(item.producto.precio.toString()) : 0
             }
           };
         })),
@@ -579,9 +579,9 @@ export class PedidosService {
         repartidorLat: pedido.repartidorLat,
         repartidorLng: pedido.repartidorLng,
         repartidorUltActualizacion: pedido.repartidorUltActualizacion,
-        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : undefined,
-        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : undefined,
-        total: pedido.total ? parseFloat(pedido.total.toString()) : undefined,
+        subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : 0,
+        costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
+        total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -653,15 +653,15 @@ export class PedidosService {
             pedidoId: item.pedidoId,
             productoId: item.productoId,
             cantidad: item.cantidad,
-            precio: parseFloat(item.precio.toString()),
-            precioUnitario: parseFloat(item.precio.toString()), // Precio unitario con extras incluidos
+            precio: item.precio ? parseFloat(item.precio.toString()) : 0,
+            precioUnitario: item.precio ? parseFloat(item.precio.toString()) : 0, // Precio unitario con extras incluidos
             notas: item.notas || undefined,
             ingredientesExtras: ingredientesExtrasDetallados,
             producto: {
               id: item.producto.id,
               nombre: item.producto.nombre,
               name: item.producto.nombre, // Alias for frontend compatibility
-              precio: parseFloat(item.producto.precio.toString())
+              precio: item.producto.precio ? parseFloat(item.producto.precio.toString()) : 0
             }
           };
         })),
