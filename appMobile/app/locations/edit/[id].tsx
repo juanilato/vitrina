@@ -153,10 +153,22 @@ export default function EditLocationScreen() {
       return;
     }
 
-    // Si no hay dirección, obtenerla antes de guardar
-    let finalAddress = form.direccion;
-    if (!finalAddress || finalAddress === '') {
+    // Si no hay dirección, intentar obtenerla automáticamente
+    let finalAddress = form.direccion?.trim();
+    if (!finalAddress || finalAddress === '' || finalAddress === 'Dirección desconocida') {
+      setLoadingAddress(true);
       finalAddress = await getAddressFromCoords(coords.lat, coords.lng);
+      setLoadingAddress(false);
+
+      // Si aún no hay dirección válida, pedir al usuario que la ingrese manualmente
+      if (!finalAddress || finalAddress === 'Dirección desconocida') {
+        Alert.alert(
+          'Dirección no detectada',
+          'No se pudo detectar la dirección automáticamente. Por favor, ingrésala manualmente.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
     }
 
     try {
@@ -441,9 +453,28 @@ const styles = StyleSheet.create({
     minHeight: 50,
     justifyContent: 'center',
   },
+  addressInputWrapper: {
+    position: 'relative',
+    marginBottom: spacing.xs,
+  },
   addressText: {
     ...textStyles.body,
     color: colors.text,
+  },
+  addressInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  addressHint: {
+    ...textStyles.caption2,
+    color: colors.textTertiary,
+    marginBottom: spacing.sm,
+    fontStyle: 'italic',
+  },
+  loadingIndicatorInline: {
+    position: 'absolute',
+    right: spacing.md,
+    top: spacing.md,
   },
   saveButton: {
     backgroundColor: colors.primary,
