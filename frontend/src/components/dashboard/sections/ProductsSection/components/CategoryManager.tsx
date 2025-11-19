@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import categoryService, { CategoriaProducto } from '../../../../../services/category.service';
 import EmojiPickerModal from '../../../sections/IngredientsSection/components/EmojiPickerModal';
 import './CategoryManager.css';
-import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import EmojiEmotionsOutlinedIcon from '@mui/icons-material/EmojiEmotionsOutlined';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 
 interface CategoryManagerProps {
   empresaId: string;
@@ -19,6 +20,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
   const [editing, setEditing] = useState<CategoriaProducto | null>(null);
   const [formData, setFormData] = useState({ nombre: '', icono: '' });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -47,7 +49,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
       if (editing) {
         await categoryService.update(editing.id, formData);
       } else {
-        // No enviamos empresaId, se toma del usuario autenticado en el backend
         await categoryService.create(formData);
       }
       setFormData({ nombre: '', icono: '' });
@@ -79,107 +80,158 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
     setFormData({ nombre: '', icono: '' });
   };
 
+  const handleClearSearch = () => {
+    setSearchTerm('');
+  };
+
+  // Filtrar categorías por búsqueda
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm.trim()) return categories;
+
+    const search = searchTerm.toLowerCase();
+    return categories.filter(cat =>
+      cat.nombre.toLowerCase().includes(search)
+    );
+  }, [categories, searchTerm]);
+
   return (
     <>
       <div className="pm2-overlay" onClick={onClose}>
         <div className="category-manager-modal" onClick={(e) => e.stopPropagation()}>
-          <header className="order-modal-header">
-            <div className="order-modal-header-left">
-              <div className="order-modal-header-info">
-                <div className="order-modal-client-name">
-                  <CategoryOutlinedIcon style={{ marginRight: 8 }} />
-                  Gestionar Categorías
-                </div>
-                <div className="order-modal-date">
-                  Crea y organiza las categorías de tus productos
-                </div>
-              </div>
+          {/* Header con gradiente */}
+          <header className="cm-header">
+            <div className="cm-header-title">
+              <CategoryOutlinedIcon />
+              Gestionar Categorías
             </div>
-            <button className="modal-close-modern" onClick={onClose}>×</button>
+            <p className="cm-header-subtitle">
+              Crea y organiza las categorías de tus productos
+            </p>
+            <button className="cm-close-btn" onClick={onClose}>×</button>
           </header>
 
-          <div className="order-modal-body">
-            {/* Formulario de agregar/editar */}
-            <div className="category-form">
+          {/* Buscador */}
+          <div className="cm-search-section">
+            <div className="cm-search-wrapper">
+              <SearchOutlinedIcon className="cm-search-icon" />
               <input
                 type="text"
-                placeholder="Nombre de la categoría"
-                className="form-input-modern"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                placeholder="Buscar categorías..."
+                className="cm-search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <div className="icon-input-wrapper">
-                <div className="icon-display" onClick={() => setShowEmojiPicker(true)}>
+              {searchTerm && (
+                <button className="cm-clear-btn" onClick={handleClearSearch}>
+                  <CloseOutlinedIcon style={{ fontSize: 14 }} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Formulario */}
+          <div className="cm-form-section">
+            <div className="cm-form-grid">
+              <div className="cm-input-group">
+                <label className="cm-label">Nombre de la categoría</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Bebidas, Postres, Principales..."
+                  className="cm-input"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                />
+              </div>
+
+              <div className="cm-icon-selector">
+                <label className="cm-label">Icono</label>
+                <div
+                  className="cm-icon-display"
+                  onClick={() => setShowEmojiPicker(true)}
+                  title="Seleccionar icono"
+                >
                   {formData.icono ? (
-                    <span className="emoji-large">{formData.icono}</span>
+                    <span className="cm-emoji-large">{formData.icono}</span>
                   ) : (
-                    <EmojiEmotionsOutlinedIcon style={{ fontSize: 32, color: '#ccc' }} />
+                    <EmojiEmotionsOutlinedIcon style={{ fontSize: 36, color: '#D4D4D4' }} />
                   )}
                 </div>
-                <button
-                  type="button"
-                  className="btn-select-emoji"
-                  onClick={() => setShowEmojiPicker(true)}
-                >
-                  {formData.icono ? 'Cambiar icono' : 'Seleccionar icono'}
-                </button>
-              </div>
-              <div className="category-form-actions">
-                <button className="btn-primary-modern" onClick={handleSave}>
-                  {editing ? 'Actualizar' : 'Agregar'}
-                </button>
-                {editing && (
-                  <button className="btn-secondary-modern" onClick={handleCancel}>
-                    Cancelar
-                  </button>
-                )}
               </div>
             </div>
 
-            {/* Lista de categorías */}
-            <div className="category-list">
-              {loading ? (
-                <div className="loading-text">Cargando...</div>
-              ) : categories.length === 0 ? (
-                <div className="empty-state">
-                  <CategoryOutlinedIcon style={{ fontSize: 48, opacity: 0.3 }} />
-                  <p>No hay categorías creadas</p>
+            <div className="cm-form-actions">
+              <button className="cm-btn-primary" onClick={handleSave}>
+                {editing ? '✓ Actualizar Categoría' : '+ Agregar Categoría'}
+              </button>
+              {editing && (
+                <button className="cm-btn-secondary" onClick={handleCancel}>
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Grid de categorías */}
+          <div className="cm-categories-container">
+            {loading ? (
+              <div className="cm-loading">Cargando categorías...</div>
+            ) : filteredCategories.length === 0 ? (
+              <div className="cm-empty-state">
+                <div className="cm-empty-icon">
+                  {searchTerm ? '🔍' : '📦'}
                 </div>
-              ) : (
-                categories.map((category) => (
-                  <div key={category.id} className="category-item">
-                    <div className="category-info">
-                      {category.icono && <span className="category-icon">{category.icono}</span>}
-                      <span className="category-name">{category.nombre}</span>
-                      {category._count && (
-                        <span className="category-count">{category._count.productos} productos</span>
+                <p className="cm-empty-text">
+                  {searchTerm
+                    ? `No se encontraron categorías con "${searchTerm}"`
+                    : 'No hay categorías creadas. ¡Crea tu primera categoría!'}
+                </p>
+              </div>
+            ) : (
+              <div className="cm-categories-grid">
+                {filteredCategories.map((category) => (
+                  <div key={category.id} className="cm-category-card">
+                    <div className="cm-category-icon-wrapper">
+                      {category.icono ? (
+                        <span className="cm-category-icon">{category.icono}</span>
+                      ) : (
+                        <CategoryOutlinedIcon style={{ fontSize: 32, color: '#A3A3A3' }} />
                       )}
                     </div>
-                    <div className="category-actions">
+
+                    <div className="cm-category-content">
+                      <div className="cm-category-name">{category.nombre}</div>
+                      {category._count && (
+                        <span className="cm-category-count">
+                          {category._count.productos} {category._count.productos === 1 ? 'producto' : 'productos'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="cm-category-actions">
                       <button
-                        className="btn-icon-action"
+                        className="cm-action-btn"
                         onClick={() => handleEdit(category)}
-                        title="Editar"
+                        title="Editar categoría"
                       >
                         <EditOutlinedIcon fontSize="small" />
                       </button>
                       <button
-                        className="btn-icon-action btn-icon-danger"
+                        className="cm-action-btn danger"
                         onClick={() => handleDelete(category.id)}
-                        title="Eliminar"
+                        title="Eliminar categoría"
                       >
                         <DeleteOutlineOutlinedIcon fontSize="small" />
                       </button>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Emoji Picker Modal - rendered outside overlay to prevent event propagation */}
+      {/* Emoji Picker Modal */}
       <EmojiPickerModal
         open={showEmojiPicker}
         onClose={() => setShowEmojiPicker(false)}

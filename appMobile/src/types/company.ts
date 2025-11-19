@@ -116,6 +116,28 @@ export interface ProductoIngrediente {
   maximoExtra?: number;
 }
 
+export interface CategoriaProducto {
+  id: string;
+  nombre: string;
+  empresaId: string;
+  icono?: string;
+  orden: number;
+  activo: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    productos: number;
+  };
+}
+
+export interface ProductoCategoria {
+  id: number;
+  productoId: string;
+  categoriaId: string;
+  categoria: CategoriaProducto;
+  createdAt: string;
+}
+
 export interface Product {
   id: string;
   nombre: string;
@@ -132,6 +154,7 @@ export interface Product {
   empresa?: Company;
   agregados?: Agregado[];
   ingredientes?: ProductoIngrediente[];
+  categorias?: ProductoCategoria[];
   permiteExtras?: boolean;
   createdAt: string;
   updatedAt: string;

@@ -50,6 +50,7 @@ export default function CompanyStoreScreen() {
   const [toastType, setToastType] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [socialLinksExpanded, setSocialLinksExpanded] = useState(false);
   const [companyRating, setCompanyRating] = useState<{ promedio: number; totalValoraciones: number } | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   const buttonColor = useMemo(
     () => company?.preferenciasWeb?.colorBotones || colors.primary,
@@ -87,10 +88,22 @@ export default function CompanyStoreScreen() {
   const luma = 0.299 * r + 0.587 * g + 0.114 * b;
   return luma < 140; // cuanto más bajo, más oscuro
 };
-  // Filtrar productos por búsqueda - DEBE estar antes de los early returns
+  // Filtrar productos por búsqueda y categoría - DEBE estar antes de los early returns
   const filteredProducts = useMemo(() => {
-    const allProducts = company?.products || [];
+    let allProducts = company?.products || [];
+    console.log('🔍 [FILTER] selectedCategoryId:', selectedCategoryId);
 
+    // Filtrar por categoría si hay una seleccionada
+    if (selectedCategoryId) {
+      allProducts = allProducts.filter((product) => {
+        const hasCategory = product.categorias?.some((catRelation) => catRelation.categoria.id === selectedCategoryId);
+        console.log('🔍 [FILTER] Producto:', product.nombre, 'tiene categoría?', hasCategory);
+        return hasCategory;
+      });
+      console.log('🔍 [FILTER] Productos filtrados por categoría:', allProducts.length);
+    }
+
+    // Filtrar por búsqueda si hay texto
     if (!searchQuery.trim()) {
       return allProducts;
     }
@@ -100,10 +113,27 @@ export default function CompanyStoreScreen() {
       product.nombre.toLowerCase().includes(query) ||
       product.descripcion?.toLowerCase().includes(query)
     );
-  }, [company?.products, searchQuery]);
+  }, [company?.products, searchQuery, selectedCategoryId]);
 
   const activeProducts = filteredProducts.filter((p) => p.activo);
   const inactiveProducts = filteredProducts.filter((p) => !p.activo);
+
+  // Obtener todas las categorías únicas
+  const allCategories = useMemo(() => {
+    const categoriesMap = new Map();
+    console.log('🔍 [DEBUG] Total productos:', company?.products?.length);
+    company?.products?.forEach((product) => {
+      console.log('🔍 [DEBUG] Producto:', product.nombre, 'Categorías:', product.categorias);
+      product.categorias?.forEach((catRelation) => {
+        if (!categoriesMap.has(catRelation.categoria.id)) {
+          categoriesMap.set(catRelation.categoria.id, catRelation.categoria);
+        }
+      });
+    });
+    const categories = Array.from(categoriesMap.values()).sort((a, b) => a.orden - b.orden);
+    console.log('🔍 [DEBUG] Categorías encontradas:', categories);
+    return categories;
+  }, [company?.products]);
 
   // Agrupar productos por categorías
   const productsByCategory = useMemo(() => {
@@ -420,8 +450,7 @@ export default function CompanyStoreScreen() {
         renderSectionHeader={({ section }) => (
           <View style={styles.categoryHeader}>
             {section.icon && <Text style={styles.categoryIcon}>{section.icon}</Text>}
-            <Text style={styles.categoryTitle}>{section.title}</Text>
-            <View style={styles.categoryLine} />
+            <Text style={styles.categoryTitle} numberOfLines={1}>{section.title}</Text>
           </View>
         )}
         contentContainerStyle={styles.listContent}
@@ -455,6 +484,47 @@ export default function CompanyStoreScreen() {
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* Category Chips - Solo mostrar si hay categorías */}
+            {allCategories.length > 0 && (
+              <View style={styles.categoryChipsContainer}>
+                <FlatList
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  data={[{ id: null, nombre: 'Todas', icono: '🏪' }, ...allCategories]}
+                  keyExtractor={(item) => item.id || 'all'}
+                  contentContainerStyle={styles.categoryChipsList}
+                  renderItem={({ item }) => {
+                    const isSelected = selectedCategoryId === item.id;
+                    return (
+                      <TouchableOpacity
+                        style={[
+                          styles.categoryChip,
+                          isSelected && styles.categoryChipSelected,
+                          { borderColor: isSelected ? buttonColor : colors.gray200 }
+                        ]}
+                        onPress={() => setSelectedCategoryId(item.id)}
+                        activeOpacity={0.7}
+                      >
+                        {item.icono && (
+                          <Text style={styles.categoryChipIcon}>{item.icono}</Text>
+                        )}
+                        <Text
+                          style={[
+                            styles.categoryChipText,
+                            isSelected && styles.categoryChipTextSelected,
+                            { color: isSelected ? buttonColor : colors.gray600 }
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {item.nombre}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              </View>
+            )}
 
             {/* Products Section Header */}
 
@@ -997,14 +1067,14 @@ socialChipContainer: {
     borderRadius: 16,
     paddingHorizontal: spacing.md,
     paddingVertical: 12,
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
     borderWidth: 1,
     borderColor: colors.gray200,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 3,
+
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -1136,33 +1206,75 @@ socialChipContainer: {
     fontWeight: '600',
   },
 
-  // Category Header Styles
+  // Category Header Styles - Más sutiles y modernos
   categoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.backgroundSecondary,
-    marginTop: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+    marginTop: 0,
     marginBottom: spacing.xs,
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
 
   categoryIcon: {
-    fontSize: 20,
+    fontSize: 18,
+    opacity: 0.9,
   },
 
   categoryTitle: {
-    ...textStyles.headline,
+    ...textStyles.subheadline,
     fontWeight: '700',
-    color: colors.text,
-    flex: 0,
+    color: colors.gray800,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    fontSize: 12,
   },
 
-  categoryLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.gray200,
-    marginLeft: spacing.sm,
+  // Category Chips Styles - Sutiles y pequeños
+  categoryChipsContainer: {
+    marginTop: 0,
+    marginBottom: spacing.sm,
+  },
+
+  categoryChipsList: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+  },
+
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    backgroundColor: colors.gray50,
+    marginRight: spacing.xs,
+    gap: 4,
+  },
+
+  categoryChipSelected: {
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    ...shadows.sm,
+  },
+
+  categoryChipIcon: {
+    fontSize: 14,
+  },
+
+  categoryChipText: {
+    ...textStyles.caption,
+    fontWeight: '600',
+    color: colors.gray600,
+    letterSpacing: 0.2,
+  },
+
+  categoryChipTextSelected: {
+    fontWeight: '700',
+    color: colors.gray900,
   },
 });
