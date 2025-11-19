@@ -284,14 +284,28 @@ export default function EditLocationScreen() {
             onChangeText={(t) => setForm({ ...form, nombre: t })}
           />
 
-          <Text style={styles.label}>Dirección detectada</Text>
-          <View style={styles.addressContainer}>
-            {loadingAddress ? (
-              <ActivityIndicator size="small" color={colors.primary} />
-            ) : (
-              <Text style={styles.addressText}>{form.direccion || 'Selecciona una ubicación'}</Text>
+          <Text style={styles.label}>
+            Dirección {loadingAddress && '(detectando...)'}
+          </Text>
+          <View style={styles.addressInputWrapper}>
+            <TextInput
+              style={[styles.input, styles.addressInput]}
+              placeholder="Dirección (puedes editarla manualmente)"
+              value={form.direccion}
+              onChangeText={(t) => setForm({ ...form, direccion: t })}
+              multiline
+              numberOfLines={3}
+              editable={!loadingAddress}
+            />
+            {loadingAddress && (
+              <View style={styles.loadingIndicatorInline}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
             )}
           </View>
+          <Text style={styles.addressHint}>
+            💡 La dirección se detecta automáticamente, pero puedes editarla si es necesaria
+          </Text>
 
           <Text style={styles.label}>Referencia (opcional)</Text>
           <TextInput

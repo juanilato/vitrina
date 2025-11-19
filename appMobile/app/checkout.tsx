@@ -87,7 +87,7 @@ export default function CheckoutScreen() {
 
   // Calculate delivery fee based on location and company settings
   const calculateDeliveryFee = async (location?: DeliveryLocation) => {
-    if (deliveryType === 'pickup') {
+    if (deliveryType === 'retiro') {
       setShippingPrice({ price: 0, isEstimated: false, message: 'Retiro en local' });
       setDeliveryFee(0);
       return 0;
@@ -161,7 +161,7 @@ export default function CheckoutScreen() {
     setDeliveryTypeLocal(type);
     setDeliveryType(type);
 
-    if (type === 'pickup') {
+    if (type === 'retiro') {
       setDeliveryFee(0);
       setShippingPrice({ price: 0, isEstimated: false, message: 'Retiro en local' });
     } else {
@@ -431,23 +431,23 @@ export default function CheckoutScreen() {
               style={[
                 styles.toggleOption,
                 styles.toggleOptionRight,
-                deliveryType === 'pickup' && styles.toggleOptionActive,
+                deliveryType === 'retiro' && styles.toggleOptionActive,
               ]}
-              onPress={() => handleDeliveryTypeChange('pickup')}
+              onPress={() => handleDeliveryTypeChange('retiro')}
               activeOpacity={0.8}
             >
               <View style={styles.toggleIconContainer}>
                 <Ionicons
                   name="bag-handle"
                   size={24}
-                  color={deliveryType === 'pickup' ? colors.white : colors.gray600}
+                  color={deliveryType === 'retiro' ? colors.white : colors.gray600}
                 />
               </View>
               <View style={styles.toggleTextContainer}>
                 <Text
                   style={[
                     styles.toggleLabel,
-                    deliveryType === 'pickup' && styles.toggleLabelActive,
+                    deliveryType === 'retiro' && styles.toggleLabelActive,
                   ]}
                 >
                   Retiro
@@ -455,7 +455,7 @@ export default function CheckoutScreen() {
                 <Text
                   style={[
                     styles.toggleSubtext,
-                    deliveryType === 'pickup' && styles.toggleSubtextActive,
+                    deliveryType === 'retiro' && styles.toggleSubtextActive,
                   ]}
                 >
                   Gratis

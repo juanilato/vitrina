@@ -343,11 +343,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCheckoutData((prev) => ({
       ...prev,
       deliveryType: type,
-      deliveryAddress: type === 'pickup' ? undefined : prev?.deliveryAddress,
+      deliveryAddress: type === 'retiro' ? undefined : prev?.deliveryAddress,
     } as CheckoutData));
 
-    // Reset delivery fee if pickup
-    if (type === 'pickup') {
+    // Reset delivery fee if retiro
+    if (type === 'retiro') {
       setDeliveryFeeState(0);
     }
   }, []);

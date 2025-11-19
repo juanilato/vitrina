@@ -37,7 +37,7 @@ export interface DeliveryAddress {
   reference?: string;
 }
 
-export type DeliveryType = 'delivery' | 'pickup';
+export type DeliveryType = 'delivery' | 'retiro';
 
 export type PaymentMethod = 'transferencia' | 'efectivo';
 

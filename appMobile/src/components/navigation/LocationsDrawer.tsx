@@ -204,10 +204,22 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
       return;
     }
 
-    // Si no hay dirección, obtenerla antes de guardar
-    let finalAddress = form.direccion;
-    if (!finalAddress || finalAddress === '') {
+    // Si no hay dirección, intentar obtenerla automáticamente
+    let finalAddress = form.direccion?.trim();
+    if (!finalAddress || finalAddress === '' || finalAddress === 'Dirección desconocida') {
+      setLoadingAddress(true);
       finalAddress = await getAddressFromCoords(newCoords.lat, newCoords.lng);
+      setLoadingAddress(false);
+
+      // Si aún no hay dirección válida, pedir al usuario que la ingrese manualmente
+      if (!finalAddress || finalAddress === 'Dirección desconocida') {
+        Alert.alert(
+          'Dirección no detectada',
+          'No se pudo detectar la dirección automáticamente. Por favor, ingrésala manualmente.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
     }
 
     try {
@@ -519,13 +531,27 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
                   onChangeText={(t) => setForm({ ...form, nombre: t })}
                 />
 
-                <View style={styles.addressContainer}>
-                  <Text style={styles.addressLabel}>Dirección detectada:</Text>
-                  {loadingAddress ? (
-                    <ActivityIndicator size="small" color={colors.primary} />
-                  ) : (
-                    <Text style={styles.addressText}>{form.direccion || 'Selecciona una ubicación'}</Text>
+                <View style={styles.addressInputContainer}>
+                  <Text style={styles.addressLabel}>
+                    Dirección {loadingAddress && '(detectando...)'}
+                  </Text>
+                  <TextInput
+                    style={[styles.input, styles.addressInput]}
+                    placeholder="Dirección (puedes editarla manualmente)"
+                    value={form.direccion}
+                    onChangeText={(t) => setForm({ ...form, direccion: t })}
+                    multiline
+                    numberOfLines={3}
+                    editable={!loadingAddress}
+                  />
+                  {loadingAddress && (
+                    <View style={styles.loadingIndicatorInline}>
+                      <ActivityIndicator size="small" color={colors.primary} />
+                    </View>
                   )}
+                  <Text style={styles.addressHint}>
+                    💡 La dirección se detecta automáticamente, pero puedes editarla si es necesaria
+                  </Text>
                 </View>
 
                 <TextInput
@@ -863,6 +889,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gray200,
   },
+  addressInputContainer: {
+    marginBottom: spacing.md,
+  },
   addressLabel: {
     ...textStyles.bodySmall,
     color: colors.gray600,
@@ -873,6 +902,21 @@ const styles = StyleSheet.create({
     ...textStyles.bodyMedium,
     color: colors.gray900,
     fontWeight: '500',
+  },
+  addressInput: {
+    minHeight: 70,
+    textAlignVertical: 'top',
+  },
+  addressHint: {
+    ...textStyles.caption2,
+    color: colors.textTertiary,
+    marginTop: spacing.xs,
+    fontStyle: 'italic',
+  },
+  loadingIndicatorInline: {
+    position: 'absolute',
+    right: spacing.md,
+    top: 40,
   },
   saveButton: {
     backgroundColor: colors.primary,
