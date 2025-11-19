@@ -809,13 +809,35 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
                
                     },
         },
-      },
+          Valoraciones: {
+            select: {
+              calificacionEmpresa: true,
+            },
+          },
+        },
         orderBy: {
           createdAt: 'desc'
         }
       });
 
-      return companies;
+      // Calcular promedio de valoraciones para cada empresa
+      const companiesWithRating = companies.map(company => {
+        const valoraciones = company.Valoraciones || [];
+        const totalValoraciones = valoraciones.length;
+        const rating = totalValoraciones > 0
+          ? valoraciones.reduce((sum, v) => sum + v.calificacionEmpresa, 0) / totalValoraciones
+          : 0;
+
+        // Remover valoraciones del objeto y agregar rating y reviewCount
+        const { Valoraciones: _, ...empresaSinValoraciones } = company;
+        return {
+          ...empresaSinValoraciones,
+          rating: totalValoraciones > 0 ? Number(rating.toFixed(1)) : undefined,
+          reviewCount: totalValoraciones > 0 ? totalValoraciones : undefined,
+        };
+      });
+
+      return companiesWithRating;
     } catch (error) {
       throw new BadRequestException('Error al obtener empresas');
     }
@@ -874,6 +896,11 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
               direccion: true,
             },
           },
+          Valoraciones: {
+            select: {
+              calificacionEmpresa: true,
+            },
+          },
         },
       });
 
@@ -893,9 +920,19 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
           );
 
           if (distance <= radiusKm) {
+            // Calcular rating
+            const valoraciones = company.Valoraciones || [];
+            const totalValoraciones = valoraciones.length;
+            const rating = totalValoraciones > 0
+              ? valoraciones.reduce((sum, v) => sum + v.calificacionEmpresa, 0) / totalValoraciones
+              : 0;
+
+            const { Valoraciones: _, ...empresaSinValoraciones } = company;
             return {
-              ...company,
+              ...empresaSinValoraciones,
               distance,
+              rating: totalValoraciones > 0 ? Number(rating.toFixed(1)) : undefined,
+              reviewCount: totalValoraciones > 0 ? totalValoraciones : undefined,
             };
           }
           return null;

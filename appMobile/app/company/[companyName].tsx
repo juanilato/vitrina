@@ -264,19 +264,22 @@ export default function CompanyStoreScreen() {
     </Text>
   </View>
 
-  {/* Calificación promedio */}
-  {companyRating && companyRating.totalValoraciones > 0 && (
-    <View style={styles.ratingContainer}>
-      <RatingStars rating={companyRating.promedio} size="sm" readonly />
-      <Text style={[styles.ratingText, { color: textoColor }]}>
-        {companyRating.promedio.toFixed(1)} ({companyRating.totalValoraciones} {companyRating.totalValoraciones === 1 ? 'valoración' : 'valoraciones'})
-      </Text>
-    </View>
-  )}
-
   {/* Acento de color MUY sutil */}
 
 </View>
+
+{/* Calificación promedio - Chip positioned at top right */}
+{companyRating && companyRating.totalValoraciones > 0 && (
+  <View style={styles.ratingChipTopRight}>
+    <Ionicons name="star" size={14} color="#FFD700" />
+    <Text style={styles.ratingText}>
+      {companyRating.promedio.toFixed(1)}
+    </Text>
+    <Text style={[styles.ratingText, { fontSize: 11, fontWeight: '600', color: colors.gray600 }]}>
+      ({companyRating.totalValoraciones})
+    </Text>
+  </View>
+)}
 
               </SafeAreaView>
       
@@ -335,17 +338,20 @@ export default function CompanyStoreScreen() {
                   <Text numberOfLines={2} style={[styles.titleClean, { color: textoColor }]}>
                     {company.name}
                   </Text>
-
-                  {/* Calificación promedio */}
-                  {companyRating && companyRating.totalValoraciones > 0 && (
-                    <View style={styles.ratingContainer}>
-                      <RatingStars rating={companyRating.promedio} size="sm" readonly />
-                      <Text style={[styles.ratingText, { color: textoColor }]}>
-                        {companyRating.promedio.toFixed(1)} ({companyRating.totalValoraciones} {companyRating.totalValoraciones === 1 ? 'valoración' : 'valoraciones'})
-                      </Text>
-                    </View>
-                  )}
                 </View>
+
+                {/* Calificación promedio - Chip positioned at top right */}
+                {companyRating && companyRating.totalValoraciones > 0 && (
+                  <View style={styles.ratingChipTopRight}>
+                    <Ionicons name="star" size={14} color="#FFD700" />
+                    <Text style={styles.ratingText}>
+                      {companyRating.promedio.toFixed(1)}
+                    </Text>
+                    <Text style={[styles.ratingText, { fontSize: 11, fontWeight: '600', color: colors.gray600 }]}>
+                      ({companyRating.totalValoraciones})
+                    </Text>
+                  </View>
+                )}
               </SafeAreaView>
             </LinearGradient>
           </View>
@@ -551,20 +557,30 @@ brandTitleSoft: {
   textShadowRadius: 8,
 },
 
-// Rating container
-ratingContainer: {
+// Rating chip positioned at top right
+ratingChipTopRight: {
+  position: 'absolute',
+  top: 70,
+  right: 16,
   flexDirection: 'row',
   alignItems: 'center',
-  justifyContent: 'center',
-  gap: spacing.xs,
-  marginTop: spacing.xs,
+  gap: 4,
+  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  paddingHorizontal: 10,
+  paddingVertical: 6,
+  borderRadius: 16,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
+  elevation: 5,
+  borderWidth: 1,
+  borderColor: 'rgba(255, 215, 0, 0.3)',
 },
 ratingText: {
-  fontSize: 12,
-  fontWeight: '600',
-  textShadowColor: 'rgba(0, 0, 0, 0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
+  fontSize: 13,
+  fontWeight: '700',
+  color: colors.gray900,
 },
 
 // Avatar limpio sin borde blanco

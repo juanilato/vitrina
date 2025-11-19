@@ -12,11 +12,11 @@ import {
   Modal,
   Dimensions,
   ScrollView,
-  Alert,
   ActivityIndicator,
   TextInput,
   Platform,
 } from 'react-native';
+import { Alert } from '../../utils/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
