@@ -389,9 +389,12 @@ export default function OrderDetailScreen() {
                       <Text style={styles.productName} numberOfLines={2}>{item.producto?.name || 'Producto'}</Text>
                       {ingredientesExtras.length > 0 && (
                         <View style={styles.extrasContainer}>
+                          <Text style={{ fontSize: 10, fontWeight: '600', color: '#6b7280', marginBottom: 2 }}>
+                            Agregados:
+                          </Text>
                           {ingredientesExtras.map((extra: any, extraIndex: number) => (
                             <Text key={extraIndex} style={styles.extraText}>
-                              + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
+                              • {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
                             </Text>
                           ))}
                         </View>

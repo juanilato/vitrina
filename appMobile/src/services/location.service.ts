@@ -96,7 +96,7 @@ export const locationService = {
    * Establecer una ubicación como principal
    */
   async setAsPrincipal(id: number): Promise<SavedLocation> {
-    const response = await api.patch<SavedLocation>(`/ubicaciones-cliente/${id}/principal`);
+    const response = await api.put<SavedLocation>(`/ubicaciones-cliente/${id}/principal`);
     return response.data;
   },
 };

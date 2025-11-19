@@ -291,6 +291,100 @@ const OrderModal: React.FC<OrderModalProps> = ({
             </div>
           )}
 
+          {/* Valoración */}
+          {pedido.Valoracion && (
+            <div className="order-modal-section">
+              <h3 className="modal-section-title">
+                ⭐ Valoración del Cliente
+              </h3>
+
+              <div className="valoracion-details">
+                {/* Valoración de la empresa */}
+                <div className="valoracion-empresa-card">
+                  <div className="valoracion-header">
+                    <span className="valoracion-label">Calificación General</span>
+                    <div className="valoracion-stars-display">
+                      {'⭐'.repeat(pedido.Valoracion.calificacionEmpresa)}
+                      <span className="valoracion-rating-number">
+                        {pedido.Valoracion.calificacionEmpresa}/5
+                      </span>
+                    </div>
+                  </div>
+
+                  {pedido.Valoracion.comentarioEmpresa && (
+                    <div className="valoracion-comment-box">
+                      <div className="valoracion-comment-label">Comentario:</div>
+                      <div className="valoracion-comment-text">
+                        "{pedido.Valoracion.comentarioEmpresa}"
+                      </div>
+                    </div>
+                  )}
+
+                  {pedido.Valoracion.aspectosEmpresa && pedido.Valoracion.aspectosEmpresa.length > 0 && (
+                    <div className="valoracion-aspectos">
+                      <div className="valoracion-aspectos-label">Aspectos destacados:</div>
+                      <div className="valoracion-aspectos-tags">
+                        {pedido.Valoracion.aspectosEmpresa.map((aspecto, index) => (
+                          <span key={index} className="valoracion-tag">
+                            {aspecto.replace(/_/g, ' ').toLowerCase()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Valoración del repartidor (si existe) */}
+                {pedido.Valoracion.calificacionRepartidor && (
+                  <div className="valoracion-repartidor-card">
+                    <div className="valoracion-header">
+                      <span className="valoracion-label">Calificación del Repartidor</span>
+                      <div className="valoracion-stars-display">
+                        {'⭐'.repeat(pedido.Valoracion.calificacionRepartidor)}
+                        <span className="valoracion-rating-number">
+                          {pedido.Valoracion.calificacionRepartidor}/5
+                        </span>
+                      </div>
+                    </div>
+
+                    {pedido.Valoracion.comentarioRepartidor && (
+                      <div className="valoracion-comment-box">
+                        <div className="valoracion-comment-label">Comentario:</div>
+                        <div className="valoracion-comment-text">
+                          "{pedido.Valoracion.comentarioRepartidor}"
+                        </div>
+                      </div>
+                    )}
+
+                    {pedido.Valoracion.aspectosRepartidor && pedido.Valoracion.aspectosRepartidor.length > 0 && (
+                      <div className="valoracion-aspectos">
+                        <div className="valoracion-aspectos-label">Aspectos destacados:</div>
+                        <div className="valoracion-aspectos-tags">
+                          {pedido.Valoracion.aspectosRepartidor.map((aspecto, index) => (
+                            <span key={index} className="valoracion-tag valoracion-tag-repartidor">
+                              {aspecto.replace(/_/g, ' ').toLowerCase()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Fecha de valoración */}
+                <div className="valoracion-fecha">
+                  Valorado el {new Date(pedido.Valoracion.createdAt).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Lista de Items */}
           <div className="order-modal-section">
             <h3 className="modal-section-title">
@@ -307,19 +401,14 @@ const OrderModal: React.FC<OrderModalProps> = ({
                       <div className="order-modal-item-name">
                         {item.producto?.nombre || 'Producto no disponible'}
                       </div>
-                      <div className="order-modal-item-qty">
-                        {item.cantidad} × ${item.precio.toFixed(2)}
-                      </div>
                       {ingredientesExtras.length > 0 && (
                         <div className="order-modal-item-extras">
+                          <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '4px' }}>
+                            Agregados:
+                          </div>
                           {ingredientesExtras.map((extra: any, extraIndex: number) => (
                             <div key={extraIndex} className="order-modal-item-extra">
-                              + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
-                              {extra.precioExtra && extra.precioExtra > 0 && (
-                                <span className="order-modal-extra-price">
-                                  (+${extra.precioExtra.toFixed(2)})
-                                </span>
-                              )}
+                              • {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
                             </div>
                           ))}
                         </div>
@@ -329,6 +418,9 @@ const OrderModal: React.FC<OrderModalProps> = ({
                           💬 "{item.notas}"
                         </div>
                       )}
+                      <div className="order-modal-item-qty">
+                        {item.cantidad} × ${item.precio.toFixed(2)}
+                      </div>
                     </div>
                     <div className="order-modal-item-subtotal">
                       ${(item.precio * item.cantidad).toFixed(2)}

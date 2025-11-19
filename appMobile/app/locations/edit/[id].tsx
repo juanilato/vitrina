@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { MapView, Marker, MapFallback } from '../../../src/components/common/MapViewUniversal';
+import { MapViewPickerWeb } from '../../../src/components/common/MapViewPicker.web';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, spacing, textStyles } from '../../../src/theme';
 import { locationService, SavedLocation } from '../../../src/services/location.service';
@@ -22,21 +23,51 @@ import { useLocation } from '../../../src/contexts/LocationContext';
 // Helper para obtener dirección desde coordenadas
 const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
   try {
+    console.log('🔍 Geocodificando coordenadas:', { lat, lng });
     const result = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+
+    console.log('📍 Resultado de geocodificación:', JSON.stringify(result, null, 2));
+
     if (result && result.length > 0) {
       const address = result[0];
       const parts = [];
 
-      if (address.street) parts.push(address.street);
-      if (address.streetNumber) parts.push(address.streetNumber);
-      if (address.district) parts.push(address.district);
-      if (address.city) parts.push(address.city);
+      // Construir dirección en orden correcto: número + calle, colonia/barrio, ciudad
+      if (address.streetNumber && address.street) {
+        parts.push(`${address.streetNumber} ${address.street}`);
+      } else if (address.street) {
+        parts.push(address.street);
+      } else if (address.name && address.name !== address.city) {
+        // Si no hay calle pero hay un nombre de lugar
+        parts.push(address.name);
+      }
 
-      return parts.length > 0 ? parts.join(', ') : 'Dirección desconocida';
+      // Agregar distrito/colonia si existe y es diferente de la calle
+      if (address.district && !parts.some(p => p.includes(address.district || ''))) {
+        parts.push(address.district);
+      } else if (address.subregion && !parts.some(p => p.includes(address.subregion || ''))) {
+        parts.push(address.subregion);
+      }
+
+      // Agregar ciudad
+      if (address.city) {
+        parts.push(address.city);
+      }
+
+      // Agregar región/estado si está disponible
+      if (address.region && address.region !== address.city) {
+        parts.push(address.region);
+      }
+
+      const fullAddress = parts.length > 0 ? parts.join(', ') : 'Dirección desconocida';
+      console.log('✅ Dirección formateada:', fullAddress);
+      return fullAddress;
     }
+
+    console.warn('⚠️ No se encontraron resultados de geocodificación');
     return 'Dirección desconocida';
   } catch (error) {
-    console.error('Error getting address:', error);
+    console.error('❌ Error getting address:', error, 'Coordenadas:', { lat, lng });
     return 'Dirección desconocida';
   }
 };
@@ -185,64 +216,61 @@ export default function EditLocationScreen() {
       <View style={styles.mapContainer}>
         {Platform.OS === 'web' ? (
           // Mapa para WEB con Google Maps
-          <MapFallback
+          <MapViewPickerWeb
             height={300}
-            markers={[
-              {
-                lat: coords.lat,
-                lng: coords.lng,
-                title: 'Ubicación seleccionada',
-                color: '#F26B1D',
-              },
-            ]}
-            center={{ lat: coords.lat, lng: coords.lng }}
-            zoom={15}
-            onMapClick={async (lat, lng) => {
+            lat={coords.lat}
+            lng={coords.lng}
+            onChange={async (lat, lng) => {
               setCoords({ lat, lng });
               await updateAddressFromCoords(lat, lng);
             }}
-            draggableMarker={true}
+            onUseMyLocation={async (lat, lng) => {
+              setCoords({ lat, lng });
+              await updateAddressFromCoords(lat, lng);
+            }}
           />
         ) : (
           // Mapa para MOBILE con react-native-maps
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={{
-              latitude: coords.lat,
-              longitude: coords.lng,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-            onPress={async (e) => {
-              const { latitude, longitude } = e.nativeEvent.coordinate;
-              setCoords({ lat: latitude, lng: longitude });
-              await updateAddressFromCoords(latitude, longitude);
-            }}
-          >
-            <Marker
-              coordinate={{
+          <>
+            <MapView
+              ref={mapRef}
+              style={styles.map}
+              initialRegion={{
                 latitude: coords.lat,
                 longitude: coords.lng,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               }}
-              title="Ubicación seleccionada"
-              draggable
-              onDragEnd={async (e) => {
+              onPress={async (e) => {
                 const { latitude, longitude } = e.nativeEvent.coordinate;
                 setCoords({ lat: latitude, lng: longitude });
                 await updateAddressFromCoords(latitude, longitude);
               }}
-            />
-          </MapView>
-        )}
+            >
+              <Marker
+                coordinate={{
+                  latitude: coords.lat,
+                  longitude: coords.lng,
+                }}
+                title="Ubicación seleccionada"
+                draggable
+                onDragEnd={async (e) => {
+                  const { latitude, longitude } = e.nativeEvent.coordinate;
+                  setCoords({ lat: latitude, lng: longitude });
+                  await updateAddressFromCoords(latitude, longitude);
+                }}
+              />
+            </MapView>
 
-        {/* Botón de ubicación actual */}
-        <TouchableOpacity
-          style={styles.currentLocationButton}
-          onPress={getCurrentLocation}
-        >
-          <Ionicons name="locate" size={24} color={colors.primary} />
-        </TouchableOpacity>
+            {/* Botón de ubicación actual */}
+            <TouchableOpacity
+              style={styles.currentLocationButton}
+              onPress={getCurrentLocation}
+            >
+              <Ionicons name="locate" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {/* Form */}
@@ -279,6 +307,7 @@ export default function EditLocationScreen() {
             style={[styles.saveButton, saving && styles.saveButtonDisabled]}
             onPress={saveLocation}
             disabled={saving}
+            activeOpacity={0.7}
           >
             {saving ? (
               <ActivityIndicator size="small" color={colors.white} />
@@ -294,6 +323,7 @@ export default function EditLocationScreen() {
             style={styles.cancelButton}
             onPress={() => router.back()}
             disabled={saving}
+            activeOpacity={0.7}
           >
             <Text style={styles.cancelText}>Cancelar</Text>
           </TouchableOpacity>

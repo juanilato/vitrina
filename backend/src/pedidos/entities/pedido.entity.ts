@@ -25,6 +25,7 @@ export class ItemPedido {
   productoId: string;
   cantidad: number;
   precio: number;
+  precioUnitario?: number; // Precio unitario con extras incluidos
   notas?: string;
   ingredientesExtras?: Array<{
     productoIngredienteId: number;

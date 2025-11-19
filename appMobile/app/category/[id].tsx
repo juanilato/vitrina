@@ -24,6 +24,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCompanies } from '../../src/hooks/useCompanies';
 import { useCategoryById } from '../../src/hooks/useCategoryById';
 import { BusinessHours } from '../../src/components/companies/BusinessHours';
+import { RatingStars } from '../../src/components/common/RatingStars';
 import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -231,6 +232,21 @@ export default function CategoryScreen() {
                 <Ionicons name="chevron-forward" size={20} color={colors.white} />
               </View>
             </View>
+
+            {/* Rating Chip - Positioned at bottom right */}
+            {item.rating !== undefined && item.rating > 0 && (
+              <View style={styles.ratingChipAbsolute}>
+                <Ionicons name="star" size={14} color="#FFD700" />
+                <Text style={styles.ratingChipText}>
+                  {item.rating.toFixed(1)}
+                </Text>
+                {item.reviewCount !== undefined && item.reviewCount > 0 && (
+                  <Text style={styles.ratingChipCount}>
+                    ({item.reviewCount})
+                  </Text>
+                )}
+              </View>
+            )}
           </ImageBackground>
         </TouchableOpacity>
       );
@@ -268,6 +284,21 @@ export default function CategoryScreen() {
           {/* Arrow */}
           <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
         </View>
+
+        {/* Rating Chip - Positioned at bottom right */}
+        {item.rating !== undefined && item.rating > 0 && (
+          <View style={styles.ratingChipAbsoluteSimple}>
+            <Ionicons name="star" size={14} color="#FFD700" />
+            <Text style={styles.ratingChipTextSimple}>
+              {item.rating.toFixed(1)}
+            </Text>
+            {item.reviewCount !== undefined && item.reviewCount > 0 && (
+              <Text style={styles.ratingChipCountSimple}>
+                ({item.reviewCount})
+              </Text>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -757,7 +788,7 @@ const styles = StyleSheet.create({
 
   // Estilos para versión CON dashboard foto
   backgroundImage: {
-
+    position: 'relative',
   },
 
   backgroundImageStyle: {
@@ -769,6 +800,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
+    paddingBottom: 40, // Espacio para el chip de rating
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
 
@@ -865,5 +897,71 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: spacing.xs,
     opacity: 0.7,
+  },
+
+  // Rating Chip - Versión con dashboard foto
+  ratingChipAbsolute: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  ratingChipText: {
+    ...textStyles.caption1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.gray900,
+  },
+  ratingChipCount: {
+    ...textStyles.caption1,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.gray600,
+  },
+
+  // Rating Chip - Versión sin dashboard foto
+  ratingChipAbsoluteSimple: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    borderWidth: 1.5,
+    borderColor: '#FFD700',
+  },
+  ratingChipTextSimple: {
+    ...textStyles.caption1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.gray900,
+  },
+  ratingChipCountSimple: {
+    ...textStyles.caption1,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.gray600,
   },
 });

@@ -39,21 +39,51 @@ interface LocationsDrawerProps {
 // Helper para obtener dirección desde coordenadas
 const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
   try {
+    console.log('🔍 Geocodificando coordenadas:', { lat, lng });
     const result = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+
+    console.log('📍 Resultado de geocodificación:', JSON.stringify(result, null, 2));
+
     if (result && result.length > 0) {
       const address = result[0];
       const parts = [];
 
-      if (address.street) parts.push(address.street);
-      if (address.streetNumber) parts.push(address.streetNumber);
-      if (address.district) parts.push(address.district);
-      if (address.city) parts.push(address.city);
+      // Construir dirección en orden correcto: número + calle, colonia/barrio, ciudad
+      if (address.streetNumber && address.street) {
+        parts.push(`${address.streetNumber} ${address.street}`);
+      } else if (address.street) {
+        parts.push(address.street);
+      } else if (address.name && address.name !== address.city) {
+        // Si no hay calle pero hay un nombre de lugar
+        parts.push(address.name);
+      }
 
-      return parts.length > 0 ? parts.join(', ') : 'Dirección desconocida';
+      // Agregar distrito/colonia si existe y es diferente de la calle
+      if (address.district && !parts.some(p => p.includes(address.district || ''))) {
+        parts.push(address.district);
+      } else if (address.subregion && !parts.some(p => p.includes(address.subregion || ''))) {
+        parts.push(address.subregion);
+      }
+
+      // Agregar ciudad
+      if (address.city) {
+        parts.push(address.city);
+      }
+
+      // Agregar región/estado si está disponible
+      if (address.region && address.region !== address.city) {
+        parts.push(address.region);
+      }
+
+      const fullAddress = parts.length > 0 ? parts.join(', ') : 'Dirección desconocida';
+      console.log('✅ Dirección formateada:', fullAddress);
+      return fullAddress;
     }
+
+    console.warn('⚠️ No se encontraron resultados de geocodificación');
     return 'Dirección desconocida';
   } catch (error) {
-    console.error('Error getting address:', error);
+    console.error('❌ Error getting address:', error, 'Coordenadas:', { lat, lng });
     return 'Dirección desconocida';
   }
 };
@@ -78,6 +108,7 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
   const [newCoords, setNewCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [form, setForm] = useState({ nombre: '', referencia: '', direccion: '' });
   const [loadingAddress, setLoadingAddress] = useState(false);
+  const [savingLocation, setSavingLocation] = useState(false);
   const mapRef = useRef<any>(null);
 
   const handleSelectLocation = (location: any) => {
@@ -104,11 +135,18 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteLocation(locationId);
+              // Colapsar el menú expandido primero
               if (expandedLocationId === locationId) {
                 setExpandedLocationId(null);
               }
+
+              // Eliminar y esperar a que termine todo el proceso
+              await deleteLocation(locationId);
+
+              // Mostrar confirmación después de que todo termine
+              Alert.alert('¡Eliminado!', `La ubicación "${locationName}" fue eliminada correctamente`);
             } catch (error) {
+              console.error('Error al eliminar ubicación:', error);
               Alert.alert('Error', 'No se pudo eliminar la ubicación');
             }
           },
@@ -121,7 +159,9 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
     try {
       await setMainLocation(locationId);
       setExpandedLocationId(null);
+      Alert.alert('¡Listo!', 'Ubicación establecida como principal');
     } catch (error) {
+      console.error('Error al establecer ubicación principal:', error);
       Alert.alert('Error', 'No se pudo establecer como principal');
     }
   };
@@ -171,6 +211,7 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
     }
 
     try {
+      setSavingLocation(true);
       await locationService.create({
         clienteId: user?.id,
         nombre: form.nombre,
@@ -180,15 +221,30 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
         referencia: form.referencia,
       });
 
-      // Cerrar modal y limpiar formulario
-      setMapModalVisible(false);
-      setForm({ nombre: '', referencia: '', direccion: '' });
-      setNewCoords(null);
-
       // Refrescar ubicaciones
       await refreshLocations();
-    } catch {
+
+      // Mostrar confirmación y LUEGO cerrar todo
+      Alert.alert(
+        '¡Éxito!',
+        'Ubicación guardada correctamente',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Cerrar modal y limpiar formulario
+              setMapModalVisible(false);
+              setForm({ nombre: '', referencia: '', direccion: '' });
+              setNewCoords(null);
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error al guardar ubicación:', error);
       Alert.alert('Error', 'No se pudo guardar la ubicación');
+    } finally {
+      setSavingLocation(false);
     }
   };
 
@@ -373,7 +429,7 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
       {/* Map Modal para agregar nueva ubicación */}
       {mapModalVisible && newCoords && (
         <Modal visible={mapModalVisible} animationType="slide">
-          <SafeAreaView style={{ flex: 1 }}>
+          <SafeAreaView style={styles.modalContainer}>
             {/* Header con botón de volver */}
             <View style={styles.mapHeader}>
               <TouchableOpacity onPress={closeMapModal} style={styles.backButton}>
@@ -384,100 +440,126 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
               <View style={{ width: 80 }} />
             </View>
 
-            {Platform.OS === 'web' ? (
-              // Mapa para WEB con Google Maps
-<MapViewPickerWeb
-  height={600}
-  lat={newCoords.lat}
-  lng={newCoords.lng}
-  onChange={async (lat, lng) => {
-    setNewCoords({ lat, lng });
-    await updateAddressFromCoords(lat, lng);
-  }}
-  onUseMyLocation={async (lat, lng) => {
-    setNewCoords({ lat, lng });
-    await updateAddressFromCoords(lat, lng);
-  }}
-/>
-
-            ) : (
-              // Mapa para MOBILE con react-native-maps
-              <MapView
-                ref={mapRef}
-                style={{ flex: 1 }}
-                initialRegion={{
-                  latitude: newCoords.lat,
-                  longitude: newCoords.lng,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-                onPress={async (e: any) => {
-                  const { latitude, longitude } = e.nativeEvent.coordinate;
-                  setNewCoords({ lat: latitude, lng: longitude });
-                  await updateAddressFromCoords(latitude, longitude);
-                }}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: newCoords.lat,
-                    longitude: newCoords.lng,
+            {/* Map Container con altura fija */}
+            <View style={styles.mapModalContainer}>
+              {Platform.OS === 'web' ? (
+                // Mapa para WEB con Google Maps
+                <MapViewPickerWeb
+                  height={300}
+                  lat={newCoords.lat}
+                  lng={newCoords.lng}
+                  onChange={async (lat, lng) => {
+                    setNewCoords({ lat, lng });
+                    await updateAddressFromCoords(lat, lng);
                   }}
-                  title="Ubicación seleccionada"
-                  draggable
-                  onDragEnd={async (e: any) => {
-                    const { latitude, longitude } = e.nativeEvent.coordinate;
-                    setNewCoords({ lat: latitude, lng: longitude });
-                    await updateAddressFromCoords(latitude, longitude);
+                  onUseMyLocation={async (lat, lng) => {
+                    setNewCoords({ lat, lng });
+                    await updateAddressFromCoords(lat, lng);
                   }}
                 />
-              </MapView>
-            )}
+              ) : (
+                // Mapa para MOBILE con react-native-maps
+                <>
+                  <MapView
+                    ref={mapRef}
+                    style={styles.mapModal}
+                    initialRegion={{
+                      latitude: newCoords.lat,
+                      longitude: newCoords.lng,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                    onPress={async (e: any) => {
+                      const { latitude, longitude } = e.nativeEvent.coordinate;
+                      setNewCoords({ lat: latitude, lng: longitude });
+                      await updateAddressFromCoords(latitude, longitude);
+                    }}
+                  >
+                    <Marker
+                      coordinate={{
+                        latitude: newCoords.lat,
+                        longitude: newCoords.lng,
+                      }}
+                      title="Ubicación seleccionada"
+                      draggable
+                      onDragEnd={async (e: any) => {
+                        const { latitude, longitude } = e.nativeEvent.coordinate;
+                        setNewCoords({ lat: latitude, lng: longitude });
+                        await updateAddressFromCoords(latitude, longitude);
+                      }}
+                    />
+                  </MapView>
 
-            <View style={styles.overlayButtonContainer}>
-              <TouchableOpacity
-                style={styles.overlayButton}
-                onPress={getCurrentLocation}
-              >
-                <Ionicons name="locate" size={22} color={colors.white} />
-                <Text style={styles.overlayButtonText}>Usar ubicación actual</Text>
-              </TouchableOpacity>
+                  {/* Botón de ubicación actual sobre el mapa */}
+                  <View style={styles.overlayButtonContainer}>
+                    <TouchableOpacity
+                      style={styles.overlayButton}
+                      onPress={getCurrentLocation}
+                    >
+                      <Ionicons name="locate" size={22} color={colors.white} />
+                      <Text style={styles.overlayButtonText}>Usar ubicación actual</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
             </View>
 
-            <View style={styles.form}>
-              <TextInput
-                style={styles.input}
-                placeholder="Nombre (Casa, Trabajo, etc.)"
-                value={form.nombre}
-                onChangeText={(t) => setForm({ ...form, nombre: t })}
-              />
+            {/* Form ScrollView */}
+            <ScrollView
+              style={styles.formScrollView}
+              contentContainerStyle={styles.formScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.form}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nombre (Casa, Trabajo, etc.)"
+                  value={form.nombre}
+                  onChangeText={(t) => setForm({ ...form, nombre: t })}
+                />
 
-              <View style={styles.addressContainer}>
-                <Text style={styles.addressLabel}>Dirección detectada:</Text>
-                {loadingAddress ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
-                ) : (
-                  <Text style={styles.addressText}>{form.direccion || 'Selecciona una ubicación'}</Text>
-                )}
+                <View style={styles.addressContainer}>
+                  <Text style={styles.addressLabel}>Dirección detectada:</Text>
+                  {loadingAddress ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Text style={styles.addressText}>{form.direccion || 'Selecciona una ubicación'}</Text>
+                  )}
+                </View>
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Referencia (opcional, ej: Depto 3B, timbre azul)"
+                  value={form.referencia}
+                  onChangeText={(t) => setForm({ ...form, referencia: t })}
+                  multiline
+                  numberOfLines={2}
+                />
+
+                <TouchableOpacity
+                  style={[styles.saveButton, savingLocation && styles.saveButtonDisabled]}
+                  onPress={saveNewLocation}
+                  disabled={savingLocation}
+                  activeOpacity={0.7}
+                >
+                  {savingLocation ? (
+                    <ActivityIndicator size="small" color={colors.white} />
+                  ) : (
+                    <Text style={styles.saveText}>Guardar ubicación</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={closeMapModal}
+                  disabled={savingLocation}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
               </View>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Referencia (opcional, ej: Depto 3B, timbre azul)"
-                value={form.referencia}
-                onChangeText={(t) => setForm({ ...form, referencia: t })}
-              />
-
-              <TouchableOpacity style={styles.saveButton} onPress={saveNewLocation}>
-                <Text style={styles.saveText}>Guardar ubicación</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={closeMapModal}
-              >
-                <Text style={styles.cancelText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
+            </ScrollView>
           </SafeAreaView>
         </Modal>
       )}
@@ -695,6 +777,17 @@ const styles = StyleSheet.create({
   },
 
   // Map Modal Styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  mapModalContainer: {
+    height: 300,
+    position: 'relative',
+  },
+  mapModal: {
+    flex: 1,
+  },
   mapHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -722,7 +815,7 @@ const styles = StyleSheet.create({
   },
   overlayButtonContainer: {
     position: 'absolute',
-    bottom: 280,
+    bottom: spacing.md,
     alignSelf: 'center',
   },
   overlayButton: {
@@ -742,6 +835,13 @@ const styles = StyleSheet.create({
   overlayButtonText: {
     color: colors.white,
     fontWeight: '600',
+  },
+  formScrollView: {
+    flex: 1,
+    backgroundColor: colors.gray50,
+  },
+  formScrollContent: {
+    flexGrow: 1,
   },
   form: {
     padding: spacing.lg,
@@ -780,6 +880,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: spacing.sm,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   saveText: {
     color: colors.white,

@@ -315,10 +315,31 @@ export class PedidosService {
           let ingredientesExtrasDetallados = undefined;
 
           if (item.ingredientesExtras) {
-            const extrasArray = JSON.parse(JSON.stringify(item.ingredientesExtras));
+            // Prisma devuelve el campo Json como objeto, no como string
+            let extrasArray = item.ingredientesExtras;
+
+            console.log('🔍 ingredientesExtras raw:', item.ingredientesExtras);
+            console.log('🔍 Tipo:', typeof extrasArray);
+
+            // Si es string, parsearlo
+            if (typeof extrasArray === 'string') {
+              try {
+                extrasArray = JSON.parse(extrasArray);
+                console.log('✅ Parseado exitosamente:', extrasArray);
+              } catch (e) {
+                console.error('❌ Error parseando ingredientesExtras:', e);
+                extrasArray = [];
+              }
+            }
+
+            console.log('📦 Array final:', extrasArray);
+            console.log('📦 Es array?:', Array.isArray(extrasArray));
+
             if (Array.isArray(extrasArray) && extrasArray.length > 0) {
               ingredientesExtrasDetallados = await Promise.all(
                 extrasArray.map(async (extra: any) => {
+                  console.log('🔎 Buscando productoIngrediente ID:', extra.productoIngredienteId);
+
                   const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
                     where: { id: extra.productoIngredienteId },
                     include: {
@@ -331,6 +352,8 @@ export class PedidosService {
                     }
                   });
 
+                  console.log('📍 ProductoIngrediente encontrado:', productoIngrediente);
+
                   return {
                     productoIngredienteId: extra.productoIngredienteId,
                     cantidad: extra.cantidad,
@@ -341,6 +364,7 @@ export class PedidosService {
                   };
                 })
               );
+              console.log('✨ ingredientesExtrasDetallados:', ingredientesExtrasDetallados);
             }
           }
 
@@ -350,6 +374,7 @@ export class PedidosService {
             productoId: item.productoId,
             cantidad: item.cantidad,
             precio: parseFloat(item.precio.toString()),
+            precioUnitario: parseFloat(item.precio.toString()), // Precio unitario con extras incluidos
             notas: item.notas || undefined,
             ingredientesExtras: ingredientesExtrasDetallados,
             producto: {
@@ -389,7 +414,8 @@ export class PedidosService {
                 }
               }
             }
-          }
+          },
+          Valoracion: true
         },
         orderBy: { createdAt: 'desc' }
       });
@@ -414,14 +440,36 @@ export class PedidosService {
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
+        Valoracion: pedido.Valoracion,
         items: await Promise.all(pedido.ItemPedido.map(async (item) => {
           let ingredientesExtrasDetallados = undefined;
 
           if (item.ingredientesExtras) {
-            const extrasArray = JSON.parse(JSON.stringify(item.ingredientesExtras));
+            // Prisma devuelve el campo Json como objeto, no como string
+            let extrasArray = item.ingredientesExtras;
+
+            console.log('🔍 ingredientesExtras raw:', item.ingredientesExtras);
+            console.log('🔍 Tipo:', typeof extrasArray);
+
+            // Si es string, parsearlo
+            if (typeof extrasArray === 'string') {
+              try {
+                extrasArray = JSON.parse(extrasArray);
+                console.log('✅ Parseado exitosamente:', extrasArray);
+              } catch (e) {
+                console.error('❌ Error parseando ingredientesExtras:', e);
+                extrasArray = [];
+              }
+            }
+
+            console.log('📦 Array final:', extrasArray);
+            console.log('📦 Es array?:', Array.isArray(extrasArray));
+
             if (Array.isArray(extrasArray) && extrasArray.length > 0) {
               ingredientesExtrasDetallados = await Promise.all(
                 extrasArray.map(async (extra: any) => {
+                  console.log('🔎 Buscando productoIngrediente ID:', extra.productoIngredienteId);
+
                   const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
                     where: { id: extra.productoIngredienteId },
                     include: {
@@ -434,6 +482,8 @@ export class PedidosService {
                     }
                   });
 
+                  console.log('📍 ProductoIngrediente encontrado:', productoIngrediente);
+
                   return {
                     productoIngredienteId: extra.productoIngredienteId,
                     cantidad: extra.cantidad,
@@ -444,6 +494,7 @@ export class PedidosService {
                   };
                 })
               );
+              console.log('✨ ingredientesExtrasDetallados:', ingredientesExtrasDetallados);
             }
           }
 
@@ -453,6 +504,7 @@ export class PedidosService {
             productoId: item.productoId,
             cantidad: item.cantidad,
             precio: parseFloat(item.precio.toString()),
+            precioUnitario: parseFloat(item.precio.toString()), // Precio unitario con extras incluidos
             notas: item.notas || undefined,
             ingredientesExtras: ingredientesExtrasDetallados,
             producto: {
@@ -543,10 +595,31 @@ export class PedidosService {
           let ingredientesExtrasDetallados = undefined;
 
           if (item.ingredientesExtras) {
-            const extrasArray = JSON.parse(JSON.stringify(item.ingredientesExtras));
+            // Prisma devuelve el campo Json como objeto, no como string
+            let extrasArray = item.ingredientesExtras;
+
+            console.log('🔍 ingredientesExtras raw:', item.ingredientesExtras);
+            console.log('🔍 Tipo:', typeof extrasArray);
+
+            // Si es string, parsearlo
+            if (typeof extrasArray === 'string') {
+              try {
+                extrasArray = JSON.parse(extrasArray);
+                console.log('✅ Parseado exitosamente:', extrasArray);
+              } catch (e) {
+                console.error('❌ Error parseando ingredientesExtras:', e);
+                extrasArray = [];
+              }
+            }
+
+            console.log('📦 Array final:', extrasArray);
+            console.log('📦 Es array?:', Array.isArray(extrasArray));
+
             if (Array.isArray(extrasArray) && extrasArray.length > 0) {
               ingredientesExtrasDetallados = await Promise.all(
                 extrasArray.map(async (extra: any) => {
+                  console.log('🔎 Buscando productoIngrediente ID:', extra.productoIngredienteId);
+
                   const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
                     where: { id: extra.productoIngredienteId },
                     include: {
@@ -559,6 +632,8 @@ export class PedidosService {
                     }
                   });
 
+                  console.log('📍 ProductoIngrediente encontrado:', productoIngrediente);
+
                   return {
                     productoIngredienteId: extra.productoIngredienteId,
                     cantidad: extra.cantidad,
@@ -569,6 +644,7 @@ export class PedidosService {
                   };
                 })
               );
+              console.log('✨ ingredientesExtrasDetallados:', ingredientesExtrasDetallados);
             }
           }
 
@@ -578,6 +654,7 @@ export class PedidosService {
             productoId: item.productoId,
             cantidad: item.cantidad,
             precio: parseFloat(item.precio.toString()),
+            precioUnitario: parseFloat(item.precio.toString()), // Precio unitario con extras incluidos
             notas: item.notas || undefined,
             ingredientesExtras: ingredientesExtrasDetallados,
             producto: {

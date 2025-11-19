@@ -58,7 +58,8 @@
       "Bash(del \"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\IngredientsSection\\components\\DynamicMuiIcon.tsx\")",
       "Bash(npm run:*)",
       "Bash(ssh:*)",
-      "Bash(npx prisma format:*)"
+      "Bash(npx prisma format:*)",
+      "Bash(tasklist:*)"
     ],
     "deny": [],
     "ask": []

@@ -42,6 +42,23 @@ export interface Pedido {
   updatedAt: string;
 }
 
+export interface Valoracion {
+  id: string;
+  pedidoId: string;
+  clienteId: string;
+  empresaId: string;
+  repartidorId?: string;
+  calificacionEmpresa: number;
+  comentarioEmpresa?: string;
+  aspectosEmpresa?: string[];
+  valoracionProductos?: any;
+  calificacionRepartidor?: number;
+  comentarioRepartidor?: string;
+  aspectosRepartidor?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface PedidoWithDetails extends Pedido {
   items?: ItemPedido[];
   cliente?: {
@@ -60,6 +77,7 @@ export interface PedidoWithDetails extends Pedido {
     isEstimated: boolean;
     message: string;
   };
+  Valoracion?: Valoracion;
 }
 
 export interface CreatePedidoDto {

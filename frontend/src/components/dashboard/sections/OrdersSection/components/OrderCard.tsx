@@ -165,6 +165,23 @@ const OrderRow: React.FC<OrderCardProps> = ({
             </div>
           </div>
 
+          {/* Valoración */}
+          {pedido.Valoracion && (
+            <div className="order-rating-section">
+              <div className="order-rating-stars">
+                {'⭐'.repeat(pedido.Valoracion.calificacionEmpresa)}
+                <span className="order-rating-number">
+                  {pedido.Valoracion.calificacionEmpresa}/5
+                </span>
+              </div>
+              {pedido.Valoracion.comentarioEmpresa && (
+                <div className="order-rating-comment">
+                  "{pedido.Valoracion.comentarioEmpresa}"
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Total e items */}
           <div className="order-footer">
             <div
@@ -207,14 +224,12 @@ const OrderRow: React.FC<OrderCardProps> = ({
                         </div>
                         {ingredientesExtras.length > 0 && (
                           <div className="order-item-extras">
+                            <div style={{ fontSize: '10px', fontWeight: '600', color: '#6b7280', marginBottom: '2px' }}>
+                              Agregados:
+                            </div>
                             {ingredientesExtras.map((extra: any, extraIndex: number) => (
                               <div key={extraIndex} className="order-item-extra">
-                                + {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
-                                {extra.precioExtra && extra.precioExtra > 0 && (
-                                  <span className="order-item-extra-price">
-                                    (+${extra.precioExtra.toFixed(2)})
-                                  </span>
-                                )}
+                                • {extra.cantidad}x {extra.ingrediente?.nombre || 'Extra'}
                               </div>
                             ))}
                           </div>
