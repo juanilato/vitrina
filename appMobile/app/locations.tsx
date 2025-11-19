@@ -10,6 +10,7 @@ import {
   Alert,
   ScrollView,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,6 +47,7 @@ export default function LocationsScreen() {
   const { refreshLocations: refreshContextLocations } = useLocation();
   const [locations, setLocations] = useState<SavedLocation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [newCoords, setNewCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [form, setForm] = useState({ nombre: '', referencia: '', direccion: '' });
@@ -69,6 +71,12 @@ export default function LocationsScreen() {
   useEffect(() => {
     loadLocations();
   }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadLocations();
+    setRefreshing(false);
+  };
 
   // 🧭 obtener ubicación actual
   const getCurrentLocation = async () => {
@@ -169,7 +177,16 @@ export default function LocationsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
         {locations.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="location-outline" size={64} color={colors.gray400} />

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSizes, fontWeights, borderRadius, spacing } from '../../theme';
+import { normalize } from '../../utils/responsive';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -123,11 +124,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   md: {
-    height: 48,
+    height: 44,
     paddingHorizontal: spacing.lg,
   },
   lg: {
-    height: 56,
+    height: 50,
     paddingHorizontal: spacing.xl,
   },
 
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.base,
   },
   lgText: {
-    fontSize: fontSizes.lg,
+    fontSize: normalize(15),
   },
 
   // States

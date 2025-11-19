@@ -229,67 +229,63 @@ export default function OrdersScreen() {
         </LinearGradient>
       </View>
 
-      {/* Modern Filters with Icons */}
+      {/* Compact Filters - Modern Grid Layout */}
       <View style={styles.filtersContainer}>
-        <FlatList
-          horizontal
-          data={filterOptions}
-          keyExtractor={(item) => item.value}
-          renderItem={({ item }) => {
+        <View style={styles.filtersGrid}>
+          {filterOptions.map((item, index) => {
             const isActive = filter === item.value;
             const count = item.value === 'all' ? stats.total :
                          item.value === 'active' ? stats.active :
                          item.value === 'completed' ? stats.completed :
                          stats.cancelled;
 
+            // Patrón: largo, corto, corto, largo
+            const widthStyle = index === 0 || index === 3
+              ? { width: '58%' as const }
+              : { width: '40%' as const };
+
             return (
               <TouchableOpacity
+                key={item.value}
                 style={[
                   styles.filterChip,
-                  isActive && [styles.filterChipActive, { borderColor: item.color }],
+                  widthStyle,
+                  isActive && [styles.filterChipActive, { backgroundColor: `${item.color}10` }],
                 ]}
                 onPress={() => setFilter(item.value)}
                 activeOpacity={0.7}
               >
-                <View style={[
-                  styles.filterIconContainer,
-                  isActive && { backgroundColor: item.color }
-                ]}>
-                  <Ionicons
-                    name={item.icon}
-                    size={18}
-                    color={isActive ? colors.white : item.color}
-                  />
-                </View>
-                <View style={styles.filterTextContainer}>
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      isActive && styles.filterChipTextActive,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  {count > 0 && (
-                    <View style={[
-                      styles.countBadge,
-                      isActive && { backgroundColor: item.color }
+                <Ionicons
+                  name={item.icon}
+                  size={16}
+                  color={isActive ? item.color : colors.gray500}
+                />
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    isActive && { color: item.color, fontWeight: '700' },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.label}
+                </Text>
+                {count > 0 && (
+                  <View style={[
+                    styles.countBadge,
+                    isActive && { backgroundColor: item.color }
+                  ]}>
+                    <Text style={[
+                      styles.countBadgeText,
+                      isActive && styles.countBadgeTextActive
                     ]}>
-                      <Text style={[
-                        styles.countBadgeText,
-                        isActive && styles.countBadgeTextActive
-                      ]}>
-                        {count}
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                      {count}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             );
-          }}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersContent}
-        />
+          })}
+        </View>
       </View>
 
       {/* Orders List or Empty State */}
@@ -484,74 +480,55 @@ const styles = StyleSheet.create({
     width: 36,
   },
 
-  // Filters Container
+  // Compact Filters Container
   filtersContainer: {
     backgroundColor: colors.white,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray100,
   },
-  filtersContent: {
-    paddingHorizontal: spacing.md,
-    gap: spacing.sm,
+  filtersGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
 
-  // Modern Filter Chips
+  // Compact Filter Chips
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
     backgroundColor: colors.gray50,
-    marginRight: spacing.sm,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    gap: spacing.xs,
+    gap: 5,
   },
   filterChipActive: {
-    backgroundColor: colors.white,
-    borderWidth: 2,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  filterIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: colors.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterTextContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   filterChipText: {
-    ...typography.bodySmall,
-    color: colors.gray700,
+    fontSize: 11,
+    color: colors.gray600,
     fontWeight: '600',
-  },
-  filterChipTextActive: {
-    color: colors.gray900,
-    fontWeight: '700',
   },
   countBadge: {
     backgroundColor: colors.gray200,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 10,
-    minWidth: 22,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 8,
+    minWidth: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   countBadgeText: {
-    ...typography.caption1,
-    fontSize: 11,
+    fontSize: 10,
     color: colors.gray700,
     fontWeight: '700',
   },

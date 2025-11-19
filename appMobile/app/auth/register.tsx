@@ -173,7 +173,7 @@ export default function RegisterScreen() {
               <View style={styles.logoSection}>
                 <View style={styles.logoCard}>
                   <View style={styles.logoIconContainer}>
-                    <Logo variant="icon" size={normalize(40)} />
+                    <Logo variant="icon" size={normalize(30)} />
                   </View>
                 </View>
                 <Text style={styles.brandName}>Vitrina</Text>
@@ -373,46 +373,46 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.xs,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: spacing.sm,
-    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+    marginTop: 0,
   },
 
   logoCard: {
-    width: normalize(70),
-    height: normalize(70),
-    borderRadius: normalize(18),
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(13),
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xxs,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
   },
 
   logoIconContainer: {
-    width: normalize(58),
-    height: normalize(58),
-    borderRadius: normalize(15),
+    width: normalize(42),
+    height: normalize(42),
+    borderRadius: normalize(11),
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   brandName: {
-    fontSize: normalize(20),
+    fontSize: normalize(17),
     fontWeight: '800',
     color: colors.primary,
     letterSpacing: -0.5,
@@ -420,54 +420,54 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
 
   title: {
-    fontSize: normalize(20),
+    fontSize: normalize(19),
     fontWeight: '700',
     color: colors.gray900,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xxs,
     textAlign: 'center',
   },
 
   subtitle: {
-    fontSize: normalize(12),
+    fontSize: normalize(11),
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: normalize(17),
+    lineHeight: normalize(15),
   },
 
   // Form Card
   formCard: {
-    borderRadius: normalize(18),
+    borderRadius: normalize(16),
     overflow: 'hidden',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
 
   formCardGradient: {
-    padding: spacing.md,
+    padding: spacing.sm,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: normalize(18),
+    borderRadius: normalize(16),
   },
 
   form: {
-    gap: spacing.xs,
+    gap: spacing.xxs,
   },
 
   termsText: {
-    fontSize: normalize(10),
+    fontSize: normalize(9),
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.xs,
-    marginTop: spacing.xs,
-    lineHeight: normalize(14),
+    marginBottom: spacing.xxs,
+    marginTop: spacing.xxs,
+    lineHeight: normalize(12),
   },
 
   termsLink: {
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.sm,
+    marginVertical: spacing.xs,
   },
 
   dividerLine: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   },
 
   dividerText: {
-    fontSize: normalize(10),
+    fontSize: normalize(9),
     color: colors.textTertiary,
     marginHorizontal: spacing.sm,
     fontWeight: '500',
@@ -500,8 +500,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
     elevation: 2,
   },
 
@@ -509,16 +509,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: normalize(12),
-    paddingHorizontal: spacing.md,
-    gap: spacing.xs,
+    paddingVertical: normalize(10),
+    paddingHorizontal: spacing.sm,
+    gap: spacing.xxs,
     borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: normalize(12),
   },
 
   googleButtonText: {
-    fontSize: normalize(12),
+    fontSize: normalize(11),
     fontWeight: '600',
     color: colors.gray800,
   },
@@ -529,16 +529,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 'auto',
-    paddingTop: spacing.sm,
+    paddingTop: spacing.xs,
   },
 
   footerText: {
-    fontSize: normalize(12),
+    fontSize: normalize(11),
     color: colors.textSecondary,
   },
 
   footerLink: {
-    fontSize: normalize(12),
+    fontSize: normalize(11),
     color: colors.primary,
     fontWeight: '700',
   },

@@ -15,6 +15,7 @@ import {
   Animated,
   Dimensions,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -55,6 +56,7 @@ export default function OrderDetailScreen() {
   const router = useRouter();
   const [order, setOrder] = useState<PedidoWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapVisible, setMapVisible] = useState(showMap === 'true');
   const [mapData, setMapData] = useState<MapData | null>(null);
@@ -119,6 +121,15 @@ export default function OrderDetailScreen() {
     } catch (err: any) {
       console.error('Error fetching map data:', err);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchOrder();
+    if (order && order.estado === 'en_camino' && order.tipoEntrega === 'delivery') {
+      await fetchMapData();
+    }
+    setRefreshing(false);
   };
 
   // Helper para parsear ingredientes extras si vienen como string
@@ -243,7 +254,18 @@ export default function OrderDetailScreen() {
         </LinearGradient>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
         <Animated.View style={{ opacity: fadeAnim }}>
           {/* Status Header Compacto */}
           <View style={[styles.statusHeader, { backgroundColor: statusConfig.color }]}>

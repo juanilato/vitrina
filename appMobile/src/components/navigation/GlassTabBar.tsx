@@ -197,10 +197,8 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   toggleButton: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+
+
     elevation: 5,
   },
   toggleGradient: {
@@ -210,7 +208,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    
   },
 
   // Tab Bar Container
@@ -226,7 +224,7 @@ const styles = StyleSheet.create({
   tabBarGradient: {
     borderRadius: normalize(24),
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,

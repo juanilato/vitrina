@@ -1,6 +1,6 @@
 /**
  * Category Companies Screen with Horizontal Subcategory Filter
- * Muestra empresas con filtro horizontal de subcategorías tipo toast
+ * Muestra empresas con filtro horizontal de subcategorías
  */
 
 import React, { useState, useMemo } from 'react';
@@ -130,8 +130,8 @@ export default function CategoryScreen() {
           ) : (
             <Ionicons
               name={subcategory.id === 'all' ? 'grid' : 'pricetag'}
-              size={18}
-              color={isSelected ? colors.white : colors.primary}
+              size={14}
+              color={isSelected ? colors.primary : colors.gray500}
             />
           )}
         </View>
@@ -341,15 +341,17 @@ export default function CategoryScreen() {
         </View>
       )}
 
-      {/* Results count */}
-      <View style={styles.resultsHeader}>
-
-        {selectedSubcategoryId !== 'all' && (
-          <TouchableOpacity onPress={() => setSelectedSubcategoryId('all')}>
-            <Text style={styles.clearFilter}>Limpiar filtro</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      {/* Clear filters button */}
+      {selectedSubcategoryId !== 'all' && (
+        <TouchableOpacity
+          onPress={() => setSelectedSubcategoryId('all')}
+          style={styles.clearFilterButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="close-circle" size={16} color={colors.primary} />
+          <Text style={styles.clearFilterText}>Limpiar filtro</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -613,62 +615,61 @@ const styles = StyleSheet.create({
   subcategoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: colors.gray50,
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     marginRight: spacing.xs,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.gray200,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   subcategoryChipSelected: {
-    backgroundColor: colors.primary,
+    backgroundColor: `${colors.primary}15`,
     borderColor: colors.primary,
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
   },
   chipIconContainer: {
-    marginRight: 6,
+    marginRight: 4,
   },
   chipIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
   chipIconSelected: {
     // Mantener el icono igual cuando está seleccionado
   },
   chipText: {
     ...textStyles.body,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: colors.gray700,
+    color: colors.gray600,
   },
   chipTextSelected: {
-    color: colors.white,
+    color: colors.primary,
+    fontWeight: '700',
   },
 
-  // Results Header
-  resultsHeader: {
+  // Clear Filter Button
+  clearFilterButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
     marginBottom: spacing.sm,
+    gap: 6,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  resultsCount: {
+  clearFilterText: {
     ...textStyles.body,
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.gray700,
-  },
-  clearFilter: {
-    ...textStyles.caption1,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.primary,
   },
 

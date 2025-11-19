@@ -50,16 +50,13 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      {/* Header */}
+      {/* Header con estado y fecha */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.orderNumber}>Pedido #{order.id.slice(0, 8)}</Text>
-          <Text style={styles.date}>{formatDate(order.createdAt)}</Text>
-        </View>
+        <Text style={styles.date}>{formatDate(order.createdAt)}</Text>
         <OrderStatusBadge status={order.estado as any} />
       </View>
 
-      {/* Company Info */}
+      {/* Company Info - Destacada */}
       <View style={styles.companySection}>
         {order.empresa?.logo && (
           <Image
@@ -71,22 +68,36 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
           <Text style={styles.companyName} numberOfLines={1}>
             {order.empresa?.name || 'Empresa'}
           </Text>
-          <View style={styles.itemsRow}>
-            <Ionicons name="cube-outline" size={14} color={colors.gray600} />
-            <Text style={styles.itemsText}>
-              {totalItems} {totalItems === 1 ? 'producto' : 'productos'}
-            </Text>
-          </View>
         </View>
       </View>
+
+      {/* Lista de productos */}
+      {order.items && order.items.length > 0 && (
+        <View style={styles.productsSection}>
+          <Text style={styles.productsTitle}>Productos:</Text>
+          {order.items.map((item, index) => (
+            <View key={index} style={styles.productItem}>
+              <View style={styles.productQuantityBadge}>
+                <Text style={styles.productQuantityText}>{item.cantidad}x</Text>
+              </View>
+              <Text style={styles.productName} numberOfLines={1}>
+                {item.producto?.nombre || item.customizacion?.nombre || 'Producto'}
+              </Text>
+              <Text style={styles.productPrice}>
+                ${(item.precioUnitario * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Delivery Info */}
       <View style={styles.deliverySection}>
         <View style={styles.deliveryRow}>
           <Ionicons
             name={order.tipoEntrega === 'delivery' ? 'bicycle' : 'bag-handle'}
-            size={16}
-            color={colors.gray600}
+            size={18}
+            color={colors.primary}
           />
           <Text style={styles.deliveryText}>
             {order.tipoEntrega === 'delivery' ? 'Delivery' : 'Retiro en local'}
@@ -94,9 +105,12 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
         </View>
 
         {order.tipoEntrega === 'delivery' && order.direccionEntrega && (
-          <Text style={styles.address} numberOfLines={1}>
-            {order.direccionEntrega}
-          </Text>
+          <View style={styles.addressContainer}>
+            <Ionicons name="location-outline" size={14} color={colors.gray600} />
+            <Text style={styles.address} numberOfLines={2}>
+              {order.direccionEntrega}
+            </Text>
+          </View>
         )}
       </View>
 
@@ -185,29 +199,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.md,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray50,
-  },
-
-  headerLeft: {
-    flex: 1,
-  },
-
-  orderNumber: {
-    ...typography.bodyLarge,
-    fontWeight: '700',
-    color: colors.gray900,
-    marginBottom: spacing.xs,
-    letterSpacing: -0.3,
+    alignItems: 'center',
+    marginBottom: spacing.sm,
   },
 
   date: {
     ...typography.bodySmall,
     fontSize: 12,
     color: colors.gray500,
+    fontWeight: '500',
   },
 
   companySection: {
@@ -215,18 +215,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
     paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray50,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary + '20',
+    backgroundColor: colors.primary + '05',
+    padding: spacing.sm,
+    borderRadius: 12,
   },
 
   companyLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: colors.gray50,
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: colors.white,
     marginRight: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.gray100,
+    borderWidth: 2,
+    borderColor: colors.primary + '30',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   companyInfo: {
@@ -234,57 +242,114 @@ const styles = StyleSheet.create({
   },
 
   companyName: {
-    ...typography.bodyMedium,
-    fontWeight: '700',
-    color: colors.gray900,
-    marginBottom: spacing.xs,
-    fontSize: 15,
+    ...typography.h3,
+    fontWeight: '800',
+    color: colors.primary,
+    fontSize: 18,
+    letterSpacing: -0.5,
   },
 
-  itemsRow: {
+  productsSection: {
+    marginBottom: spacing.md,
+    backgroundColor: colors.gray50,
+    padding: spacing.md,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gray100,
+  },
+
+  productsTitle: {
+    ...typography.bodyMedium,
+    fontWeight: '700',
+    color: colors.gray700,
+    marginBottom: spacing.sm,
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  productItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.gray50,
+    paddingVertical: spacing.xs,
+    gap: spacing.sm,
+  },
+
+  productQuantityBadge: {
+    backgroundColor: colors.primary,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: 8,
-    alignSelf: 'flex-start',
+    minWidth: 36,
+    alignItems: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
   },
 
-  itemsText: {
+  productQuantityText: {
     ...typography.bodySmall,
     fontSize: 12,
-    color: colors.gray700,
+    fontWeight: '800',
+    color: colors.white,
+  },
+
+  productName: {
+    ...typography.bodyMedium,
+    flex: 1,
+    color: colors.gray900,
+    fontSize: 14,
     fontWeight: '600',
+  },
+
+  productPrice: {
+    ...typography.bodyMedium,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
   },
 
   deliverySection: {
     marginBottom: spacing.md,
-    backgroundColor: colors.gray50,
-    padding: spacing.sm,
-    borderRadius: 10,
   },
 
   deliveryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    backgroundColor: colors.primary + '10',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary + '20',
     marginBottom: spacing.xs,
   },
 
   deliveryText: {
-    ...typography.bodySmall,
-    color: colors.gray900,
-    fontWeight: '600',
-    fontSize: 13,
+    ...typography.bodyMedium,
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+    backgroundColor: colors.gray50,
+    padding: spacing.sm,
+    borderRadius: 10,
   },
 
   address: {
     ...typography.bodySmall,
-    fontSize: 12,
-    color: colors.gray600,
-    marginLeft: 24,
+    fontSize: 13,
+    color: colors.gray700,
+    fontWeight: '500',
+    flex: 1,
   },
 
   footer: {

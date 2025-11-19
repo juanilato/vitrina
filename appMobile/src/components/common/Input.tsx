@@ -82,14 +82,14 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
 
   label: {
-    fontSize: fontSizes.sm,
+    fontSize: normalize(12),
     fontWeight: fontWeights.medium,
     color: colors.text,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xxs,
   },
 
   inputContainer: {
@@ -99,9 +99,9 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
     borderColor: colors.border,
-    minHeight: normalize(52),
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    minHeight: normalize(46),
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
 
   inputContainerFocused: {
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    fontSize: fontSizes.base,
+    fontSize: normalize(14),
     color: colors.text,
     fontWeight: fontWeights.regular,
   },
@@ -133,22 +133,22 @@ const styles = StyleSheet.create({
   },
 
   showHideText: {
-    fontSize: fontSizes.sm,
+    fontSize: normalize(11),
     color: colors.primary,
     fontWeight: fontWeights.medium,
   },
 
   errorText: {
-    fontSize: fontSizes.xs,
+    fontSize: normalize(10),
     color: colors.error,
-    marginTop: spacing.xs,
+    marginTop: spacing.xxs,
     fontWeight: fontWeights.regular,
   },
 
   helperText: {
-    fontSize: fontSizes.xs,
+    fontSize: normalize(10),
     color: colors.textTertiary,
-    marginTop: spacing.xs,
+    marginTop: spacing.xxs,
     fontWeight: fontWeights.regular,
   },
 });

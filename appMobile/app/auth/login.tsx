@@ -97,7 +97,7 @@ export default function LoginScreen() {
               <View style={styles.logoSection}>
                 <View style={styles.logoCard}>
                   <View style={styles.logoIconContainer}>
-                    <Logo variant="icon" size={normalize(42)} />
+                    <Logo variant="icon" size={normalize(32)} />
                   </View>
                 </View>
                 <Text style={styles.brandName}>Vitrina</Text>
@@ -260,46 +260,46 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.xs,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: spacing.md,
-    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+    marginTop: 0,
   },
 
   logoCard: {
-    width: normalize(72),
-    height: normalize(72),
-    borderRadius: normalize(18),
+    width: normalize(56),
+    height: normalize(56),
+    borderRadius: normalize(14),
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xs,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
   },
 
   logoIconContainer: {
-    width: normalize(60),
-    height: normalize(60),
-    borderRadius: normalize(15),
+    width: normalize(46),
+    height: normalize(46),
+    borderRadius: normalize(12),
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   brandName: {
-    fontSize: normalize(22),
+    fontSize: normalize(18),
     fontWeight: '800',
     color: colors.primary,
     letterSpacing: -0.5,
@@ -307,55 +307,55 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
 
   title: {
-    fontSize: normalize(22),
+    fontSize: normalize(20),
     fontWeight: '700',
     color: colors.gray900,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xxs,
     textAlign: 'center',
   },
 
   subtitle: {
-    fontSize: normalize(13),
+    fontSize: normalize(12),
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: normalize(18),
+    lineHeight: normalize(16),
   },
 
   // Form Card
   formCard: {
-    borderRadius: normalize(18),
+    borderRadius: normalize(16),
     overflow: 'hidden',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
 
   formCardGradient: {
-    padding: spacing.lg,
+    padding: spacing.md,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: normalize(18),
+    borderRadius: normalize(16),
   },
 
   form: {
-    gap: spacing.xs,
+    gap: spacing.xxs,
   },
 
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: spacing.sm,
-    marginTop: -spacing.xs,
+    marginBottom: spacing.xs,
+    marginTop: -spacing.xxs,
   },
 
   forgotPasswordText: {
-    fontSize: normalize(12),
+    fontSize: normalize(11),
     color: colors.primary,
     fontWeight: '600',
   },
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.md,
+    marginVertical: spacing.sm,
   },
 
   dividerLine: {
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   },
 
   dividerText: {
-    fontSize: normalize(11),
+    fontSize: normalize(10),
     color: colors.textTertiary,
     marginHorizontal: spacing.sm,
     fontWeight: '500',
@@ -385,8 +385,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
     elevation: 2,
   },
 
@@ -394,16 +394,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: normalize(13),
-    paddingHorizontal: spacing.md,
-    gap: spacing.xs,
+    paddingVertical: normalize(11),
+    paddingHorizontal: spacing.sm,
+    gap: spacing.xxs,
     borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: normalize(12),
   },
 
   googleButtonText: {
-    fontSize: normalize(13),
+    fontSize: normalize(12),
     fontWeight: '600',
     color: colors.gray800,
   },
@@ -414,16 +414,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 'auto',
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
   },
 
   footerText: {
-    fontSize: normalize(13),
+    fontSize: normalize(12),
     color: colors.textSecondary,
   },
 
   footerLink: {
-    fontSize: normalize(13),
+    fontSize: normalize(12),
     color: colors.primary,
     fontWeight: '700',
   },

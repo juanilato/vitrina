@@ -3,7 +3,7 @@
  * Pantalla de perfil del usuario
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,8 +23,15 @@ import { useOrders } from '../src/hooks/useOrders';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-  const { activeOrdersCount } = useOrders();
+  const { activeOrdersCount, refresh: refreshOrders } = useOrders();
   const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshOrders();
+    setRefreshing(false);
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -51,6 +59,13 @@ export default function ProfileScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
       >
         {/* User Info */}
         <View style={styles.userCard}>
