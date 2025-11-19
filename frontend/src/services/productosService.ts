@@ -35,6 +35,7 @@ export interface CreateProductoDto {
   stockIndividual?: number;
   permiteExtras?: boolean;
   ingredientes?: ProductoIngrediente[];
+  categoriaIds?: string[],
 }
 
 export interface UpdateProductoDto {
@@ -47,6 +48,7 @@ export interface UpdateProductoDto {
   stockIndividual?: number;
   permiteExtras?: boolean;
   ingredientes?: ProductoIngrediente[];
+  categoriaIds?: string[],
 }
 
 class ProductosService {

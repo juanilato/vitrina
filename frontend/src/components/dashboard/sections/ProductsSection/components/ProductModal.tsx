@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ProductModalProps } from '../types';
+import categoryService, { CategoriaProducto } from '../../../../../services/category.service';
 import './ProductModal.css';
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onClose }) => {
@@ -9,13 +10,19 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
     precio: product?.precio ?? 0,
     activo: product?.activo ?? true,
   });
-  
+
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(product?.fotoUrl ?? null);
   const [saving, setSaving] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [precioStr, setPrecioStr] = useState(
     product?.precio !== undefined && product?.precio !== null ? String(product.precio) : ''
+  );
+
+  // Estados para categorías
+  const [categories, setCategories] = useState<CategoriaProducto[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+    product?.categorias?.map(c => c.categoria.id) || []
   );
   
   
@@ -28,6 +35,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  // Cargar categorías disponibles
+  useEffect(() => {
+    if (user?.id) {
+      categoryService.getByEmpresa(user.id).then(setCategories).catch(console.error);
+    }
+  }, [user?.id]);
 
   const isValidMoneyInput = (v: string) => /^(\d+([.]\d{0,2})?)?$/.test(v.replace(',', '.'));
   const handlePrecioChange = (v: string) => { if (isValidMoneyInput(v)) setPrecioStr(v); };
@@ -47,6 +61,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
 
   const openPicker = () => document.getElementById('pm2-file')?.click();
 
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategoryIds(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -58,7 +80,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
       await onSave({
         ...formData,
         precio,
-        file: file || undefined
+        file: file || undefined,
+        categoriaIds: selectedCategoryIds
       });
       onClose();
     } catch (err: any) {
@@ -212,6 +235,34 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, user, onSave, onCl
                   <span className="pm2-input-hint">información adicional para el cliente</span>
                 </div>
               </div>
+
+              {/* Sección de Categorías */}
+              {categories.length > 0 && (
+                <div className="pm2-field pm2-field-enhanced">
+                  <label>
+                    <span className="pm2-label-icon">🏷️</span>
+                    Categorías (opcional)
+                  </label>
+                  <div className="pm2-input-wrapper">
+                    <div className="pm2-categories-grid">
+                      {categories.map((category) => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          className={`pm2-category-chip ${selectedCategoryIds.includes(category.id) ? 'selected' : ''}`}
+                          onClick={() => toggleCategory(category.id)}
+                        >
+                          {category.icono && <span className="pm2-category-icon">{category.icono}</span>}
+                          <span>{category.nombre}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <span className="pm2-input-hint">
+                      selecciona las categorías donde aparecerá este producto
+                    </span>
+                  </div>
+                </div>
+              )}
 
             </form>
 

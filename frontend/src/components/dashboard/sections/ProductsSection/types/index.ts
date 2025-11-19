@@ -7,6 +7,17 @@ export interface ProductoIngrediente extends ProductoIngredienteBase {
   icono?: string;
 }
 
+export interface ProductCategoria {
+  id: string;
+  categoria: {
+    id: string;
+    nombre: string;
+    icono?: string;
+    orden: number;
+    activo: boolean;
+  };
+}
+
 export interface ProductWithExtras extends Producto {
   // Solo campos que existen en el backend: nombre, descripcion, precio, empresaId, activo
   // Campos adicionales para UI (opcionales)
@@ -16,6 +27,7 @@ export interface ProductWithExtras extends Producto {
   stockIndividual?: number;
   permiteExtras?: boolean;
   ingredientes?: ProductoIngrediente[];
+  categorias?: ProductCategoria[]; // Categorías asignadas al producto
 }
 
 export interface ProductModalProps {
@@ -27,6 +39,7 @@ export interface ProductModalProps {
     precio: number;
     activo: boolean;
     file?: File;
+    categoriaIds?: string[]; // IDs de categorías seleccionadas
   }) => void;
   onClose: () => void;
 }

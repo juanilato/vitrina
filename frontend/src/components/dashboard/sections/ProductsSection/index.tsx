@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ProductModal, ProductsSkeletonLoader } from './components';
 import StockManagementModal from './components/StockManagementModal';
+import CategoryManager from './components/CategoryManager';
 import { useProducts } from './hooks/useProducts';
 import { ProductWithExtras } from './types';
 import './ProductsSection.css';
@@ -14,6 +15,8 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+
 const ProductsSection: React.FC = () => {
   const {
     products,
@@ -32,7 +35,8 @@ const ProductsSection: React.FC = () => {
   const [managingStockProduct, setManagingStockProduct] = useState<ProductWithExtras | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [showInfoReference, setShowInfoReference] = useState(false); 
+  const [showInfoReference, setShowInfoReference] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false); 
   const filteredProducts = products.filter((product) => {
   const nombre = product.nombre || '';
   const descripcion = product.descripcion || '';
@@ -216,6 +220,12 @@ const ProductsSection: React.FC = () => {
       <span className="cnav-icon"><AddOutlinedIcon fontSize="small" /></span>
       <span className="cnav-label">Agregar producto</span>
     </button>
+
+    {/* Botón para gestionar categorías */}
+    <button className="cnav-item" onClick={() => setShowCategoryManager(true)}>
+      <span className="cnav-icon"><CategoryOutlinedIcon fontSize="small" /></span>
+      <span className="cnav-label">Gestionar categorías</span>
+    </button>
   </div>
 
   {searchTerm && (
@@ -304,6 +314,14 @@ const ProductsSection: React.FC = () => {
             setShowStockModal(false);
             setManagingStockProduct(null);
           }}
+        />
+      )}
+
+      {/* Modal para gestionar categorías */}
+      {showCategoryManager && user && (
+        <CategoryManager
+          empresaId={user.id}
+          onClose={() => setShowCategoryManager(false)}
         />
       )}
 

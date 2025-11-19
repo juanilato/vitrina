@@ -59,7 +59,8 @@
       "Bash(npm run:*)",
       "Bash(ssh:*)",
       "Bash(npx prisma format:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\ProductsSection\\components\\ProductModal.css\")"
     ],
     "deny": [],
     "ask": []

@@ -266,8 +266,45 @@ model Productos {
   // Relación con ingredientes (para stock compuesto o extras)
   ingredientes ProductoIngrediente[]
 
+  // Relación con categorías de productos (muchos a muchos)
+  categorias ProductoCategoria[]
+
   @@unique([empresaId, nombre])
   @@index([empresaId])
+}
+
+// ——— Categorías de Productos ———
+model CategoriaProducto {
+  id        String   @id @default(cuid())
+  nombre    String
+  empresaId String
+  icono     String? // Emoji o nombre de icono
+  orden     Int      @default(0)
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relación con productos (muchos a muchos)
+  productos ProductoCategoria[]
+
+  @@unique([empresaId, nombre])
+  @@index([empresaId, activo, orden])
+}
+
+// ——— Relación muchos a muchos entre Producto y CategoriaProducto ———
+model ProductoCategoria {
+  id         Int       @id @default(autoincrement())
+  productoId String
+  producto   Productos @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  categoriaId String
+  categoria   CategoriaProducto @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([productoId, categoriaId])
+  @@index([productoId])
+  @@index([categoriaId])
 }
 
 // ——— Ingredientes particulares (stock compuesto) ———

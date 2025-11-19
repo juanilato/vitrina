@@ -9,6 +9,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  SectionList,
   RefreshControl,
   ActivityIndicator,
   Image,
@@ -103,6 +104,36 @@ export default function CompanyStoreScreen() {
 
   const activeProducts = filteredProducts.filter((p) => p.activo);
   const inactiveProducts = filteredProducts.filter((p) => !p.activo);
+
+  // Agrupar productos por categorías
+  const productsByCategory = useMemo(() => {
+    const categoriesMap = new Map<string, { category: any; products: Product[] }>();
+    const uncategorizedProducts: Product[] = [];
+
+    activeProducts.forEach(product => {
+      if (product.categorias && product.categorias.length > 0) {
+        product.categorias.forEach(catRelation => {
+          const catId = catRelation.categoria.id;
+          if (!categoriesMap.has(catId)) {
+            categoriesMap.set(catId, {
+              category: catRelation.categoria,
+              products: []
+            });
+          }
+          categoriesMap.get(catId)!.products.push(product);
+        });
+      } else {
+        uncategorizedProducts.push(product);
+      }
+    });
+
+    // Convertir Map a array y ordenar por orden de categoría
+    const categorizedGroups = Array.from(categoriesMap.values()).sort(
+      (a, b) => a.category.orden - b.category.orden
+    );
+
+    return { categorizedGroups, uncategorizedProducts };
+  }, [activeProducts]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
     setToastMessage(message);
@@ -359,8 +390,24 @@ export default function CompanyStoreScreen() {
       </View>
 
       {/* Products List */}
-      <FlatList
-        data={[...activeProducts, ...inactiveProducts]}
+      <SectionList
+        sections={[
+          ...productsByCategory.categorizedGroups.map(group => ({
+            title: group.category.nombre,
+            icon: group.category.icono,
+            data: group.products
+          })),
+          ...(productsByCategory.uncategorizedProducts.length > 0 ? [{
+            title: 'Otros productos',
+            icon: '📦',
+            data: productsByCategory.uncategorizedProducts
+          }] : []),
+          ...(inactiveProducts.length > 0 ? [{
+            title: 'Productos no disponibles',
+            icon: '🚫',
+            data: inactiveProducts
+          }] : [])
+        ]}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ProductCard
@@ -369,6 +416,13 @@ export default function CompanyStoreScreen() {
             onAddToCart={() => handleQuickAddToCart(item.id)}
             buttonColor={buttonColor}
           />
+        )}
+        renderSectionHeader={({ section }) => (
+          <View style={styles.categoryHeader}>
+            {section.icon && <Text style={styles.categoryIcon}>{section.icon}</Text>}
+            <Text style={styles.categoryTitle}>{section.title}</Text>
+            <View style={styles.categoryLine} />
+          </View>
         )}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
@@ -1080,5 +1134,35 @@ socialChipContainer: {
     ...textStyles.body,
     color: colors.white,
     fontWeight: '600',
+  },
+
+  // Category Header Styles
+  categoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.backgroundSecondary,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    gap: spacing.sm,
+  },
+
+  categoryIcon: {
+    fontSize: 20,
+  },
+
+  categoryTitle: {
+    ...textStyles.headline,
+    fontWeight: '700',
+    color: colors.text,
+    flex: 0,
+  },
+
+  categoryLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.gray200,
+    marginLeft: spacing.sm,
   },
 });

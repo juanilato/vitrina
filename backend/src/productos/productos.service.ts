@@ -16,14 +16,15 @@ export class ProductosService {
 
   // creacion de producto nuevo de la empresa
   async create(createProductoDto: CreateProductoDto) {
-    // Extraer ingredientes si existen
-    const { ingredientes, ...productoData } = createProductoDto as any;
-    
+    // Extraer ingredientes y categorías si existen
+    const { ingredientes, categoriaIds, ...productoData } = createProductoDto as any;
+
     console.log('📝 [PRODUCTOS SERVICE] Creando producto con datos:', {
       ...productoData,
-      ingredientes: ingredientes || 'No hay ingredientes'
+      ingredientes: ingredientes || 'No hay ingredientes',
+      categoriaIds: categoriaIds || 'No hay categorías'
     });
-    
+
     // Crear el producto
     const producto = await this.prisma.productos.create({
       data: productoData,
@@ -57,6 +58,24 @@ export class ProductosService {
       console.log('📝 [PRODUCTOS SERVICE] No hay ingredientes para procesar');
     }
 
+    // Si hay categorías, crear las relaciones ProductoCategoria
+    if (categoriaIds && Array.isArray(categoriaIds) && categoriaIds.length > 0) {
+      console.log('📝 [PRODUCTOS SERVICE] Procesando categorías:', categoriaIds);
+
+      await Promise.all(
+        categoriaIds.map(async (categoriaId: string) => {
+          await this.prisma.productoCategoria.create({
+            data: {
+              productoId: producto.id,
+              categoriaId: categoriaId,
+            },
+          });
+        })
+      );
+    } else {
+      console.log('📝 [PRODUCTOS SERVICE] No hay categorías para procesar');
+    }
+
     return producto;
   }
 
@@ -82,6 +101,20 @@ export class ProductosService {
                 unidadMedida: true,
                 icono: true,
                 stockDisponible: true
+              }
+            }
+          }
+        },
+        categorias: {
+          select: {
+            id: true,
+            categoria: {
+              select: {
+                id: true,
+                nombre: true,
+                icono: true,
+                orden: true,
+                activo: true
               }
             }
           }
@@ -128,6 +161,20 @@ export class ProductosService {
                 }
               }
             }
+          },
+          categorias: {
+            select: {
+              id: true,
+              categoria: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  icono: true,
+                  orden: true,
+                  activo: true
+                }
+              }
+            }
           }
         },
       });
@@ -150,8 +197,8 @@ export class ProductosService {
     const producto = await this.prisma.productos.findUnique({ where: { id } });
     if (!producto) throw new NotFoundException('Producto no encontrado');
 
-    // Extraer ingredientes si existen
-    const { ingredientes, ...productoData } = updateProductoDto as any;
+    // Extraer ingredientes y categorías si existen
+    const { ingredientes, categoriaIds, ...productoData } = updateProductoDto as any;
 
     // Si viene nueva fotoPath y hay una anterior, borrá la anterior
     if (
@@ -191,6 +238,28 @@ export class ProductosService {
                 precioExtra: ing.precioExtra || null,
                 minimoExtra: ing.minimoExtra || null,
                 maximoExtra: ing.maximoExtra || null,
+              },
+            });
+          })
+        );
+      }
+    }
+
+    // Si hay categorías, actualizar las relaciones ProductoCategoria
+    if (categoriaIds !== undefined) {
+      // Primero eliminar todas las relaciones existentes
+      await this.prisma.productoCategoria.deleteMany({
+        where: { productoId: id },
+      });
+      console.log('Categorías:', categoriaIds);
+      // Luego crear las nuevas relaciones
+      if (categoriaIds && categoriaIds.length > 0) {
+        await Promise.all(
+          categoriaIds.map(async (categoriaId: string) => {
+            await this.prisma.productoCategoria.create({
+              data: {
+                productoId: id,
+                categoriaId: categoriaId,
               },
             });
           })
@@ -276,8 +345,20 @@ export class ProductosService {
         }
       }
 
-      // Extraer ingredientes del resto de los datos
-      const { ingredientes: _, ...restData } = createData;
+      // Deserializar categorías si vienen como string JSON
+      let categoriaIds = createData.categoriaIds;
+      if (typeof createData.categoriaIds === 'string') {
+        try {
+          categoriaIds = JSON.parse(createData.categoriaIds);
+          console.log('📝 [PRODUCTOS SERVICE] Categorías deserializadas:', categoriaIds);
+        } catch (e) {
+          console.error('❌ [PRODUCTOS SERVICE] Error al parsear categorías:', e);
+          categoriaIds = [];
+        }
+      }
+
+      // Extraer ingredientes y categorías del resto de los datos
+      const { ingredientes: _, categoriaIds: __, ...restData } = createData;
 
       // Crear el producto con la URL de la imagen
       const productoData = {
@@ -291,7 +372,7 @@ export class ProductosService {
         permiteExtras: createData.permiteExtras === 'true'
       };
 
-      // Crear el producto sin ingredientes primero
+      // Crear el producto sin ingredientes ni categorías primero
       const producto = await this.prisma.productos.create({
         data: productoData,
       });
@@ -317,6 +398,23 @@ export class ProductosService {
         }
       } else {
         console.log('📝 [PRODUCTOS SERVICE] No hay ingredientes para crear');
+      }
+
+      // Si hay categorías, crearlas para este producto
+      if (categoriaIds && Array.isArray(categoriaIds) && categoriaIds.length > 0) {
+        console.log('📝 [PRODUCTOS SERVICE] Creando relaciones ProductoCategoria:', categoriaIds.length);
+
+        for (const categoriaId of categoriaIds) {
+          await this.prisma.productoCategoria.create({
+            data: {
+              productoId: producto.id,
+              categoriaId: categoriaId,
+            }
+          });
+          console.log('✅ [PRODUCTOS SERVICE] ProductoCategoria creado:', categoriaId);
+        }
+      } else {
+        console.log('📝 [PRODUCTOS SERVICE] No hay categorías para crear');
       }
 
       return producto;
@@ -367,8 +465,20 @@ export class ProductosService {
         }
       }
 
-      // Extraer ingredientes del resto de los datos
-      const { ingredientes: _, ...restData } = updateData;
+      // Deserializar categorías si vienen como string JSON
+      let categoriaIds = updateData.categoriaIds;
+      if (typeof updateData.categoriaIds === 'string') {
+        try {
+          categoriaIds = JSON.parse(updateData.categoriaIds);
+          console.log('✏️ [PRODUCTOS SERVICE] Categorías deserializadas:', categoriaIds);
+        } catch (e) {
+          console.error('❌ [PRODUCTOS SERVICE] Error al parsear categorías:', e);
+          categoriaIds = undefined;
+        }
+      }
+
+      // Extraer ingredientes y categorías del resto de los datos
+      const { ingredientes: _, categoriaIds: __, ...restData } = updateData;
 
       // Preparar datos de actualización
       const updateProductoData = {
@@ -421,6 +531,33 @@ export class ProductosService {
           }
         } else {
           console.log('📝 [PRODUCTOS SERVICE] No hay ingredientes para crear');
+        }
+      }
+
+      // Manejar categorías si existen
+      if (categoriaIds !== undefined) {
+        // Eliminar categorías existentes
+        await this.prisma.productoCategoria.deleteMany({
+          where: { productoId: id }
+        });
+
+        console.log('📝 [PRODUCTOS SERVICE] Categorías anteriores eliminadas');
+
+        // Crear nuevas categorías si hay
+        if (Array.isArray(categoriaIds) && categoriaIds.length > 0) {
+          console.log('📝 [PRODUCTOS SERVICE] Creando nuevas relaciones ProductoCategoria:', categoriaIds.length);
+
+          for (const categoriaId of categoriaIds) {
+            await this.prisma.productoCategoria.create({
+              data: {
+                productoId: id,
+                categoriaId: categoriaId,
+              }
+            });
+            console.log('✅ [PRODUCTOS SERVICE] ProductoCategoria actualizado:', categoriaId);
+          }
+        } else {
+          console.log('📝 [PRODUCTOS SERVICE] No hay categorías para crear');
         }
       }
 

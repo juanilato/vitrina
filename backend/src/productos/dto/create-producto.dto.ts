@@ -86,5 +86,11 @@ export class CreateProductoDto {
     @IsArray()
     @Type(() => ProductoIngredienteDto)
     ingredientes?: ProductoIngredienteDto[];
+
+    // Categorías del producto (array de IDs)
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    categoriaIds?: string[];
 }
 

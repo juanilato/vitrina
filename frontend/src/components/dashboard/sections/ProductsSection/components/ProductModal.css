@@ -1093,3 +1093,45 @@
     max-height: 95vh;
   }
 }
+
+/* ====== Categorías Grid ====== */
+.pm2-categories-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.pm2-category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e0e0e0;
+  background: white;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pm2-category-chip:hover {
+  border-color: #ff6347;
+  background: #fff5f5;
+  transform: translateY(-1px);
+}
+
+.pm2-category-chip.selected {
+  border-color: #ff6347;
+  background: #ff6347;
+  color: white;
+  font-weight: 600;
+}
+
+.pm2-category-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+

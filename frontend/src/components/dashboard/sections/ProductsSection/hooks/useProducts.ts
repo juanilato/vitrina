@@ -92,6 +92,7 @@ export const useProducts = () => {
     permiteExtras?: boolean;
     ingredientes?: any[];
     file?: File;
+    categoriaIds?: string[];
   }, editingProduct?: ProductWithExtras | null) => {
     try {
       if (!user?.id) throw new Error('Usuario no autenticado');
@@ -107,6 +108,7 @@ export const useProducts = () => {
           stockIndividual: productData.stockIndividual,
           permiteExtras: productData.permiteExtras,
           ingredientes: productData.ingredientes,
+          categoriaIds: productData.categoriaIds,
         };
 
         // Usar el método que maneja automáticamente el borrado de imagen anterior
@@ -138,6 +140,7 @@ export const useProducts = () => {
           stockIndividual: productData.stockIndividual,
           permiteExtras: productData.permiteExtras,
           ingredientes: productData.ingredientes,
+          categoriaIds: productData.categoriaIds,
         };
 
         // Usar el método que maneja automáticamente la subida de imagen
