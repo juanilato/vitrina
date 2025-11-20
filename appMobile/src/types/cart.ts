@@ -41,10 +41,22 @@ export type DeliveryType = 'delivery' | 'retiro';
 
 export type PaymentMethod = 'transferencia' | 'efectivo';
 
+export interface DeliveryTimeEstimation {
+  preparacionMinutos: number; // Tiempo de preparación del comercio
+  asignacionMinutos: number; // Tiempo de asignación de repartidor
+  recojoMinutos: number; // Tiempo de llegada del repartidor al comercio
+  entregaMinutos: number; // Tiempo de entrega al cliente
+  totalMinutos: number; // Tiempo total estimado
+  fechaEntregaEstimada: Date; // Fecha y hora estimada de entrega
+  rangoMinimo: number; // Rango mínimo de tiempo (ej: 25 min)
+  rangoMaximo: number; // Rango máximo de tiempo (ej: 35 min)
+}
+
 export interface CheckoutData {
   deliveryType: DeliveryType;
   deliveryAddress?: DeliveryAddress;
   paymentMethod: PaymentMethod;
   transferReceipt?: string; // Base64 image or URL
   notes?: string;
+  estimatedDeliveryTime?: DeliveryTimeEstimation; // Tiempo estimado de entrega
 }

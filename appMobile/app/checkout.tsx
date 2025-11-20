@@ -30,7 +30,7 @@ import { locationService, SavedLocation } from '../src/services/location.service
 import { colors } from '../src/theme/colors';
 import { spacing } from '../src/theme/spacing';
 import { textStyles as typography } from '../src/theme/typography';
-import type { DeliveryType, PaymentMethod } from '../src/types/cart';
+import type { DeliveryType, PaymentMethod, DeliveryTimeEstimation } from '../src/types/cart';
 import type { DeliveryLocation, ShippingPriceResponse } from '../src/types/order';
 
 export default function CheckoutScreen() {
@@ -69,6 +69,7 @@ export default function CheckoutScreen() {
   const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocation | null>(null);
   const [shippingPrice, setShippingPrice] = useState<ShippingPriceResponse | null>(null);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
+  const [deliveryTimeEstimation, setDeliveryTimeEstimation] = useState<DeliveryTimeEstimation | null>(null);
 
   // Calcular precio automáticamente si hay ubicación seleccionada del dashboard
   React.useEffect(() => {
@@ -82,8 +83,18 @@ export default function CheckoutScreen() {
       setAddress(selectedLocation.direccion);
       setReference(selectedLocation.referencia || '');
       calculateDeliveryFee(location);
+      calculateEstimatedTime(location);
     }
   }, [selectedLocation]);
+
+  // Recalcular tiempo estimado cuando cambie el tipo de entrega
+  React.useEffect(() => {
+    if (deliveryType === 'retiro') {
+      calculateEstimatedTime();
+    } else if (deliveryLocation) {
+      calculateEstimatedTime(deliveryLocation);
+    }
+  }, [deliveryType, cart.totalItems]);
 
   // Calculate delivery fee based on location and company settings
   const calculateDeliveryFee = async (location?: DeliveryLocation) => {
@@ -154,6 +165,38 @@ export default function CheckoutScreen() {
       return defaultFee;
     } finally {
       setCalculatingShipping(false);
+    }
+  };
+
+  // Calcular tiempo estimado de entrega
+  const calculateEstimatedTime = (location?: DeliveryLocation) => {
+    if (!cart.companyId) {
+      return;
+    }
+
+    try {
+      // Calcular distancia si hay ubicación
+      let distanciaKm: number | undefined;
+      if (location && deliveryLocation) {
+        distanciaKm = shippingService.calculateDistance(
+          location.lat,
+          location.lng,
+          deliveryLocation.lat,
+          deliveryLocation.lng
+        );
+      }
+
+      // Usar estimación local para feedback inmediato
+      const estimation = shippingService.estimateDeliveryTimeLocal(
+        deliveryType,
+        distanciaKm,
+        cart.totalItems
+      );
+
+      setDeliveryTimeEstimation(estimation);
+    } catch (error) {
+      console.error('Error calculating estimated time:', error);
+      setDeliveryTimeEstimation(null);
     }
   };
 
@@ -464,6 +507,44 @@ export default function CheckoutScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Tiempo Estimado de Entrega */}
+        {deliveryTimeEstimation && (
+          <View style={styles.section}>
+            <View style={styles.estimationCard}>
+              <View style={styles.estimationHeader}>
+                <Ionicons name="time-outline" size={24} color={colors.primary} />
+                <Text style={styles.estimationTitle}>Tiempo estimado</Text>
+              </View>
+
+              <View style={styles.estimationTimeContainer}>
+                <Text style={styles.estimationTime}>
+                  {deliveryTimeEstimation.rangoMinimo} - {deliveryTimeEstimation.rangoMaximo} min
+                </Text>
+                <Text style={styles.estimationSubtext}>
+                  {deliveryType === 'delivery' ? 'Entrega aprox.' : 'Listo para retiro'}
+                </Text>
+              </View>
+
+              {deliveryType === 'delivery' && (
+                <View style={styles.estimationBreakdown}>
+                  <View style={styles.breakdownItem}>
+                    <Ionicons name="restaurant-outline" size={16} color={colors.gray500} />
+                    <Text style={styles.breakdownText}>
+                      Preparación: {deliveryTimeEstimation.preparacionMinutos} min
+                    </Text>
+                  </View>
+                  <View style={styles.breakdownItem}>
+                    <Ionicons name="bicycle-outline" size={16} color={colors.gray500} />
+                    <Text style={styles.breakdownText}>
+                      Entrega: {deliveryTimeEstimation.entregaMinutos} min
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Delivery Address */}
         {deliveryType === 'delivery' && (
@@ -1386,5 +1467,67 @@ const styles = StyleSheet.create({
     ...typography.bodyMedium,
     color: colors.primary,
     fontWeight: '600',
+  },
+
+  // Estilos para estimación de tiempo
+  estimationCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  estimationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+
+  estimationTitle: {
+    ...typography.h3,
+    color: colors.gray900,
+    fontWeight: '700',
+  },
+
+  estimationTimeContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray200,
+    marginBottom: spacing.md,
+  },
+
+  estimationTime: {
+    ...typography.h1,
+    color: colors.primary,
+    fontWeight: '800',
+    marginBottom: spacing.xs,
+  },
+
+  estimationSubtext: {
+    ...typography.bodyMedium,
+    color: colors.gray600,
+  },
+
+  estimationBreakdown: {
+    gap: spacing.sm,
+  },
+
+  breakdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  breakdownText: {
+    ...typography.bodyMedium,
+    color: colors.gray700,
   },
 });

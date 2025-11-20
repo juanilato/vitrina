@@ -130,6 +130,10 @@ model Empresa {
   // Valoraciones recibidas
   Valoraciones Valoracion[]
 
+  // Configuración de tiempos de preparación (en minutos)
+  tiempoPreparacionBase Int? @default(15) // Tiempo base de preparación en minutos
+  tiempoExtraPorPedido  Int? @default(2)  // Tiempo adicional por cada pedido simultáneo
+
   @@index([categoriaId])
 }
 
@@ -147,6 +151,10 @@ model Repartidor {
   isVerified    Boolean             @default(false)
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
+
+  // Datos para estimación de tiempos
+  velocidadPromedio Float? @default(25.0) // Velocidad promedio en km/h (moto ~25 km/h, bicicleta ~15 km/h)
+  tipoVehiculo      String? @default("moto") // "moto", "bicicleta", "auto", etc.
 
   // Valoraciones recibidas
   Valoraciones Valoracion[]
@@ -402,6 +410,14 @@ model Pedido {
 
   // Control de valoración
   entregadoAt DateTime? // Fecha y hora de entrega para calcular tiempo de solicitud de valoración
+
+  // Estimación de tiempos de entrega (en minutos)
+  tiempoPreparacionEstimado   Int? // Tiempo estimado de preparación
+  tiempoAsignacionEstimado    Int? // Tiempo estimado para asignar repartidor
+  tiempoRecojoEstimado        Int? // Tiempo estimado de llegada del repartidor al comercio
+  tiempoEntregaEstimado       Int? // Tiempo estimado de entrega al cliente
+  tiempoTotalEstimado         Int? // Tiempo total estimado (suma de todos)
+  fechaEntregaEstimada        DateTime? // Fecha y hora estimada de entrega
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

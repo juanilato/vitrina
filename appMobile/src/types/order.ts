@@ -48,6 +48,13 @@ export interface Pedido {
   entregadoAt?: string; // Timestamp de cuando se entregó el pedido
   createdAt: string;
   updatedAt: string;
+  // Tiempos estimados de entrega
+  tiempoPreparacionEstimado?: number;
+  tiempoAsignacionEstimado?: number;
+  tiempoRecojoEstimado?: number;
+  tiempoEntregaEstimado?: number;
+  tiempoTotalEstimado?: number;
+  fechaEntregaEstimada?: string;
 }
 
 export interface IngredienteExtra {

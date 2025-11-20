@@ -5,11 +5,12 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { TempPhotoService } from './services/temp-photo.service';
+import { DeliveryTimeEstimationService } from './services/delivery-time-estimation.service';
 
 @Module({
   imports: [PrismaModule, NotificationsModule, WebSocketModule],
   controllers: [PedidosController],
-  providers: [PedidosService, TempPhotoService],
-  exports: [PedidosService],
+  providers: [PedidosService, TempPhotoService, DeliveryTimeEstimationService],
+  exports: [PedidosService, DeliveryTimeEstimationService],
 })
 export class PedidosModule {}

@@ -219,6 +219,17 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
                   {order.tipoEntrega === 'delivery' ? 'Delivery' : 'Retiro'}
                 </Text>
               </View>
+
+              {/* Tiempo estimado si está disponible */}
+              {order.tiempoTotalEstimado && order.tiempoTotalEstimado > 0 && (
+                <View style={styles.etaBadge}>
+                  <Ionicons name="time-outline" size={12} color={colors.white} />
+                  <Text style={styles.etaText}>
+                    {order.tiempoTotalEstimado} min
+                  </Text>
+                </View>
+              )}
+
               <Ionicons name="chevron-forward" size={16} color={colors.white} />
             </View>
           </View>
@@ -322,6 +333,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.white,
     fontWeight: '600',
+  },
+  etaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  etaText: {
+    ...textStyles.caption2,
+    fontSize: 11,
+    color: colors.white,
+    fontWeight: '700',
   },
   detailsLink: {
     ...textStyles.caption1,

@@ -17,11 +17,15 @@ import { CreatePedidoDto, UpdatePedidoDto } from './dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { DeliveryTimeEstimationService, EstimationParams } from './services/delivery-time-estimation.service';
 
 @Controller('pedidos')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PedidosController {
-  constructor(private readonly pedidosService: PedidosService) {}
+  constructor(
+    private readonly pedidosService: PedidosService,
+    private readonly deliveryTimeEstimationService: DeliveryTimeEstimationService,
+  ) {}
 
   // crea un nuevo pedido
   @Post()
@@ -156,5 +160,13 @@ export class PedidosController {
   @HttpCode(HttpStatus.OK)
   async obtenerDatosMapa(@Param('id') id: string) {
     return this.pedidosService.obtenerDatosMapa(id);
+  }
+
+  // estima el tiempo de entrega antes de crear un pedido
+  @Post('estimate-delivery-time')
+  @Roles('cliente')
+  @HttpCode(HttpStatus.OK)
+  async estimarTiempoEntrega(@Body() params: EstimationParams) {
+    return this.deliveryTimeEstimationService.calculateEstimation(params);
   }
 }

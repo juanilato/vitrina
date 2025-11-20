@@ -5,6 +5,7 @@ import { PedidoWithItems } from './entities/pedido.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
 import { TempPhotoService } from './services/temp-photo.service';
+import { DeliveryTimeEstimationService } from './services/delivery-time-estimation.service';
 
 @Injectable()
 export class PedidosService {
@@ -13,6 +14,7 @@ export class PedidosService {
     private notificationsService: NotificationsService,
     private webSocketGateway: NotificationsWebSocketGateway,
     private tempPhotoService: TempPhotoService,
+    private deliveryTimeEstimationService: DeliveryTimeEstimationService,
   ) {}
 
   // crea pedido
@@ -195,6 +197,14 @@ export class PedidosService {
 
         return newPedido;
       });
+
+      // Calcular y actualizar tiempo estimado de entrega
+      try {
+        await this.deliveryTimeEstimationService.updateOrderEstimation(pedido.id);
+      } catch (estimationError) {
+        console.error('Error calculando tiempo estimado:', estimationError);
+        // No bloqueamos la creación del pedido si falla el cálculo de tiempo
+      }
 
       const pedidoCompleto = await this.findOne(pedido.id);
 
