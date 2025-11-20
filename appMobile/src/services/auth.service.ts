@@ -91,4 +91,16 @@ export const authService = {
     }
     // Nota: La limpieza del storage se maneja en AuthContext
   },
+
+  /**
+   * Update user password
+   * For Google users, currentPassword can be empty
+   */
+  async updatePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ message: string }> {
+    const response = await api.put<{ message: string }>('/auth/password', data);
+    return response.data;
+  },
 };

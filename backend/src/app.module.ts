@@ -19,6 +19,7 @@ import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { ValoracionesModule } from './valoraciones/valoraciones.module';
 import { CategoriasProductoModule } from './categorias-producto/categorias-producto.module';
+import { PreferenciasClienteModule } from './preferencias-cliente/preferencias-cliente.module';
 
 
 @Module({
@@ -39,6 +40,7 @@ import { CategoriasProductoModule } from './categorias-producto/categorias-produ
     WebhooksModule,
     ValoracionesModule,
     CategoriasProductoModule,
+    PreferenciasClienteModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

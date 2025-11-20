@@ -184,18 +184,6 @@ export default function CategoryScreen() {
                     {item.name}
                   </Text>
                 </View>
-                {item.alias && (
-                  <Text style={styles.aliasText} numberOfLines={1}>
-                    @{item.alias}
-                  </Text>
-                )}
-
-                {/* Horarios - Compact */}
-                {item.preferenciasWeb?.horarios && (
-                  <View style={styles.hoursCompact}>
-                    <BusinessHours horarios={item.preferenciasWeb.horarios} compact />
-                  </View>
-                )}
 
                 {/* Social Links Row */}
                 {item.redesSociales && item.redesSociales.length > 0 && (
@@ -227,6 +215,13 @@ export default function CategoryScreen() {
                 )}
               </View>
 
+              {/* Horarios - Absolute bottom left */}
+              {item.preferenciasWeb?.horarios && (
+                <View style={styles.hoursAbsoluteBottomLeft}>
+                  <BusinessHours horarios={item.preferenciasWeb.horarios} compact />
+                </View>
+              )}
+
               {/* Arrow */}
               <View style={styles.arrowWhite}>
                 <Ionicons name="chevron-forward" size={20} color={colors.white} />
@@ -245,6 +240,13 @@ export default function CategoryScreen() {
                     ({item.reviewCount})
                   </Text>
                 )}
+              </View>
+            )}
+
+            {/* Delivery Icon - Top Right */}
+            {item.preferenciasWeb?.envioDomicilio && (
+              <View style={styles.deliveryIconTopRight}>
+                <Ionicons name="bicycle" size={16} color={colors.white} />
               </View>
             )}
           </ImageBackground>
@@ -861,19 +863,19 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
 
-  aliasText: {
-    ...textStyles.footnote,
-    color: colors.white,
-    fontWeight: '500',
-    opacity: 0.85,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-
-  hoursCompact: {
-    marginTop: spacing.xs,
-    alignSelf: 'flex-start',
+  hoursAbsoluteBottomLeft: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    backgroundColor: colors.white,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 2,
+    elevation: 1,
   },
 
   socialLinksRowCard: {
@@ -898,6 +900,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: spacing.xs,
     opacity: 0.7,
+  },
+
+  // Delivery Icon - Top Right
+  deliveryIconTopRight: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(76, 175, 80, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
 
   // Rating Chip - Versión con dashboard foto

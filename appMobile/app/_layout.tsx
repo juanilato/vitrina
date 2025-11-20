@@ -10,6 +10,8 @@ import { NotificationsProvider, useNotifications } from '../src/contexts/Notific
 import { LocationProvider } from '../src/contexts/LocationContext';
 import { AppDataProvider } from '../src/contexts/AppDataContext';
 import { OrdersProvider } from '../src/contexts/OrdersContext';
+import { PreferencesProvider } from '../src/contexts/PreferencesContext';
+import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { NotificationPopup } from '../src/components/notifications';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -17,14 +19,15 @@ import { StyleSheet } from 'react-native';
 
 function AppContent() {
   const { showPopup, currentPopupNotification, dismissPopup } = useNotifications();
+  const { colors, isDark } = useTheme();
 
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#FFFFFF' },
+          contentStyle: { backgroundColor: colors.background },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -53,15 +56,19 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.container}>
       <AppDataProvider>
         <AuthProvider>
-          <OrdersProvider>
-            <NotificationsProvider>
-              <LocationProvider>
-                <CartProvider>
-                  <AppContent />
-                </CartProvider>
-              </LocationProvider>
-            </NotificationsProvider>
-          </OrdersProvider>
+          <PreferencesProvider>
+            <ThemeProvider>
+              <OrdersProvider>
+                <NotificationsProvider>
+                  <LocationProvider>
+                    <CartProvider>
+                      <AppContent />
+                    </CartProvider>
+                  </LocationProvider>
+                </NotificationsProvider>
+              </OrdersProvider>
+            </ThemeProvider>
+          </PreferencesProvider>
         </AuthProvider>
       </AppDataProvider>
     </GestureHandlerRootView>

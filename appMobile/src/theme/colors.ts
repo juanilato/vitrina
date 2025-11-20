@@ -72,4 +72,73 @@ export const colors = {
   shadowColor: '#0A2A43',  // Primary color for shadows
 } as const;
 
+// Dark theme colors
+export const darkColors = {
+  // Brand colors (ajustados para modo oscuro)
+  primary: '#4A9EE0',      // Azul más suave y legible
+  primaryLight: '#6BB3E8',
+  primaryDark: '#3A8FD1',
+
+  secondary: '#4CAF82',    // Verde más suave
+  secondaryLight: '#6BC599',
+  secondaryDark: '#3C9A6E',
+
+  accent: '#5BB3E8',       // Azul brillante pero no tan intenso
+  accentLight: '#7BC8ED',
+  accentDark: '#4A9EE0',
+
+  orange: '#F5925A',       // Naranja más suave
+  orangeLight: '#F7A675',
+  orangeDark: '#E67E45',
+
+  // Neutrals
+  white: '#FFFFFF',
+  black: '#000000',
+  background: '#121212',   // Negro suave (Material Design dark)
+
+  // Grays (optimizados para modo oscuro)
+  gray50: '#1E1E1E',       // Fondos de cards
+  gray100: '#2A2A2A',      // Fondos secundarios
+  gray200: '#3A3A3A',      // Bordes suaves
+  gray300: '#4A4A4A',      // Bordes normales
+  gray400: '#999999',      // Texto deshabilitado
+  gray500: '#B3B3B3',      // Texto terciario
+  gray600: '#CCCCCC',      // Texto secundario
+  gray700: '#E0E0E0',      // Texto normal
+  gray800: '#F0F0F0',      // Texto enfatizado
+  gray900: '#FAFAFA',      // Texto muy enfatizado
+
+  // Semantic colors
+  success: '#4CAF82',
+  green50: '#1A3329',
+  error: '#F48FB1',
+  warning: '#F5925A',
+  info: '#5BB3E8',
+
+  // Backgrounds
+  backgroundSecondary: '#1E1E1E',
+  backgroundTertiary: '#2A2A2A',
+
+  // Text
+  text: '#E0E0E0',
+  textSecondary: '#B3B3B3',
+  textTertiary: '#999999',
+  textQuaternary: '#737373',
+
+  // Borders
+  border: '#3A3A3A',
+  borderLight: '#2A2A2A',
+
+  // Overlay
+  overlay: 'rgba(0, 0, 0, 0.8)',
+  overlayLight: 'rgba(0, 0, 0, 0.4)',
+
+  // Card
+  card: '#1E1E1E',
+  cardBorder: 'rgba(255, 255, 255, 0.08)',
+
+  // Shadow
+  shadowColor: '#000000',
+} as const;
+
 export type ColorName = keyof typeof colors;

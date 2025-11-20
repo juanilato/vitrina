@@ -3,7 +3,7 @@
  * Pantalla de perfil del usuario
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,16 +16,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { colors, spacing } from '../src/theme';
+import { spacing } from '../src/theme';
 import { textStyles as typography } from '../src/theme/typography';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useOrders } from '../src/hooks/useOrders';
+import { useTheme } from '../src/contexts/ThemeContext';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const { activeOrdersCount, refresh: refreshOrders } = useOrders();
+  const { colors } = useTheme();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -144,28 +148,14 @@ export default function ProfileScreen() {
           <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => Alert.alert('Próximamente', 'Configuración de notificaciones')}
+              onPress={() => router.push('/settings')}
               activeOpacity={0.7}
             >
               <View style={styles.menuLeft}>
                 <View style={[styles.menuIcon, { backgroundColor: '#5856D6' + '15' }]}>
-                  <Ionicons name="notifications-outline" size={20} color="#5856D6" />
+                  <Ionicons name="settings-outline" size={20} color="#5856D6" />
                 </View>
-                <Text style={styles.menuLabel}>Notificaciones</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => Alert.alert('Próximamente', 'Privacidad y seguridad')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <View style={[styles.menuIcon, { backgroundColor: colors.gray700 + '15' }]}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={colors.gray700} />
-                </View>
-                <Text style={styles.menuLabel}>Privacidad</Text>
+                <Text style={styles.menuLabel}>Preferencias y configuración</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
             </TouchableOpacity>
@@ -223,7 +213,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.gray50,

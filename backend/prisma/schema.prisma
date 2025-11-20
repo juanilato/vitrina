@@ -27,6 +27,7 @@ model Cliente {
   Pedidos      Pedido[]
   ubicaciones  UbicacionCliente[]
   Valoraciones Valoracion[]
+  preferencias PreferenciasCliente?
 }
 
 // ——— Ubicaciones guardadas del cliente ———
@@ -49,6 +50,32 @@ model UbicacionCliente {
 
   @@index([clienteId])
   @@index([clienteId, esPrincipal])
+}
+
+// ——— Preferencias del cliente ———
+model PreferenciasCliente {
+  clienteId String  @id
+  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  // Tema y UI
+  temaOscuro Boolean @default(false)
+
+  // Notificaciones
+  notificacionesPush      Boolean @default(true)
+  notificacionesEmail     Boolean @default(true)
+  notificarEstadoPedidos  Boolean @default(true)
+  notificarPromociones    Boolean @default(true)
+
+  // Privacidad
+  compartirUbicacion      Boolean @default(true)
+  historialComprasVisible Boolean @default(true)
+
+  // Idioma y región
+  idioma String @default("es")
+  moneda String @default("ARS")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ——— Categorías y Subcategorías ———

@@ -157,8 +157,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
       <View style={styles.compactContainer}>
         <Ionicons
           name={isOpen ? 'time' : 'time-outline'}
-          size={16}
-          color={isOpen ? colors.success : colors.textSecondary}
+          size={11}
+          color={isOpen ? '#4CAF50' : colors.gray600}
         />
         <Text
           style={[
@@ -292,22 +292,22 @@ const styles = StyleSheet.create({
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
 
   compactText: {
-    ...textStyles.subheadline,
+    fontSize: 9,
     fontWeight: '500',
   },
 
   openText: {
-    color: colors.success,
+    color: '#4CAF50',
   },
 
   closedText: {
-    color: colors.textTertiary,
-    fontStyle: 'italic',
-    fontSize: 12,
+    color: colors.gray600,
+    fontStyle: 'normal',
+    fontSize: 9,
   },
 
   headerRow: {
