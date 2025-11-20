@@ -244,9 +244,19 @@ export default function CategoryScreen() {
             )}
 
             {/* Delivery Icon - Top Right */}
-            {item.preferenciasWeb?.envioDomicilio && (
-              <View style={styles.deliveryIconTopRight}>
-                <Ionicons name="bicycle" size={16} color={colors.white} />
+            {item.preferenciasWeb && (
+              <View style={[
+                styles.deliveryIconTopRight,
+                !item.preferenciasWeb.envioDomicilio && styles.deliveryIconDisabled
+              ]}>
+                <Ionicons
+                  name={item.preferenciasWeb.envioDomicilio ? "bicycle" : "bicycle-outline"}
+                  size={16}
+                  color={colors.white}
+                />
+                {!item.preferenciasWeb.envioDomicilio && (
+                  <View style={styles.deliverySlash} />
+                )}
               </View>
             )}
           </ImageBackground>
@@ -918,6 +928,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 3,
+  },
+
+  deliveryIconDisabled: {
+    backgroundColor: 'rgba(158, 158, 158, 0.8)',
+  },
+
+  deliverySlash: {
+    position: 'absolute',
+    width: 28,
+    height: 2,
+    backgroundColor: colors.white,
+    transform: [{ rotate: '-45deg' }],
   },
 
   // Rating Chip - Versión con dashboard foto
