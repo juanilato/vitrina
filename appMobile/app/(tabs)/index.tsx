@@ -3,7 +3,7 @@
  * Rediseño con categorías destacadas y navegación mejorada
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,8 @@ import { useCategories } from '../../src/hooks/useCategories';
 import { CategoryCard } from '../../src/components/categories/CategoryCard';
 import { MenuDrawer } from '../../src/components/navigation/MenuDrawer';
 import { LocationsDrawer } from '../../src/components/navigation/LocationsDrawer';
-import { colors, textStyles, spacing } from '../../src/theme';
+import { textStyles, spacing } from '../../src/theme';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLocation } from '../../src/contexts/LocationContext';
 import { useActiveOrder } from '../../src/hooks/useActiveOrder';
 import { ActiveOrderCard } from '../../src/components/orders/ActiveOrderCard';
@@ -34,6 +35,7 @@ const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const { categories, loading, refresh } = useCategories();
   const { selectedLocation } = useLocation();
   const { activeOrder, loading: loadingOrder, refresh: refreshOrder } = useActiveOrder();
@@ -42,6 +44,8 @@ export default function HomeScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showMenuDrawer, setShowMenuDrawer] = useState(false);
   const [showLocationsDrawer, setShowLocationsDrawer] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -209,7 +213,10 @@ export default function HomeScreen() {
       {/* Modern Glass Navbar with Logo Card */}
       <View style={styles.navbar}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          colors={isDark
+            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+          }
           style={styles.navbarGradient}
         >
           {/* Logo Card */}
@@ -303,7 +310,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -313,7 +320,7 @@ const styles = StyleSheet.create({
   navbar: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -327,14 +334,14 @@ const styles = StyleSheet.create({
     paddingVertical: normalize(12),
     borderRadius: normalize(20),
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
   },
 
   // Logo Card Styles
   logoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: normalize(12),
     paddingVertical: normalize(8),
     borderRadius: normalize(16),
@@ -367,7 +374,7 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     fontSize: normalize(18),
     fontWeight: '800',
-    color: colors.gray900,
+    color: colors.text,
     letterSpacing: -0.5,
   },
   locationBadge: {
@@ -379,7 +386,7 @@ const styles = StyleSheet.create({
   locationBadgeText: {
     ...textStyles.caption1,
     fontSize: normalize(11),
-    color: colors.gray600,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
 
@@ -394,10 +401,10 @@ const styles = StyleSheet.create({
     borderRadius: normalize(12),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -421,13 +428,13 @@ const styles = StyleSheet.create({
   appTitle: {
     ...textStyles.body,
     fontSize: normalize(16),
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
   },
   locationText: {
     ...textStyles.caption1,
     fontSize: normalize(11),
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginTop: 1,
   },
   navRight: {
@@ -439,9 +446,9 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: colors.border,
   },
   searchBar: {
     flexDirection: 'row',
@@ -456,7 +463,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...textStyles.body,
     fontSize: normalize(14),
-    color: colors.gray900,
+    color: colors.text,
   },
 
   // Header Styles
@@ -468,14 +475,14 @@ const styles = StyleSheet.create({
   greeting: {
     ...textStyles.headline,
     fontSize: normalize(20),
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
     ...textStyles.subheadline,
     fontSize: normalize(14),
-    color: colors.gray600,
+    color: colors.textSecondary,
     fontWeight: '400',
   },
 

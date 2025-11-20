@@ -25,11 +25,11 @@ import { useTheme } from '../src/contexts/ThemeContext';
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const { activeOrdersCount, refresh: refreshOrders } = useOrders();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -213,23 +213,23 @@ export default function ProfileScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: colors.background,
   },
 
   header: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   headerTitle: {
     ...typography.h2,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -242,12 +242,12 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   userCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   avatarContainer: {
@@ -265,14 +265,14 @@ const createStyles = (colors: any) => StyleSheet.create({
 
   userName: {
     ...typography.h2,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
     marginBottom: spacing.xs,
   },
 
   userEmail: {
     ...typography.bodyMedium,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginBottom: spacing.md,
   },
 
@@ -299,7 +299,7 @@ const createStyles = (colors: any) => StyleSheet.create({
 
   sectionTitle: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    color: colors.textSecondary,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -308,10 +308,10 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
 
   menuContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   menuItem: {
@@ -321,7 +321,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray100,
+    borderBottomColor: isDark ? colors.gray200 : colors.gray100,
   },
 
   menuLeft: {
@@ -340,7 +340,7 @@ const createStyles = (colors: any) => StyleSheet.create({
 
   menuLabel: {
     ...typography.bodyMedium,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '500',
   },
 
@@ -349,7 +349,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
     paddingVertical: spacing.md,
@@ -366,7 +366,7 @@ const createStyles = (colors: any) => StyleSheet.create({
 
   version: {
     ...typography.bodySmall,
-    color: colors.gray500,
+    color: colors.textTertiary,
     textAlign: 'center',
     marginTop: spacing.xl,
   },

@@ -3,7 +3,7 @@
  * Bottom navigation with glass effect and hide/show functionality
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,18 +15,22 @@ import {
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing, fontSizes } from '../../theme';
+import { spacing, fontSizes } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { normalize } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 const TAB_BAR_HEIGHT = normalize(85); // Total height including padding (reducido para 4 tabs)
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { colors, isDark } = useTheme();
   const [isVisible, setIsVisible] = useState(true);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const scaleAnims = useRef(
     state.routes.map(() => new Animated.Value(0))
   ).current;
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   // Animation for hiding/showing the tab bar
   useEffect(() => {
@@ -71,7 +75,10 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
           style={styles.toggleButton}
         >
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+            colors={isDark
+              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+            }
             style={styles.toggleGradient}
           >
             <Ionicons
@@ -93,7 +100,10 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
         ]}
       >
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          colors={isDark
+            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+          }
           style={styles.tabBarGradient}
         >
           <View style={styles.tabBar}>
@@ -188,7 +198,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   // Toggle Button
   toggleContainer: {
     position: 'absolute',
@@ -197,8 +207,6 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   toggleButton: {
-
-
     elevation: 5,
   },
   toggleGradient: {
@@ -208,7 +216,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
   },
 
   // Tab Bar Container
@@ -224,10 +232,10 @@ const styles = StyleSheet.create({
   tabBarGradient: {
     borderRadius: normalize(24),
     borderWidth: 1,
-
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
+    shadowOpacity: isDark ? 0.3 : 0.15,
     shadowRadius: 16,
     elevation: 8,
   },
@@ -259,7 +267,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   tabContentActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: isDark ? 'rgba(58, 58, 58, 0.6)' : 'rgba(255, 255, 255, 0.6)',
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,

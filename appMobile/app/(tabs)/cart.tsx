@@ -3,7 +3,7 @@
  * Muestra los items del carrito y el resumen de compra
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,14 +19,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCart } from '../../src/contexts/CartContext';
 import { CartSummary } from '../../src/components/cart/CartSummary';
-import { colors, textStyles, spacing, borderRadius, shadows } from '../../src/theme';
+import { textStyles, spacing, borderRadius, shadows } from '../../src/theme';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { formatPrice } from '../../src/utils/formatPrice';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CartScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const { cart, loading, removeItem, updateQuantity, deliveryFee } = useCart();
   const [refreshing, setRefreshing] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -185,7 +189,10 @@ export default function CartScreen() {
       {/* Modern Glass Header */}
       <View style={styles.header}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          colors={isDark
+            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+          }
           style={styles.headerGradient}
         >
           <TouchableOpacity
@@ -272,7 +279,7 @@ export default function CartScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -282,7 +289,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -296,7 +303,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
   },
   backButton: {
     width: 40,
@@ -304,10 +311,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -318,7 +325,7 @@ const styles = StyleSheet.create({
   cartBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -364,7 +371,7 @@ const styles = StyleSheet.create({
     ...textStyles.caption1,
     fontSize: 10,
     fontWeight: '600',
-    color: colors.gray500,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -372,7 +379,7 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     fontSize: 16,
     fontWeight: '800',
-    color: colors.gray900,
+    color: colors.text,
     marginTop: 2,
   },
 
@@ -388,13 +395,13 @@ const styles = StyleSheet.create({
   title: {
     ...textStyles.body,
     fontSize: 16,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
   },
   subtitle: {
     ...textStyles.caption1,
     fontSize: 11,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginTop: 1,
   },
 
@@ -418,7 +425,7 @@ const styles = StyleSheet.create({
   companySection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderRadius: 16,
@@ -430,11 +437,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: `${colors.primary}20`,
+    borderColor: colors.cardBorder,
   },
   companyName: {
     ...textStyles.body,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
     fontSize: 15,
   },
@@ -446,16 +453,16 @@ const styles = StyleSheet.create({
 
   // Cart Item - Modern Design
   cartItem: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: spacing.md,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: colors.gray100,
+    borderColor: colors.cardBorder,
     position: 'relative',
   },
   itemMainRow: {
@@ -467,7 +474,7 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -542,7 +549,7 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     ...textStyles.body,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
     minWidth: 20,
     textAlign: 'center',

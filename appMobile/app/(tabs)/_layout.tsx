@@ -4,14 +4,18 @@
  */
 
 import { Tabs } from 'expo-router';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../src/theme';
 import { useNotifications } from '../../src/contexts/NotificationsContext';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { GlassTabBar } from '../../src/components/navigation/GlassTabBar';
 
 export default function TabsLayout() {
   const { unreadCount } = useNotifications();
+  const { colors } = useTheme();
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Tabs
@@ -87,7 +91,7 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   badge: {
     position: 'absolute',
     top: -4,

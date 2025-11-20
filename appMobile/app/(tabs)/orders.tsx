@@ -3,7 +3,7 @@
  * Lista de pedidos del usuario con diseño moderno
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useOrders } from '../../src/hooks/useOrders';
 import { OrderCard } from '../../src/components/orders/OrderCard';
 import { EmptyState } from '../../src/components/common/EmptyState';
-import { colors, spacing } from '../../src/theme';
+import { spacing } from '../../src/theme';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { textStyles as typography } from '../../src/theme/typography';
 import { useRatingRequest, RatingModal } from '../../src/components/ratings';
 import ratingService from '../../src/services/rating.service';
@@ -34,14 +35,17 @@ interface FilterOptionConfig {
   color: string;
 }
 
-const filterOptions: FilterOptionConfig[] = [
-  { value: 'all', label: 'Todos', icon: 'receipt-outline', color: colors.primary },
-  { value: 'active', label: 'Activos', icon: 'time-outline', color: '#FF9500' },
-  { value: 'completed', label: 'Entregados', icon: 'checkmark-circle-outline', color: '#34C759' },
-  { value: 'cancelled', label: 'Cancelados', icon: 'close-circle-outline', color: '#FF3B30' },
-];
-
 export default function OrdersScreen() {
+  const { colors, isDark } = useTheme();
+
+  const filterOptions: FilterOptionConfig[] = useMemo(() => [
+    { value: 'all', label: 'Todos', icon: 'receipt-outline', color: colors.primary },
+    { value: 'active', label: 'Activos', icon: 'time-outline', color: '#FF9500' },
+    { value: 'completed', label: 'Entregados', icon: 'checkmark-circle-outline', color: '#34C759' },
+    { value: 'cancelled', label: 'Cancelados', icon: 'close-circle-outline', color: '#FF3B30' },
+  ], [colors.primary]);
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const {
     orders,
     filteredOrders,
@@ -146,7 +150,10 @@ export default function OrdersScreen() {
         {/* Modern Glass Header */}
         <View style={styles.navbar}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+            colors={isDark
+              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+            }
             style={styles.navbarGradient}
           >
             <View style={styles.ordersBadge}>
@@ -175,7 +182,10 @@ export default function OrdersScreen() {
         {/* Modern Glass Header */}
         <View style={styles.navbar}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+            colors={isDark
+              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+            }
             style={styles.navbarGradient}
           >
             <View style={styles.ordersBadge}>
@@ -388,7 +398,7 @@ export default function OrdersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -398,7 +408,7 @@ const styles = StyleSheet.create({
   navbar: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -412,14 +422,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
   },
 
   // Orders Badge
   ordersBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -465,7 +475,7 @@ const styles = StyleSheet.create({
     ...typography.caption1,
     fontSize: 10,
     fontWeight: '600',
-    color: colors.gray500,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -473,7 +483,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontSize: 16,
     fontWeight: '800',
-    color: colors.gray900,
+    color: colors.text,
     marginTop: 2,
   },
   headerRight: {
@@ -482,11 +492,11 @@ const styles = StyleSheet.create({
 
   // Compact Filters Container
   filtersContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray100,
+    borderBottomColor: colors.border,
   },
   filtersGrid: {
     flexDirection: 'row',
@@ -506,8 +516,8 @@ const styles = StyleSheet.create({
   },
   filterChipActive: {
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,
@@ -515,7 +525,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 11,
-    color: colors.gray600,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   countBadge: {
@@ -529,7 +539,7 @@ const styles = StyleSheet.create({
   },
   countBadgeText: {
     fontSize: 10,
-    color: colors.gray700,
+    color: colors.text,
     fontWeight: '700',
   },
   countBadgeTextActive: {
@@ -545,7 +555,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.bodyMedium,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginTop: spacing.md,
   },
 

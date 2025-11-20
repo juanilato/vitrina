@@ -25,7 +25,8 @@ import { useCompanies } from '../../src/hooks/useCompanies';
 import { useCategoryById } from '../../src/hooks/useCategoryById';
 import { BusinessHours } from '../../src/components/companies/BusinessHours';
 import { RatingStars } from '../../src/components/common/RatingStars';
-import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
+import { useTheme } from '../../src/contexts/ThemeContext';
+import { textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
@@ -34,6 +35,7 @@ import type { Company, Subcategoria } from '../../src/types/company';
 
 export default function CategoryScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const { id, name } = useLocalSearchParams();
   const categoryId = typeof id === 'string' ? id : id?.[0];
 
@@ -43,6 +45,8 @@ export default function CategoryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('all');
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   // Obtener subcategorías desde la categoría cargada del contexto
   const subcategories = useMemo(() => {
@@ -410,7 +414,10 @@ export default function CategoryScreen() {
       {/* Modern Category Header */}
       <View style={styles.header}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          colors={isDark
+            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+          }
           style={styles.headerGradient}
         >
           <TouchableOpacity
@@ -466,7 +473,7 @@ export default function CategoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -476,9 +483,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.3 : 0.1,
     shadowRadius: 12,
     elevation: 5,
   },
@@ -490,7 +497,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
   },
   backButton: {
     width: 40,
@@ -498,10 +505,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -512,7 +519,7 @@ const styles = StyleSheet.create({
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -529,7 +536,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: isDark ? `${colors.primary}25` : `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -538,13 +545,13 @@ const styles = StyleSheet.create({
   },
   categoryTextContainer: {
     flex: 1,
-    
+
   },
   categoryLabel: {
     ...textStyles.caption1,
     fontSize: 10,
     fontWeight: '600',
-    color: colors.gray500,
+    color: colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
 
@@ -553,7 +560,7 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     fontSize: 12,
     fontWeight: '800',
-    color: colors.gray900,
+    color: colors.text,
     marginTop: 2,
     width: 900,
   },
@@ -595,13 +602,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     paddingHorizontal: spacing.md,
     paddingVertical: 10,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -610,7 +617,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...textStyles.body,
     fontSize: 15,
-    color: colors.gray900,
+    color: colors.text,
   },
   clearButton: {
     padding: 4,
@@ -627,16 +634,16 @@ const styles = StyleSheet.create({
   subcategoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
     borderRadius: 16,
     paddingVertical: 6,
     paddingHorizontal: 10,
     marginRight: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
   subcategoryChipSelected: {
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: isDark ? `${colors.primary}25` : `${colors.primary}15`,
     borderColor: colors.primary,
   },
   chipIconContainer: {
@@ -652,7 +659,7 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     fontSize: 12,
     fontWeight: '600',
-    color: colors.gray600,
+    color: colors.textTertiary,
   },
   chipTextSelected: {
     color: colors.primary,
@@ -664,7 +671,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: 12,
@@ -687,12 +694,12 @@ const styles = StyleSheet.create({
 
   // Company Card Styles
   companyCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     marginBottom: spacing.md,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: isDark ? 0.3 : 0.08,
     shadowRadius: 8,
     elevation: 2,
     overflow: 'hidden',
@@ -712,7 +719,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 10,
-    backgroundColor: colors.gray100,
+    backgroundColor: isDark ? colors.gray100 : colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -725,13 +732,13 @@ const styles = StyleSheet.create({
     ...textStyles.body,
     fontSize: 15,
     fontWeight: '700',
-    color: colors.gray900,
+    color: colors.text,
     marginBottom: 4,
   },
   companyDescription: {
     ...textStyles.caption1,
     fontSize: 13,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   companyTags: {
@@ -843,7 +850,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 24,
-    backgroundColor: colors.gray100,
+    backgroundColor: isDark ? colors.gray200 : colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -877,7 +884,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
     left: 4,
-    backgroundColor: colors.white,
+    backgroundColor: isDark ? 'rgba(30, 30, 30, 0.9)' : colors.white,
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 8,

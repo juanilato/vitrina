@@ -3,14 +3,14 @@
  * Tarjeta que muestra la información de un pedido
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { PedidoWithDetails } from '../../types/order';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { RatingStars } from '../common/RatingStars';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 
@@ -22,6 +22,9 @@ interface OrderCardProps {
 
 export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress }) => {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const handlePress = () => {
     router.push(`/order/${order.id}` as any);
@@ -181,17 +184,17 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.gray100,
-    shadowColor: '#000',
+    borderColor: isDark ? colors.gray200 : colors.gray100,
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: isDark ? 0.3 : 0.08,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -206,7 +209,7 @@ const styles = StyleSheet.create({
   date: {
     ...typography.bodySmall,
     fontSize: 12,
-    color: colors.gray500,
+    color: colors.textTertiary,
     fontWeight: '500',
   },
 
@@ -216,8 +219,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     paddingBottom: spacing.md,
     borderBottomWidth: 2,
-    borderBottomColor: colors.primary + '20',
-    backgroundColor: colors.primary + '05',
+    borderBottomColor: isDark ? colors.primary + '30' : colors.primary + '20',
+    backgroundColor: isDark ? colors.primary + '15' : colors.primary + '05',
     padding: spacing.sm,
     borderRadius: 12,
   },
@@ -226,7 +229,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 14,
-    backgroundColor: colors.white,
+    backgroundColor: isDark ? colors.gray100 : colors.white,
     marginRight: spacing.md,
     borderWidth: 2,
     borderColor: colors.primary + '30',
@@ -251,17 +254,17 @@ const styles = StyleSheet.create({
 
   productsSection: {
     marginBottom: spacing.md,
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
     padding: spacing.md,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.gray100,
+    borderColor: isDark ? colors.gray200 : colors.gray100,
   },
 
   productsTitle: {
     ...typography.bodyMedium,
     fontWeight: '700',
-    color: colors.gray700,
+    color: colors.textSecondary,
     marginBottom: spacing.sm,
     fontSize: 13,
     textTransform: 'uppercase',
@@ -299,7 +302,7 @@ const styles = StyleSheet.create({
   productName: {
     ...typography.bodyMedium,
     flex: 1,
-    color: colors.gray900,
+    color: colors.text,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -319,12 +322,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: isDark ? colors.primary + '20' : colors.primary + '10',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.primary + '20',
+    borderColor: isDark ? colors.primary + '40' : colors.primary + '20',
     marginBottom: spacing.xs,
   },
 
@@ -339,7 +342,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.xs,
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
     padding: spacing.sm,
     borderRadius: 10,
   },
@@ -347,7 +350,7 @@ const styles = StyleSheet.create({
   address: {
     ...typography.bodySmall,
     fontSize: 13,
-    color: colors.gray700,
+    color: colors.textSecondary,
     fontWeight: '500',
     flex: 1,
   },
@@ -358,7 +361,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.gray50,
+    borderTopColor: isDark ? colors.gray200 : colors.gray50,
   },
 
   totalSection: {
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
   totalLabel: {
     ...typography.bodyMedium,
     fontSize: 13,
-    color: colors.gray600,
+    color: colors.textTertiary,
     fontWeight: '500',
   },
 
@@ -386,11 +389,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.primary + '10',
+    backgroundColor: isDark ? colors.primary + '20' : colors.primary + '10',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.primary + '20',
+    borderColor: isDark ? colors.primary + '40' : colors.primary + '20',
   },
 
   trackingBanner: {
@@ -426,11 +429,11 @@ const styles = StyleSheet.create({
   },
 
   ratingDisplay: {
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
     borderRadius: 12,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.gray100,
+    borderColor: isDark ? colors.gray200 : colors.gray100,
   },
 
   ratingHeader: {
@@ -444,7 +447,7 @@ const styles = StyleSheet.create({
     ...typography.bodyMedium,
     fontSize: 13,
     fontWeight: '600',
-    color: colors.gray700,
+    color: colors.textSecondary,
   },
 
   ratingContent: {
@@ -457,18 +460,18 @@ const styles = StyleSheet.create({
     ...typography.h3,
     fontSize: 18,
     fontWeight: '800',
-    color: colors.gray900,
+    color: colors.text,
   },
 
   rateButton: {
-    backgroundColor: colors.orange + '10',
+    backgroundColor: isDark ? colors.orange + '20' : colors.orange + '10',
     borderRadius: 12,
     padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1.5,
-    borderColor: colors.orange + '30',
+    borderColor: isDark ? colors.orange + '50' : colors.orange + '30',
     borderStyle: 'dashed',
   },
 

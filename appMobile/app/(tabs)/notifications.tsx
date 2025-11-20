@@ -19,7 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNotifications } from '../../src/contexts/NotificationsContext';
 import { Notification } from '../../src/types/notification';
-import { colors, spacing } from '../../src/theme';
+import { spacing } from '../../src/theme';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { textStyles as typography } from '../../src/theme/typography';
 import { EmptyState } from '../../src/components/common';
 
@@ -33,6 +34,7 @@ interface NotificationSection {
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const {
     notifications,
     unreadCount,
@@ -44,6 +46,8 @@ export default function NotificationsScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -238,7 +242,10 @@ export default function NotificationsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+            colors={isDark
+              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+            }
             style={styles.headerGradient}
           >
             <View style={styles.notificationBadge}>
@@ -369,7 +376,7 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -379,7 +386,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -390,7 +397,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
     gap: spacing.sm,
   },
 
@@ -404,7 +411,7 @@ const styles = StyleSheet.create({
   notificationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
@@ -449,7 +456,7 @@ const styles = StyleSheet.create({
     ...typography.caption1,
     fontSize: 10,
     fontWeight: '600',
-    color: colors.gray500,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -457,7 +464,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontSize: 16,
     fontWeight: '800',
-    color: colors.gray900,
+    color: colors.text,
     marginTop: 2,
   },
 
@@ -490,9 +497,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: colors.border,
   },
 
   filterChip: {
@@ -515,7 +522,7 @@ const styles = StyleSheet.create({
   filterChipText: {
     ...typography.bodySmall,
     fontSize: 13,
-    color: colors.gray700,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
 
@@ -537,7 +544,7 @@ const styles = StyleSheet.create({
   filterBadgeText: {
     ...typography.caption1,
     fontSize: 11,
-    color: colors.gray700,
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -572,7 +579,7 @@ const styles = StyleSheet.create({
     ...typography.bodyMedium,
     fontSize: 15,
     fontWeight: '700',
-    color: colors.gray900,
+    color: colors.text,
     textTransform: 'capitalize',
   },
 
@@ -587,17 +594,17 @@ const styles = StyleSheet.create({
     ...typography.caption1,
     fontSize: 11,
     fontWeight: '700',
-    color: colors.gray700,
+    color: colors.text,
   },
 
   // Notification Card
   notificationCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.gray200,
-    shadowColor: '#000',
+    borderColor: colors.border,
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -623,7 +630,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -649,13 +656,13 @@ const styles = StyleSheet.create({
     ...typography.bodyMedium,
     fontSize: 15,
     fontWeight: '600',
-    color: colors.gray700,
+    color: colors.textSecondary,
     flex: 1,
   },
 
   titleUnread: {
     fontWeight: '700',
-    color: colors.gray900,
+    color: colors.text,
   },
 
   unreadDot: {
@@ -668,7 +675,7 @@ const styles = StyleSheet.create({
   message: {
     ...typography.bodySmall,
     fontSize: 13,
-    color: colors.gray600,
+    color: colors.textSecondary,
     lineHeight: 18,
     marginBottom: 6,
   },
@@ -689,7 +696,7 @@ const styles = StyleSheet.create({
   time: {
     ...typography.caption1,
     fontSize: 11,
-    color: colors.gray500,
+    color: colors.textTertiary,
     fontWeight: '500',
   },
 });

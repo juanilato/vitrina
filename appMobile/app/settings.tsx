@@ -33,13 +33,13 @@ export default function SettingsScreen() {
     updateNotifications,
     updatePrivacy,
   } = usePreferences();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
   const [savingTheme, setSavingTheme] = useState(false);
 
   const isGoogleUser = user?.authMethod === 'google';
 
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const handleToggleTheme = async () => {
     try {
@@ -419,10 +419,10 @@ export default function SettingsScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -440,9 +440,9 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
   },
   backButton: {
     padding: spacing.xs,
@@ -463,14 +463,14 @@ const createStyles = (colors: any) => StyleSheet.create({
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     padding: spacing.lg,
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
     borderRadius: 12,
-    shadowColor: colors.black,
+    shadowColor: isDark ? colors.black : colors.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.3 : 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -524,7 +524,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginBottom: spacing.sm,
   },
   menuContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
     borderRadius: 12,
     overflow: 'hidden',
@@ -552,14 +552,14 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.gray200,
+    backgroundColor: isDark ? colors.gray200 : colors.gray200,
     marginLeft: spacing.lg + 22 + spacing.md,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
     paddingVertical: spacing.md,

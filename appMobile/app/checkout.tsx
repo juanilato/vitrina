@@ -3,7 +3,7 @@
  * Pantalla de checkout con selección de delivery/retiro, ubicación, y pago
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -27,14 +27,16 @@ import { SimpleLocationPicker } from '../src/components/common/SimpleLocationPic
 import { orderService } from '../src/services/order.service';
 import { shippingService } from '../src/services/shipping.service';
 import { locationService, SavedLocation } from '../src/services/location.service';
-import { colors } from '../src/theme/colors';
 import { spacing } from '../src/theme/spacing';
 import { textStyles as typography } from '../src/theme/typography';
+import { useTheme } from '../src/contexts/ThemeContext';
 import type { DeliveryType, PaymentMethod, DeliveryTimeEstimation } from '../src/types/cart';
 import type { DeliveryLocation, ShippingPriceResponse } from '../src/types/order';
 
 export default function CheckoutScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const {
     cart,
     checkoutData,
@@ -885,10 +887,10 @@ export default function CheckoutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: colors.background,
   },
 
   header: {
@@ -1528,6 +1530,6 @@ const styles = StyleSheet.create({
 
   breakdownText: {
     ...typography.bodyMedium,
-    color: colors.gray700,
+    color: colors.textSecondary,
   },
 });
