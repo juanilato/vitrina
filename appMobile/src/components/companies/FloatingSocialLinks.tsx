@@ -3,7 +3,7 @@
  * Botón flotante que despliega redes sociales con animación y scroll horizontal
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -14,7 +14,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, shadows } from '../../theme';
+import { colors as themeColors, spacing, shadows } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface SocialLink {
   key: string;
@@ -55,8 +56,12 @@ export const FloatingSocialLinks: React.FC<FloatingSocialLinksProps> = ({
   socialLinks,
   isExpanded,
   onToggle,
-  buttonColor = colors.primary,
+  buttonColor,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  const finalButtonColor = buttonColor || colors.primary;
+
   const animations = useRef(
     socialLinks.map(() => new Animated.Value(0))
   ).current;
@@ -175,10 +180,10 @@ export const FloatingSocialLinks: React.FC<FloatingSocialLinksProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 3, // Más pegado al techo (más arriba que spacing.md)
+    top: 3,
     right: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
@@ -187,15 +192,15 @@ const styles = StyleSheet.create({
   },
   socialScrollContainer: {
     maxWidth: 250,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
     borderRadius: 24,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: isDark ? 0.4 : 0.2,
     shadowRadius: 12,
     elevation: 6,
   },
@@ -209,30 +214,29 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(80, 80, 80, 0.3)' : 'rgba(0, 0, 0, 0.08)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 1,
-
   },
   mainButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    shadowColor: '#000',
+    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: isDark ? 0.4 : 0.25,
     shadowRadius: 12,
     elevation: 6,
   },

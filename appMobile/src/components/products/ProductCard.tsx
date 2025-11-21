@@ -3,7 +3,7 @@
  * iOS Modern Design - Compact horizontal layout
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Product } from '../../types/company';
-import { colors, spacing, borderRadius, shadows, textStyles } from '../../theme';
+import { colors as themeColors, spacing, borderRadius, shadows, textStyles } from '../../theme';
 import { formatPrice } from '../../utils/formatPrice';
 import { normalize } from '../../utils/responsive';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ProductCardProps {
   product: Product;
@@ -29,9 +30,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onPress,
   onAddToCart,
-  buttonColor = colors.primary,
+  buttonColor,
   showExtrasIndicator = true,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  const finalButtonColor = buttonColor || colors.primary;
+
   const hasExtras = product.agregados && product.agregados.length > 0;
   const hasIngredients = product.ingredientes && product.ingredientes.length > 0;
   const hasCustomizations = hasExtras || hasIngredients;
@@ -52,14 +57,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           />
         ) : (
           <View style={styles.placeholder}>
-            <Ionicons name="fast-food" size={normalize(24)} color={colors.textTertiary} />
+            <Ionicons name="fast-food" size={normalize(24)} color={themeColors.textTertiary} />
           </View>
         )}
 
         {/* Status Badge */}
         {!product.activo && (
           <View style={styles.inactiveBadge}>
-            <Ionicons name="close-circle" size={normalize(16)} color={colors.white} />
+            <Ionicons name="close-circle" size={normalize(16)} color={themeColors.white} />
           </View>
         )}
       </View>
@@ -93,14 +98,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Add Button */}
         {product.activo && onAddToCart && (
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: buttonColor }]}
+            style={[styles.addButton, { backgroundColor: finalButtonColor }]}
             onPress={(e) => {
               e.stopPropagation();
               onAddToCart();
             }}
             activeOpacity={0.8}
           >
-            <Ionicons name="add" size={normalize(22)} color={colors.white} />
+            <Ionicons name="add" size={normalize(22)} color={themeColors.white} />
           </TouchableOpacity>
         )}
       </View>
@@ -108,20 +113,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: normalize(10),
     overflow: 'hidden',
     marginBottom: spacing.xs,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 4,
     elevation: 2,
     borderWidth: 1,
-    borderColor: `${colors.gray100}80`,
+    borderColor: isDark ? colors.gray200 : `${themeColors.gray100}80`,
     minHeight: normalize(90),
   },
 
@@ -177,7 +182,7 @@ const styles = StyleSheet.create({
 
   name: {
     ...textStyles.body,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '600',
     fontSize: normalize(14),
     marginBottom: 2,
@@ -185,7 +190,7 @@ const styles = StyleSheet.create({
 
   description: {
     ...textStyles.caption1,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginBottom: normalize(6),
     lineHeight: normalize(16),
     fontSize: normalize(12),
@@ -230,7 +235,7 @@ const styles = StyleSheet.create({
     borderRadius: normalize(18),
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,

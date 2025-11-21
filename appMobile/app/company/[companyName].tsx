@@ -29,8 +29,9 @@ import { BusinessHours } from '../../src/components/companies/BusinessHours';
 import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton';
 import { FloatingSocialLinks } from '../../src/components/companies/FloatingSocialLinks';
 import { Toast } from '../../src/components/common';
-import { colors, textStyles, spacing, shadows, borderRadius } from '../../src/theme';
+import { textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { Product, Agregado } from '../../src/types/company';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { CartIngredienteExtra } from '../../src/types/cart';
 import { Animated, Easing, LayoutAnimation, Platform, UIManager } from 'react-native';
 import ratingService from '../../src/services/rating.service';
@@ -38,9 +39,12 @@ import { RatingStars } from '../../src/components/common/RatingStars';
 export default function CompanyStoreScreen() {
   const { companyName } = useLocalSearchParams<{ companyName: string }>();
   const router = useRouter();
+  const { colors, isDark } = useTheme();
 
   const { company, loading, error, refreshing, refresh } = usePublicCompanyStore(companyName);
   const { addItem, cart } = useCart();
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -594,9 +598,10 @@ export default function CompanyStoreScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   headerNoPhotoContainer: {
     overflow: 'hidden',
@@ -807,7 +812,7 @@ bottomDivider: {
 
   backgroundOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: isDark ? 'rgba(18, 18, 18, 0.85)' : 'rgba(255, 255, 255, 0.85)',
   },
 
   loadingContainer: {
@@ -1039,22 +1044,22 @@ socialChipContainer: {
   },
 
   descriptionCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: isDark ? 0.3 : 0.08,
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: colors.gray100,
+    borderColor: isDark ? colors.gray200 : colors.gray100,
   },
 
   description: {
     ...textStyles.body,
-    color: colors.gray800,
+    color: colors.textSecondary,
     lineHeight: 22,
     fontSize: 15,
   },
@@ -1063,16 +1068,16 @@ socialChipContainer: {
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     paddingHorizontal: spacing.md,
     paddingVertical: 12,
     marginBottom: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.gray200,
-    shadowColor: '#000',
+    borderColor: isDark ? colors.gray200 : colors.gray200,
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: isDark ? 0.3 : 0.08,
     shadowRadius: 8,
 
   },
@@ -1250,14 +1255,14 @@ socialChipContainer: {
     paddingHorizontal: 12,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    borderColor: colors.gray200,
-    backgroundColor: colors.gray50,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
     marginRight: spacing.xs,
     gap: 4,
   },
 
   categoryChipSelected: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderWidth: 1.5,
     ...shadows.sm,
   },

@@ -2,7 +2,7 @@
  * ProductModal - Versión moderna y estética
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,9 +23,10 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { Product, Agregado } from '../../types/company';
 import { CartIngredienteExtra } from '../../types/cart';
-import { colors, spacing, borderRadius, textStyles } from '../../theme';
+import { colors as themeColors, spacing, borderRadius, textStyles } from '../../theme';
 import { formatPrice } from '../../utils/formatPrice';
 import { RenderIngredientIcon } from '../../utils/ingredientIcons';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -73,8 +74,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   product,
   onClose,
   onAddToCart,
-  buttonColor = colors.primary,
+  buttonColor,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  const finalButtonColor = buttonColor || colors.primary;
+
   const [quantity, setQuantity] = useState(1);
   const [ingredienteQuantities, setIngredienteQuantities] = useState<Map<number, number>>(new Map());
   const [notes, setNotes] = useState('');
@@ -166,7 +171,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <Image source={{ uri: product.fotoUrl }} style={styles.image} resizeMode="cover" />
               ) : (
                 <View style={styles.placeholder}>
-                  <Ionicons name="fast-food" size={80} color={colors.textTertiary} />
+                  <Ionicons name="fast-food" size={80} color={themeColors.textTertiary} />
                 </View>
               )}
               {/* Gradiente en la parte inferior de la imagen */}
@@ -179,8 +184,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <View style={styles.titleSection}>
                 <View style={styles.titleRow}>
                   <Text style={styles.productName}>{product.nombre}</Text>
-                  <View style={[styles.priceTag, { backgroundColor: `${buttonColor}15` }]}>
-                    <Text style={[styles.priceTagText, { color: buttonColor }]}>
+                  <View style={[styles.priceTag, { backgroundColor: `${finalButtonColor}15` }]}>
+                    <Text style={[styles.priceTagText, { color: finalButtonColor }]}>
                       ${formatPrice(product.precio)}
                     </Text>
                   </View>
@@ -195,22 +200,22 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <Text style={styles.sectionLabel}>Cantidad</Text>
                 <View style={styles.quantityControls}>
                   <TouchableOpacity
-                    style={[styles.quantityButton, { borderColor: buttonColor }]}
+                    style={[styles.quantityButton, { borderColor: finalButtonColor }]}
                     onPress={() => updateQuantity(-1)}
                     disabled={quantity === 1}
                   >
                     <Ionicons
                       name="remove"
                       size={20}
-                      color={quantity === 1 ? colors.textTertiary : buttonColor}
+                      color={quantity === 1 ? colors.textTertiary : finalButtonColor}
                     />
                   </TouchableOpacity>
                   <Text style={styles.quantityText}>{quantity}</Text>
                   <TouchableOpacity
-                    style={[styles.quantityButton, { borderColor: buttonColor }]}
+                    style={[styles.quantityButton, { borderColor: finalButtonColor }]}
                     onPress={() => updateQuantity(1)}
                   >
-                    <Ionicons name="add" size={20} color={buttonColor} />
+                    <Ionicons name="add" size={20} color={finalButtonColor} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -220,7 +225,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <View style={styles.extrasSection}>
                   <TouchableOpacity onPress={toggleExtras} style={styles.extrasHeader}>
                     <View style={styles.extrasHeaderLeft}>
-                      <Ionicons name="add-circle" size={20} color={buttonColor} />
+                      <Ionicons name="add-circle" size={20} color={finalButtonColor} />
                       <Text style={styles.sectionLabel}>Agregar extras</Text>
                     </View>
                     <Ionicons
@@ -241,12 +246,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         return (
                           <View key={pi.id} style={styles.extraItem}>
                             <View style={styles.extraLeft}>
-                              <View style={[styles.iconContainer, { backgroundColor: `${buttonColor}10` }]}>
+                              <View style={[styles.iconContainer, { backgroundColor: `${finalButtonColor}10` }]}>
                                 <RenderIngredientIcon name={pi.ingrediente.icono} size={24} />
                               </View>
                               <View style={styles.extraInfo}>
                                 <Text style={styles.extraName}>{pi.ingrediente.nombre}</Text>
-                                <Text style={[styles.extraPrice, { color: buttonColor }]}>
+                                <Text style={[styles.extraPrice, { color: finalButtonColor }]}>
                                   +${formatPrice(precioExtra)}
                                 </Text>
                               </View>
@@ -261,7 +266,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                                 <Ionicons
                                   name="remove-circle"
                                   size={28}
-                                  color={qty === 0 ? colors.textTertiary : buttonColor}
+                                  color={qty === 0 ? colors.textTertiary : finalButtonColor}
                                 />
                               </TouchableOpacity>
                               <Text style={styles.extraQty}>{qty}</Text>
@@ -278,7 +283,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                                   color={
                                     pi.maximoExtra && qty >= pi.maximoExtra
                                       ? colors.textTertiary
-                                      : buttonColor
+                                      : finalButtonColor
                                   }
                                 />
                               </TouchableOpacity>
@@ -297,7 +302,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 <TextInput
                   style={styles.notesInput}
                   placeholder="Ej: Sin cebolla, sin picante..."
-                  placeholderTextColor={colors.textTertiary}
+                  placeholderTextColor={themeColors.textTertiary}
                   multiline
                   value={notes}
                   onChangeText={setNotes}
@@ -317,10 +322,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
           </TouchableOpacity>
 
           {/* Footer - Botón agregar */}
-          <View style={[styles.footer, { borderTopColor: colors.border }]}>
+          <View style={styles.footer}>
             <Animated.View style={{ transform: [{ scale: scaleAnim }], flex: 1 }}>
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: buttonColor }]}
+                style={[styles.addButton, { backgroundColor: finalButtonColor }]}
                 onPress={handleAdd}
                 activeOpacity={0.85}
               >
@@ -340,7 +345,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -367,7 +372,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     opacity: 0.8,
   },
   closeButton: {
@@ -380,7 +385,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -396,7 +401,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 280,
     position: 'relative',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: isDark ? colors.gray100 : colors.backgroundSecondary,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     overflow: 'hidden',
@@ -411,7 +416,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: isDark ? colors.gray100 : colors.backgroundSecondary,
   },
   imageGradient: {
     position: 'absolute',
@@ -419,7 +424,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 100,
-    background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.3))',
+    backgroundColor: isDark ? 'rgba(0,0,0,0.3)' : 'transparent',
   },
 
   // Contenido
@@ -469,7 +474,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     paddingBottom: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: isDark ? colors.gray200 : colors.border,
   },
   sectionLabel: {
     fontSize: 16,
@@ -505,7 +510,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     paddingBottom: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: isDark ? colors.gray200 : colors.border,
   },
   extrasHeader: {
     flexDirection: 'row',
@@ -526,7 +531,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: isDark ? colors.gray100 : colors.backgroundSecondary,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
   },
@@ -577,7 +582,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   notesInput: {
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: isDark ? colors.gray100 : colors.backgroundSecondary,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
@@ -587,7 +592,7 @@ const styles = StyleSheet.create({
     maxHeight: 120,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: isDark ? colors.gray200 : colors.border,
   },
 
   // Footer
@@ -599,16 +604,17 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     backgroundColor: colors.card,
     borderTopWidth: 1,
-    shadowColor: '#000',
+    borderTopColor: isDark ? colors.gray200 : colors.border,
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 8,
     elevation: 5,
   },
   addButton: {
     borderRadius: borderRadius.xl,
     paddingVertical: spacing.md + 4,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

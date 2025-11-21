@@ -899,14 +899,14 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   headerTitle: {
     ...typography.h2,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -925,14 +925,14 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   sectionTitle: {
     ...typography.h3,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
     marginBottom: spacing.xs,
   },
 
   sectionSubtitle: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginBottom: spacing.md,
   },
 
@@ -943,12 +943,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   optionCard: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.lg,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   optionCardActive: {
@@ -992,13 +992,13 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   input: {
     ...typography.bodyMedium,
-    backgroundColor: colors.white,
+    backgroundColor: isDark ? colors.gray100 : colors.white,
     borderRadius: 8,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.gray200,
-    color: colors.gray900,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
+    color: colors.text,
   },
 
   textArea: {
@@ -1014,11 +1014,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.md,
     borderWidth: 2,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   paymentOptionActive: {
@@ -1043,18 +1043,18 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   uploadButton: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.xl,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.gray300,
+    borderColor: isDark ? colors.gray200 : colors.gray300,
     borderStyle: 'dashed',
   },
 
   uploadButtonText: {
     ...typography.bodyMedium,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginTop: spacing.sm,
   },
 
@@ -1075,16 +1075,16 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     position: 'absolute',
     top: spacing.sm,
     right: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
   },
 
   summaryCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   summaryRow: {
@@ -1096,26 +1096,26 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   summaryLabel: {
     ...typography.bodyMedium,
-    color: colors.gray600,
+    color: colors.textSecondary,
   },
 
   summaryValue: {
     ...typography.bodyMedium,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '600',
   },
 
   totalRow: {
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.gray200,
+    borderTopColor: isDark ? colors.gray200 : colors.gray200,
     marginTop: spacing.sm,
     marginBottom: 0,
   },
 
   totalLabel: {
     ...typography.bodyLarge,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -1126,9 +1126,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   bottomContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
-    borderTopColor: colors.gray200,
+    borderTopColor: isDark ? colors.gray200 : colors.gray200,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.lg,
@@ -1152,7 +1152,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   emptyTitle: {
     ...typography.h3,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '600',
     marginTop: spacing.lg,
     marginBottom: spacing.xl,
@@ -1180,7 +1180,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   // Estilos para Toggle Moderno (Tipo de entrega y Forma de pago)
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.gray200,
+    backgroundColor: isDark ? colors.gray100 : colors.gray200,
     borderRadius: 12,
     padding: 4,
     gap: 4,
@@ -1225,7 +1225,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   toggleLabel: {
     ...typography.bodyMedium,
-    color: colors.gray700,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
 
@@ -1235,7 +1235,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   toggleSubtext: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    color: colors.textTertiary,
     marginTop: 2,
   },
 
@@ -1247,15 +1247,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   // Estilos para dirección seleccionada
   selectedAddressCard: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 2,
     borderColor: colors.primary,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.3 : 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -1276,14 +1276,14 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   addressText: {
     ...typography.bodyMedium,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
 
   referenceText: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
 
@@ -1295,7 +1295,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   shippingLabel: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    color: colors.textSecondary,
   },
 
   shippingPrice: {
@@ -1331,7 +1331,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   savedAddressesTitle: {
     ...typography.bodyMedium,
-    color: colors.gray700,
+    color: colors.textSecondary,
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
@@ -1339,12 +1339,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   savedAddressCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   savedAddressIcon: {
@@ -1363,14 +1363,14 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   savedAddressName: {
     ...typography.bodyMedium,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '600',
     marginBottom: 2,
   },
 
   savedAddressText: {
     ...typography.bodySmall,
-    color: colors.gray600,
+    color: colors.textSecondary,
   },
 
   // Estilos para Modal de selección de direcciones
@@ -1381,7 +1381,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   modalContent: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -1394,12 +1394,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   modalTitle: {
     ...typography.h3,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -1411,12 +1411,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   modalAddressCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.sm,
     borderWidth: 2,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
 
   modalAddressCardActive: {
@@ -1434,20 +1434,20 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   modalAddressName: {
     ...typography.bodyLarge,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
 
   modalAddressText: {
     ...typography.bodyMedium,
-    color: colors.gray700,
+    color: colors.textSecondary,
     marginBottom: 2,
   },
 
   modalAddressReference: {
     ...typography.bodySmall,
-    color: colors.gray500,
+    color: colors.textTertiary,
     fontStyle: 'italic',
   },
 
@@ -1473,14 +1473,14 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   // Estilos para estimación de tiempo
   estimationCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.primary + '30',
-    shadowColor: colors.primary,
+    shadowColor: isDark ? colors.black : colors.primary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.3 : 0.1,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -1494,7 +1494,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   estimationTitle: {
     ...typography.h3,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '700',
   },
 
@@ -1502,7 +1502,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
     marginBottom: spacing.md,
   },
 
@@ -1515,7 +1515,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   estimationSubtext: {
     ...typography.bodyMedium,
-    color: colors.gray600,
+    color: colors.textSecondary,
   },
 
   estimationBreakdown: {

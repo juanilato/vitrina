@@ -7,15 +7,14 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { HorarioAtencion, DayOfWeek } from '../../types/company';
-import { colors, spacing, borderRadius, textStyles } from '../../theme';
-import {
   LayoutAnimation,
   Platform,
   UIManager,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { HorarioAtencion, DayOfWeek } from '../../types/company';
+import { colors as themeColors, spacing, borderRadius, textStyles } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 interface BusinessHoursProps {
   horarios?: HorarioAtencion[];
   compact?: boolean;
@@ -59,6 +58,8 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({
   horarios,
   compact = false,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [expanded, setExpanded] = useState(false);
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -158,7 +159,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
         <Ionicons
           name={isOpen ? 'time' : 'time-outline'}
           size={11}
-          color={isOpen ? '#4CAF50' : colors.gray600}
+          color={isOpen ? '#4CAF50' : colors.textSecondary}
         />
         <Text
           style={[
@@ -274,19 +275,19 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 };
 
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.sm,
     marginBottom: spacing.sm,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
+    shadowOpacity: isDark ? 0.3 : 0.04,
     shadowRadius: 4,
     elevation: 1,
     borderWidth: 0.5,
-    borderColor: `${colors.gray100}60`,
+    borderColor: isDark ? colors.gray200 : `${themeColors.gray100}60`,
   },
 
   compactContainer: {
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
   },
 
   closedText: {
-    color: colors.gray600,
+    color: colors.textSecondary,
     fontStyle: 'normal',
     fontSize: 9,
   },
@@ -327,12 +328,12 @@ const styles = StyleSheet.create({
   },
 
   openBadge: {
-    backgroundColor: '#E8F5E910',
+    backgroundColor: isDark ? 'rgba(76, 175, 80, 0.15)' : '#E8F5E910',
     borderColor: '#4CAF5020',
   },
 
   closedBadge: {
-    backgroundColor: '#FFEBEE10',
+    backgroundColor: isDark ? 'rgba(244, 67, 54, 0.15)' : '#FFEBEE10',
     borderColor: '#F4433620',
   },
 
@@ -372,7 +373,7 @@ const styles = StyleSheet.create({
     ...textStyles.subheadline,
     fontWeight: '600',
     fontSize: 13,
-    color: colors.gray900,
+    color: colors.text,
   },
 
   todayTimes: {
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
   },
 
   todayRow: {
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: isDark ? colors.gray100 : colors.backgroundSecondary,
   },
 
   dayText: {

@@ -3,7 +3,7 @@
  * iOS Modern Design - Resumen del carrito con totales
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, shadows, textStyles } from '../../theme';
+import { colors as themeColors, spacing, borderRadius, shadows, textStyles } from '../../theme';
 import { formatPrice } from '../../utils/formatPrice';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface CartSummaryProps {
   subtotal: number;
@@ -33,10 +34,14 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
   total,
   itemCount,
   onCheckout,
-  buttonColor = colors.primary,
+  buttonColor,
   buttonText = 'Continuar',
   isLoading = false,
 }) => {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  const finalButtonColor = buttonColor || colors.primary;
+
   return (
     <View style={styles.container}>
       {/* Summary Items */}
@@ -82,7 +87,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
       <TouchableOpacity
         style={[
           styles.checkoutButton,
-          { backgroundColor: buttonColor },
+          { backgroundColor: finalButtonColor },
           isLoading && styles.checkoutButtonDisabled,
         ]}
         onPress={onCheckout}
@@ -91,18 +96,18 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
       >
         <View style={styles.buttonContent}>
           <View style={styles.buttonLeft}>
-            <Ionicons name="bag-handle" size={20} color={colors.white} />
+            <Ionicons name="bag-handle" size={20} color={themeColors.white} />
             <Text style={styles.itemCount}>{itemCount}</Text>
           </View>
           <Text style={styles.buttonText}>{buttonText}</Text>
-          <Ionicons name="arrow-forward" size={20} color={colors.white} />
+          <Ionicons name="arrow-forward" size={20} color={themeColors.white} />
         </View>
       </TouchableOpacity>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     backgroundColor: colors.card,
     borderTopLeftRadius: borderRadius.xl,
@@ -110,7 +115,15 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
-    ...shadows.lg,
+    shadowColor: isDark ? colors.black : '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: isDark ? 0.3 : 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: isDark ? colors.gray200 : 'transparent',
   },
 
   summarySection: {
@@ -151,7 +164,7 @@ const styles = StyleSheet.create({
 
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: isDark ? colors.gray200 : colors.border,
     marginVertical: spacing.md,
   },
 
@@ -177,7 +190,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    ...shadows.md,
+    shadowColor: isDark ? colors.black : '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   checkoutButtonDisabled: {
@@ -198,13 +215,13 @@ const styles = StyleSheet.create({
 
   itemCount: {
     ...textStyles.body,
-    color: colors.white,
+    color: themeColors.white,
     fontWeight: '700',
   },
 
   buttonText: {
     ...textStyles.headline,
-    color: colors.white,
+    color: themeColors.white,
     fontWeight: '700',
     flex: 1,
     textAlign: 'center',
