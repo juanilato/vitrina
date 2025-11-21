@@ -3,7 +3,7 @@
  * Drawer lateral izquierdo para gestionar ubicaciones
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,11 +22,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { MapView, Marker, MapFallback } from '../common/MapViewUniversal';
-import { colors, textStyles, spacing } from '../../theme';
+import { textStyles, spacing } from '../../theme';
 import { useLocation } from '../../contexts/LocationContext';
 import { locationService } from '../../services/location.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { MapViewPickerWeb } from '../common/MapViewPicker.web';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(width * 0.7, 320);
@@ -91,6 +92,7 @@ const getAddressFromCoords = async (lat: number, lng: number): Promise<string> =
 export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClose }) => {
   const router = useRouter();
   const { user } = useAuth();
+  const { colors, isDark } = useTheme();
   const {
     locations,
     selectedLocation,
@@ -101,6 +103,7 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
     loading,
   } = useLocation();
 
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [expandedLocationId, setExpandedLocationId] = useState<number | null>(null);
 
   // Estados para el modal de agregar ubicación
@@ -593,7 +596,7 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   overlay: {
     flex: 1,
     flexDirection: 'row',
@@ -601,10 +604,10 @@ const styles = StyleSheet.create({
   drawer: {
     top: "8%",
     width: "100%",
-    backgroundColor: colors.white,
-    shadowColor: '#000',
+    backgroundColor: colors.card,
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.25,
+    shadowOpacity: isDark ? 0.4 : 0.25,
     shadowRadius: 8,
     elevation: 5,
   },
@@ -624,8 +627,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.gray50,
+    borderBottomColor: isDark ? colors.gray200 : colors.border,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
   },
   headerTitle: {
     ...textStyles.title3,
@@ -643,7 +646,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: colors.white,
+    backgroundColor: isDark ? colors.gray200 : colors.white,
   },
 
   // Loading State
@@ -668,10 +671,10 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sm,
     marginVertical: 4,
     borderRadius: 10,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: isDark ? colors.gray200 : colors.border,
   },
   locationItem: {
     flexDirection: 'row',
@@ -681,7 +684,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   locationItemSelected: {
-    backgroundColor: colors.primary + '08',
+    backgroundColor: isDark ? colors.primary + '15' : colors.primary + '08',
   },
   locationItemLeft: {
     flexDirection: 'row',
@@ -737,7 +740,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
     gap: spacing.xs,
     borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    borderTopColor: isDark ? colors.gray200 : colors.borderLight,
   },
   actionButton: {
     flexDirection: 'row',
@@ -745,7 +748,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderRadius: 6,
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
     gap: spacing.xs,
   },
   actionButtonDanger: {
@@ -805,7 +808,7 @@ const styles = StyleSheet.create({
   // Map Modal Styles
   modalContainer: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   mapModalContainer: {
     height: 300,
@@ -820,9 +823,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: isDark ? colors.gray200 : colors.border,
   },
   backButton: {
     flexDirection: 'row',
@@ -853,7 +856,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -864,43 +867,44 @@ const styles = StyleSheet.create({
   },
   formScrollView: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.background : colors.gray50,
   },
   formScrollContent: {
     flexGrow: 1,
   },
   form: {
     padding: spacing.lg,
-    backgroundColor: colors.white
+    backgroundColor: colors.card
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
     borderRadius: 10,
     padding: spacing.md,
     marginBottom: spacing.md,
-    color: colors.gray900,
+    color: colors.text,
+    backgroundColor: isDark ? colors.gray100 : colors.white,
   },
   addressContainer: {
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
     padding: spacing.md,
     borderRadius: 10,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
   },
   addressInputContainer: {
     marginBottom: spacing.md,
   },
   addressLabel: {
     ...textStyles.bodySmall,
-    color: colors.gray600,
+    color: colors.textSecondary,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
   addressText: {
     ...textStyles.bodyMedium,
-    color: colors.gray900,
+    color: colors.text,
     fontWeight: '500',
   },
   addressInput: {
@@ -933,13 +937,13 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   cancelButton: {
-    backgroundColor: colors.gray200,
+    backgroundColor: isDark ? colors.gray200 : colors.gray200,
     padding: spacing.md,
     borderRadius: 10,
     alignItems: 'center',
   },
   cancelText: {
-    color: colors.gray700,
+    color: colors.textSecondary,
     fontWeight: '600'
   },
 });

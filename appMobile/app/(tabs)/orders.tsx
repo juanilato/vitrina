@@ -216,7 +216,10 @@ export default function OrdersScreen() {
       {/* Modern Glass Header */}
       <View style={styles.navbar}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          colors={isDark
+            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+          }
           style={styles.navbarGradient}
         >
           <View style={styles.ordersBadge}>

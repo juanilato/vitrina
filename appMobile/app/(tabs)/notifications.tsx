@@ -275,7 +275,10 @@ export default function NotificationsScreen() {
       {/* Modern Glass Header */}
       <View style={styles.header}>
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+          colors={isDark
+            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
+          }
           style={styles.headerGradient}
         >
           <View style={styles.headerRow}>

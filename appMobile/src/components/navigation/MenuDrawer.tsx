@@ -3,7 +3,7 @@
  * Drawer lateral derecho con opciones de navegación
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,8 +16,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { colors, textStyles, spacing } from '../../theme';
+import { textStyles, spacing } from '../../theme';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(width * 1, 320);
@@ -39,6 +40,9 @@ interface MenuItem {
 export const MenuDrawer: React.FC<MenuDrawerProps> = ({ visible, onClose }) => {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { colors, isDark } = useTheme();
+
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const handleNavigate = (route?: string, action?: () => void) => {
     onClose();
@@ -174,7 +178,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ visible, onClose }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   overlay: {
     flex: 1,
     flexDirection: 'row',
@@ -185,13 +189,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   drawer: {
-    
     top: "8%",
     width: "100%",
-    backgroundColor: colors.white,
-    shadowColor: '#000',
+    backgroundColor: colors.card,
+    shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: -2, height: 0 },
-    shadowOpacity: 0.25,
+    shadowOpacity: isDark ? 0.4 : 0.25,
     shadowRadius: 8,
     elevation: 5,
   },
@@ -207,8 +210,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.gray50,
+    borderBottomColor: isDark ? colors.gray200 : colors.border,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
   },
   headerTitle: {
     ...textStyles.title3,
@@ -226,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    backgroundColor: colors.white,
+    backgroundColor: isDark ? colors.gray200 : colors.white,
   },
 
   // Menu Items
@@ -253,7 +256,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: colors.primaryLight + '10',
+    backgroundColor: isDark ? colors.primary + '20' : colors.primaryLight + '10',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: isDark ? colors.gray200 : colors.border,
     marginVertical: spacing.xs,
     marginHorizontal: spacing.md,
   },
@@ -291,9 +294,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: isDark ? colors.gray200 : colors.border,
     alignItems: 'center',
-    backgroundColor: colors.gray50,
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
   },
   footerText: {
     ...textStyles.caption2,
