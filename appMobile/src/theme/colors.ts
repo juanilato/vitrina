@@ -72,70 +72,70 @@ export const colors = {
   shadowColor: '#0A2A43',  // Primary color for shadows
 } as const;
 
-// Dark theme colors
+// Dark theme colors (elegante y suave)
 export const darkColors = {
-  // Brand colors (ajustados para modo oscuro)
-  primary: '#4A9EE0',      // Azul más suave y legible
-  primaryLight: '#6BB3E8',
-  primaryDark: '#3A8FD1',
+  // Brand colors (tonos elegantes sobre fondo oscuro)
+  primary: '#5C9CE6',      // Azul suave elegante
+  primaryLight: '#7BB3ED',
+  primaryDark: '#4A87D1',
 
-  secondary: '#4CAF82',    // Verde más suave
-  secondaryLight: '#6BC599',
-  secondaryDark: '#3C9A6E',
+  secondary: '#5DBF8A',    // Verde menta suave
+  secondaryLight: '#7DCDA1',
+  secondaryDark: '#4AAF77',
 
-  accent: '#5BB3E8',       // Azul brillante pero no tan intenso
-  accentLight: '#7BC8ED',
-  accentDark: '#4A9EE0',
+  accent: '#6AADEB',       // Azul cielo suave
+  accentLight: '#8AC1F0',
+  accentDark: '#5599D9',
 
-  orange: '#F5925A',       // Naranja más suave
-  orangeLight: '#F7A675',
-  orangeDark: '#E67E45',
+  orange: '#E8915C',       // Naranja cálido suave
+  orangeLight: '#EDA87A',
+  orangeDark: '#D47D48',
 
   // Neutrals
   white: '#FFFFFF',
-  black: '#000000',
-  background: '#121212',   // Negro suave (Material Design dark)
+  black: '#1A1A1A',        // Negro suave
+  background: '#1A1A1A',   // Fondo principal suave
 
-  // Grays (optimizados para modo oscuro)
-  gray50: '#1E1E1E',       // Fondos de cards
-  gray100: '#2A2A2A',      // Fondos secundarios
+  // Grays (escala suave y elegante)
+  gray50: '#242424',       // Fondos de cards
+  gray100: '#2E2E2E',      // Fondos secundarios
   gray200: '#3A3A3A',      // Bordes suaves
-  gray300: '#4A4A4A',      // Bordes normales
-  gray400: '#999999',      // Texto deshabilitado
-  gray500: '#B3B3B3',      // Texto terciario
-  gray600: '#CCCCCC',      // Texto secundario
-  gray700: '#E0E0E0',      // Texto normal
-  gray800: '#F0F0F0',      // Texto enfatizado
-  gray900: '#FAFAFA',      // Texto muy enfatizado
+  gray300: '#484848',      // Bordes normales
+  gray400: '#6E6E6E',      // Texto deshabilitado
+  gray500: '#8E8E8E',      // Texto terciario
+  gray600: '#ABABAB',      // Texto secundario
+  gray700: '#C8C8C8',      // Texto normal
+  gray800: '#E2E2E2',      // Texto enfatizado
+  gray900: '#F5F5F5',      // Texto muy enfatizado
 
   // Semantic colors
-  success: '#4CAF82',
-  green50: '#1A3329',
-  error: '#F48FB1',
-  warning: '#F5925A',
-  info: '#5BB3E8',
+  success: '#5DBF8A',
+  green50: '#1F2E26',      // Verde fondo oscuro suave
+  error: '#E86B6B',        // Rojo suave
+  warning: '#E8915C',
+  info: '#6AADEB',
 
-  // Backgrounds
-  backgroundSecondary: '#1E1E1E',
-  backgroundTertiary: '#2A2A2A',
+  // Backgrounds (escala suave)
+  backgroundSecondary: '#242424',  // Fondo elevado
+  backgroundTertiary: '#2E2E2E',   // Fondo terciario
 
   // Text
-  text: '#E0E0E0',
-  textSecondary: '#B3B3B3',
-  textTertiary: '#999999',
-  textQuaternary: '#737373',
+  text: '#F5F5F5',         // Texto principal (no blanco puro)
+  textSecondary: '#B8B8B8', // Gris claro
+  textTertiary: '#858585',  // Gris medio
+  textQuaternary: '#525252', // Gris oscuro
 
   // Borders
-  border: '#3A3A3A',
-  borderLight: '#2A2A2A',
+  border: '#2E2E2E',       // Separador sutil
+  borderLight: '#242424',
 
   // Overlay
-  overlay: 'rgba(0, 0, 0, 0.8)',
-  overlayLight: 'rgba(0, 0, 0, 0.4)',
+  overlay: 'rgba(0, 0, 0, 0.55)',
+  overlayLight: 'rgba(0, 0, 0, 0.25)',
 
   // Card
-  card: '#1E1E1E',
-  cardBorder: 'rgba(255, 255, 255, 0.08)',
+  card: '#242424',
+  cardBorder: 'rgba(255, 255, 255, 0.06)',
 
   // Shadow
   shadowColor: '#000000',

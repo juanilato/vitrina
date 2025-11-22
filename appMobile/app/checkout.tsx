@@ -3,7 +3,7 @@
  * Pantalla de checkout con selección de delivery/retiro, ubicación, y pago
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,7 @@ import { textStyles as typography } from '../src/theme/typography';
 import { useTheme } from '../src/contexts/ThemeContext';
 import type { DeliveryType, PaymentMethod, DeliveryTimeEstimation } from '../src/types/cart';
 import type { DeliveryLocation, ShippingPriceResponse } from '../src/types/order';
+import type { Company, HorarioAtencion, DayOfWeek } from '../src/types/company';
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -72,6 +73,165 @@ export default function CheckoutScreen() {
   const [shippingPrice, setShippingPrice] = useState<ShippingPriceResponse | null>(null);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
   const [deliveryTimeEstimation, setDeliveryTimeEstimation] = useState<DeliveryTimeEstimation | null>(null);
+
+  // Estado para la empresa y sus preferencias
+  const [companyData, setCompanyData] = useState<Company | null>(null);
+  const [loadingCompany, setLoadingCompany] = useState(true);
+  const [deliveryAvailable, setDeliveryAvailable] = useState(true);
+  const [deliveryUnavailableReason, setDeliveryUnavailableReason] = useState<string>('');
+
+  // Estado para selección de hora de retiro
+  const [pickupTimeMode, setPickupTimeMode] = useState<'asap' | 'scheduled'>('asap');
+  const [selectedPickupTime, setSelectedPickupTime] = useState<string | null>(null);
+  const [showPickupTimePicker, setShowPickupTimePicker] = useState(false);
+  const [availablePickupSlots, setAvailablePickupSlots] = useState<{ time: string; label: string }[]>([]);
+
+  // Estado para verificar si la tienda está abierta
+  const [isStoreOpen, setIsStoreOpen] = useState(true);
+  const [storeClosedMessage, setStoreClosedMessage] = useState<string>('');
+
+  // Cache del último precio calculado para evitar recálculos
+  const [lastCalculatedLocation, setLastCalculatedLocation] = useState<string | null>(null);
+
+  // Cargar datos de la empresa al montar el componente
+  useEffect(() => {
+    const loadCompanyData = async () => {
+      if (!cart.companyId) {
+        setLoadingCompany(false);
+        return;
+      }
+
+      try {
+        const company = await orderService.getCompanyDetails(cart.companyId);
+        setCompanyData(company as Company);
+
+        // Verificar si la empresa hace delivery
+        const hacenEnvio = company.preferenciasWeb?.envioDomicilio ?? false;
+        if (!hacenEnvio) {
+          setDeliveryAvailable(false);
+          setDeliveryUnavailableReason('Esta empresa no realiza envíos a domicilio');
+          // Si no hace delivery, forzar retiro
+          if (deliveryType === 'delivery') {
+            setDeliveryTypeLocal('retiro');
+            setDeliveryType('retiro');
+          }
+        }
+
+        // Calcular slots de horario disponibles para retiro
+        if (company.preferenciasWeb?.horarios) {
+          calculatePickupSlots(company.preferenciasWeb.horarios);
+          // Verificar si la tienda está abierta
+          checkIfStoreIsOpen(company.preferenciasWeb.horarios);
+        }
+      } catch (error) {
+        console.error('Error loading company data:', error);
+      } finally {
+        setLoadingCompany(false);
+      }
+    };
+
+    loadCompanyData();
+  }, [cart.companyId]);
+
+  // Verificar si la tienda está abierta
+  const checkIfStoreIsOpen = (horarios: HorarioAtencion[]) => {
+    const currentDay = getCurrentDayOfWeek();
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Filtrar horarios del día actual que no estén cerrados
+    const todayHorarios = horarios.filter(
+      (h) => h.day === currentDay && !h.cerrado
+    );
+
+    if (todayHorarios.length === 0) {
+      setIsStoreOpen(false);
+      setStoreClosedMessage('La tienda está cerrada hoy');
+      return;
+    }
+
+    // Verificar si estamos dentro de algún horario de atención
+    const isOpen = todayHorarios.some(
+      (h) => currentMinutes >= h.abreMin && currentMinutes < h.cierraMin
+    );
+
+    if (!isOpen) {
+      // Buscar próximo horario de apertura
+      const nextSlot = todayHorarios.find((h) => currentMinutes < h.abreMin);
+      if (nextSlot) {
+        setStoreClosedMessage(`Abre a las ${formatMinutesToTime(nextSlot.abreMin)}`);
+      } else {
+        setStoreClosedMessage('La tienda está cerrada por hoy');
+      }
+    }
+
+    setIsStoreOpen(isOpen);
+  };
+
+  // Función para obtener el día actual en formato DayOfWeek
+  const getCurrentDayOfWeek = (): string => {
+    const days = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
+    return days[new Date().getDay()];
+  };
+
+  // Función para formatear minutos a hora legible
+  const formatMinutesToTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+
+  // Calcular slots de horario disponibles para retiro
+  const calculatePickupSlots = (horarios: HorarioAtencion[]) => {
+    const currentDay = getCurrentDayOfWeek();
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const preparationTime = deliveryTimeEstimation?.preparacionMinutos || 15;
+
+    // Filtrar horarios del día actual que no estén cerrados
+    const todayHorarios = horarios.filter(
+      (h) => h.day === currentDay && !h.cerrado
+    );
+
+    const slots: { time: string; label: string }[] = [];
+
+    // Agregar slots cada 15 minutos dentro de los horarios de atención
+    todayHorarios.forEach((horario) => {
+      // El primer slot disponible es después del tiempo de preparación
+      const minAvailableTime = Math.max(
+        horario.abreMin,
+        currentMinutes + preparationTime
+      );
+
+      // Generar slots cada 15 minutos
+      for (let mins = minAvailableTime; mins < horario.cierraMin - 15; mins += 15) {
+        // Redondear al siguiente múltiplo de 15
+        const roundedMins = Math.ceil(mins / 15) * 15;
+        if (roundedMins < horario.cierraMin) {
+          const timeStr = formatMinutesToTime(roundedMins);
+          slots.push({
+            time: timeStr,
+            label: timeStr,
+          });
+        }
+      }
+    });
+
+    // Eliminar duplicados y ordenar
+    const uniqueSlots = slots.filter(
+      (slot, index, self) =>
+        index === self.findIndex((s) => s.time === slot.time)
+    );
+
+    setAvailablePickupSlots(uniqueSlots);
+  };
+
+  // Recalcular slots cuando cambie el tiempo de preparación
+  useEffect(() => {
+    if (companyData?.preferenciasWeb?.horarios && deliveryType === 'retiro') {
+      calculatePickupSlots(companyData.preferenciasWeb.horarios);
+    }
+  }, [deliveryTimeEstimation, deliveryType, companyData]);
 
   // Calcular precio automáticamente si hay ubicación seleccionada del dashboard
   React.useEffect(() => {
@@ -152,7 +312,22 @@ export default function CheckoutScreen() {
       });
 
       setShippingPrice(result);
-      const fee = result.price || 500; // Fallback a precio estimado
+
+      // Verificar si el precio es null (excede rango máximo)
+      if (result.price === null) {
+        setDeliveryAvailable(false);
+        setDeliveryUnavailableReason(result.message || 'Tu ubicación está fuera del rango de entrega');
+        setDeliveryFee(0);
+        // Cambiar a retiro automáticamente
+        setDeliveryTypeLocal('retiro');
+        setDeliveryType('retiro');
+        return 0;
+      }
+
+      // Delivery disponible
+      setDeliveryAvailable(true);
+      setDeliveryUnavailableReason('');
+      const fee = result.price || 500;
       setDeliveryFee(fee);
       return fee;
     } catch (error) {
@@ -210,9 +385,14 @@ export default function CheckoutScreen() {
       setDeliveryFee(0);
       setShippingPrice({ price: 0, isEstimated: false, message: 'Retiro en local' });
     } else {
-      // Solo calcular si hay ubicación
+      // Solo calcular si hay ubicación Y no se ha calculado antes para esta ubicación
       if (deliveryLocation) {
-        await calculateDeliveryFee(deliveryLocation);
+        const locationKey = `${deliveryLocation.lat},${deliveryLocation.lng}`;
+        if (lastCalculatedLocation !== locationKey) {
+          await calculateDeliveryFee(deliveryLocation);
+          setLastCalculatedLocation(locationKey);
+        }
+        // Si ya se calculó, usar el precio existente (no hacer nada)
       } else {
         const defaultFee = 500;
         setDeliveryFee(defaultFee);
@@ -274,10 +454,16 @@ export default function CheckoutScreen() {
     setDeliveryAddress({
       address: location.address,
       reference: reference,
+      coordinates: {
+        latitude: location.lat,
+        longitude: location.lng,
+      },
     });
 
     // Calcular precio de envío automáticamente
     await calculateDeliveryFee(newLocation);
+    // Actualizar cache de ubicación calculada
+    setLastCalculatedLocation(`${newLocation.lat},${newLocation.lng}`);
   };
 
   const validateForm = (): boolean => {
@@ -435,80 +621,173 @@ export default function CheckoutScreen() {
         {/* Delivery Type Selection - Estilo Toggle Moderno */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tipo de entrega</Text>
-          <View style={styles.toggleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.toggleOption,
-                styles.toggleOptionLeft,
-                deliveryType === 'delivery' && styles.toggleOptionActive,
-              ]}
-              onPress={() => handleDeliveryTypeChange('delivery')}
-              activeOpacity={0.8}
-            >
-              <View style={styles.toggleIconContainer}>
-                <Ionicons
-                  name="bicycle"
-                  size={24}
-                  color={deliveryType === 'delivery' ? colors.white : colors.gray600}
-                />
-              </View>
-              <View style={styles.toggleTextContainer}>
-                <Text
-                  style={[
-                    styles.toggleLabel,
-                    deliveryType === 'delivery' && styles.toggleLabelActive,
-                  ]}
-                >
-                  Delivery
-                </Text>
-                <Text
-                  style={[
-                    styles.toggleSubtext,
-                    deliveryType === 'delivery' && styles.toggleSubtextActive,
-                  ]}
-                >
-                  ${(cart.deliveryFee || 500).toLocaleString('es-AR')}
-                </Text>
-              </View>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                styles.toggleOption,
-                styles.toggleOptionRight,
-                deliveryType === 'retiro' && styles.toggleOptionActive,
-              ]}
-              onPress={() => handleDeliveryTypeChange('retiro')}
-              activeOpacity={0.8}
-            >
-              <View style={styles.toggleIconContainer}>
-                <Ionicons
-                  name="bag-handle"
-                  size={24}
-                  color={deliveryType === 'retiro' ? colors.white : colors.gray600}
-                />
+          {/* Mensaje si delivery no está disponible por rango excedido (no mostrar si simplemente no hacen delivery) */}
+          {!deliveryAvailable && deliveryUnavailableReason && deliveryUnavailableReason !== 'Esta empresa no realiza envíos a domicilio' && (
+            <View style={styles.deliveryUnavailableCard}>
+              <Ionicons name="information-circle" size={20} color={colors.warning} />
+              <Text style={styles.deliveryUnavailableText}>{deliveryUnavailableReason}</Text>
+            </View>
+          )}
+
+          {/* Toggle solo si delivery está disponible */}
+          {deliveryAvailable ? (
+            <View style={styles.toggleContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.toggleOption,
+                  styles.toggleOptionLeft,
+                  deliveryType === 'delivery' && styles.toggleOptionActive,
+                ]}
+                onPress={() => handleDeliveryTypeChange('delivery')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.toggleIconContainer}>
+                  <Ionicons
+                    name="bicycle"
+                    size={24}
+                    color={deliveryType === 'delivery' ? colors.white : colors.gray600}
+                  />
+                </View>
+                <View style={styles.toggleTextContainer}>
+                  <Text
+                    style={[
+                      styles.toggleLabel,
+                      deliveryType === 'delivery' && styles.toggleLabelActive,
+                    ]}
+                  >
+                    Delivery
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toggleSubtext,
+                      deliveryType === 'delivery' && styles.toggleSubtextActive,
+                    ]}
+                  >
+                    ${(cart.deliveryFee || 500).toLocaleString('es-AR')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.toggleOption,
+                  styles.toggleOptionRight,
+                  deliveryType === 'retiro' && styles.toggleOptionActive,
+                ]}
+                onPress={() => handleDeliveryTypeChange('retiro')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.toggleIconContainer}>
+                  <Ionicons
+                    name="bag-handle"
+                    size={24}
+                    color={deliveryType === 'retiro' ? colors.white : colors.gray600}
+                  />
+                </View>
+                <View style={styles.toggleTextContainer}>
+                  <Text
+                    style={[
+                      styles.toggleLabel,
+                      deliveryType === 'retiro' && styles.toggleLabelActive,
+                    ]}
+                  >
+                    Retiro
+                  </Text>
+                  <Text
+                    style={[
+                      styles.toggleSubtext,
+                      deliveryType === 'retiro' && styles.toggleSubtextActive,
+                    ]}
+                  >
+                    Gratis
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* Solo mostrar opción de retiro cuando delivery no está disponible */
+            <View style={styles.singleOptionContainer}>
+              <View style={[styles.toggleOption, styles.toggleOptionActive, styles.singleOption]}>
+                <View style={styles.toggleIconContainer}>
+                  <Ionicons name="bag-handle" size={24} color={colors.white} />
+                </View>
+                <View style={styles.toggleTextContainer}>
+                  <Text style={[styles.toggleLabel, styles.toggleLabelActive]}>Retiro en local</Text>
+                  <Text style={[styles.toggleSubtext, styles.toggleSubtextActive]}>Gratis</Text>
+                </View>
               </View>
-              <View style={styles.toggleTextContainer}>
-                <Text
-                  style={[
-                    styles.toggleLabel,
-                    deliveryType === 'retiro' && styles.toggleLabelActive,
-                  ]}
-                >
-                  Retiro
-                </Text>
-                <Text
-                  style={[
-                    styles.toggleSubtext,
-                    deliveryType === 'retiro' && styles.toggleSubtextActive,
-                  ]}
-                >
-                  Gratis
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+            </View>
+          )}
         </View>
+
+        {/* Selección de hora de retiro */}
+        {deliveryType === 'retiro' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Hora de retiro</Text>
+            <View style={styles.pickupTimeContainer}>
+              {/* Opción: Cuanto antes */}
+              <TouchableOpacity
+                style={[
+                  styles.pickupTimeOption,
+                  pickupTimeMode === 'asap' && styles.pickupTimeOptionActive,
+                ]}
+                onPress={() => {
+                  setPickupTimeMode('asap');
+                  setSelectedPickupTime(null);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={styles.pickupTimeRadio}>
+                  {pickupTimeMode === 'asap' && <View style={styles.pickupTimeRadioInner} />}
+                </View>
+                <View style={styles.pickupTimeInfo}>
+                  <Text style={[styles.pickupTimeLabel, pickupTimeMode === 'asap' && styles.pickupTimeLabelActive]}>
+                    Cuanto antes
+                  </Text>
+                  <Text style={styles.pickupTimeSubtext}>
+                    Listo en ~{deliveryTimeEstimation?.preparacionMinutos || 15} min
+                  </Text>
+                </View>
+                <Ionicons
+                  name="flash"
+                  size={20}
+                  color={pickupTimeMode === 'asap' ? colors.primary : colors.gray400}
+                />
+              </TouchableOpacity>
+
+              {/* Opción: Programar hora */}
+              <TouchableOpacity
+                style={[
+                  styles.pickupTimeOption,
+                  pickupTimeMode === 'scheduled' && styles.pickupTimeOptionActive,
+                ]}
+                onPress={() => {
+                  setPickupTimeMode('scheduled');
+                  setShowPickupTimePicker(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={styles.pickupTimeRadio}>
+                  {pickupTimeMode === 'scheduled' && <View style={styles.pickupTimeRadioInner} />}
+                </View>
+                <View style={styles.pickupTimeInfo}>
+                  <Text style={[styles.pickupTimeLabel, pickupTimeMode === 'scheduled' && styles.pickupTimeLabelActive]}>
+                    Programar hora
+                  </Text>
+                  <Text style={styles.pickupTimeSubtext}>
+                    {selectedPickupTime ? `Retiro a las ${selectedPickupTime}` : 'Selecciona un horario'}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="time-outline"
+                  size={20}
+                  color={pickupTimeMode === 'scheduled' ? colors.primary : colors.gray400}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Tiempo Estimado de Entrega */}
         {deliveryTimeEstimation && (
@@ -562,7 +841,7 @@ export default function CheckoutScreen() {
                 <View style={styles.addressInfo}>
                   <Text style={styles.addressText}>{address}</Text>
                   {reference && <Text style={styles.referenceText}>{reference}</Text>}
-                  {shippingPrice && (
+                  {shippingPrice && shippingPrice.price !== null && (
                     <View style={styles.priceRow}>
                       <Text style={styles.shippingLabel}>Envío: </Text>
                       <Text style={styles.shippingPrice}>
@@ -713,12 +992,15 @@ export default function CheckoutScreen() {
               </View>
             ) : (
               <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={handlePickImage}
-                activeOpacity={0.7}
+                style={[styles.uploadButton, !isStoreOpen && styles.uploadButtonDisabled]}
+                onPress={isStoreOpen ? handlePickImage : undefined}
+                activeOpacity={isStoreOpen ? 0.7 : 1}
+                disabled={!isStoreOpen}
               >
-                <Ionicons name="cloud-upload-outline" size={48} color={colors.gray400} />
-                <Text style={styles.uploadButtonText}>Subir comprobante</Text>
+                <Ionicons name="cloud-upload-outline" size={48} color={isStoreOpen ? colors.gray400 : colors.gray300} />
+                <Text style={[styles.uploadButtonText, !isStoreOpen && styles.uploadButtonTextDisabled]}>
+                  {isStoreOpen ? 'Subir comprobante' : 'Tienda cerrada'}
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -787,17 +1069,26 @@ export default function CheckoutScreen() {
 
       {/* Bottom Button */}
       <View style={styles.bottomContainer}>
+        {/* Mensaje de tienda cerrada */}
+        {!isStoreOpen && (
+          <View style={styles.storeClosedBanner}>
+            <Ionicons name="time-outline" size={18} color={colors.warning} />
+            <Text style={styles.storeClosedText}>{storeClosedMessage}</Text>
+          </View>
+        )}
         <Button
           title={
-            loading
+            !isStoreOpen
+              ? 'Tienda cerrada'
+              : loading
               ? 'Procesando...'
               : calculatingShipping
               ? 'Calculando envío...'
               : 'Confirmar pedido'
           }
           onPress={handleSubmitOrder}
-          disabled={loading || calculatingShipping}
-          icon={loading || calculatingShipping ? undefined : 'checkmark-circle'}
+          disabled={loading || calculatingShipping || !isStoreOpen}
+          icon={loading || calculatingShipping || !isStoreOpen ? undefined : 'checkmark-circle'}
         />
         {(loading || calculatingShipping) && <ActivityIndicator style={styles.loader} color={colors.white} />}
       </View>
@@ -879,6 +1170,68 @@ export default function CheckoutScreen() {
                 <Ionicons name="add-circle-outline" size={24} color={colors.primary} />
                 <Text style={styles.addNewAddressText}>Agregar nueva dirección</Text>
               </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Pickup Time Selector Modal */}
+      <Modal
+        visible={showPickupTimePicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowPickupTimePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Seleccionar hora de retiro</Text>
+              <TouchableOpacity onPress={() => setShowPickupTimePicker(false)}>
+                <Ionicons name="close" size={24} color={colors.gray900} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScrollView} showsVerticalScrollIndicator={false}>
+              {availablePickupSlots.length > 0 ? (
+                availablePickupSlots.map((slot, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.pickupSlotCard,
+                      selectedPickupTime === slot.time && styles.pickupSlotCardActive,
+                    ]}
+                    onPress={() => {
+                      setSelectedPickupTime(slot.time);
+                      setShowPickupTimePicker(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.pickupSlotIcon}>
+                      <Ionicons
+                        name={selectedPickupTime === slot.time ? "checkmark-circle" : "time-outline"}
+                        size={24}
+                        color={selectedPickupTime === slot.time ? colors.primary : colors.gray600}
+                      />
+                    </View>
+                    <Text style={[
+                      styles.pickupSlotText,
+                      selectedPickupTime === slot.time && styles.pickupSlotTextActive,
+                    ]}>
+                      {slot.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.noSlotsContainer}>
+                  <Ionicons name="time-outline" size={48} color={colors.gray400} />
+                  <Text style={styles.noSlotsText}>
+                    No hay horarios disponibles para hoy
+                  </Text>
+                  <Text style={styles.noSlotsSubtext}>
+                    La tienda puede estar cerrada o el horario de atención ha terminado
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -1531,5 +1884,176 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   breakdownText: {
     ...typography.bodyMedium,
     color: colors.textSecondary,
+  },
+
+  // Estilos para delivery no disponible
+  deliveryUnavailableCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.warning + '15',
+    borderRadius: 10,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.warning + '30',
+  },
+
+  deliveryUnavailableText: {
+    ...typography.bodySmall,
+    color: colors.warning,
+    flex: 1,
+    fontWeight: '500',
+  },
+
+  // Estilos para opción única (solo retiro)
+  singleOptionContainer: {
+    // Contenedor para la opción única
+  },
+
+  singleOption: {
+    borderRadius: 12,
+    width: '100%',
+  },
+
+  // Estilos para selección de hora de retiro
+  pickupTimeContainer: {
+    gap: spacing.sm,
+  },
+
+  pickupTimeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: spacing.md,
+    borderWidth: 2,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
+    gap: spacing.md,
+  },
+
+  pickupTimeOptionActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '08',
+  },
+
+  pickupTimeRadio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: colors.gray400,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  pickupTimeRadioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.primary,
+  },
+
+  pickupTimeInfo: {
+    flex: 1,
+  },
+
+  pickupTimeLabel: {
+    ...typography.bodyMedium,
+    color: colors.text,
+    fontWeight: '600',
+  },
+
+  pickupTimeLabelActive: {
+    color: colors.primary,
+  },
+
+  pickupTimeSubtext: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+
+  // Estilos para modal de selección de hora
+  pickupSlotCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderWidth: 2,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
+    gap: spacing.md,
+  },
+
+  pickupSlotCardActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '08',
+  },
+
+  pickupSlotIcon: {
+    // Contenedor del icono
+  },
+
+  pickupSlotText: {
+    ...typography.bodyLarge,
+    color: colors.text,
+    fontWeight: '600',
+    flex: 1,
+  },
+
+  pickupSlotTextActive: {
+    color: colors.primary,
+  },
+
+  noSlotsContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+  },
+
+  noSlotsText: {
+    ...typography.bodyLarge,
+    color: colors.text,
+    fontWeight: '600',
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+
+  noSlotsSubtext: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+
+  // Estilos para botón de subir comprobante deshabilitado
+  uploadButtonDisabled: {
+    backgroundColor: colors.gray100,
+    borderColor: colors.gray300,
+  },
+
+  uploadButtonTextDisabled: {
+    color: colors.gray400,
+  },
+
+  // Estilos para banner de tienda cerrada
+  storeClosedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.warning + '15',
+    borderRadius: 8,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+
+  storeClosedText: {
+    ...typography.bodySmall,
+    color: colors.warning,
+    fontWeight: '600',
   },
 });

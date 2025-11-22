@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axiosInstance from '../config/axios.config';
 import { logTokenInfo, startTokenMonitoring } from '../utils/tokenMonitor';
+import { authEvents } from '../utils/authEvents';
 
 // 🔹 Solo estos tipos pueden usar esta app (ajustá según cuál sea esta app)
 const ALLOWED_USER_TYPE = ['empresa', 'repartidor'];
@@ -105,6 +106,19 @@ const redirectIfNotAllowed = (userType?: string) => {
       }
     };
     initializeAuth();
+  }, []);
+
+  // Escuchar eventos de logout forzado (token inválido/expirado)
+  useEffect(() => {
+    const unsubscribe = authEvents.subscribe(() => {
+      console.log('🔴 [AuthContext] Recibido evento de logout forzado');
+      setUser(null);
+      setError(null);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {

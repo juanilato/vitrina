@@ -16,6 +16,7 @@ import { notificationService } from '../services/notification.service';
 import { websocketService } from '../services/websocket.service';
 import { storage } from '../utils/storage';
 import { STORAGE_KEYS } from '../utils/constants';
+import { authEvents } from '../utils/authEvents';
 import { User, LoginRequest, RegisterRequest } from '../types/auth';
 
 interface AuthContextData {
@@ -56,6 +57,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
    */
   useEffect(() => {
     loadStoredAuth();
+  }, []);
+
+  /**
+   * Escuchar eventos de logout forzado (token inválido/expirado)
+   */
+  useEffect(() => {
+    const unsubscribe = authEvents.subscribe(() => {
+      console.log('🔴 [AuthContext] Recibido evento de logout forzado');
+      // Limpiar estado sin llamar al servidor (ya que el token es inválido)
+      websocketService.disconnect();
+      setToken(null);
+      setUser(null);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   /**

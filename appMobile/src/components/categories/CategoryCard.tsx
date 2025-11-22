@@ -6,7 +6,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, textStyles, spacing } from '../../theme';
+import { textStyles, spacing } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { normalize, wp } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
@@ -21,7 +22,8 @@ interface CategoryCardProps {
   variant?: 'normal' | 'wide' | 'tall';
 }
 
-const gradients = [
+// Gradientes para modo claro (vibrantes y coloridos)
+const lightGradients = [
   ['#FF6B6B', '#FF8E53'],
   ['#4ECDC4', '#44A08D'],
   ['#A8E6CF', '#56CCF2'],
@@ -36,6 +38,22 @@ const gradients = [
   ['#89F7FE', '#66A6FF'],
 ];
 
+// Gradientes para modo oscuro (elegantes y suaves)
+const darkGradients = [
+  ['#3D5A80', '#4A6FA5'],   // Azul acero
+  ['#2D5A4A', '#3D7A6A'],   // Verde bosque
+  ['#4A5568', '#5A6578'],   // Gris azulado
+  ['#8B5A3C', '#A06A4C'],   // Marrón cálido
+  ['#5D4E6D', '#6D5E7D'],   // Púrpura suave
+  ['#6B4C5A', '#7B5C6A'],   // Rosa oscuro
+  ['#3D6B6D', '#4D7B7D'],   // Verde azulado
+  ['#7A5C4D', '#8A6C5D'],   // Terracota
+  ['#4D5B6A', '#5D6B7A'],   // Azul grisáceo
+  ['#5A6B5A', '#6A7B6A'],   // Verde oliva
+  ['#6D5A4A', '#7D6A5A'],   // Bronce
+  ['#4A6A7A', '#5A7A8A'],   // Azul océano
+];
+
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   id,
   nombre,
@@ -43,6 +61,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   onPress,
   variant = 'normal',
 }) => {
+  const { colors, isDark } = useTheme();
+
+  // Seleccionar gradientes según el tema
+  const gradients = isDark ? darkGradients : lightGradients;
+
   // Generar un color basado en el ID
   const colorIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % gradients.length;
   const gradient = gradients[colorIndex];
@@ -51,6 +74,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
     styles.card,
     variant === 'wide' && styles.cardWide,
     variant === 'tall' && styles.cardTall,
+    isDark && styles.cardDark,
   ];
 
   return (
@@ -63,7 +87,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       >
         <View style={styles.content}>
           {icono && <Text style={styles.icon}>{icono}</Text>}
-          <Text style={styles.name} numberOfLines={2}>
+          <Text style={[styles.name, isDark && styles.nameDark]} numberOfLines={2}>
             {nombre}
           </Text>
         </View>
@@ -84,6 +108,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+  },
+  cardDark: {
+    elevation: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   cardWide: {
     width: width - (CARD_MARGIN * 2),
@@ -107,10 +136,14 @@ const styles = StyleSheet.create({
   name: {
     ...textStyles.subheadline,
     fontSize: normalize(14),
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+  nameDark: {
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowRadius: 3,
   },
 });

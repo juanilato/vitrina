@@ -6,6 +6,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_URL, STORAGE_KEYS } from '../utils/constants';
 import { storage } from '../utils/storage';
+import { authEvents } from '../utils/authEvents';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -45,13 +46,14 @@ api.interceptors.response.use(
     if (error.response) {
       // Handle 401 Unauthorized (token expired or invalid)
       if (error.response.status === 401) {
-        console.log('Token expired or invalid, clearing storage');
+        console.log('🔴 Token expired or invalid, forcing logout');
 
         // Clear token and user data
         await storage.removeItem(STORAGE_KEYS.TOKEN);
         await storage.removeItem(STORAGE_KEYS.USER);
 
-        // Redirect to login will be handled by AuthContext
+        // Emitir evento para que AuthContext haga logout
+        authEvents.emitForceLogout();
       }
 
       // Handle other status codes

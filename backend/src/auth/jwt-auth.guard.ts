@@ -1,7 +1,7 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-// JWT guard 
+// JWT guard
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(context: ExecutionContext) {
@@ -10,7 +10,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   handleRequest(err: any, user: any, info: any) {
     if (err || !user) {
-      throw err || new Error('Token inválido o expirado');
+      // Siempre lanzar UnauthorizedException para que devuelva 401
+      throw new UnauthorizedException('Token inválido o expirado');
     }
     return user;
   }

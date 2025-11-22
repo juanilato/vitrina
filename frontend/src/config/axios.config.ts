@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authEvents } from '../utils/authEvents';
 
 // Configuración base de axios
 const axiosInstance = axios.create({
@@ -34,17 +35,20 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    
-    // Si el token expiró (401), limpiar localStorage
+    // Si el token expiró (401), limpiar localStorage y forzar logout
     if (error.response?.status === 401) {
+      console.log('🔴 Token expired or invalid, forcing logout');
       localStorage.removeItem('token');
-      
-      // Solo redirigir si no estamos ya en la página de login
+
+      // Emitir evento para que AuthContext haga logout
+      authEvents.emitForceLogout();
+
+      // Redirigir si no estamos ya en la página de login
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
