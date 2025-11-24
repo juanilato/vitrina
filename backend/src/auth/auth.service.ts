@@ -807,6 +807,7 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
         preferenciasWeb: {
                     select: {
                      
+                      envioDomicilio: true,
                       dashboardFoto: true,
                       horarios: true,
                

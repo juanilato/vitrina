@@ -72,70 +72,70 @@ export const colors = {
   shadowColor: '#0A2A43',  // Primary color for shadows
 } as const;
 
-// Dark theme colors (elegante y suave)
+// Dark theme colors (iOS style - grises suaves)
 export const darkColors = {
-  // Brand colors (tonos elegantes sobre fondo oscuro)
-  primary: '#5C9CE6',      // Azul suave elegante
-  primaryLight: '#7BB3ED',
-  primaryDark: '#4A87D1',
+  // Brand colors (iOS system colors adaptados)
+  primary: '#0A84FF',      // iOS systemBlue
+  primaryLight: '#409CFF',
+  primaryDark: '#0066CC',
 
-  secondary: '#5DBF8A',    // Verde menta suave
-  secondaryLight: '#7DCDA1',
-  secondaryDark: '#4AAF77',
+  secondary: '#30D158',    // iOS systemGreen
+  secondaryLight: '#5ADA7A',
+  secondaryDark: '#28B84C',
 
-  accent: '#6AADEB',       // Azul cielo suave
-  accentLight: '#8AC1F0',
-  accentDark: '#5599D9',
+  accent: '#0A84FF',       // iOS systemBlue
+  accentLight: '#409CFF',
+  accentDark: '#0066CC',
 
-  orange: '#E8915C',       // Naranja cálido suave
-  orangeLight: '#EDA87A',
-  orangeDark: '#D47D48',
+  orange: '#FF9F0A',       // iOS systemOrange
+  orangeLight: '#FFB340',
+  orangeDark: '#E08C00',
 
-  // Neutrals
+  // Neutrals (iOS dark)
   white: '#FFFFFF',
-  black: '#1A1A1A',        // Negro suave
-  background: '#1A1A1A',   // Fondo principal suave
+  black: '#000000',
+  background: '#000000',   // iOS pure black background
 
-  // Grays (escala suave y elegante)
-  gray50: '#242424',       // Fondos de cards
-  gray100: '#2E2E2E',      // Fondos secundarios
-  gray200: '#3A3A3A',      // Bordes suaves
-  gray300: '#484848',      // Bordes normales
-  gray400: '#6E6E6E',      // Texto deshabilitado
-  gray500: '#8E8E8E',      // Texto terciario
-  gray600: '#ABABAB',      // Texto secundario
-  gray700: '#C8C8C8',      // Texto normal
-  gray800: '#E2E2E2',      // Texto enfatizado
-  gray900: '#F5F5F5',      // Texto muy enfatizado
+  // Grays (iOS systemGray scale)
+  gray50: '#1C1C1E',       // iOS elevated background
+  gray100: '#2C2C2E',      // iOS secondary background
+  gray200: '#3A3A3C',      // iOS tertiary background
+  gray300: '#48484A',      // iOS separator
+  gray400: '#636366',      // iOS systemGray2
+  gray500: '#8E8E93',      // iOS systemGray
+  gray600: '#AEAEB2',      // iOS systemGray3
+  gray700: '#C7C7CC',      // iOS systemGray4
+  gray800: '#D1D1D6',      // iOS systemGray5
+  gray900: '#E5E5EA',      // iOS systemGray6
 
-  // Semantic colors
-  success: '#5DBF8A',
-  green50: '#1F2E26',      // Verde fondo oscuro suave
-  error: '#E86B6B',        // Rojo suave
-  warning: '#E8915C',
-  info: '#6AADEB',
+  // Semantic colors (iOS system colors)
+  success: '#30D158',      // iOS systemGreen
+  green50: '#0D2818',      // Verde fondo sutil
+  error: '#FF453A',        // iOS systemRed
+  warning: '#FF9F0A',      // iOS systemOrange
+  info: '#0A84FF',         // iOS systemBlue
 
-  // Backgrounds (escala suave)
-  backgroundSecondary: '#242424',  // Fondo elevado
-  backgroundTertiary: '#2E2E2E',   // Fondo terciario
+  // Backgrounds (iOS dark mode)
+  backgroundSecondary: '#1C1C1E',  // iOS elevated
+  backgroundTertiary: '#2C2C2E',   // iOS secondary
 
-  // Text
-  text: '#F5F5F5',         // Texto principal (no blanco puro)
-  textSecondary: '#B8B8B8', // Gris claro
-  textTertiary: '#858585',  // Gris medio
-  textQuaternary: '#525252', // Gris oscuro
+  // Text (iOS dark mode)
+  text: '#FFFFFF',
+  textSecondary: '#EBEBF5', // iOS secondaryLabel (60% opacity)
+  textTertiary: '#EBEBF599', // iOS tertiaryLabel (40% opacity)
+  textQuaternary: '#EBEBF54D', // iOS quaternaryLabel (30% opacity)
 
-  // Borders
-  border: '#2E2E2E',       // Separador sutil
-  borderLight: '#242424',
+  // Borders (iOS separators)
+  border: '#38383A',       // iOS separator opaque
+  borderLight: '#2C2C2E',
 
   // Overlay
-  overlay: 'rgba(0, 0, 0, 0.55)',
+  overlay: 'rgba(0, 0, 0, 0.5)',
   overlayLight: 'rgba(0, 0, 0, 0.25)',
 
-  // Card
-  card: '#242424',
-  cardBorder: 'rgba(255, 255, 255, 0.06)',
+  // Card (iOS grouped background)
+  card: '#1C1C1E',
+  cardBorder: 'rgba(255, 255, 255, 0.1)',
 
   // Shadow
   shadowColor: '#000000',

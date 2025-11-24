@@ -60,7 +60,10 @@
       "Bash(ssh:*)",
       "Bash(npx prisma format:*)",
       "Bash(tasklist:*)",
-      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\ProductsSection\\components\\ProductModal.css\")"
+      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\ProductsSection\\components\\ProductModal.css\")",
+      "Bash(npx prisma db pull:*)",
+      "Bash(rmdir:*)",
+      "Bash(xxd:*)"
     ],
     "deny": [],
     "ask": []

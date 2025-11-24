@@ -105,8 +105,17 @@ export default function CheckoutScreen() {
         const company = await orderService.getCompanyDetails(cart.companyId);
         setCompanyData(company as Company);
 
+        // Debug: ver qué devuelve el backend
+        console.log('📦 [CHECKOUT] Company data:', {
+          id: company.id,
+          name: company.name,
+          preferenciasWeb: company.preferenciasWeb,
+          envioDomicilio: company.preferenciasWeb?.envioDomicilio,
+        });
+
         // Verificar si la empresa hace delivery
         const hacenEnvio = company.preferenciasWeb?.envioDomicilio ?? false;
+        console.log('📦 [CHECKOUT] hacenEnvio:', hacenEnvio);
         if (!hacenEnvio) {
           setDeliveryAvailable(false);
           setDeliveryUnavailableReason('Esta empresa no realiza envíos a domicilio');

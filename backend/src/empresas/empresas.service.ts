@@ -54,6 +54,7 @@ async findOne(id: string) {
     name: empresa.name,
     hasUbicacion: !!empresa.ubicacion,
     hasPreferencias: !!empresa.preferenciasWeb,
+    envioDomicilio: empresa.preferenciasWeb?.envioDomicilio,
     horariosCount: empresa.preferenciasWeb?.horarios?.length ?? 0,
     categoriaId: empresa.categoriaId,
     subcategoriasCount: empresa.subcategorias?.length ?? 0,

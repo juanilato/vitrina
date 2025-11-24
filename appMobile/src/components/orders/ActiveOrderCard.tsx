@@ -3,7 +3,7 @@
  * Componente para mostrar el pedido activo con animaciones
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { PedidoWithDetails, OrderStatus } from '../../types/order';
-import { colors, textStyles, spacing } from '../../theme';
+import { textStyles, spacing } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { formatPrice } from '../../utils/formatPrice';
 import { OrderStatusTimeline } from './OrderStatusTimeline';
 
@@ -23,8 +24,8 @@ interface ActiveOrderCardProps {
   order: PedidoWithDetails;
 }
 
-// Configuración de estados del pedido
-const ORDER_STATUS_CONFIG: Record<
+// Configuración de estados del pedido - Modo claro
+const ORDER_STATUS_CONFIG_LIGHT: Record<
   OrderStatus,
   {
     label: string;
@@ -89,9 +90,82 @@ const ORDER_STATUS_CONFIG: Record<
   },
 };
 
+// Configuración de estados del pedido - Modo oscuro (colores vibrantes iOS)
+const ORDER_STATUS_CONFIG_DARK: Record<
+  OrderStatus,
+  {
+    label: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    gradientColors: string[];
+    pulseColor: string;
+  }
+> = {
+  pendiente_confirmacion: {
+    label: 'Esperando confirmación',
+    icon: 'time-outline',
+    gradientColors: ['#FF9F0A', '#FFB340'],
+    pulseColor: '#FF9F0A',
+  },
+  confirmado: {
+    label: 'Confirmado',
+    icon: 'checkmark-circle-outline',
+    gradientColors: ['#30D158', '#5ADA7A'],
+    pulseColor: '#30D158',
+  },
+  en_proceso: {
+    label: 'En preparación',
+    icon: 'restaurant-outline',
+    gradientColors: ['#0A84FF', '#409CFF'],
+    pulseColor: '#0A84FF',
+  },
+  esperando_delivery: {
+    label: 'Esperando repartidor',
+    icon: 'bicycle-outline',
+    gradientColors: ['#FF9F0A', '#FFB340'],
+    pulseColor: '#FF9F0A',
+  },
+  en_camino: {
+    label: 'En camino',
+    icon: 'bicycle',
+    gradientColors: ['#5E5CE6', '#7D7AFF'],
+    pulseColor: '#5E5CE6',
+  },
+  entregado: {
+    label: 'Entregado',
+    icon: 'checkmark-done-circle',
+    gradientColors: ['#30D158', '#5ADA7A'],
+    pulseColor: '#30D158',
+  },
+  esperando_retiro: {
+    label: 'Listo para retiro',
+    icon: 'storefront-outline',
+    gradientColors: ['#30D158', '#5ADA7A'],
+    pulseColor: '#30D158',
+  },
+  no_confirmado: {
+    label: 'No confirmado',
+    icon: 'close-circle-outline',
+    gradientColors: ['#FF453A', '#FF6961'],
+    pulseColor: '#FF453A',
+  },
+  cancelado: {
+    label: 'Cancelado',
+    icon: 'ban-outline',
+    gradientColors: ['#636366', '#8E8E93'],
+    pulseColor: '#636366',
+  },
+};
+
 export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
   const router = useRouter();
-  const statusConfig = ORDER_STATUS_CONFIG[order.estado];
+  const { colors, isDark } = useTheme();
+
+  // Seleccionar configuración según el tema
+  const statusConfig = isDark
+    ? ORDER_STATUS_CONFIG_DARK[order.estado]
+    : ORDER_STATUS_CONFIG_LIGHT[order.estado];
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Animaciones
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -239,7 +313,7 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
@@ -281,7 +355,7 @@ const styles = StyleSheet.create({
   statusLabel: {
     ...textStyles.caption2,
     fontSize: 10,
-    color: colors.white,
+    color: '#FFFFFF',
     opacity: 0.85,
     fontWeight: '500',
     marginTop: 1,
@@ -289,7 +363,7 @@ const styles = StyleSheet.create({
   statusText: {
     ...textStyles.subheadline,
     fontSize: 13,
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   rightSection: {
@@ -298,7 +372,7 @@ const styles = StyleSheet.create({
   totalAmount: {
     ...textStyles.headline,
     fontSize: 16,
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '800',
   },
   timelineContainer: {
@@ -331,7 +405,7 @@ const styles = StyleSheet.create({
   badgeText: {
     ...textStyles.caption2,
     fontSize: 11,
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   etaBadge: {
@@ -346,13 +420,13 @@ const styles = StyleSheet.create({
   etaText: {
     ...textStyles.caption2,
     fontSize: 11,
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   detailsLink: {
     ...textStyles.caption1,
     fontSize: 11,
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '600',
     opacity: 0.9,
   },
