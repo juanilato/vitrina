@@ -33,6 +33,7 @@ function AppContent() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" />
         <Stack.Screen name="company/[companyName]" />
+        <Stack.Screen name="catalog/[companyName]" />
         <Stack.Screen name="category/[id]" />
         <Stack.Screen name="subcategory/[id]" />
         <Stack.Screen name="order/[id]" />

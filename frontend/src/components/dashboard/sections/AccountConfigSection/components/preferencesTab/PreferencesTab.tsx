@@ -18,6 +18,7 @@ import ImageUploader from './components/imageUploader';
 import {LiveSitePreview} from './components/liveWebPage';
 import AliasesEditor from './components/AliasEditor';
 import SocialLinksEditor from './components/SocialLinksEditor';
+import CatalogQRGenerator from './components/CatalogQRGenerator';
 
 import './PreferencesTab.css';
 // Sección de preferencias web: 
@@ -48,7 +49,7 @@ const hydrateSchedule = (horarios: HorarioAtencionData[] | undefined): Record<Da
   return result;
 };
 
-type PrefsView = 'logos' | 'appearance' | 'hours' | 'preview';
+type PrefsView = 'logos' | 'appearance' | 'hours' | 'preview' | 'catalog';
 
 const PreferencesTab: React.FC = () => {
   const { empresaData, saving, updatePreferences, uploadFoto, updateEmpresaExtras, updateApariencia, updateHorarios } = useAccountConfig();
@@ -205,6 +206,7 @@ const PreferencesTab: React.FC = () => {
               { id: 'appearance', label: 'Apariencia' },
               { id: 'hours', label: 'Horarios' },
               { id: 'preview', label: 'Visualizador' },
+              { id: 'catalog', label: 'Catálogo QR' },
             ].map(t => (
               <button
                 key={t.id}
@@ -323,9 +325,19 @@ const PreferencesTab: React.FC = () => {
                   id: empresaData?.id || '',
                   name: empresaData?.name || '',
                 }}
-               
+
               />
             </div>
+          </section>
+        )}
+
+        {/* CATÁLOGO QR */}
+        {activeView === 'catalog' && (
+          <section className="section-card" aria-labelledby="prefs-catalog">
+            <CatalogQRGenerator
+              companyName={empresaData?.name || ''}
+              isDark={false}
+            />
           </section>
         )}
       </section>

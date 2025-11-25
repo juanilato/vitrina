@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === 'auth';
-    const inPublicRoute = segments[0] === 'company'; // Permitir acceso público a páginas de empresa
+    const inPublicRoute = segments[0] === 'company' || segments[0] === 'catalog'; // Permitir acceso público a páginas de empresa y catálogo
 
     if (!user && !inAuthGroup && !inPublicRoute) {
       // Redirect to login if not authenticated and not in public route
