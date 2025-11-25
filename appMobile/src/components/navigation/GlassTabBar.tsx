@@ -54,6 +54,15 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
     });
   }, [state.index]);
 
+  // Obtener la ruta actual
+  const currentRoute = state.routes[state.index];
+  const currentRouteName = currentRoute?.name;
+
+  // Ocultar el tab bar en la pantalla del carrito
+  if (currentRouteName === 'cart') {
+    return null;
+  }
+
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
   };

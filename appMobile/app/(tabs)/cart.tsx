@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCart } from '../../src/contexts/CartContext';
-import { CartSummary } from '../../src/components/cart/CartSummary';
 import { textStyles, spacing, borderRadius, shadows } from '../../src/theme';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { formatPrice } from '../../src/utils/formatPrice';
@@ -27,10 +26,52 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function CartScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
-  const { cart, loading, removeItem, updateQuantity, deliveryFee } = useCart();
+  const { cart, loading, removeItem, updateQuantity } = useCart();
   const [refreshing, setRefreshing] = useState(false);
 
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+
+  // Agrupar items por empresa
+  const itemsByCompany = useMemo(() => {
+    const grouped = cart.items.reduce((acc, item) => {
+      const key = item.companyId;
+      if (!acc[key]) {
+        acc[key] = {
+          companyId: item.companyId,
+          companyName: item.companyName,
+          items: [],
+          subtotal: 0,
+          totalItems: 0,
+        };
+      }
+
+      // Calcular precio del item
+      const basePrice = typeof item.product.precio === 'string'
+        ? parseFloat(item.product.precio)
+        : (item.product.precio || item.product.price || 0);
+
+      const agregadosPrice = item.agregados?.reduce((sum, a) => {
+        const aPrecio = typeof a.precio === 'string' ? parseFloat(a.precio) : a.precio;
+        return sum + aPrecio;
+      }, 0) || 0;
+
+      const ingredientesExtrasPrice = item.ingredientesExtras?.reduce((sum, ie) => {
+        const precioExtra = ie.productoIngrediente.precioExtra;
+        const precio = typeof precioExtra === 'string' ? parseFloat(precioExtra) : (precioExtra || 0);
+        return sum + (precio * ie.cantidad);
+      }, 0) || 0;
+
+      const itemTotal = (basePrice + agregadosPrice + ingredientesExtrasPrice) * item.quantity;
+
+      acc[key].items.push(item);
+      acc[key].subtotal += itemTotal;
+      acc[key].totalItems += item.quantity;
+
+      return acc;
+    }, {} as Record<string, { companyId: string; companyName: string; items: typeof cart.items; subtotal: number; totalItems: number }>);
+
+    return Object.values(grouped);
+  }, [cart.items]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -39,9 +80,14 @@ export default function CartScreen() {
     setRefreshing(false);
   };
 
-  const handleCheckout = () => {
-    // Navegar a la pantalla de checkout
-    router.push('/checkout');
+  const handleCheckoutByCompany = (companyId: string) => {
+    // Navegar a checkout con una empresa específica
+    router.push(`/checkout?companyId=${companyId}`);
+  };
+
+  const handleCheckoutAll = () => {
+    // Navegar a checkout con todas las empresas
+    router.push('/checkout?all=true');
   };
 
   const handleRemoveItem = (productId: string) => {
@@ -197,7 +243,9 @@ export default function CartScreen() {
         >
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => {
+              router.back();
+            }}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={20} color={colors.primary} />
@@ -244,35 +292,75 @@ export default function CartScreen() {
               />
             }
           >
-            {/* Company Info */}
-            {cart.items.length > 0 && cart.items[0].companyName && (
-              <View style={styles.companySection}>
-                <Ionicons name="business" size={20} color={colors.primary} />
-                <Text style={styles.companyName}>{cart.items[0].companyName}</Text>
-              </View>
-            )}
+            {/* Pedidos agrupados por empresa */}
+            {itemsByCompany.map((company) => (
+              <View key={company.companyId} style={styles.companyOrderSection}>
+                {/* Company Header */}
+                <View style={styles.companyHeader}>
+                  <View style={styles.companyTitleRow}>
+                    <Ionicons name="business" size={20} color={colors.primary} />
+                    <Text style={styles.companyName}>{company.companyName}</Text>
+                  </View>
+                  <Text style={styles.companyItemCount}>
+                    {company.totalItems} {company.totalItems === 1 ? 'producto' : 'productos'}
+                  </Text>
+                </View>
 
-            {/* Cart Items */}
-            <View style={styles.itemsList}>
-              {cart.items.map(renderCartItem)}
-            </View>
+                {/* Cart Items de esta empresa */}
+                <View style={styles.itemsList}>
+                  {company.items.map(renderCartItem)}
+                </View>
+
+                {/* Resumen y botón para esta empresa */}
+                <View style={styles.companySummary}>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Subtotal</Text>
+                    <Text style={styles.summaryValue}>${formatPrice(company.subtotal)}</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.companyCheckoutButton}
+                    onPress={() => handleCheckoutByCompany(company.companyId)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.companyCheckoutButtonText}>
+                      Continuar con este pedido
+                    </Text>
+                    <Text style={styles.companyCheckoutButtonPrice}>
+                      ${formatPrice(company.subtotal)}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
 
             {/* Spacer for bottom summary */}
-            <View style={{ height: 220 }} />
+            <View style={{ height: itemsByCompany.length > 1 ? 180 : 20 }} />
           </ScrollView>
 
-          {/* Cart Summary */}
-          <View style={styles.summaryContainer}>
-            <CartSummary
-              subtotal={cart.subtotal}
-              deliveryFee={deliveryFee}
-              discount={0}
-              total={cart.total + deliveryFee}
-              itemCount={cart.totalItems}
-              onCheckout={handleCheckout}
-              buttonText="Continuar al pago"
-            />
-          </View>
+          {/* Botón de realizar todos los pedidos (solo si hay más de una empresa) */}
+          {itemsByCompany.length > 1 && (
+            <View style={styles.allOrdersContainer}>
+              <View style={styles.allOrdersSummary}>
+                <View style={styles.allOrdersRow}>
+                  <Text style={styles.allOrdersLabel}>Total de todos los pedidos</Text>
+                  <Text style={styles.allOrdersTotal}>${formatPrice(cart.subtotal)}</Text>
+                </View>
+                <Text style={styles.allOrdersSubtitle}>
+                  {itemsByCompany.length} pedidos de empresas diferentes
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.allOrdersButton}
+                onPress={handleCheckoutAll}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="cart" size={20} color={colors.white} />
+                <Text style={styles.allOrdersButtonText}>
+                  Realizar todos los pedidos
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </>
       )}
     </SafeAreaView>
@@ -600,11 +688,177 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Summary Container
+  // Summary Container (deprecated)
   summaryContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+  },
+
+  // Company Order Section - Separación por empresa
+  companyOrderSection: {
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    marginBottom: spacing.lg,
+    padding: spacing.md,
+    shadowColor: isDark ? colors.black : '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+  },
+
+  companyHeader: {
+    marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? colors.gray200 : colors.border,
+  },
+
+  companyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+
+  companyItemCount: {
+    ...textStyles.caption1,
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
+
+  companySummary: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: isDark ? colors.gray200 : colors.border,
+  },
+
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+
+  summaryLabel: {
+    ...textStyles.body,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+
+  summaryValue: {
+    ...textStyles.callout,
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: 18,
+  },
+
+  companyCheckoutButton: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.full,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+
+  companyCheckoutButtonText: {
+    ...textStyles.body,
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+
+  companyCheckoutButtonPrice: {
+    ...textStyles.callout,
+    color: colors.white,
+    fontWeight: '800',
+    fontSize: 17,
+  },
+
+  // All Orders Container - Botón final para todos los pedidos
+  allOrdersContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.card,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    shadowColor: isDark ? colors.black : '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: isDark ? 0.3 : 0.15,
+    shadowRadius: 16,
+    elevation: 12,
+    borderTopWidth: 2,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.primary + '30',
+  },
+
+  allOrdersSummary: {
+    marginBottom: spacing.md,
+  },
+
+  allOrdersRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+
+  allOrdersLabel: {
+    ...textStyles.body,
+    color: colors.text,
+    fontWeight: '600',
+  },
+
+  allOrdersTotal: {
+    ...textStyles.title2,
+    color: colors.primary,
+    fontWeight: '800',
+  },
+
+  allOrdersSubtitle: {
+    ...textStyles.caption1,
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
+
+  allOrdersButton: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.full,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+
+  allOrdersButtonText: {
+    ...textStyles.headline,
+    color: colors.white,
+    fontWeight: '800',
+    fontSize: 16,
   },
 });

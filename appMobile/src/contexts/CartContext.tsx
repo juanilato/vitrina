@@ -156,58 +156,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ingredientesExtras?: CartIngredienteExtra[]
     ) => {
       setCart((prev) => {
-        // Check if cart has items from a different company
-        if (prev.companyId && prev.companyId !== companyId) {
-          Alert.alert(
-            'Cambiar empresa',
-            `Ya tienes productos de ${prev.items[0]?.companyName || 'otra empresa'}. ¿Deseas vaciar el carrito y agregar productos de ${companyName}?`,
-            [
-              { text: 'Cancelar', style: 'cancel' },
-              {
-                text: 'Sí, vaciar',
-                style: 'destructive',
-                onPress: () => {
-                  const priceRaw = product.precio || product.price || 0;
-                  const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
-
-                  const agregadosPrice = agregados?.reduce((sum, a) => {
-                    const aPrecio = typeof a.precio === 'string' ? parseFloat(a.precio) : a.precio;
-                    return sum + aPrecio;
-                  }, 0) || 0;
-
-                  const ingredientesExtrasPrice = ingredientesExtras?.reduce((sum, ie) => {
-                    const precioExtra = ie.productoIngrediente.precioExtra;
-                    const precio = typeof precioExtra === 'string' ? parseFloat(precioExtra) : (precioExtra || 0);
-                    return sum + (precio * ie.cantidad);
-                  }, 0) || 0;
-
-                  const itemTotal = (price + agregadosPrice + ingredientesExtrasPrice) * quantity;
-
-                  setCart({
-                    items: [
-                      {
-                        product,
-                        quantity,
-                        companyId,
-                        companyName,
-                        agregados,
-                        ingredientesExtras,
-                        notes,
-                      },
-                    ],
-                    totalItems: quantity,
-                    subtotal: itemTotal,
-                    deliveryFee: 0,
-                    total: itemTotal,
-                    companyId,
-                  });
-                },
-              },
-            ]
-          );
-          return prev;
-        }
-
+        // Ahora permitimos múltiples empresas en el carrito
         // Con agregados, ingredientes extras o notas, siempre agregar como item nuevo (no combinar)
         if ((agregados && agregados.length > 0) || (ingredientesExtras && ingredientesExtras.length > 0)) {
           return {
@@ -224,7 +173,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 notes,
               },
             ],
-            companyId: prev.companyId || companyId,
+            companyId: undefined, // Ya no usamos un solo companyId
           };
         }
 
@@ -232,6 +181,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const existingItemIndex = prev.items.findIndex(
           (item) =>
             item.product.id === product.id &&
+            item.companyId === companyId &&
             (!item.agregados || item.agregados.length === 0) &&
             (!item.ingredientesExtras || item.ingredientesExtras.length === 0)
         );
@@ -262,7 +212,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
               companyName,
             },
           ],
-          companyId,
+          companyId: undefined, // Ya no usamos un solo companyId
         };
       });
     },

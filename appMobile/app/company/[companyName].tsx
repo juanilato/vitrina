@@ -575,7 +575,11 @@ export default function CompanyStoreScreen() {
       />
 
       {/* Floating Cart Button */}
-      <FloatingCartButton buttonColor={buttonColor} />
+      <FloatingCartButton
+        buttonColor={buttonColor}
+        from="company"
+        companyName={companyName}
+      />
 
       {/* Floating Social Links */}
       {company.redesSociales && company.redesSociales.length > 0 && (

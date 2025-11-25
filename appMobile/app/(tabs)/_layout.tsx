@@ -50,6 +50,7 @@ export default function TabsLayout() {
               color={color}
             />
           ),
+          tabBarStyle: { display: 'none' },
         }}
       />
       <Tabs.Screen

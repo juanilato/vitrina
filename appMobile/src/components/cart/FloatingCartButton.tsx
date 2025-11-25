@@ -32,10 +32,16 @@ function isColorDark(hexColor: string): boolean {
 
 interface FloatingCartButtonProps {
   buttonColor?: string;
+  from?: 'store' | 'dashboard' | 'company';
+  storeId?: string;
+  companyName?: string;
 }
 
 export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
   buttonColor = '#1a1a1a',
+  from,
+  storeId,
+  companyName,
 }) => {
   const router = useRouter();
   const { cart } = useCart();
@@ -44,17 +50,40 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
 
   if (cart.totalItems === 0) return null;
 
+  const buildCartRoute = () => {
+    let route = '/(tabs)/cart';
+    const params: string[] = [];
+
+    if (from) {
+      params.push(`from=${from}`);
+    }
+
+    if (storeId && from === 'store') {
+      params.push(`storeId=${storeId}`);
+    }
+
+    if (companyName && from === 'company') {
+      params.push(`companyName=${companyName}`);
+    }
+
+    if (params.length > 0) {
+      route += '?' + params.join('&');
+    }
+
+    return route;
+  };
+
   const handlePress = () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-    router.push('/(tabs)/cart');
+    router.push(buildCartRoute() as any);
   };
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
-    router.push('/(tabs)/cart');
+    router.push(buildCartRoute() as any);
   };
 
   const dark = isColorDark(buttonColor);
