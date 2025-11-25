@@ -63,7 +63,8 @@
       "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\ProductsSection\\components\\ProductModal.css\")",
       "Bash(npx prisma db pull:*)",
       "Bash(rmdir:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\OrdersSection\\OrdersSection.css\")"
     ],
     "deny": [],
     "ask": []

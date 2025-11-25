@@ -25,7 +25,10 @@ export interface ItemPedido {
 
 export interface Pedido {
   id: string;
-  clienteId: string;
+  origenPedido: 'app' | 'local';
+  clienteId?: string;
+  nombreClienteLocal?: string;
+  mesaNumero?: string;
   empresaId: string;
   repartidorId?: string;
   estado: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'esperando_delivery' | 'en_camino' | 'entregado' | 'esperando_retiro' | 'no_confirmado' | 'cancelado';

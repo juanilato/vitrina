@@ -38,14 +38,50 @@ class PedidosService {
   async createPedido(pedidoData: CreatePedidoDto): Promise<PedidoWithDetails> {
     try {
       console.log('🔄 [PEDIDOS SERVICE] Creando pedido:', pedidoData);
-      
+
       const response = await axiosInstance.post(this.baseURL, pedidoData);
-      
+
       console.log('✅ [PEDIDOS SERVICE] Pedido creado exitosamente:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('❌ [PEDIDOS SERVICE] Error al crear pedido:', error);
       throw new Error(error.response?.data?.message || 'Error al crear pedido');
+    }
+  }
+
+  // Crear un pedido local (desde el restaurante)
+  async createLocalOrder(orderData: {
+    empresaId: string;
+    nombreClienteLocal?: string;
+    mesaNumero?: string;
+    items: Array<{
+      productoId: string;
+      cantidad: number;
+      precio: number;
+      notas?: string;
+      ingredientesExtras?: Array<{
+        productoIngredienteId: number;
+        cantidad: number;
+      }>;
+    }>;
+    formaPago: 'transferencia' | 'efectivo';
+  }): Promise<PedidoWithDetails> {
+    try {
+      console.log('🔄 [PEDIDOS SERVICE] Creando pedido local:', orderData);
+
+      const pedidoData = {
+        ...orderData,
+        origenPedido: 'local',
+        tipoEntrega: 'retiro', // Los pedidos locales son siempre "retiro" (consumen en el local)
+      };
+
+      const response = await axiosInstance.post(`${this.baseURL}/empresa/local`, pedidoData);
+
+      console.log('✅ [PEDIDOS SERVICE] Pedido local creado exitosamente:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [PEDIDOS SERVICE] Error al crear pedido local:', error);
+      throw new Error(error.response?.data?.message || 'Error al crear pedido local');
     }
   }
 

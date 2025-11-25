@@ -74,6 +74,25 @@ export class PedidosController {
     return this.pedidosService.findAllByEmpresa(empresaId);
   }
 
+  // crea un pedido local (desde el restaurante)
+  @Post('empresa/local')
+  @Roles('empresa')
+  @HttpCode(HttpStatus.CREATED)
+  createLocalOrder(@Body() createPedidoDto: CreatePedidoDto, @Request() req) {
+    console.log('🔍 [Pedidos Local] Creando pedido local:', createPedidoDto);
+
+    // Validar que el usuario esté autenticado como empresa
+    if (!req.user || !req.user.id || req.user.type !== 'empresa') {
+      throw new Error('Solo empresas pueden crear pedidos locales');
+    }
+
+    // Asegurar que la empresa solo pueda crear pedidos para sí misma
+    createPedidoDto.empresaId = req.user.id;
+    createPedidoDto.origenPedido = 'local';
+
+    return this.pedidosService.create(createPedidoDto);
+  }
+
   // obtiene las estadisticas de los pedidos de la empresa
   @Get('stats/:empresaId')
   @Roles('empresa')

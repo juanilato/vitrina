@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { OrderModal, OrdersSkeletonLoader } from './components';
+import LocalOrderModal from './components/LocalOrderModal';
 import { useOrders } from './hooks/useOrders';
+import { useAuthOptimized } from '../../../../hooks/useAuthOptimized';
 import { PedidoWithDetails } from './types';
 import './OrdersSection.css';
 import OrderRow from './components/OrderCard';
@@ -18,7 +20,11 @@ import DoneAllOutlinedIcon from '@mui/icons-material/DoneAllOutlined';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
 const OrdersSection: React.FC = () => {
+  const { user } = useAuthOptimized();
   const {
     orders,
     loading,
@@ -34,10 +40,12 @@ const OrdersSection: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [timeFilter, setTimeFilter] = useState<'all' | 'last_hour' | 'last_day'>('all');
+  const [origenFilter, setOrigenFilter] = useState<'all' | 'app' | 'local'>('all');
   const [selectedOrder, setSelectedOrder] = useState<PedidoWithDetails | null>(null);
   const [showStatusReference, setShowStatusReference] = useState(false);
+  const [showLocalOrderModal, setShowLocalOrderModal] = useState(false);
 
-  // Filtrado combinado: estado + búsqueda + tiempo
+  // Filtrado combinado: estado + búsqueda + tiempo + origen
   const filteredOrders = useMemo(() => {
     let result = getFilteredOrders(searchTerm, statusFilter);
 
@@ -55,8 +63,13 @@ const OrdersSection: React.FC = () => {
       result = result.filter(order => new Date(order.createdAt) >= cutoff);
     }
 
+    // Aplicar filtro de origen
+    if (origenFilter !== 'all') {
+      result = result.filter(order => order.origenPedido === origenFilter);
+    }
+
     return result;
-  }, [searchTerm, statusFilter, timeFilter, getFilteredOrders]);
+  }, [searchTerm, statusFilter, timeFilter, origenFilter, getFilteredOrders]);
 
   const handleViewDetails = (pedido: PedidoWithDetails) => {
     setSelectedOrder(pedido);
@@ -114,6 +127,23 @@ const OrdersSection: React.FC = () => {
 
         {/* Filtros y búsqueda */}
 <div className="sidebar-content">
+  {/* Botón Nuevo Pedido Local */}
+  <div className="sidebar-section">
+    <button
+      className="cnav-item cnav-item--primary"
+      onClick={() => setShowLocalOrderModal(true)}
+      style={{
+        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        color: 'white',
+        fontWeight: '700',
+        justifyContent: 'center'
+      }}
+    >
+      <span className="cnav-icon"><AddCircleOutlineIcon fontSize="small" /></span>
+      <span className="cnav-label">Nuevo Pedido Local</span>
+    </button>
+  </div>
+
   <div className="sidebar-section">
     <h3 className="sidebar-section-title">Buscar</h3>
     <div className="sidebar-search">
@@ -124,7 +154,35 @@ const OrdersSection: React.FC = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="sidebar-search-input"
       />
-   
+
+    </div>
+  </div>
+
+  {/* Filtros de Origen */}
+  <div className="sidebar-section">
+    <h3 className="sidebar-section-title">Origen</h3>
+    <div className="sidebar-time-filters">
+      <button
+        className={`time-filter-btn ${origenFilter === 'all' ? 'active' : ''}`}
+        onClick={() => setOrigenFilter('all')}
+      >
+        <FilterListOutlinedIcon fontSize="small" />
+        <span>Todos</span>
+      </button>
+      <button
+        className={`time-filter-btn ${origenFilter === 'local' ? 'active' : ''}`}
+        onClick={() => setOrigenFilter('local')}
+      >
+        <RestaurantIcon fontSize="small" />
+        <span>Local</span>
+      </button>
+      <button
+        className={`time-filter-btn ${origenFilter === 'app' ? 'active' : ''}`}
+        onClick={() => setOrigenFilter('app')}
+      >
+        <PhoneIphoneIcon fontSize="small" />
+        <span>App</span>
+      </button>
     </div>
   </div>
 
@@ -255,7 +313,7 @@ const OrdersSection: React.FC = () => {
   {/* Referencia de Estados */}
 
 
-  {(searchTerm || statusFilter !== 'todos' || timeFilter !== 'all') && (
+  {(searchTerm || statusFilter !== 'todos' || timeFilter !== 'all' || origenFilter !== 'all') && (
     <div className="sidebar-section">
       <button
         className="cnav-item cnav-item--subtle"
@@ -263,6 +321,7 @@ const OrdersSection: React.FC = () => {
           setSearchTerm('');
           setStatusFilter('todos');
           setTimeFilter('all');
+          setOrigenFilter('all');
         }}
       >
         <span className="cnav-icon">🔄</span>
@@ -408,6 +467,18 @@ const OrdersSection: React.FC = () => {
           pedido={selectedOrder}
           onClose={() => setSelectedOrder(null)}
           onUpdateStatus={handleStatusUpdate}
+        />
+      )}
+
+      {/* Modal de nuevo pedido local */}
+      {showLocalOrderModal && user?.id && (
+        <LocalOrderModal
+          empresaId={user.id}
+          onClose={() => setShowLocalOrderModal(false)}
+          onSuccess={() => {
+            setShowLocalOrderModal(false);
+            loadOrders();
+          }}
         />
       )}
     </div>

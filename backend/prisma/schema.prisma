@@ -409,8 +409,16 @@ model VerificationCode {
 model Pedido {
   id String @id @default(cuid())
 
-  clienteId String
-  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  // Origen del pedido: "app" (desde app móvil) o "local" (tomado en el restaurante)
+  origenPedido String @default("app") // "app" | "local"
+
+  // Cliente (opcional para pedidos locales)
+  clienteId String?
+  cliente   Cliente? @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Para pedidos locales sin cliente registrado
+  nombreClienteLocal String? // Nombre del cliente walk-in
+  mesaNumero         String? // Número de mesa (opcional)
 
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
@@ -459,6 +467,7 @@ model Pedido {
   @@index([clienteId])
   @@index([empresaId])
   @@index([estado, createdAt])
+  @@index([origenPedido, empresaId])
 }
 
 // ——— Ítems del pedido ———

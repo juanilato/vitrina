@@ -35,13 +35,18 @@ export class PedidosService {
         throw new NotFoundException('Empresa no encontrada');
       }
 
-      // Verificar que el cliente existe
-      const cliente = await this.prisma.cliente.findUnique({
-        where: { id: createPedidoDto.clienteId }
-      });
-      if (!cliente) {
-        throw new NotFoundException('Cliente no encontrado');
+      // Verificar que el cliente existe (solo si no es pedido local)
+      const esLocal = createPedidoDto.origenPedido === 'local';
+
+      if (!esLocal) {
+        const cliente = await this.prisma.cliente.findUnique({
+          where: { id: createPedidoDto.clienteId }
+        });
+        if (!cliente) {
+          throw new NotFoundException('Cliente no encontrado');
+        }
       }
+      // Para pedidos locales, nombreClienteLocal y mesaNumero son opcionales
 
       // Verificar que todos los productos existen y obtener ingredientes
       const productIds = createPedidoDto.items.map(item => item.productoId);
@@ -154,7 +159,10 @@ export class PedidosService {
         // Crear el pedido con todos los datos calculados
         const newPedido = await prisma.pedido.create({
           data: {
-            clienteId: createPedidoDto.clienteId,
+            origenPedido: createPedidoDto.origenPedido || 'app',
+            clienteId: createPedidoDto.clienteId || null,
+            nombreClienteLocal: createPedidoDto.nombreClienteLocal || null,
+            mesaNumero: createPedidoDto.mesaNumero || null,
             empresaId: createPedidoDto.empresaId,
             estado: 'pendiente_confirmacion',
             tipoEntrega: createPedidoDto.tipoEntrega,
@@ -432,7 +440,10 @@ export class PedidosService {
 
       return await Promise.all(pedidos.map(async (pedido) => ({
         id: pedido.id,
+        origenPedido: pedido.origenPedido,
         clienteId: pedido.clienteId,
+        nombreClienteLocal: pedido.nombreClienteLocal,
+        mesaNumero: pedido.mesaNumero,
         empresaId: pedido.empresaId,
         estado: pedido.estado,
         tipoEntrega: pedido.tipoEntrega,

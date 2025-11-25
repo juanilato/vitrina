@@ -77,4 +77,18 @@ export class CreatePedidoDto {
   @ValidateNested()
   @Type(() => UbicacionPedidoDto)
   ubicacion?: UbicacionPedidoDto; // Ubicación de entrega si es delivery
+
+  // Campos para pedidos locales
+  @IsOptional()
+  @IsString()
+  @IsIn(['app', 'local'])
+  origenPedido?: string; // 'app' (default) o 'local'
+
+  @IsOptional()
+  @IsString()
+  nombreClienteLocal?: string; // Nombre del cliente walk-in (para pedidos locales)
+
+  @IsOptional()
+  @IsString()
+  mesaNumero?: string; // Número de mesa (para pedidos locales)
 }
