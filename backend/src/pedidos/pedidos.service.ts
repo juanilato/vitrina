@@ -735,8 +735,8 @@ export class PedidosService {
             pedidoActualizado.id,
             pedidoActualizado.clienteId,
             pedidoActualizado.empresaId,
-            pedidoActualizado.cliente.name,
-            existingPedido.empresa.name,
+            pedidoActualizado.cliente?.name || 'Cliente',
+            existingPedido.empresa?.name || 'Empresa',
             oldStatus,
             newStatus,
             pedidoActualizado.total

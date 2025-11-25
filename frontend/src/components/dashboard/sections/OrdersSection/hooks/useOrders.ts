@@ -68,29 +68,9 @@ export const useOrders = () => {
     const handlePedidoActualizado = (data: any) => {
       console.log('📨 [ORDERS HOOK] Pedido actualizado recibido:', data);
 
-      // Actualizar el pedido en la lista local
-      setOrders(prevOrders => {
-        const orderIndex = prevOrders.findIndex(o => o.id === data.pedidoId);
-        if (orderIndex !== -1) {
-          const updatedOrders = [...prevOrders];
-          updatedOrders[orderIndex] = {
-            ...updatedOrders[orderIndex],
-            ...data.pedido,
-            estado: data.nuevoEstado
-          };
-          console.log('✅ [ORDERS HOOK] Pedido actualizado en lista local');
-          return updatedOrders;
-        }
-        return prevOrders;
-      });
-
-      // Recargar estadísticas
-      if (user?.id) {
-        pedidosService.getPedidosStats(user.id).then(newStats => {
-          setStats(newStats);
-          console.log('📊 [ORDERS HOOK] Estadísticas actualizadas');
-        });
-      }
+      // Recargar toda la lista de pedidos para asegurar consistencia
+      // Esto garantiza que los filtros se mantengan correctamente
+      loadOrders();
     };
 
     socket.on('pedido_actualizado', handlePedidoActualizado);
