@@ -1,3 +1,9 @@
 node_modules
 
 /frontend/.env
+
+/appMobile/.env
+
+/backend/.env
+
+.env*
