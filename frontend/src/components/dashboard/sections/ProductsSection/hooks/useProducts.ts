@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
+import { useDashboardData } from '../../../../../contexts/DashboardDataContext';
 import productosService, { CreateProductoDto, UpdateProductoDto } from '../../../../../services/productosService';
 import { ProductWithExtras, ProductsStats, ProductoIngrediente } from '../types';
 
 export const useProducts = () => {
   const { user } = useAuthOptimized();
+  const { data: dashboardData, loading: contextLoading, refetchProducts } = useDashboardData();
   const [products, setProducts] = useState<ProductWithExtras[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,25 +33,45 @@ export const useProducts = () => {
     }));
   };
 
-  // Cargar productos al montar el componente
+  // Cargar productos desde el contexto pre-cargado o desde la API
   useEffect(() => {
-    if (user?.id) {
+    if (dashboardData) {
+      // Si ya tenemos datos del contexto, usarlos directamente
+      console.log('✅ [PRODUCTS HOOK] Usando datos pre-cargados del contexto');
+
+      const validProductosData = Array.isArray(dashboardData.products) ? dashboardData.products : [];
+
+      const productsWithExtras: ProductWithExtras[] = validProductosData.map(producto => ({
+        ...producto,
+        nombre: producto.nombre || 'Producto sin nombre',
+        descripcion: producto.descripcion || '',
+        precio: producto.precio || 0,
+        category: 'General',
+        createdAt: producto.createdAt || new Date().toISOString(),
+        ingredientes: transformIngredientes(producto.ingredientes)
+      }));
+
+      setProducts(productsWithExtras);
+      setStats(dashboardData.productsStats || { total: 0, activos: 0, inactivos: 0 });
+      setLoading(false);
+    } else if (user?.id && !contextLoading) {
+      // Fallback: cargar directamente si el contexto no tiene datos
       loadProducts();
     }
-  }, [user?.id]);
+  }, [dashboardData, user?.id, contextLoading]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('🔄 [PRODUCTS HOOK] Cargando productos para empresa:', user?.id);
-      
+
       const [productosData, statsData] = await Promise.all([
         productosService.getProductosByEmpresa(user!.id),
         productosService.getProductosStats(user!.id)
       ]);
-      
+
       // Validar que productosData sea un array
       const validProductosData = Array.isArray(productosData) ? productosData : [];
 
@@ -66,10 +88,10 @@ export const useProducts = () => {
         // Ingredientes transformados
         ingredientes: transformIngredientes(producto.ingredientes)
       }));
-      
+
       setProducts(productsWithExtras);
       setStats(statsData);
-      
+
       console.log('✅ [PRODUCTS HOOK] Productos cargados exitosamente:', {
         count: productsWithExtras.length,
         stats: statsData
@@ -156,6 +178,9 @@ export const useProducts = () => {
       const newStats = await productosService.getProductosStats(user.id);
       setStats(newStats);
 
+      // Actualizar el contexto global
+      await refetchProducts();
+
     } catch (err: any) {
       console.error('❌ Error al guardar producto:', err);
       throw err;
@@ -177,7 +202,10 @@ export const useProducts = () => {
           const newStats = await productosService.getProductosStats(user.id);
           setStats(newStats);
         }
-        
+
+        // Actualizar el contexto global
+        await refetchProducts();
+
         console.log('✅ [PRODUCTS HOOK] Producto eliminado exitosamente');
       } catch (err: any) {
         console.error('❌ [PRODUCTS HOOK] Error al eliminar producto:', err);

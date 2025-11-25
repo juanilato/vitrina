@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
+import { useDashboardData } from '../../../../../contexts/DashboardDataContext';
 import axiosInstance from '../../../../../config/axios.config';
 import {
   AccountConfigState,
@@ -86,7 +87,8 @@ const normalizeSocials = (arr: SocialLink[]) =>
   
 const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const { user } = useAuthOptimized();
-  
+  const { data: dashboardData, loading: contextLoading, refetchEmpresaConfig } = useDashboardData();
+
   const [state, setState] = useState<AccountConfigState>({
     loading: false,
     saving: false,
@@ -175,6 +177,9 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         success: 'Perfil actualizado exitosamente'
       }));
 
+      // Actualizar el contexto global
+      await refetchEmpresaConfig();
+
       // Limpiar mensaje de éxito después de 3 segundos
       setTimeout(() => {
         setState(prev => ({ ...prev, success: null }));
@@ -215,6 +220,9 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         saving: false,
         success: 'Ubicación actualizada exitosamente'
       }));
+
+      // Actualizar el contexto global
+      await refetchEmpresaConfig();
 
       setTimeout(() => {
         setState(prev => ({ ...prev, success: null }));
@@ -257,6 +265,9 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         saving: false,
         success: 'Ubicación agregada exitosamente'
       }));
+
+      // Actualizar el contexto global
+      await refetchEmpresaConfig();
 
       setTimeout(() => {
         setState(prev => ({ ...prev, success: null }));
@@ -405,12 +416,31 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     setState(prev => ({ ...prev, activeTab: tab }));
   }, []);
 
-  // Cargar datos al montar el componente
+  // Cargar datos desde el contexto pre-cargado o desde la API
   useEffect(() => {
-    if (user?.id) {
+    if (dashboardData?.empresaConfig) {
+      // Si ya tenemos datos del contexto, usarlos directamente
+      console.log('✅ [ACCOUNT CONFIG HOOK] Usando datos pre-cargados del contexto');
+
+      const empresaData: EmpresaData = dashboardData.empresaConfig;
+
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        empresaData,
+        formData: {
+          name: empresaData.name,
+          email: empresaData.email,
+          logo: empresaData.logo || '',
+          ubicaciones: empresaData.ubicaciones || []
+        },
+        hasChanges: false
+      }));
+    } else if (user?.id && !contextLoading) {
+      // Fallback: cargar directamente si el contexto no tiene datos
       loadEmpresaData();
     }
-  }, [user?.id, loadEmpresaData]);
+  }, [dashboardData?.empresaConfig, user?.id, contextLoading]);
 
   // Detectar cambios en el formulario
   useEffect(() => {
@@ -505,6 +535,10 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         saving: false,
         success: 'Preferencias guardadas exitosamente'
       }));
+
+      // Actualizar el contexto global
+      await refetchEmpresaConfig();
+
       setTimeout(() => {
         setState(prev => ({ ...prev, success: null }));
       }, 3000);
@@ -622,6 +656,9 @@ const updateEmpresaExtras = useCallback(async (payload: UpdateEmpresaExtrasPaylo
       saving: false,
       success: "Datos de empresa actualizados",
     }));
+
+    // Actualizar el contexto global
+    await refetchEmpresaConfig();
   } catch (e: any) {
     setState(s => ({
       ...s,
@@ -658,13 +695,20 @@ const cargaUbicacionInicial = useCallback(async (empresaId: string,ubicacion: Ub
 // Obtener categorías
 const getCategorias = useCallback(async (): Promise<CategoriaData[]> => {
   try {
+    // Primero intentar usar las categorías del contexto si están disponibles
+    if (dashboardData?.categorias && dashboardData.categorias.length > 0) {
+      console.log('✅ [ACCOUNT CONFIG HOOK] Usando categorías pre-cargadas del contexto');
+      return dashboardData.categorias;
+    }
+
+    // Si no están en el contexto, cargar desde la API
     const response = await axiosInstance.get('/categorias');
     return response.data;
   } catch (error: any) {
     console.error('Error al cargar categorías:', error);
     throw error;
   }
-}, []);
+}, [dashboardData?.categorias]);
 
 // Actualizar categorías y subcategorías
 const updateCategorias = useCallback(async (payload: UpdateCategoriasPayload) => {
@@ -682,6 +726,9 @@ const updateCategorias = useCallback(async (payload: UpdateCategoriasPayload) =>
       empresaData: updatedEmpresa,
       success: 'Categorías actualizadas exitosamente'
     }));
+
+    // Actualizar el contexto global
+    await refetchEmpresaConfig();
 
     setTimeout(() => {
       setState(prev => ({ ...prev, success: null }));

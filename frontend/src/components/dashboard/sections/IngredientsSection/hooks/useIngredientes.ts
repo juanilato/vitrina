@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
-import ingredientesService from '../../../../../services/ingredientesService'; 
-import { IngredienteWithExtras, IngredienteStats, CreateIngredienteDto, 
+import { useDashboardData } from '../../../../../contexts/DashboardDataContext';
+import ingredientesService from '../../../../../services/ingredientesService';
+import { IngredienteWithExtras, IngredienteStats, CreateIngredienteDto,
   UpdateIngredienteDto } from '../types';
 import { ProductoIngrediente } from '../../ProductsSection/types';
 
 export const useIngredientes = () => {
   const { user } = useAuthOptimized();
+  const { data: dashboardData, loading: contextLoading, refetchIngredients } = useDashboardData();
   const [ingredientes, setIngredientes] = useState<IngredienteWithExtras[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,27 +20,46 @@ export const useIngredientes = () => {
     tiposUnicos: 0 // Usaremos total aquí por simplicidad
   });
 
+  // Cargar ingredientes desde el contexto pre-cargado o desde la API
   useEffect(() => {
-    if (user?.id) {
+    if (dashboardData) {
+      // Si ya tenemos datos del contexto, usarlos directamente
+      console.log('✅ [INGREDIENTES HOOK] Usando datos pre-cargados del contexto');
+
+      const validIngredientesData = Array.isArray(dashboardData.ingredients) ? dashboardData.ingredients : [];
+
+      const ingredientesWithExtras: IngredienteWithExtras[] = validIngredientesData.map(ingrediente => ({
+        ...ingrediente,
+        nombre: ingrediente.nombre || 'Ingrediente sin nombre',
+        stockDisponible: ingrediente.stockDisponible || 0,
+        unidadMedida: ingrediente.unidadMedida || 'unidades',
+        icono: ingrediente.icono || 'Grass'
+      }));
+
+      setIngredientes(ingredientesWithExtras);
+      setStats(dashboardData.ingredientsStats || { total: 0, unidades: 0, tiposUnicos: 0 });
+      setLoading(false);
+    } else if (user?.id && !contextLoading) {
+      // Fallback: cargar directamente si el contexto no tiene datos
       loadIngredientes();
     }
-  }, [user?.id]);
+  }, [dashboardData, user?.id, contextLoading]);
 
   const loadIngredientes = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('🔄 [INGREDIENTES HOOK] Cargando ingredientes para empresa:', user?.id);
-      
+
       // Asume que tienes un servicio de ingredientes similar al de productos
       const [ingredientesData, statsData] = await Promise.all([
         ingredientesService.getIngredientesByEmpresa(user!.id),
         ingredientesService.getIngredientesStats(user!.id)
       ]);
-      
+
       const validIngredientesData = Array.isArray(ingredientesData) ? ingredientesData : [];
-      
+
       const ingredientesWithExtras: IngredienteWithExtras[] = validIngredientesData.map(ingrediente => ({
         ...ingrediente,
         // Asegurar campos y añadir extras (como el icono)
@@ -46,12 +67,12 @@ export const useIngredientes = () => {
         stockDisponible: ingrediente.stockDisponible || 0,
         unidadMedida: ingrediente.unidadMedida || 'unidades',
         // El campo 'icono' ya debe venir del backend, si no, usa un default
-        icono: ingrediente.icono || 'Grass' 
+        icono: ingrediente.icono || 'Grass'
       }));
-      
+
       setIngredientes(ingredientesWithExtras);
       setStats(statsData); // El backend debe retornar la estructura correcta
-      
+
       console.log('✅ [INGREDIENTES HOOK] Ingredientes cargados exitosamente:', {
         count: ingredientesWithExtras.length,
         stats: statsData
@@ -113,6 +134,9 @@ export const useIngredientes = () => {
       const newStats = await ingredientesService.getIngredientesStats(user.id);
       setStats(newStats);
 
+      // Actualizar el contexto global
+      await refetchIngredients();
+
     } catch (err: any) {
       console.error('❌ Error al guardar ingrediente:', err);
       throw err;
@@ -132,7 +156,10 @@ export const useIngredientes = () => {
           const newStats = await ingredientesService.getIngredientesStats(user.id);
           setStats(newStats);
         }
-        
+
+        // Actualizar el contexto global
+        await refetchIngredients();
+
         console.log('✅ [INGREDIENTES HOOK] Ingrediente eliminado exitosamente');
       } catch (err: any) {
         console.error('❌ [INGREDIENTES HOOK] Error al eliminar ingrediente:', err);

@@ -1,6 +1,7 @@
 // CompanyMainDashboard.tsx
 import React, { useState } from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
+import { useDashboardData } from '../../contexts/DashboardDataContext';
 import CompanyNavbar from './shared/CompanyNavbar';
 import ProductsSection from './sections/ProductsSection';
 import IngredientsSection from './sections/IngredientsSection';
@@ -11,13 +12,17 @@ import StatsSection from './sections/StatsSection';
 import MenuOpenOutlinedIcon from '@mui/icons-material/MenuOpenOutlined';
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined';
+import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
 
 import './CompanyMainDashboard.css';
 import NotificationPeek from './shared/NotificationPeek';
 import NotificationsDropdown from '../common/NotificationsDropdown';
-// Side bar de compania para manejar los distintos sections 
+// Side bar de compania para manejar los distintos sections
 const CompanyMainDashboard: React.FC = () => {
   const { user, logout } = useAuthOptimized();
+  const { isDataLoaded, loading, error, loadingStatus } = useDashboardData();
   const [activeSection, setActiveSection] = useState<
     'dashboard' | 'productos' | 'ingredientes' | 'pedidos' | 'notificacionesDropdown' | 'notificaciones' | 'estadisticas' | 'config'
   >('dashboard');
@@ -57,7 +62,38 @@ const CompanyMainDashboard: React.FC = () => {
                 <div className="card-content">
                   <p className="muted">Usá el menú lateral para gestionar productos, pedidos, notificaciones y tu configuración.</p>
                 </div>
+                
+        <div className="statusbar">
+          <div className="status-left">
+            {/* Indicador de Productos */}
+            <div className={`status-indicator status-indicator--${loadingStatus.products}`} title="Estado de productos">
+              <span className="status-dot"></span>
+              <span className="status-label">Productos</span>
+            </div>
+
+            {/* Indicador de Ingredientes */}
+            <div className={`status-indicator status-indicator--${loadingStatus.ingredients}`} title="Estado de ingredientes">
+              <span className="status-dot"></span>
+              <span className="status-label">Ingredientes</span>
+            </div>
+
+            {/* Indicador de Configuración */}
+            <div className={`status-indicator status-indicator--${loadingStatus.empresaConfig}`} title="Estado de configuración">
+              <span className="status-dot"></span>
+              <span className="status-label">Configuración</span>
+            </div>
+
+            {/* Indicador de Categorías */}
+            <div className={`status-indicator status-indicator--${loadingStatus.categorias}`} title="Estado de categorías">
+              <span className="status-dot"></span>
+              <span className="status-label">Categorías</span>
+            </div>
+          </div>
+          <div className="status-right">Usuario: {user?.email}</div>
+
+        </div>
               </div>
+              
             </div>
           </main>
         );
@@ -158,11 +194,6 @@ const CompanyMainDashboard: React.FC = () => {
           
         </div>
 
-        <div className="statusbar">
-          <div className="status-left" />
-          <div className="status-right">Usuario: {user?.email}</div>
-          
-        </div>
               
 
       </div>

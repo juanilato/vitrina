@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
+import { DashboardDataProvider } from '../../contexts/DashboardDataContext';
 
 import CompanyMainDashboard from './CompanyMainDashboard';
 import RepartidorMainDashboard from './RepartidorMainDashboard';
@@ -26,7 +27,11 @@ const DashboardRouter: React.FC = () => {
 
   // Render appropriate dashboard based on user type
   if (isCompany) {
-    return <CompanyMainDashboard />;
+    return (
+      <DashboardDataProvider>
+        <CompanyMainDashboard />
+      </DashboardDataProvider>
+    );
   }
 
 
