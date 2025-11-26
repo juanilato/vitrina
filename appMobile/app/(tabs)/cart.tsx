@@ -85,10 +85,7 @@ export default function CartScreen() {
     router.push(`/checkout?companyId=${companyId}`);
   };
 
-  const handleCheckoutAll = () => {
-    // Navegar a checkout con todas las empresas
-    router.push('/checkout?all=true');
-  };
+
 
   const handleRemoveItem = (productId: string) => {
     removeItem(productId);
@@ -333,34 +330,8 @@ export default function CartScreen() {
               </View>
             ))}
 
-            {/* Spacer for bottom summary */}
-            <View style={{ height: itemsByCompany.length > 1 ? 180 : 20 }} />
+            <View style={{ height: 20 }} />
           </ScrollView>
-
-          {/* Botón de realizar todos los pedidos (solo si hay más de una empresa) */}
-          {itemsByCompany.length > 1 && (
-            <View style={styles.allOrdersContainer}>
-              <View style={styles.allOrdersSummary}>
-                <View style={styles.allOrdersRow}>
-                  <Text style={styles.allOrdersLabel}>Total de todos los pedidos</Text>
-                  <Text style={styles.allOrdersTotal}>${formatPrice(cart.subtotal)}</Text>
-                </View>
-                <Text style={styles.allOrdersSubtitle}>
-                  {itemsByCompany.length} pedidos de empresas diferentes
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.allOrdersButton}
-                onPress={handleCheckoutAll}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="cart" size={20} color={colors.white} />
-                <Text style={styles.allOrdersButtonText}>
-                  Realizar todos los pedidos
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </>
       )}
     </SafeAreaView>

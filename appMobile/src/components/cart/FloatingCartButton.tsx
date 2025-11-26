@@ -35,6 +35,7 @@ interface FloatingCartButtonProps {
   from?: 'store' | 'dashboard' | 'company';
   storeId?: string;
   companyName?: string;
+  companyId?: string;
 }
 
 export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
@@ -42,13 +43,73 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
   from,
   storeId,
   companyName,
+  companyId,
 }) => {
   const router = useRouter();
   const { cart } = useCart();
   const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  if (cart.totalItems === 0) return null;
+  // Calcular items y total relevantes (globales o por empresa)
+  const { totalItems, total } = React.useMemo(() => {
+    // Si no hay companyId, usar valores globales del carrito
+    if (!companyId) {
+      return {
+        totalItems: cart.totalItems,
+        total: cart.total
+      };
+    }
+
+    // Si hay companyId, filtrar items de esa empresa
+    const companyItems = cart.items.filter(item => item.companyId === companyId);
+
+    // Si no hay items de esta empresa, devolver 0
+    if (companyItems.length === 0) {
+      return { totalItems: 0, total: 0 };
+    }
+
+    // Calcular total de items
+    const itemsCount = companyItems.reduce((sum, item) => sum + item.quantity, 0);
+
+    // Calcular precio total (copiado de CartContext logic)
+    const totalPrice = companyItems.reduce((sum, item) => {
+      // Convertir precio a número
+      const priceRaw = item.product.precio || item.product.price || 0;
+      const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+
+      // Calcular precio con agregados
+      const agregadosPrice = item.agregados?.reduce(
+        (acc, agregado) => {
+          const agregadoPrecio = typeof agregado.precio === 'string'
+            ? parseFloat(agregado.precio)
+            : agregado.precio;
+          return acc + agregadoPrecio;
+        },
+        0
+      ) || 0;
+
+      // Calcular precio con ingredientes extras
+      const ingredientesExtrasPrice = item.ingredientesExtras?.reduce(
+        (acc, ingredienteExtra) => {
+          const precioExtra = ingredienteExtra.productoIngrediente.precioExtra;
+          const precio = typeof precioExtra === 'string'
+            ? parseFloat(precioExtra)
+            : (precioExtra || 0);
+          return acc + (precio * ingredienteExtra.cantidad);
+        },
+        0
+      ) || 0;
+
+      return sum + (price + agregadosPrice + ingredientesExtrasPrice) * item.quantity;
+    }, 0);
+
+    return {
+      totalItems: itemsCount,
+      total: totalPrice
+    };
+  }, [cart.items, cart.totalItems, cart.total, companyId]);
+
+  if (totalItems === 0) return null;
 
   const buildCartRoute = () => {
     let route = '/(tabs)/cart';
@@ -114,10 +175,10 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
         {/* Ícono */}
         <View style={styles.iconContainer}>
           <Ionicons name="basket-outline" size={22} color={textColor} />
-          {cart.totalItems > 0 && (
+          {totalItems > 0 && (
             <View style={[styles.counter, { backgroundColor: counterBg }]}>
               <Text style={[styles.counterText, { color: textColor }]}>
-                {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                {totalItems > 99 ? '99+' : totalItems}
               </Text>
             </View>
           )}
@@ -126,7 +187,7 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
         {/* Texto */}
         <View style={styles.textContainer}>
           <Text style={[styles.totalText, { color: textColor }]}>
-            ${formatPrice(cart.total)}
+            ${formatPrice(total)}
           </Text>
           <Text style={[styles.subText, { color: subTextColor }]}>
             Sin envío
@@ -155,7 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 30,
     borderWidth: 1,
-   
+
     ...Platform.select({
       ios: {
         shadowColor: '#000',

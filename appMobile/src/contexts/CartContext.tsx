@@ -25,6 +25,7 @@ interface CartContextData {
     ingredientesExtras?: CartIngredienteExtra[]
   ) => void;
   removeItem: (productId: string) => void;
+  removeItemsByCompany: (companyId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   updateItemNotes: (productId: string, notes: string) => void;
   clearCart: () => void;
@@ -231,6 +232,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   }, []);
 
+  const removeItemsByCompany = useCallback((companyId: string) => {
+    setCart((prev) => {
+      const newItems = prev.items.filter((item) => item.companyId !== companyId);
+
+      return {
+        ...prev,
+        items: newItems,
+        companyId: newItems.length === 0 ? undefined : prev.companyId,
+      };
+    });
+  }, []);
+
   const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId);
@@ -343,6 +356,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         addItem,
         removeItem,
+        removeItemsByCompany,
         updateQuantity,
         updateItemNotes,
         clearCart,

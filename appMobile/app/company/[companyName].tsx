@@ -76,22 +76,22 @@ export default function CompanyStoreScreen() {
     }
   }, [company?.id]);
 
-    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
   }
   const isColorDark = (hex: string) => {
-  if (!hex) return false;
-  const cleaned = hex.replace('#', '');
-  const bigint = parseInt(cleaned.length === 3 
-    ? cleaned.split('').map(c => c + c).join('') 
-    : cleaned, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  // Luma formula
-  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
-  return luma < 140; // cuanto más bajo, más oscuro
-};
+    if (!hex) return false;
+    const cleaned = hex.replace('#', '');
+    const bigint = parseInt(cleaned.length === 3
+      ? cleaned.split('').map(c => c + c).join('')
+      : cleaned, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    // Luma formula
+    const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luma < 140; // cuanto más bajo, más oscuro
+  };
   // Filtrar productos por búsqueda y categoría - DEBE estar antes de los early returns
   const filteredProducts = useMemo(() => {
     let allProducts = company?.products || [];
@@ -277,7 +277,7 @@ export default function CompanyStoreScreen() {
 
       {/* Header Moderno con Dashboard Background */}
       <View style={styles.headerContainer}>
-        
+
         {company.preferenciasWeb?.dashboardFoto ? (
           <ImageBackground
             source={{ uri: company.preferenciasWeb.dashboardFoto }}
@@ -285,69 +285,69 @@ export default function CompanyStoreScreen() {
             resizeMode="cover"
           >
 
-              <SafeAreaView edges={['top']}>
-                {/* Top Bar */}
-                <View style={styles.topBar}>
-                  <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
-                    <Ionicons name="arrow-back" size={24} color={textoColor} />
-                  </TouchableOpacity>
+            <SafeAreaView edges={['top']}>
+              {/* Top Bar */}
+              <View style={styles.topBar}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButtonModern}>
+                  <Ionicons name="arrow-back" size={24} color={textoColor} />
+                </TouchableOpacity>
 
-                  <View style={styles.spacer} />
+                <View style={styles.spacer} />
 
+              </View>
+
+              {/* Company Info Centrado */}
+              {/* Branding iOS SOFT */}
+              <View style={styles.brandingSoft}>
+                {/* Avatar limpio sin borde blanco */}
+                {company.logo ? (
+                  <View style={styles.brandAvatar}>
+                    <Image source={{ uri: company.logo }} style={styles.brandAvatarImg} />
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.brandAvatar,
+                      {
+                        backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.brandAvatarMono, { color: textoColor }]}>
+                      {company.name?.slice(0, 2)?.toUpperCase() ?? 'E'}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Título sobrio + acento mínimo con fondo para contraste */}
+                <View style={styles.nameBackdrop}>
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.brandTitleSoft, { color: textoColor }]}
+                  >
+                    {company.name}
+                  </Text>
                 </View>
 
-                {/* Company Info Centrado */}
- {/* Branding iOS SOFT */}
-<View style={styles.brandingSoft}>
-  {/* Avatar limpio sin borde blanco */}
-  {company.logo ? (
-    <View style={styles.brandAvatar}>
-      <Image source={{ uri: company.logo }} style={styles.brandAvatarImg} />
-    </View>
-  ) : (
-    <View
-      style={[
-        styles.brandAvatar,
-        {
-          backgroundColor: fondoOscuro ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
-        },
-      ]}
-    >
-      <Text style={[styles.brandAvatarMono, { color: textoColor }]}>
-        {company.name?.slice(0, 2)?.toUpperCase() ?? 'E'}
-      </Text>
-    </View>
-  )}
+                {/* Acento de color MUY sutil */}
 
-  {/* Título sobrio + acento mínimo con fondo para contraste */}
-  <View style={styles.nameBackdrop}>
-    <Text
-      numberOfLines={1}
-      style={[styles.brandTitleSoft, { color: textoColor }]}
-    >
-      {company.name}
-    </Text>
-  </View>
+              </View>
 
-  {/* Acento de color MUY sutil */}
+              {/* Calificación promedio - Chip positioned at top right */}
+              {companyRating && companyRating.totalValoraciones > 0 && (
+                <View style={styles.ratingChipTopRight}>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.ratingText}>
+                    {companyRating.promedio.toFixed(1)}
+                  </Text>
+                  <Text style={[styles.ratingText, { fontSize: 11, fontWeight: '600', color: colors.gray600 }]}>
+                    ({companyRating.totalValoraciones})
+                  </Text>
+                </View>
+              )}
 
-</View>
+            </SafeAreaView>
 
-{/* Calificación promedio - Chip positioned at top right */}
-{companyRating && companyRating.totalValoraciones > 0 && (
-  <View style={styles.ratingChipTopRight}>
-    <Ionicons name="star" size={14} color="#FFD700" />
-    <Text style={styles.ratingText}>
-      {companyRating.promedio.toFixed(1)}
-    </Text>
-    <Text style={[styles.ratingText, { fontSize: 11, fontWeight: '600', color: colors.gray600 }]}>
-      ({companyRating.totalValoraciones})
-    </Text>
-  </View>
-)}
-
-              </SafeAreaView>
-      
           </ImageBackground>
         ) : (
           <View style={styles.headerNoPhotoContainer}>
@@ -579,6 +579,7 @@ export default function CompanyStoreScreen() {
         buttonColor={buttonColor}
         from="company"
         companyName={companyName}
+        companyId={company.id}
       />
 
       {/* Floating Social Links */}
@@ -663,146 +664,146 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     lineHeight: 30,
   },
   brandingSoft: {
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingTop: spacing.xs,   // antes spacing.sm
-  paddingBottom: spacing.sm,    // antes spacing.lg
-  gap: 4,                       // antes 6
-},
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: spacing.xs,   // antes spacing.sm
+    paddingBottom: spacing.sm,    // antes spacing.lg
+    gap: 4,                       // antes 6
+  },
 
-nameBackdrop: {
-  backgroundColor: 'rgba(253, 253, 253, 0.4)',
-  paddingHorizontal: spacing.md,
-  paddingVertical: spacing.xs,
-  borderRadius: 12,
-  marginTop: 4,
-  marginBottom: spacing.xs,
-},
+  nameBackdrop: {
+    backgroundColor: 'rgba(253, 253, 253, 0.4)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 12,
+    marginTop: 4,
+    marginBottom: spacing.xs,
+  },
 
-brandTitleSoft: {
-  ...textStyles.title2,
-  fontWeight: '800',
-  fontSize: 22,
-  letterSpacing: -0.3,
-  textAlign: 'center',
-  textShadowColor: 'rgba(0, 0, 0, 0.5)',
-  textShadowOffset: { width: 0, height: 2 },
-  textShadowRadius: 8,
-},
+  brandTitleSoft: {
+    ...textStyles.title2,
+    fontWeight: '800',
+    fontSize: 22,
+    letterSpacing: -0.3,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
 
-// Rating chip positioned at top right
-ratingChipTopRight: {
-  position: 'absolute',
-  top: 70,
-  right: 16,
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 4,
-  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-  paddingHorizontal: 10,
-  paddingVertical: 6,
-  borderRadius: 16,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.25,
-  shadowRadius: 4,
-  elevation: 5,
-  borderWidth: 1,
-  borderColor: 'rgba(255, 215, 0, 0.3)',
-},
-ratingText: {
-  fontSize: 13,
-  fontWeight: '700',
-  color: colors.gray900,
-},
+  // Rating chip positioned at top right
+  ratingChipTopRight: {
+    position: 'absolute',
+    top: 70,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+  },
+  ratingText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.gray900,
+  },
 
-// Avatar limpio sin borde blanco
-brandAvatar: {
-  width: 76,
-  height: 76,
-  borderRadius: 38,
-  alignItems: 'center',
-  justifyContent: 'center',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.15,
-  shadowRadius: 8,
-  elevation: 4,
-  overflow: 'hidden',
-},
-brandAvatarImg: {
-  width: 76,
-  height: 76,
-  borderRadius: 38,
-  resizeMode: 'cover',
-},
-headerFormal: {
-  paddingBottom: spacing.xl,
-  borderBottomLeftRadius: 24,
-  borderBottomRightRadius: 24,
-  overflow: 'hidden',
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 5 },
-  shadowOpacity: 0.14,   // menor
-  shadowRadius: 10,
-  elevation: 8,
-
-
-},
-
-formalPanel: {
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: 'rgba(255,255,255,0.12)',
-  marginHorizontal: spacing.lg,
-  borderRadius: 24,
-  paddingVertical: spacing.md,
-  paddingHorizontal: spacing.xl,
-  marginTop: spacing.md,
- 
-},
-
-logoContainerFormal: {
-  width: 90,
-  height: 90,
-  borderRadius: 45,
-  backgroundColor: 'rgba(255,255,255,0.95)',
-  padding: 5,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.25,
-  shadowRadius: 10,
-  elevation: 6,
-  borderWidth: 2,
-  borderColor: 'rgba(255,255,255,0.6)',
-  marginBottom: spacing.sm,
-},
-
-companyNameFormal: {
-  ...textStyles.title2,
-
-  fontWeight: '800',
-  textAlign: 'center',
-  fontSize: 22,
-  letterSpacing: -0.3,
-  textShadowColor: 'rgba(0,0,0,0.2)',
-  textShadowOffset: { width: 0, height: 2 },
-  textShadowRadius: 4,
-},
+  // Avatar limpio sin borde blanco
+  brandAvatar: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  brandAvatarImg: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    resizeMode: 'cover',
+  },
+  headerFormal: {
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.14,   // menor
+    shadowRadius: 10,
+    elevation: 8,
 
 
-brandAvatarMono: {
-  fontWeight: '700',
-  fontSize: 22,
-  letterSpacing: 0.2,
-},
+  },
+
+  formalPanel: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginHorizontal: spacing.lg,
+    borderRadius: 24,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    marginTop: spacing.md,
+
+  },
+
+  logoContainerFormal: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    padding: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.6)',
+    marginBottom: spacing.sm,
+  },
+
+  companyNameFormal: {
+    ...textStyles.title2,
+
+    fontWeight: '800',
+    textAlign: 'center',
+    fontSize: 22,
+    letterSpacing: -0.3,
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+
+
+  brandAvatarMono: {
+    fontWeight: '700',
+    fontSize: 22,
+    letterSpacing: 0.2,
+  },
 
 
 
 
-bottomDivider: {
+  bottomDivider: {
 
-},
+  },
 
 
 
@@ -832,7 +833,7 @@ bottomDivider: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
-socialChipContainer: {
+  socialChipContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -862,7 +863,7 @@ socialChipContainer: {
     gap: 10,
     color: 'rgba(255, 255, 255, 0.85)',
   },
-    socialFloatingContainer: {
+  socialFloatingContainer: {
     position: 'absolute',
     bottom: spacing.xs, // separación inferior
     left: spacing.xs, // separación del borde derecho

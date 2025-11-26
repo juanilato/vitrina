@@ -65,6 +65,7 @@ export interface Company {
   category?: string;
   rating?: number;
   reviewCount?: number;
+  ordersCount?: number; // Added for frontend logic
   isVerified?: boolean;
   alias?: string;
   redesSociales?: {

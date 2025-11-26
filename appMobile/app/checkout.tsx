@@ -17,7 +17,7 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useCart } from '../src/contexts/CartContext';
@@ -36,6 +36,9 @@ import type { Company, HorarioAtencion, DayOfWeek } from '../src/types/company';
 
 export default function CheckoutScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const companyIdParam = params.companyId as string;
+
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const {
@@ -48,8 +51,18 @@ export default function CheckoutScreen() {
     setCheckoutNotes,
     setDeliveryFee,
     clearCart,
+    removeItemsByCompany,
     clearCheckoutData,
   } = useCart();
+
+  // Filtrar items por empresa seleccionada
+  const checkoutItems = useMemo(() => {
+    if (companyIdParam) {
+      return cart.items.filter(item => item.companyId === companyIdParam);
+    }
+    // Si no hay companyId (caso legacy o error), usar todos (o manejar error)
+    return cart.items;
+  }, [cart.items, companyIdParam]);
 
   const { selectedLocation, locations } = useLocation();
 
@@ -93,30 +106,27 @@ export default function CheckoutScreen() {
   // Cache del último precio calculado para evitar recálculos
   const [lastCalculatedLocation, setLastCalculatedLocation] = useState<string | null>(null);
 
+  const [isOutOfRange, setIsOutOfRange] = useState(false);
+
   // Cargar datos de la empresa al montar el componente
   useEffect(() => {
     const loadCompanyData = async () => {
-      if (!cart.companyId) {
+      // Obtener ID de la empresa de los items filtrados
+      const uniqueCompanyIds = Array.from(new Set(checkoutItems.map(item => item.companyId).filter(Boolean))) as string[];
+      const targetCompanyId = uniqueCompanyIds[0];
+
+      if (!targetCompanyId) {
         setLoadingCompany(false);
         return;
       }
 
       try {
-        const company = await orderService.getCompanyDetails(cart.companyId);
-        setCompanyData(company as Company);
+        // Cargar datos de la empresa
+        const company = await orderService.getCompanyDetails(targetCompanyId);
+        setCompanyData(company);
 
-        // Debug: ver qué devuelve el backend
-        console.log('📦 [CHECKOUT] Company data:', {
-          id: company.id,
-          name: company.name,
-          preferenciasWeb: company.preferenciasWeb,
-          envioDomicilio: company.preferenciasWeb?.envioDomicilio,
-        });
-
-        // Verificar si la empresa hace delivery
-        const hacenEnvio = company.preferenciasWeb?.envioDomicilio ?? false;
-        console.log('📦 [CHECKOUT] hacenEnvio:', hacenEnvio);
-        if (!hacenEnvio) {
+        // Verificar si hace delivery
+        if (!company.preferenciasWeb?.envioDomicilio) {
           setDeliveryAvailable(false);
           setDeliveryUnavailableReason('Esta empresa no realiza envíos a domicilio');
           // Si no hace delivery, forzar retiro
@@ -126,10 +136,9 @@ export default function CheckoutScreen() {
           }
         }
 
-        // Calcular slots de horario disponibles para retiro
+        // Calcular slots de horario
         if (company.preferenciasWeb?.horarios) {
           calculatePickupSlots(company.preferenciasWeb.horarios);
-          // Verificar si la tienda está abierta
           checkIfStoreIsOpen(company.preferenciasWeb.horarios);
         }
       } catch (error) {
@@ -140,7 +149,7 @@ export default function CheckoutScreen() {
     };
 
     loadCompanyData();
-  }, [cart.companyId]);
+  }, [checkoutItems]);
 
   // Verificar si la tienda está abierta
   const checkIfStoreIsOpen = (horarios: HorarioAtencion[]) => {
@@ -272,12 +281,15 @@ export default function CheckoutScreen() {
     if (deliveryType === 'retiro') {
       setShippingPrice({ price: 0, isEstimated: false, message: 'Retiro en local' });
       setDeliveryFee(0);
+      setIsOutOfRange(false);
       return 0;
     }
 
     const locationToUse = location || deliveryLocation;
+    const uniqueCompanyIds = Array.from(new Set(checkoutItems.map(item => item.companyId).filter(Boolean))) as string[];
+    const targetCompanyId = uniqueCompanyIds[0];
 
-    if (!locationToUse || !cart.companyId) {
+    if (!locationToUse || !targetCompanyId) {
       // Si no hay ubicación, usar un precio estimado
       const defaultFee = 500;
       setShippingPrice({
@@ -286,16 +298,19 @@ export default function CheckoutScreen() {
         message: 'Precio estimado. Selecciona tu ubicación para el precio exacto.'
       });
       setDeliveryFee(defaultFee);
+      setIsOutOfRange(false);
       return defaultFee;
     }
 
     setCalculatingShipping(true);
+    setIsOutOfRange(false);
     try {
       // Obtener ubicaciones de la empresa
-      const company = await orderService.getCompanyDetails(cart.companyId);
+      // Nota: Ya deberíamos tener companyData cargado, pero por seguridad lo pedimos o usamos el estado
+      const company = companyData?.id === targetCompanyId ? companyData : await orderService.getCompanyDetails(targetCompanyId);
 
       if (!company.ubicaciones || company.ubicaciones.length === 0) {
-        throw new Error('La empresa no tiene ubicaciones configuradas');
+        throw new Error(`La empresa ${company.name} no tiene ubicaciones configuradas`);
       }
 
       // Encontrar la ubicación más cercana
@@ -310,35 +325,33 @@ export default function CheckoutScreen() {
       );
 
       if (!closestLocation) {
-        throw new Error('No se pudo encontrar una ubicación cercana');
+        throw new Error(`No se pudo encontrar una ubicación cercana para ${company.name}`);
       }
 
       // Calcular precio de envío
-      const result = await shippingService.calculateShippingPrice(cart.companyId, {
+      const result = await shippingService.calculateShippingPrice(targetCompanyId, {
         clienteLat: locationToUse.lat,
         clienteLng: locationToUse.lng,
         ubicacionId: parseInt(closestLocation.id),
       });
 
-      setShippingPrice(result);
-
       // Verificar si el precio es null (excede rango máximo)
       if (result.price === null) {
-        setDeliveryAvailable(false);
-        setDeliveryUnavailableReason(result.message || 'Tu ubicación está fuera del rango de entrega');
+        setIsOutOfRange(true);
+        setDeliveryUnavailableReason(`Tu ubicación está fuera del rango de entrega de ${company.name}`);
         setDeliveryFee(0);
-        // Cambiar a retiro automáticamente
-        setDeliveryTypeLocal('retiro');
-        setDeliveryType('retiro');
+        // NO cambiamos a retiro automáticamente
         return 0;
       }
 
-      // Delivery disponible
+      const finalFee = result.price || 500;
+
+      setShippingPrice(result);
       setDeliveryAvailable(true);
       setDeliveryUnavailableReason('');
-      const fee = result.price || 500;
-      setDeliveryFee(fee);
-      return fee;
+      setDeliveryFee(finalFee);
+      return finalFee;
+
     } catch (error) {
       console.error('Error calculating shipping fee:', error);
       const defaultFee = 500;
@@ -356,7 +369,8 @@ export default function CheckoutScreen() {
 
   // Calcular tiempo estimado de entrega
   const calculateEstimatedTime = (location?: DeliveryLocation) => {
-    if (!cart.companyId) {
+    const uniqueCompanyIds = Array.from(new Set(checkoutItems.map(item => item.companyId).filter(Boolean))) as string[];
+    if (uniqueCompanyIds.length === 0) {
       return;
     }
 
@@ -376,7 +390,7 @@ export default function CheckoutScreen() {
       const estimation = shippingService.estimateDeliveryTimeLocal(
         deliveryType,
         distanciaKm,
-        cart.totalItems
+        checkoutItems.reduce((acc, item) => acc + item.quantity, 0)
       );
 
       setDeliveryTimeEstimation(estimation);
@@ -393,6 +407,8 @@ export default function CheckoutScreen() {
     if (type === 'retiro') {
       setDeliveryFee(0);
       setShippingPrice({ price: 0, isEstimated: false, message: 'Retiro en local' });
+      // Clear cache when switching to retiro so it recalculates when switching back
+      setLastCalculatedLocation(null);
     } else {
       // Solo calcular si hay ubicación Y no se ha calculado antes para esta ubicación
       if (deliveryLocation) {
@@ -500,24 +516,29 @@ export default function CheckoutScreen() {
     setLoading(true);
 
     try {
+      const uniqueCompanyIds = Array.from(new Set(checkoutItems.map(item => item.companyId).filter(Boolean))) as string[];
+      const targetCompanyId = uniqueCompanyIds[0];
+
+      if (!targetCompanyId || checkoutItems.length === 0) {
+        throw new Error('No hay productos válidos para esta empresa en el carrito');
+      }
+
       // Prepare order data
       const orderData: any = {
-        empresaId: cart.companyId!,
-        items: cart.items.map((item) => {
+        empresaId: targetCompanyId,
+        items: checkoutItems.map((item) => {
           const itemData: any = {
             productoId: item.product.id,
-            cantidad: Number(item.quantity), // Asegurar que sea número
-            precio: Number(item.product.price || item.product.precio), // Asegurar que sea número
+            cantidad: Number(item.quantity),
+            precio: Number(item.product.price || item.product.precio),
           };
 
-          // Agregar notas si existen
           if (item.notes && item.notes.trim()) {
             itemData.notas = item.notes.trim();
           }
 
-          // Agregar ingredientes extras si existen
           if (item.ingredientesExtras && item.ingredientesExtras.length > 0) {
-            itemData.ingredientesExtras = item.ingredientesExtras.map(ie => ({
+            itemData.ingredientesExtras = item.ingredientesExtras?.map((ie: any) => ({
               productoIngredienteId: ie.productoIngrediente.id,
               cantidad: ie.cantidad,
             }));
@@ -529,12 +550,10 @@ export default function CheckoutScreen() {
         formaPago: paymentMethod,
       };
 
-      // Solo agregar transferenciaFoto si existe
       if (paymentMethod === 'transferencia' && receiptImage) {
         orderData.transferenciaFoto = receiptImage;
       }
 
-      // Agregar ubicación solo si es delivery y hay ubicación seleccionada
       if (deliveryType === 'delivery' && deliveryLocation) {
         orderData.ubicacion = {
           direccion: String(deliveryLocation.direccion),
@@ -543,34 +562,27 @@ export default function CheckoutScreen() {
         };
       }
 
-      console.log('📦 Enviando pedido:', JSON.stringify(orderData, null, 2));
+      console.log(`📦 Enviando pedido para empresa ${targetCompanyId}:`, JSON.stringify(orderData, null, 2));
 
-      // Create order
       const order = await orderService.createOrder(orderData);
 
-      // Clear cart and checkout data
-      clearCart();
+      // Clear checkout data and remove items for this company
+      removeItemsByCompany(targetCompanyId);
       clearCheckoutData();
 
       Alert.alert(
         'Pedido realizado',
         `Tu pedido #${order.id} ha sido creado exitosamente`,
-        [
-          {
-            text: 'Ver pedido',
-            onPress: () => router.replace('/(tabs)/orders'),
-          },
-        ]
+        [{ text: 'Ver pedidos', onPress: () => router.replace('/(tabs)/orders') }]
       );
+
     } catch (error: any) {
       console.error('❌ Error creating order:', error);
       console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
 
       let errorMessage = 'No se pudo crear el pedido. Por favor intenta nuevamente.';
 
       if (error.response?.data) {
-        // Si hay mensaje de validación específico
         if (error.response.data.message) {
           if (Array.isArray(error.response.data.message)) {
             errorMessage = error.response.data.message.join('\n');
@@ -578,7 +590,6 @@ export default function CheckoutScreen() {
             errorMessage = error.response.data.message;
           }
         }
-        console.error('📋 Detalles del error:', JSON.stringify(error.response.data, null, 2));
       }
 
       Alert.alert('Error', errorMessage);
@@ -754,9 +765,6 @@ export default function CheckoutScreen() {
                   <Text style={[styles.pickupTimeLabel, pickupTimeMode === 'asap' && styles.pickupTimeLabelActive]}>
                     Cuanto antes
                   </Text>
-                  <Text style={styles.pickupTimeSubtext}>
-                    Listo en ~{deliveryTimeEstimation?.preparacionMinutos || 15} min
-                  </Text>
                 </View>
                 <Ionicons
                   name="flash"
@@ -798,8 +806,8 @@ export default function CheckoutScreen() {
           </View>
         )}
 
-        {/* Tiempo Estimado de Entrega */}
-        {deliveryTimeEstimation && (
+        {/* Tiempo Estimado de Entrega - Solo si tiene >= 50 pedidos */}
+        {deliveryTimeEstimation && companyData?.ordersCount && companyData.ordersCount >= 50 && (
           <View style={styles.section}>
             <View style={styles.estimationCard}>
               <View style={styles.estimationHeader}>
@@ -1038,6 +1046,39 @@ export default function CheckoutScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Resumen del pedido</Text>
           <View style={styles.summaryCard}>
+            {/* Items List inside Summary */}
+            <View style={styles.itemsContainer}>
+              {checkoutItems.map((item) => (
+                <View key={item.product.id} style={styles.itemRow}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName} numberOfLines={2}>
+                      {item.quantity}x {item.product.nombre}
+                    </Text>
+                    {item.agregados && item.agregados.length > 0 && (
+                      <Text style={styles.itemDetails}>
+                        {item.agregados.map(a => a.nombre).join(', ')}
+                      </Text>
+                    )}
+                    {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
+                      <Text style={styles.itemDetails}>
+                        Extras: {item.ingredientesExtras.map(ie => ie.productoIngrediente.ingrediente.nombre).join(', ')}
+                      </Text>
+                    )}
+                    {item.notes ? (
+                      <Text style={styles.itemDetails} numberOfLines={2}>
+                        "{item.notes}"
+                      </Text>
+                    ) : null}
+                  </View>
+                  <View style={styles.itemPriceContainer}>
+                    <Text style={styles.itemPrice}>
+                      ${((item.product.price || item.product.precio || 0) * item.quantity).toLocaleString('es-AR')}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
               <Text style={styles.summaryValue}>
@@ -1051,16 +1092,23 @@ export default function CheckoutScreen() {
                 {shippingPrice?.isEstimated && shippingPrice.message && (
                   <Text style={styles.estimatedLabel}>{shippingPrice.message}</Text>
                 )}
+                {isOutOfRange && (
+                  <Text style={[styles.estimatedLabel, { color: colors.error }]}>
+                    Fuera de rango
+                  </Text>
+                )}
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={styles.summaryValue}>
                   {calculatingShipping
                     ? 'Calculando...'
-                    : cart.deliveryFee === 0
-                    ? 'Gratis'
-                    : `$${cart.deliveryFee.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
+                    : isOutOfRange
+                      ? '-'
+                      : cart.deliveryFee === 0
+                        ? 'Gratis'
+                        : `$${cart.deliveryFee.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`}
                 </Text>
-                {shippingPrice?.isEstimated && (
+                {shippingPrice?.isEstimated && !isOutOfRange && (
                   <Text style={styles.estimatedBadge}>Estimado</Text>
                 )}
               </View>
@@ -1085,19 +1133,30 @@ export default function CheckoutScreen() {
             <Text style={styles.storeClosedText}>{storeClosedMessage}</Text>
           </View>
         )}
+        {/* Mensaje de fuera de rango */}
+        {isOutOfRange && deliveryType === 'delivery' && (
+          <View style={[styles.storeClosedBanner, { backgroundColor: colors.error + '15' }]}>
+            <Ionicons name="alert-circle-outline" size={18} color={colors.error} />
+            <Text style={[styles.storeClosedText, { color: colors.error }]}>
+              Ubicación fuera de rango. Cambia tu dirección o elige retiro.
+            </Text>
+          </View>
+        )}
         <Button
           title={
             !isStoreOpen
               ? 'Tienda cerrada'
-              : loading
-              ? 'Procesando...'
-              : calculatingShipping
-              ? 'Calculando envío...'
-              : 'Confirmar pedido'
+              : isOutOfRange && deliveryType === 'delivery'
+                ? 'Fuera de rango'
+                : loading
+                  ? 'Procesando...'
+                  : calculatingShipping
+                    ? 'Calculando envío...'
+                    : 'Confirmar pedido'
           }
           onPress={handleSubmitOrder}
-          disabled={loading || calculatingShipping || !isStoreOpen}
-          icon={loading || calculatingShipping || !isStoreOpen ? undefined : 'checkmark-circle'}
+          disabled={loading || calculatingShipping || !isStoreOpen || (isOutOfRange && deliveryType === 'delivery')}
+          icon={loading || calculatingShipping || !isStoreOpen || (isOutOfRange && deliveryType === 'delivery') ? undefined : 'checkmark-circle'}
         />
         {(loading || calculatingShipping) && <ActivityIndicator style={styles.loader} color={colors.white} />}
       </View>
@@ -2063,6 +2122,60 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   storeClosedText: {
     ...typography.bodySmall,
     color: colors.warning,
+    fontWeight: '600',
+  },
+
+  // Estilos para lista de items
+  itemsContainer: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
+  },
+
+  itemsTitle: {
+    ...typography.h3,
+    color: colors.text,
+    fontWeight: '700',
+    marginBottom: spacing.md,
+  },
+
+  itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.sm,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? colors.gray100 : colors.gray100,
+  },
+
+  itemInfo: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+
+  itemName: {
+    ...typography.bodyMedium,
+    color: colors.text,
+    fontWeight: '600',
+  },
+
+  itemDetails: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+
+  itemPriceContainer: {
+    alignItems: 'flex-end',
+  },
+
+  itemPrice: {
+    ...typography.bodyMedium,
+    color: colors.text,
     fontWeight: '600',
   },
 });
