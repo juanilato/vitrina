@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams, useGlobalSearchParams } from 'expo-router';
 import { useCart } from '../../src/contexts/CartContext';
 import { textStyles, spacing, borderRadius, shadows } from '../../src/theme';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -25,6 +25,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CartScreen() {
   const router = useRouter();
+  const localParams = useLocalSearchParams();
+  const globalParams = useGlobalSearchParams();
+
+  // Prefer local params, fallback to global params
+  const params = localParams.from ? localParams : globalParams;
+  const { from, companyName } = params;
+
   const { colors, isDark } = useTheme();
   const { cart, loading, removeItem, updateQuantity } = useCart();
   const [refreshing, setRefreshing] = useState(false);
@@ -84,8 +91,6 @@ export default function CartScreen() {
     // Navegar a checkout con una empresa específica
     router.push(`/checkout?companyId=${companyId}`);
   };
-
-
 
   const handleRemoveItem = (productId: string) => {
     removeItem(productId);
@@ -241,7 +246,11 @@ export default function CartScreen() {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => {
-              router.back();
+              if (from === 'company') {
+                router.back();
+              } else {
+                router.push('/(tabs)/');
+              }
             }}
             activeOpacity={0.7}
           >

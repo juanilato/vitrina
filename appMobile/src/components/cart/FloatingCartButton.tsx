@@ -111,40 +111,51 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
 
   if (totalItems === 0) return null;
 
-  const buildCartRoute = () => {
-    let route = '/(tabs)/cart';
-    const params: string[] = [];
-
-    if (from) {
-      params.push(`from=${from}`);
-    }
-
-    if (storeId && from === 'store') {
-      params.push(`storeId=${storeId}`);
-    }
-
-    if (companyName && from === 'company') {
-      params.push(`companyName=${companyName}`);
-    }
-
-    if (params.length > 0) {
-      route += '?' + params.join('&');
-    }
-
-    return route;
-  };
-
   const handlePress = () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-    router.push(buildCartRoute() as any);
+
+    if (from === 'company' && companyId) {
+      router.push({
+        pathname: '/checkout',
+        params: { companyId }
+      });
+      return;
+    }
+
+    const params: any = {};
+    if (from) params.from = from;
+    if (storeId && from === 'store') params.storeId = storeId;
+    if (companyName && from === 'company') params.companyName = companyName;
+
+    router.push({
+      pathname: '/(tabs)/cart',
+      params
+    });
   };
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
-    router.push(buildCartRoute() as any);
+
+    if (from === 'company' && companyId) {
+      router.push({
+        pathname: '/checkout',
+        params: { companyId }
+      });
+      return;
+    }
+
+    const params: any = {};
+    if (from) params.from = from;
+    if (storeId && from === 'store') params.storeId = storeId;
+    if (companyName && from === 'company') params.companyName = companyName;
+
+    router.push({
+      pathname: '/(tabs)/cart',
+      params
+    });
   };
 
   const dark = isColorDark(buttonColor);
