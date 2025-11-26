@@ -41,6 +41,24 @@ interface LocationsDrawerProps {
 const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
   try {
     console.log('🔍 Geocodificando coordenadas:', { lat, lng });
+
+    // Web: Usar Google Maps JS API directamente
+    if (Platform.OS === 'web') {
+      try {
+        if ((window as any).google?.maps) {
+          const geocoder = new (window as any).google.maps.Geocoder();
+          const response = await geocoder.geocode({ location: { lat, lng } });
+          if (response.results && response.results.length > 0) {
+            const fullAddress = response.results[0].formatted_address;
+            console.log('✅ Dirección formateada (Web):', fullAddress);
+            return fullAddress;
+          }
+        }
+      } catch (webError) {
+        console.warn('Web geocoding failed, falling back to expo-location if possible', webError);
+      }
+    }
+
     const result = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
 
     console.log('📍 Resultado de geocodificación:', JSON.stringify(result, null, 2));

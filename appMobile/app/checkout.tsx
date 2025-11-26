@@ -1060,9 +1060,18 @@ export default function CheckoutScreen() {
                       </Text>
                     )}
                     {item.ingredientesExtras && item.ingredientesExtras.length > 0 && (
-                      <Text style={styles.itemDetails}>
-                        Extras: {item.ingredientesExtras.map(ie => ie.productoIngrediente.ingrediente.nombre).join(', ')}
-                      </Text>
+                      <View style={{ marginTop: 2 }}>
+                        {item.ingredientesExtras.map((ie, index) => {
+                          const precioExtra = Number(ie.productoIngrediente.precioExtra || 0);
+                          const totalExtra = precioExtra * ie.cantidad;
+                          return (
+                            <Text key={index} style={styles.itemDetails}>
+                              + {ie.cantidad} {ie.productoIngrediente.ingrediente.nombre}
+                              {totalExtra > 0 ? ` (+$${totalExtra.toLocaleString('es-AR')})` : ''}
+                            </Text>
+                          );
+                        })}
+                      </View>
                     )}
                     {item.notes ? (
                       <Text style={styles.itemDetails} numberOfLines={2}>

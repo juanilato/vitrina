@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useState, Children } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyANk5MpfxAkPg0krpULl3xUR3e4wDigkOs';
+import { GOOGLE_MAPS_API_KEY } from '../../config/keys';
 
 // Color palette (matching mobile theme)
 const colors = {
@@ -300,16 +300,16 @@ export const MapView: React.FC<MapViewProps> = ({
       const isMarker = (child: any): boolean => {
         const typeName = child.type?.displayName || child.type?.name || '';
         const hasCoordinate = child.props?.coordinate &&
-                             typeof child.props.coordinate.latitude === 'number' &&
-                             typeof child.props.coordinate.longitude === 'number';
+          typeof child.props.coordinate.latitude === 'number' &&
+          typeof child.props.coordinate.longitude === 'number';
         return (typeName === 'Marker' || child.type === Marker) || hasCoordinate;
       };
 
       const isPolyline = (child: any): boolean => {
         const typeName = child.type?.displayName || child.type?.name || '';
         const hasCoordinates = Array.isArray(child.props?.coordinates) &&
-                               child.props.coordinates.length > 0 &&
-                               child.props.coordinates[0]?.latitude !== undefined;
+          child.props.coordinates.length > 0 &&
+          child.props.coordinates[0]?.latitude !== undefined;
         return (typeName === 'Polyline' || child.type === Polyline) || hasCoordinates;
       };
 
@@ -559,7 +559,7 @@ export const MapFallback: React.FC<MapFallbackProps> = ({
 
   // Cargar script de Google Maps
   useEffect(() => {
-    
+
     const loadGoogleMapsScript = () => {
       if (typeof window === 'undefined') return;
 

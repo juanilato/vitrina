@@ -4,6 +4,7 @@
  */
 
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { CartProvider } from '../src/contexts/CartContext';
 import { NotificationsProvider, useNotifications } from '../src/contexts/NotificationsContext';
@@ -15,11 +16,33 @@ import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { NotificationPopup } from '../src/components/notifications';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet } from 'react-native';
-
+import { StyleSheet, Platform } from 'react-native';
+import * as Location from 'expo-location';
+import { GOOGLE_MAPS_API_KEY } from '../src/config/keys';
 function AppContent() {
   const { showPopup, currentPopupNotification, dismissPopup } = useNotifications();
   const { colors, isDark } = useTheme();
+
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const loadGoogleMaps = () => {
+        if (typeof window === 'undefined') return;
+        if ((window as any).google?.maps) return;
+
+        const existingScript = document.getElementById('google-maps-script');
+        if (existingScript) return;
+
+        const script = document.createElement('script');
+        script.id = 'google-maps-script';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      };
+
+      loadGoogleMaps();
+    }
+  }, []);
 
   return (
     <>

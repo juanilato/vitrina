@@ -25,6 +25,22 @@ import { useTheme } from '../src/contexts/ThemeContext';
 // Helper para obtener dirección desde coordenadas
 const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
   try {
+    // Web: Usar Google Maps JS API directamente
+    if (Platform.OS === 'web') {
+      try {
+        if ((window as any).google?.maps) {
+          const geocoder = new (window as any).google.maps.Geocoder();
+          const response = await geocoder.geocode({ location: { lat, lng } });
+          if (response.results && response.results.length > 0) {
+            // Preferir dirección formateada o construirla similar a mobile
+            return response.results[0].formatted_address;
+          }
+        }
+      } catch (webError) {
+        console.warn('Web geocoding failed, falling back to expo-location if possible', webError);
+      }
+    }
+
     const result = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
     if (result && result.length > 0) {
       const address = result[0];
