@@ -432,7 +432,7 @@ async uploadDashboard(id: string, file: Express.Multer.File) {
     }
 
     // Eliminar primero todos los precios de envío asociados
-    await this.prisma.precioEnvio.deleteMany({
+    await this.prisma.preciosEnvio.deleteMany({
       where: { ubicacionId: parseInt(ubicacionId) },
     });
 

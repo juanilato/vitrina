@@ -3,7 +3,7 @@
  * Rediseño con categorías destacadas y navegación mejorada
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Dimensions,
   TextInput,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -45,7 +46,73 @@ export default function HomeScreen() {
   const [showMenuDrawer, setShowMenuDrawer] = useState(false);
   const [showLocationsDrawer, setShowLocationsDrawer] = useState(false);
 
+  // Animaciones
+  const navbarAnim = useRef(new Animated.Value(-50)).current;
+  const headerAnim = useRef(new Animated.Value(30)).current;
+  const headerOpacity = useRef(new Animated.Value(0)).current;
+
+  // Animaciones para categorías (izquierda y derecha)
+  const categoryLeftAnim = useRef(new Animated.Value(-width * 0.6)).current;
+  const categoryRightAnim = useRef(new Animated.Value(width * 0.6)).current;
+  const activeOrderAnim = useRef(new Animated.Value(0)).current;
+
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+
+  // Animar entrada inicial (solo una vez)
+  useEffect(() => {
+    // Animación de entrada coordinada - más simple y clara
+    const animations = [
+      // 1. Navbar entra desde arriba
+      Animated.spring(navbarAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      // 2. Header entra y categorías en paralelo
+      Animated.parallel([
+        // Header animation
+        Animated.parallel([
+          Animated.timing(headerOpacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.spring(headerAnim, {
+            toValue: 0,
+            tension: 45,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+        ]),
+        // Categorías entran desde los lados
+        Animated.timing(categoryLeftAnim, {
+          toValue: 0,
+          duration: 450,
+          useNativeDriver: true,
+        }),
+        Animated.timing(categoryRightAnim, {
+          toValue: 0,
+          duration: 450,
+          useNativeDriver: true,
+        }),
+      ]),
+    ];
+
+    Animated.sequence(animations).start();
+  }, []);
+
+  // Animar active order cuando llega
+  useEffect(() => {
+    if (activeOrder && !loadingOrder) {
+      Animated.spring(activeOrderAnim, {
+        toValue: 1,
+        tension: 40,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [activeOrder, loadingOrder]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -137,17 +204,23 @@ export default function HomeScreen() {
     // Crear patrón alternado: 2 normales, 1 wide, 2 normales, 1 wide...
     const grid = [];
     let i = 0;
+    let rowIndex = 0;
 
     while (i < validCategories.length) {
       const row = [];
+      const isWideRow = i > 0 && i % 6 === 0 && i < validCategories.length;
 
       // Cada 3 filas (6 categorías), insertar una categoría wide
-      if (i > 0 && i % 6 === 0 && i < validCategories.length) {
+      if (isWideRow) {
         const cat = validCategories[i];
         // Validar que cat existe y tiene id antes de renderizar
         if (cat && cat.id) {
+          // Wide cards don't animate horizontally
           grid.push(
-            <View key={`row-wide-${cat.id}`} style={styles.row}>
+            <View
+              key={`row-wide-${cat.id}`}
+              style={styles.row}
+            >
               <CategoryCard
                 id={cat.id}
                 nombre={cat.nombre}
@@ -160,7 +233,10 @@ export default function HomeScreen() {
         }
         i++;
       } else {
-        // Fila normal con 2 categorías
+        // Fila normal con 2 categorías - alternando izquierda y derecha
+        const isLeftRow = rowIndex % 2 === 0;
+        const horizontalAnim = isLeftRow ? categoryLeftAnim : categoryRightAnim;
+
         if (i < validCategories.length) {
           const cat = validCategories[i];
           // Validar que cat existe y tiene id antes de renderizar
@@ -197,10 +273,19 @@ export default function HomeScreen() {
 
         if (row.length > 0) {
           grid.push(
-            <View key={`row-${i}`} style={styles.row}>
+            <Animated.View
+              key={`row-${rowIndex}`}
+              style={[
+                styles.row,
+                {
+                  transform: [{ translateX: horizontalAnim }],
+                }
+              ]}
+            >
               {row}
-            </View>
+            </Animated.View>
           );
+          rowIndex++;
         }
       }
     }
@@ -210,8 +295,15 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Modern Glass Navbar with Logo Card */}
-      <View style={styles.navbar}>
+      {/* Modern Glass Navbar with Logo Card - Animated */}
+      <Animated.View
+        style={[
+          styles.navbar,
+          {
+            transform: [{ translateY: navbarAnim }],
+          }
+        ]}
+      >
         <LinearGradient
           colors={isDark
             ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
@@ -256,10 +348,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </LinearGradient>
-      </View>
-
-      {/* Search Bar (Expandible) */}
-  
+      </Animated.View>
 
       {/* Scroll Content */}
       <ScrollView
@@ -273,28 +362,52 @@ export default function HomeScreen() {
           />
         }
       >
-              <View style={styles.header}>
+        {/* Header con animación */}
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              opacity: headerOpacity,
+              transform: [{ translateY: headerAnim }]
+            }
+          ]}
+        >
           <Text style={styles.greeting}>Hola!</Text>
           <TextInput
-              style={styles.subtitle}
-              placeholder="¿Qué estás buscando hoy?"
-              value={searchTerm}
-              onChangeText={setSearchTerm}
-              placeholderTextColor={colors.textTertiary}
-            />
-        </View>
-        {/* Active Order Card */}
+            style={styles.subtitle}
+            placeholder="¿Qué estás buscando hoy?"
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            placeholderTextColor={colors.textTertiary}
+          />
+        </Animated.View>
+
+        {/* Active Order Card - Animated */}
         {activeOrder && !loadingOrder && (
-          <View style={styles.activeOrderSection}>
+          <Animated.View
+            style={[
+              styles.activeOrderSection,
+              {
+                opacity: activeOrderAnim,
+                transform: [
+                  {
+                    translateY: activeOrderAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [60, 0],
+                    }),
+                  }
+                ],
+              }
+            ]}
+          >
             <ActiveOrderCard order={activeOrder} />
-          </View>
+          </Animated.View>
         )}
 
-        {/* Header */}
-
-
-        {/* Categories Grid */}
-        {renderCategoryGrid()}
+        {/* Categories Grid con animación */}
+        <View>
+          {renderCategoryGrid()}
+        </View>
 
         {/* Bottom spacer for floating tab bar */}
         <View style={{ height: 100 }} />

@@ -45,10 +45,12 @@
   padding: 0;
   overflow: hidden;
   border-right: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .pe-table-wrap {
   overflow: auto;
+  max-height: 600px;
 }
 
 .pe-table {
@@ -59,49 +61,70 @@
 
 .pe-table thead th {
   text-align: left;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
-  padding: 14px 16px;
-  background: var(--surface-alt);
-  border-bottom: 1px solid var(--border);
+  padding: 16px 18px;
+  background: linear-gradient(to bottom, #fafbfc 0%, #f5f6f8 100%);
+  border-bottom: 2px solid var(--border);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .pe-table tbody td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+  padding: 16px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   vertical-align: middle;
   font-size: 0.95rem;
 }
 
 .pe-table tbody tr {
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   background: var(--surface);
 }
 
 .pe-table tbody tr:hover {
-  background: var(--surface-alt);
-  box-shadow: inset 0 0 0 1px var(--primary);
+  background: color-mix(in srgb, var(--primary) 3%, transparent);
+  box-shadow: inset 3px 0 0 var(--primary);
 }
 
 .pe-table tbody tr.is-active {
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 50%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--primary), 0 0 0 1px color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.pe-table tbody tr.is-active .chip.km {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(10, 42, 67, 0.2);
+}
+
+.pe-table tbody tr.is-active .chip.price {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
 }
 
 /* Fila agregar precio de envío */
 .pe-table tbody tr.add-price-row {
-  border-top: 2px dashed var(--border);
+  border-top: 2px dashed color-mix(in srgb, var(--border) 70%, transparent);
   cursor: pointer;
-  background: transparent;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary) 1%, transparent) 0%,
+    transparent 100%);
 }
 
 .pe-table tbody tr.add-price-row:hover {
-  background: color-mix(in srgb, var(--primary) 5%, transparent);
-  box-shadow: none;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary) 6%, transparent) 0%,
+    color-mix(in srgb, var(--primary) 3%, transparent) 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .add-price-cell {
@@ -109,23 +132,29 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 18px 16px;
+  padding: 20px 16px;
   color: var(--primary);
   font-weight: 600;
   font-size: 0.95rem;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  border-radius: 8px;
+  margin: 4px;
 }
 
 .add-price-row:hover .add-price-cell {
   color: white;
-  background: var(--primary);
-  border-radius: 6px;
-  margin: 2px;
-  padding: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 85%, #000) 100%);
+  box-shadow: 0 4px 12px rgba(10, 42, 67, 0.2);
+  transform: translateY(-1px);
 }
 
 .add-icon {
-  font-size: 20px;
+  font-size: 22px;
+  transition: transform 0.25s ease;
+}
+
+.add-price-row:hover .add-icon {
+  transform: rotate(90deg);
 }
 
 .add-text {
@@ -138,26 +167,30 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 7px 14px;
+  border-radius: 10px;
   font-weight: 700;
   font-size: 0.85rem;
   color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 15%, #fff);
-  border: 1.5px solid color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, #fff) 0%, color-mix(in srgb, var(--primary) 8%, #fff) 100%);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(10, 42, 67, 0.08);
 }
 
 .chip.price {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 7px 14px;
+  border-radius: 10px;
   font-weight: 700;
   font-size: 0.85rem;
-  color: #10b981;
-  background: color-mix(in srgb, #10b981 12%, #fff);
-  border: 1.5px solid color-mix(in srgb, #10b981 40%, var(--border));
+  color: #059669;
+  background: linear-gradient(135deg, color-mix(in srgb, #10b981 10%, #fff) 0%, color-mix(in srgb, #10b981 6%, #fff) 100%);
+  border: 1.5px solid color-mix(in srgb, #10b981 35%, var(--border));
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.08);
 }
 
 /* Acción eliminar sutil */
@@ -198,6 +231,76 @@
 .floating-save{ position:absolute; left:16px; bottom:16px; display:flex; background-color: var(--primary); border-radius:999px; box-shadow: var(--shadow-200); }
 .map-skeleton{ height:520px; display:flex; gap:10px; align-items:center; justify-content:center; }
 
+/* Barra de acción del mapa */
+.map-action-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 50%, transparent 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+/* Botón de guardar precio */
+.btn-save-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 14px;
+  background: var(--primary);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(10, 42, 67, 0.2), 0 2px 6px rgba(10, 42, 67, 0.1);
+  letter-spacing: 0.2px;
+}
+
+.btn-save-price svg {
+  font-size: 20px;
+}
+
+.btn-save-price:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 90%, #000);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(10, 42, 67, 0.25), 0 3px 8px rgba(10, 42, 67, 0.15);
+}
+
+.btn-save-price:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(10, 42, 67, 0.15);
+}
+
+.btn-save-price:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(10, 42, 67, 0.1);
+}
+
+@media (max-width: 640px) {
+  .map-action-bar {
+    padding: 12px;
+  }
+
+  .btn-save-price {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+}
+
 /* Utilidades */
 .center-card{ padding:22px; display:grid; place-items:center; gap:8px; }
 .loading-spinner{
@@ -209,31 +312,35 @@
 .empty-precios {
   text-align: center;
   color: var(--text-muted);
-  padding: 40px 20px;
+  padding: 60px 30px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary) 2%, transparent) 0%,
+    transparent 100%);
 }
 
 .empty-icon {
   display: block;
-  font-size: 3.5rem;
-  margin-bottom: 12px;
-  opacity: 0.8;
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.7;
+  filter: grayscale(20%);
 }
 
 .empty-title {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: var(--text);
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
 }
 
 .empty-description {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.7;
   color: var(--text-muted);
-  max-width: 300px;
-  margin: 8px auto 0;
+  max-width: 320px;
+  margin: 10px auto 0;
 }
 
 

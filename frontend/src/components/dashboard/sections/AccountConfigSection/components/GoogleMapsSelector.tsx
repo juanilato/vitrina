@@ -281,12 +281,6 @@ const GoogleMapsSelector: React.FC<GoogleMapsSelectorProps> = ({
               <PlaceOutlinedIcon className="inline-icon" />
               <span className="address-text">{selectedLocation.direccion}</span>
             </div>
-            <div className="location-coordinates">
-              <MapOutlinedIcon className="inline-icon" />
-              <span className="coords-text">
-                Lat: {selectedLocation.lat.toFixed(6)}, Lng: {selectedLocation.lng.toFixed(6)}
-              </span>
-            </div>
           </div>
         )}
       </div>

@@ -98,9 +98,12 @@ const ChargeUbicacionModule: React.FC<Props> = ({
   return (
     <div className="wrapper" ref={wrapperRef}>
       <header className="cum-header">
+        <div className="cum-header-icon">
+          <RoomOutlinedIcon />
+        </div>
         <div className="cum-header-content">
-          <h3 className="cum-title">Ubicación Principal</h3>
-          <p className="cum-subtitle">Selecciona un punto en el mapa para configurar la ubicación de tu negocio</p>
+          <h3 className="cum-title">Configura tu Ubicación</h3>
+          <p className="cum-subtitle">Selecciona en el mapa dónde se encuentra tu negocio para que tus clientes puedan ubicarte fácilmente</p>
         </div>
         {success && (
           <div className="successPill">
@@ -115,23 +118,27 @@ const ChargeUbicacionModule: React.FC<Props> = ({
         <GoogleMapsSelector
           onLocationSelect={handleSelect}
           initialLocation={null}
-          height="400px"
+          height="450px"
         />
 
         {selected && (
           <div className="coordsRow">
-            <span className="coordsItem">
-              <MyLocationOutlinedIcon fontSize="small" />
-              <b>Lat:</b>&nbsp;{selected.lat.toFixed(6)}
-            </span>
-            <span className="coordsItem">
-              <b>Lng:</b>&nbsp;{selected.lng.toFixed(6)}
-            </span>
+            <div className="coordsLabel">
+              <RoomOutlinedIcon fontSize="small" />
+              <span>Ubicación seleccionada</span>
+            </div>
+            <div className="coordsAddress">
+              {selected.direccion || 'Dirección no disponible'}
+            </div>
           </div>
         )}
       </section>
 
-      {errorMsg && <div className="error">{errorMsg}</div>}
+      {errorMsg && (
+        <div className="error">
+          <strong>Error:</strong> {errorMsg}
+        </div>
+      )}
 
       <footer className="footer">
         <button
@@ -155,7 +162,8 @@ const ChargeUbicacionModule: React.FC<Props> = ({
           disabled={!canSave || saving}
           aria-disabled={!canSave || saving}
         >
-          {saving ? 'Guardando...' : success ? '✓ Ubicación guardada' : 'Guardar ubicación'}
+          <RoomOutlinedIcon fontSize="small" />
+          {saving ? 'Guardando...' : success ? 'Ubicación guardada' : 'Guardar ubicación'}
         </button>
       </footer>
     </div>

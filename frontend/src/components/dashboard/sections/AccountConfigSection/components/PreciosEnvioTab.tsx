@@ -191,14 +191,6 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
                           </td>
                         </tr>
                       ))}
-                    <tr className="add-price-row" onClick={() => handleAdd()} style={{display: editingId === null ? 'table-row' : 'none'}}>
-                      <td colSpan={3}>
-                        <div className="add-price-cell">
-                          <AddLocationAltIcon className="add-icon" />
-                          <span className="add-text">Agregar precio de envío</span>
-                        </div>
-                      </td>
-                    </tr>
                   </>
                 )}
               </tbody>
@@ -223,14 +215,12 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
   saving={saving}
   hideActions
   onChange={(data) => setMapDraft(data)}
-  zones={precios.map(p => ({ distancia: p.distancia, precio: p.precio }))}  // 👈 AQUÍ
+  zones={precios.map(p => ({ distancia: p.distancia, precio: p.precio }))}
 />
 
-   <div className="pzmfloating-save">
+   <div className="map-action-bar">
   <button
-    className="btn-fab btn-fab--primary"
-    title={editingId ? 'Actualizar radio y precio de envío' : 'Agregar nuevo radio de cobertura'}
-    aria-label={saving ? 'Guardando cambios...' : editingId ? 'Actualizar radio y precio' : 'Agregar radio de cobertura'}
+    className="btn-save-price"
     disabled={saving || mapDraft.precio <= 0}
     onClick={async () => {
       try {
@@ -255,7 +245,8 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
       }
     }}
   >
-    {saving ? '…' :  <AddLocationAltIcon fontSize="small" />}
+    <AddLocationAltIcon fontSize="small" />
+    {saving ? 'Guardando...' : editingId ? 'Actualizar precio de envío' : 'Agregar precio de envío'}
   </button>
 </div>
             </div>

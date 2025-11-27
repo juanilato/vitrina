@@ -170,14 +170,33 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
   // Animaciones
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
-    // Fade in al montar
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
+    // Animación de entrada compleja
+    Animated.parallel([
+      // Fade in suave
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      // Slide up desde abajo
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      // Scale up
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 40,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
     // Animación de pulso continua solo para estados activos
     const activeStates: OrderStatus[] = [
@@ -193,13 +212,13 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
       const pulse = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 1000,
+            toValue: 1.15,
+            duration: 1200,
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 1000,
+            duration: 1200,
             useNativeDriver: true,
           }),
         ])
@@ -230,8 +249,19 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
   const isActiveState = activeStates.includes(order.estado);
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          opacity: fadeAnim,
+          transform: [
+            { translateY: slideAnim },
+            { scale: scaleAnim }
+          ]
+        }
+      ]}
+    >
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.85}>
         <LinearGradient
           colors={statusConfig.gradientColors}
           start={{ x: 0, y: 0 }}
@@ -319,13 +349,16 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginBottom: spacing.md,
   },
   gradientCard: {
-    borderRadius: 12,
-    padding: spacing.md,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 24,
+    padding: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   header: {
     flexDirection: 'row',

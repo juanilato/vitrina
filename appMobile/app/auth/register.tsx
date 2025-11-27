@@ -1,9 +1,9 @@
 /**
  * Register Screen
- * iOS Modern Design - Vitrina Style - Cliente only
+ * Modern Design with Animations - Vitrina Style
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Alert,
   TouchableOpacity,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, useRouter } from 'expo-router';
@@ -27,7 +28,7 @@ import { colors, spacing, textStyles } from '../../src/theme';
 import { useGoogleSignIn } from '../../src/hooks/useGoogleSignIn';
 import { normalize } from '../../src/utils/responsive';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function RegisterScreen() {
   const { register, loginAfterVerification } = useAuth();
@@ -49,6 +50,41 @@ export default function RegisterScreen() {
   // Estado para modal de verificación
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+
+  // Animaciones
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const formSlide = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 40,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.spring(formSlide, {
+        toValue: 0,
+        tension: 35,
+        friction: 8,
+        delay: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: {
@@ -156,7 +192,9 @@ export default function RegisterScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#F9F9F9', '#FFFFFF', '#F5F9FC']}
+        colors={['#FAFBFC', '#F5F7FA', '#FFFFFF']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -169,26 +207,59 @@ export default function RegisterScreen() {
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-              {/* Logo Section */}
-              <View style={styles.logoSection}>
+              {/* Logo Section con animación */}
+              <Animated.View
+                style={[
+                  styles.logoSection,
+                  {
+                    opacity: fadeAnim,
+                    transform: [
+                      { translateY: slideAnim },
+                      { scale: logoScale }
+                    ]
+                  }
+                ]}
+              >
                 <View style={styles.logoCard}>
-                  <View style={styles.logoIconContainer}>
-                    <Logo variant="icon" size={normalize(30)} />
-                  </View>
+                  <LinearGradient
+                    colors={[colors.primary, '#6366F1']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.logoGradient}
+                  >
+                    <Logo variant="icon" size={normalize(36)} />
+                  </LinearGradient>
                 </View>
                 <Text style={styles.brandName}>Vitrina</Text>
-              </View>
+                <Text style={styles.tagline}>Tu marketplace favorito</Text>
+              </Animated.View>
 
-              {/* Header */}
-              <View style={styles.header}>
-                <Text style={styles.title}>Crear Cuenta ✨</Text>
-                <Text style={styles.subtitle}>Únete y descubre lugares increíbles</Text>
-              </View>
+              {/* Header con animación */}
+              <Animated.View
+                style={[
+                  styles.header,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }]
+                  }
+                ]}
+              >
+                <Text style={styles.title}>Crear tu cuenta</Text>
+                <Text style={styles.subtitle}>Únete a nuestra comunidad</Text>
+              </Animated.View>
 
-              {/* Form Card */}
-              <View style={styles.formCard}>
+              {/* Form Card con animación */}
+              <Animated.View
+                style={[
+                  styles.formCard,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: formSlide }]
+                  }
+                ]}
+              >
                 <LinearGradient
-                  colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)']}
+                  colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
                   style={styles.formCardGradient}
                 >
                   <View style={styles.form}>
@@ -326,17 +397,24 @@ export default function RegisterScreen() {
                     </TouchableOpacity>
                   </View>
                 </LinearGradient>
-              </View>
+              </Animated.View>
 
-              {/* Login Link */}
-              <View style={styles.footer}>
+              {/* Login Link con animación */}
+              <Animated.View
+                style={[
+                  styles.footer,
+                  {
+                    opacity: fadeAnim,
+                  }
+                ]}
+              >
                 <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
                 <Link href="/auth/login" asChild>
                   <TouchableOpacity disabled={loading}>
                     <Text style={styles.footerLink}>Inicia Sesión</Text>
                   </TouchableOpacity>
                 </Link>
-              </View>
+              </Animated.View>
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -357,6 +435,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FAFBFC',
   },
 
   gradient: {
@@ -373,101 +452,112 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xs,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: spacing.xs,
-    marginTop: 0,
+    marginBottom: spacing.lg,
+    marginTop: spacing.sm,
   },
 
   logoCard: {
-    width: normalize(52),
-    height: normalize(52),
-    borderRadius: normalize(13),
+    width: normalize(80),
+    height: normalize(80),
+    borderRadius: normalize(24),
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xxs,
+    marginBottom: spacing.sm,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
 
-  logoIconContainer: {
-    width: normalize(42),
-    height: normalize(42),
-    borderRadius: normalize(11),
-    backgroundColor: colors.primary,
+  logoGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: normalize(24),
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   brandName: {
-    fontSize: normalize(17),
+    fontSize: normalize(28),
     fontWeight: '800',
     color: colors.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    marginBottom: spacing.xs / 2,
+  },
+
+  tagline: {
+    fontSize: normalize(13),
+    fontWeight: '500',
+    color: colors.textTertiary,
+    letterSpacing: 0.3,
+    marginTop: spacing.xs,
   },
 
   // Header
   header: {
-    marginBottom: spacing.xs,
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.sm,
   },
 
   title: {
-    fontSize: normalize(19),
+    fontSize: normalize(26),
     fontWeight: '700',
     color: colors.gray900,
-    marginBottom: spacing.xxs,
+    marginBottom: spacing.xs,
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
 
   subtitle: {
-    fontSize: normalize(11),
+    fontSize: normalize(15),
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: normalize(15),
+    lineHeight: normalize(22),
+    fontWeight: '400',
   },
 
   // Form Card
   formCard: {
-    borderRadius: normalize(16),
+    borderRadius: normalize(28),
     overflow: 'hidden',
-    marginBottom: spacing.xs,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    marginBottom: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 10,
   },
 
   formCardGradient: {
-    padding: spacing.sm,
+    padding: spacing.xl,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: normalize(16),
+    borderColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: normalize(28),
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
 
   form: {
-    gap: spacing.xxs,
+    gap: spacing.md,
   },
 
   termsText: {
-    fontSize: normalize(9),
+    fontSize: normalize(12),
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.xxs,
-    marginTop: spacing.xxs,
-    lineHeight: normalize(12),
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+    lineHeight: normalize(18),
+    fontWeight: '400',
   },
 
   termsLink: {
@@ -478,47 +568,47 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.xs,
+    marginVertical: spacing.lg,
   },
 
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
   },
 
   dividerText: {
-    fontSize: normalize(9),
+    fontSize: normalize(13),
     color: colors.textTertiary,
-    marginHorizontal: spacing.sm,
+    marginHorizontal: spacing.md,
     fontWeight: '500',
   },
 
   // Google Button
   googleButton: {
-    borderRadius: normalize(12),
+    borderRadius: normalize(16),
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   googleButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: normalize(10),
-    paddingHorizontal: spacing.sm,
-    gap: spacing.xxs,
+    paddingVertical: normalize(16),
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
     borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: normalize(12),
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    borderRadius: normalize(16),
   },
 
   googleButtonText: {
-    fontSize: normalize(11),
+    fontSize: normalize(15),
     fontWeight: '600',
     color: colors.gray800,
   },
@@ -529,16 +619,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 'auto',
-    paddingTop: spacing.xs,
+    paddingTop: spacing.md,
   },
 
   footerText: {
-    fontSize: normalize(11),
+    fontSize: normalize(15),
     color: colors.textSecondary,
+    fontWeight: '400',
   },
 
   footerLink: {
-    fontSize: normalize(11),
+    fontSize: normalize(15),
     color: colors.primary,
     fontWeight: '700',
   },

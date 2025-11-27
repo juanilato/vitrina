@@ -3,7 +3,7 @@
  * Muestra empresas con filtro horizontal de subcategorías
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
   ScrollView,
   Image,
   ImageBackground,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -45,6 +46,10 @@ export default function CategoryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('all');
+
+  // Animaciones para las tarjetas de empresas
+  const cardAnimsRef = useRef<Animated.Value[]>([]);
+  const [isAnimationReady, setIsAnimationReady] = useState(false);
 
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
@@ -94,6 +99,40 @@ export default function CategoryScreen() {
   const loading = categoryLoading || companiesLoading;
 
   // Refresh handler
+  // Inicializar animaciones cuando las empresas cambian
+  useEffect(() => {
+    if (filteredCompanies.length === 0) {
+      setIsAnimationReady(true);
+      return;
+    }
+
+    // Reset animation values for new cards - iniciar en 0 (invisible/abajo)
+    cardAnimsRef.current = filteredCompanies.map(() => new Animated.Value(0));
+    setIsAnimationReady(false);
+
+    // Pequeño delay para asegurar que el render está completo antes de animar
+    const timer = setTimeout(() => {
+      // Crear secuencia de animaciones con stagger (una detras de otra)
+      const staggerAnimations = cardAnimsRef.current.map((anim, idx) => {
+        return Animated.sequence([
+          Animated.delay(idx * 80), // Delay escalonado
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 450,
+            useNativeDriver: true,
+          }),
+        ]);
+      });
+
+      // Ejecutar todas las secuencias en paralelo
+      Animated.parallel(staggerAnimations).start(() => {
+        setIsAnimationReady(true);
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [filteredCompanies]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await refreshCategory();
@@ -146,24 +185,62 @@ export default function CategoryScreen() {
     );
   };
 
-  // Renderizar tarjeta de empresa
-  const renderCompanyCard = ({ item }: { item: Company }) => {
+  // Renderizar tarjeta de empresa con animación
+  const renderCompanyCard = ({ item, index }: { item: Company; index: number }) => {
+    // Asegurar que tenemos animación para este índice
+    if (index >= cardAnimsRef.current.length) {
+      cardAnimsRef.current[index] = new Animated.Value(0);
+    }
+
+    const anim = cardAnimsRef.current[index];
+
+    // Interpolaciones para las animaciones
+    // Opacity: comienza en 0, termina en 1
+    const fadeOpacity = anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+
+    // TranslateY: comienza abajo (60px), termina arriba (0px)
+    const slideUp = anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [60, 0],
+    });
+
+    // Scale: comienza pequeño (0.92), termina normal (1)
+    const scaleValue = anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.92, 1],
+    });
+
     const dashboardFoto = item.preferenciasWeb?.dashboardFoto;
 
     if (dashboardFoto) {
       // Versión con dashboard foto (como en CompanyCard)
       return (
-        <TouchableOpacity
-          style={styles.companyCard}
-          onPress={() => handleCompanyPress(item)}
-          activeOpacity={0.7}
+        <Animated.View
+          style={[
+            styles.animatedCard,
+            {
+              opacity: fadeOpacity,
+              transform: [
+                { translateY: slideUp },
+                { scale: scaleValue }
+              ]
+            }
+          ]}
         >
-          <ImageBackground
-            source={{ uri: dashboardFoto }}
-            style={styles.backgroundImage}
-            resizeMode="cover"
-            imageStyle={styles.backgroundImageStyle}
+          <TouchableOpacity
+            style={styles.companyCard}
+            onPress={() => handleCompanyPress(item)}
+            activeOpacity={0.7}
           >
+            <ImageBackground
+              source={{ uri: dashboardFoto }}
+              style={styles.backgroundImage}
+              resizeMode="cover"
+              imageStyle={styles.backgroundImageStyle}
+            >
             <View style={styles.gradientOverlay}>
               {/* Logo con borde blanco */}
               <View style={styles.logoWrapper}>
@@ -263,59 +340,73 @@ export default function CategoryScreen() {
                 )}
               </View>
             )}
-          </ImageBackground>
-        </TouchableOpacity>
+            </ImageBackground>
+          </TouchableOpacity>
+        </Animated.View>
       );
     }
 
     // Versión sin dashboard foto (diseño normal)
     return (
-      <TouchableOpacity
-        style={styles.companyCard}
-        onPress={() => handleCompanyPress(item)}
-        activeOpacity={0.7}
+      <Animated.View
+        style={[
+          styles.animatedCard,
+          {
+            opacity: fadeOpacity,
+            transform: [
+              { translateY: slideUp },
+              { scale: scaleValue }
+            ]
+          }
+        ]}
       >
-        <View style={styles.companyCardContent}>
-          {/* Logo */}
-          {item.logo ? (
-            <Image source={{ uri: item.logo }} style={styles.companyLogo} />
-          ) : (
-            <View style={styles.companyLogoPlaceholder}>
-              <Ionicons name="business" size={24} color={colors.gray400} />
+        <TouchableOpacity
+          style={styles.companyCard}
+          onPress={() => handleCompanyPress(item)}
+          activeOpacity={0.7}
+        >
+            <View style={styles.companyCardContent}>
+              {/* Logo */}
+              {item.logo ? (
+                <Image source={{ uri: item.logo }} style={styles.companyLogo} />
+              ) : (
+                <View style={styles.companyLogoPlaceholder}>
+                  <Ionicons name="business" size={24} color={colors.gray400} />
+                </View>
+              )}
+
+              {/* Info */}
+              <View style={styles.companyInfo}>
+                <Text style={styles.companyName} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                {item.description && (
+                  <Text style={styles.companyDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                )}
+              </View>
+
+              {/* Arrow */}
+              <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
             </View>
-          )}
 
-          {/* Info */}
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {item.description && (
-              <Text style={styles.companyDescription} numberOfLines={2}>
-                {item.description}
-              </Text>
+            {/* Rating Chip - Positioned at bottom right */}
+            {item.rating !== undefined && item.rating > 0 && (
+              <View style={styles.ratingChipAbsoluteSimple}>
+                <Ionicons name="star" size={14} color="#FFD700" />
+                <Text style={styles.ratingChipTextSimple}>
+                  {item.rating.toFixed(1)}
+                </Text>
+                {item.reviewCount !== undefined && item.reviewCount > 0 && (
+                  <Text style={styles.ratingChipCountSimple}>
+                    ({item.reviewCount})
+                  </Text>
+                )}
+              </View>
             )}
-          </View>
-
-          {/* Arrow */}
-          <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
-        </View>
-
-        {/* Rating Chip - Positioned at bottom right */}
-        {item.rating !== undefined && item.rating > 0 && (
-          <View style={styles.ratingChipAbsoluteSimple}>
-            <Ionicons name="star" size={14} color="#FFD700" />
-            <Text style={styles.ratingChipTextSimple}>
-              {item.rating.toFixed(1)}
-            </Text>
-            {item.reviewCount !== undefined && item.reviewCount > 0 && (
-              <Text style={styles.ratingChipCountSimple}>
-                ({item.reviewCount})
-              </Text>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
@@ -455,7 +546,7 @@ export default function CategoryScreen() {
         <FlatList
           data={filteredCompanies}
           keyExtractor={(item) => item.id}
-          renderItem={renderCompanyCard}
+          renderItem={({ item, index }) => renderCompanyCard({ item, index })}
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={renderEmptyState}
@@ -692,11 +783,16 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.primary,
   },
 
+  // Animated Card Wrapper
+  animatedCard: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+
   // Company Card Styles
   companyCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
-    marginBottom: spacing.md,
     shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: isDark ? 0.3 : 0.08,
