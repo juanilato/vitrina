@@ -158,38 +158,48 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
                       <div className="empty-precios">
                         <span className="empty-icon">🚚</span>
                         <p className="empty-title">Sin precios de envío configurados</p>
-                        <p className="empty-description">Agregá el primer radio de cobertura y su precio de envío usando el mapa</p>
+                        <p className="empty-description">Selecciona un radio en el mapa para agregar un precio de envío</p>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  precios
-                    .sort((a, b) => (a.distancia - b.distancia)) // orden ascendente por distancia
-                    .map((p) => (
-                      <tr
-                        key={p.id}
-                        className={editingId === p.id ? 'is-active' : ''}
-                        onClick={() => handleEdit(p)}
-                      >
-                        <td>
-                          <span className="chip km">{kmFmt(p.distancia)}</span>
-                        </td>
-                        <td>
-                          <strong className="chip price">{currency.format(p.precio)}</strong>
-                        </td>
-                        <td className="col-actions">
-                          <button
-                            className="icon-btn subtle"
-                            title="Eliminar"
-                            onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
-                            disabled={saving}
-                            aria-label="Eliminar"
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                  <>
+                    {precios
+                      .sort((a, b) => (a.distancia - b.distancia)) // orden ascendente por distancia
+                      .map((p) => (
+                        <tr
+                          key={p.id}
+                          className={editingId === p.id ? 'is-active' : ''}
+                          onClick={() => handleEdit(p)}
+                        >
+                          <td>
+                            <span className="chip km">{kmFmt(p.distancia)}</span>
+                          </td>
+                          <td>
+                            <strong className="chip price">{currency.format(p.precio)}</strong>
+                          </td>
+                          <td className="col-actions">
+                            <button
+                              className="icon-btn subtle"
+                              title="Eliminar"
+                              onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
+                              disabled={saving}
+                              aria-label="Eliminar"
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    <tr className="add-price-row" onClick={() => handleAdd()}>
+                      <td colSpan={3}>
+                        <div className="add-price-cell">
+                          <AddLocationAltIcon className="add-icon" />
+                          <span className="add-text">Agregar precio de envío</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </>
                 )}
               </tbody>
             </table>

@@ -431,6 +431,12 @@ async uploadDashboard(id: string, file: Express.Multer.File) {
       throw new NotFoundException('Ubicación no encontrada');
     }
 
+    // Eliminar primero todos los precios de envío asociados
+    await this.prisma.precioEnvio.deleteMany({
+      where: { ubicacionId: parseInt(ubicacionId) },
+    });
+
+    // Luego eliminar la ubicación
     await this.prisma.ubicacion.delete({
       where: { id: parseInt(ubicacionId) },
     });

@@ -91,6 +91,46 @@
   background: color-mix(in srgb, var(--primary) 8%, transparent);
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 50%, var(--border));
 }
+
+/* Fila agregar precio de envío */
+.pe-table tbody tr.add-price-row {
+  border-top: 2px dashed var(--border);
+  cursor: pointer;
+  background: transparent;
+}
+
+.pe-table tbody tr.add-price-row:hover {
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
+  box-shadow: none;
+}
+
+.add-price-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 16px;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.add-price-row:hover .add-price-cell {
+  color: white;
+  background: var(--primary);
+  border-radius: 6px;
+  margin: 2px;
+  padding: 16px;
+}
+
+.add-icon {
+  font-size: 20px;
+}
+
+.add-text {
+  letter-spacing: 0.3px;
+}
 .col-right{ text-align:right; }
 .th-actions, .col-actions{ width:74px; text-align:right; }
 

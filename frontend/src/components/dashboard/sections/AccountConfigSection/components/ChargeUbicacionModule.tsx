@@ -97,72 +97,23 @@ const ChargeUbicacionModule: React.FC<Props> = ({
 
   return (
     <div className="wrapper" ref={wrapperRef}>
-      <header className="header">
-        <div>
-          <h3 className="title">Configurar Ubicación Principal</h3>
-          <p className="subtitle">
-            Seleccioná la ubicación de tu negocio en el mapa para configurar los radios de cobertura de envío. Esta será tu ubicación de referencia para calcular distancias.
-          </p>
-        </div>
-        {success && (
-          <div className="successPill">
-            <CheckCircleOutlineOutlinedIcon fontSize="small" />
-            <span>Ubicación guardada exitosamente</span>
-          </div>
-        )}
-      </header>
-
-      <section className="card">
+      <section className="card map-card">
         {/* El selector usa TU loader (useGoogleMaps). Debe ser el ÚNICO loader activo aquí. */}
         <GoogleMapsSelector
           onLocationSelect={handleSelect}
           initialLocation={null}
-          height="380px"
-          // si tu selector soporta esta prop, podrías pasar libraries={['places']}
+          height="400px"
         />
 
-        <div className="fields">
-          <label className="label">Dirección (podés ajustar el texto)</label>
-          <div className="inputRow">
-            <RoomOutlinedIcon className="inputIcon" />
-            <input
-              type="text"
-              className="input"
-              placeholder="Calle, número, ciudad, provincia, país"
-              value={manualDireccion}
-              onChange={(e) => {
-                setManualDireccion(e.target.value);
-                setSuccess(false);
-              }}
-            />
-          </div>
-
-          {selected && (
-            <div className="coordsRow">
-              <span className="coordsItem">
-                <MyLocationOutlinedIcon fontSize="small" />
-                <b>Lat:</b>&nbsp;{selected.lat.toFixed(6)}
-              </span>
-              <span className="coordsItem">
-                <b>Lng:</b>&nbsp;{selected.lng.toFixed(6)}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Preview desactivada para evitar doble loader.
-            Si querés usarla, adaptá InteractiveMap para NO cargar scripts y leer window.google */}
-        {false && showRadiusPreview && selected && ( // <- queda false para evitar conflictos
-          <div className="previewBlock">
-            <p className="previewTitle">
-              Vista previa de zona (el radio se edita luego en Precios de Envío)
-            </p>
-            {/* <InteractiveMap
-              center={{ lat: selected.lat, lng: selected.lng }}
-              onCircleChange={() => {}}
-              initialRadius={3000}
-              height="280px"
-            /> */}
+        {selected && (
+          <div className="coordsRow">
+            <span className="coordsItem">
+              <MyLocationOutlinedIcon fontSize="small" />
+              <b>Lat:</b>&nbsp;{selected.lat.toFixed(6)}
+            </span>
+            <span className="coordsItem">
+              <b>Lng:</b>&nbsp;{selected.lng.toFixed(6)}
+            </span>
           </div>
         )}
       </section>
@@ -191,7 +142,7 @@ const ChargeUbicacionModule: React.FC<Props> = ({
           disabled={!canSave || saving}
           aria-disabled={!canSave || saving}
         >
-          {saving ? 'Guardando ubicación...' : 'Confirmar y Continuar'}
+          {saving ? 'Guardando...' : success ? '✓ Ubicación guardada' : 'Guardar ubicación'}
         </button>
       </footer>
     </div>
