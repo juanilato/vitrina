@@ -97,6 +97,19 @@ const ChargeUbicacionModule: React.FC<Props> = ({
 
   return (
     <div className="wrapper" ref={wrapperRef}>
+      <header className="cum-header">
+        <div className="cum-header-content">
+          <h3 className="cum-title">Ubicación Principal</h3>
+          <p className="cum-subtitle">Selecciona un punto en el mapa para configurar la ubicación de tu negocio</p>
+        </div>
+        {success && (
+          <div className="successPill">
+            <CheckCircleOutlineOutlinedIcon fontSize="small" />
+            <span>Guardada</span>
+          </div>
+        )}
+      </header>
+
       <section className="card map-card">
         {/* El selector usa TU loader (useGoogleMaps). Debe ser el ÚNICO loader activo aquí. */}
         <GoogleMapsSelector

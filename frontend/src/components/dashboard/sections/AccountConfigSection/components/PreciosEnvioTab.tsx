@@ -191,7 +191,7 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
                           </td>
                         </tr>
                       ))}
-                    <tr className="add-price-row" onClick={() => handleAdd()}>
+                    <tr className="add-price-row" onClick={() => handleAdd()} style={{display: editingId === null ? 'table-row' : 'none'}}>
                       <td colSpan={3}>
                         <div className="add-price-cell">
                           <AddLocationAltIcon className="add-icon" />
