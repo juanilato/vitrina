@@ -38,7 +38,10 @@ const AccountConfigSection: React.FC = () => {
     setActiveTab,
     resetForm,
     cargaUbicacionInicial,
+    removeLocation,
   } = useAccountConfig();
+
+  const [showChangeLocationFlow, setShowChangeLocationFlow] = React.useState(false);
 
   // Log para debug
   React.useEffect(() => {
@@ -70,6 +73,14 @@ const AccountConfigSection: React.FC = () => {
     { id: 'subscription', label: 'Suscripción',      icon: <CreditCardOutlinedIcon fontSize="small" /> },
   ] as const;
 
+  const handleChangeLocation = async () => {
+    const ubicacion = formData.ubicaciones?.[0];
+    if (ubicacion?.id) {
+      await removeLocation(ubicacion.id);
+      setShowChangeLocationFlow(true);
+    }
+  };
+
   const renderActiveTab = () => {
     const ubicacion = formData.ubicaciones?.[0];
     console.log('🎨 [RENDER_ACTIVE_TAB] Tab actual:', activeTab, 'Ubicación:', ubicacion);
@@ -80,13 +91,16 @@ const AccountConfigSection: React.FC = () => {
       case 'categories':
         return <CategoriesTab />;
       case 'locations':
-        if (!ubicacion) {
+        if (!ubicacion || showChangeLocationFlow) {
           return (
 
 
 <ChargeUbicacionModule
   empresaId={empresaData.id}
-  onSaved={(empresaId, dto) => cargaUbicacionInicial(empresaId, dto)}
+  onSaved={(empresaId, dto) => {
+    cargaUbicacionInicial(empresaId, dto);
+    setShowChangeLocationFlow(false);
+  }}
   showRadiusPreview={false}
 />
 
@@ -102,6 +116,7 @@ const AccountConfigSection: React.FC = () => {
                 : undefined
             }
             onClose={() => {}}
+            onChangeLocation={handleChangeLocation}
           />
         );
       case 'preferences':

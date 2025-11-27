@@ -1,10 +1,18 @@
 /* Shell & header */
-.pe-shell { display: grid; gap: 16px; }
-.card{
+.pe-shell {
+  display: grid;
+  gap: 0;
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-100);
+  overflow: hidden;
+}
+
+.card{
+  background: var(--surface);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 
@@ -14,55 +22,135 @@
 .btn-pill{ border-radius:999px; padding:10px 16px; font-weight:800; }
 
 /* Layout */
-.pe-grid{ display:grid; grid-template-columns: 420px 1fr; gap:16px; }
-@media (max-width: 1100px){ .pe-grid{ grid-template-columns: 1fr; } }
+.pe-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  margin: 0;
+}
 
-/* Tabla plana */
-.pe-list{ padding: 0; overflow:hidden; }
-.pe-table-wrap{ overflow:auto; }
-.pe-table{
-  width:100%; border-collapse: collapse; table-layout: fixed;
+@media (max-width: 1100px) {
+  .pe-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pe-list {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
 }
-.pe-table thead th{
-  text-align:left; font-size:12px; font-weight:800; color:var(--text-muted);
-  padding:10px 12px; background: var(--surface-alt); border-bottom:1px solid var(--border);
+
+/* Tabla plana - Mejorada */
+.pe-list {
+  padding: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
 }
-.pe-table tbody td{
-  padding:12px; border-bottom:1px solid var(--border);
+
+.pe-table-wrap {
+  overflow: auto;
+}
+
+.pe-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.pe-table thead th {
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 14px 16px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pe-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  font-size: 0.95rem;
 }
-.pe-table tbody tr{
-  cursor:pointer; transition: background .12s ease, box-shadow .12s ease;
+
+.pe-table tbody tr {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--surface);
 }
-.pe-table tbody tr:hover{ background:#F8FAFF; }
-.pe-table tbody tr.is-active{
-  background:#F0F6FF;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 40%, var(--border));
+
+.pe-table tbody tr:hover {
+  background: var(--surface-alt);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.pe-table tbody tr.is-active {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 50%, var(--border));
 }
 .col-right{ text-align:right; }
 .th-actions, .col-actions{ width:74px; text-align:right; }
 
-.chip.km{
-  display:inline-flex; align-items:center; gap:6px;
-  padding:4px 8px; border-radius:999px; font-weight:800; font-size:12px;
-  color:var(--primary); background: color-mix(in srgb, var(--primary) 12%, #fff);
-  border:1px solid color-mix(in srgb, var(--primary) 40%, var(--border));
+.chip.km {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 15%, #fff);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 40%, var(--border));
 }
-.chip.price{
-  display:inline-flex; align-items:center; gap:6px; align-items: center;
-  padding:4px 8px; border-radius:999px; font-weight:800; font-size:12px;
-  color:var(--success); background: color-mix(in srgb, var(--success) 12%, #fff);
-  border:1px solid color-mix(in srgb, var(--success) 40%, var(--border));
+
+.chip.price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #10b981;
+  background: color-mix(in srgb, #10b981 12%, #fff);
+  border: 1.5px solid color-mix(in srgb, #10b981 40%, var(--border));
 }
 
 /* Acción eliminar sutil */
-.icon-btn.subtle{
-  width:28px; height:28px; border-radius:8px;
-  border:1px solid var(--border); background:var(--surface);
-  display:grid; place-items:center; color:var(--text-muted);
-  transition: all .15s ease;
+.icon-btn.subtle {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  font-size: 18px;
 }
-.icon-btn.subtle:hover{ color:var(--danger); border-color:var(--danger); background:#FFF6F6; }
+
+.icon-btn.subtle:hover:not(:disabled) {
+  color: #ef4444;
+  border-color: #ef4444;
+  background: #fef2f2;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.1);
+}
+
+.icon-btn.subtle:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.icon-btn.subtle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* Mapa card */
 .pe-map{ padding:0; overflow:hidden; }
@@ -78,9 +166,35 @@
 }
 @keyframes spin{ to { transform: rotate(360deg); } }
 
-.empty-precios{ text-align:center; color:var(--text-muted); padding:24px 10px; }
-.empty-title{ margin:6px 0 2px; font-weight:800; color:var(--text); }
-.empty-description{ margin:0; }
+.empty-precios {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px 20px;
+}
+
+.empty-icon {
+  display: block;
+  font-size: 3.5rem;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+.empty-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.empty-description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 300px;
+  margin: 8px auto 0;
+}
 
 
 

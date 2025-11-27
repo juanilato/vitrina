@@ -99,15 +99,15 @@ const ChargeUbicacionModule: React.FC<Props> = ({
     <div className="wrapper" ref={wrapperRef}>
       <header className="header">
         <div>
-          <h3 className="title">Configurar ubicación de la empresa</h3>
+          <h3 className="title">Configurar Ubicación Principal</h3>
           <p className="subtitle">
-            Elegí la dirección en el mapa, ajustá el pin y guardá. Esto habilita la configuración de precios de envío.
+            Seleccioná la ubicación de tu negocio en el mapa para configurar los radios de cobertura de envío. Esta será tu ubicación de referencia para calcular distancias.
           </p>
         </div>
         {success && (
           <div className="successPill">
             <CheckCircleOutlineOutlinedIcon fontSize="small" />
-            <span>Ubicación creada</span>
+            <span>Ubicación guardada exitosamente</span>
           </div>
         )}
       </header>
@@ -191,7 +191,7 @@ const ChargeUbicacionModule: React.FC<Props> = ({
           disabled={!canSave || saving}
           aria-disabled={!canSave || saving}
         >
-          {saving ? 'Guardando…' : 'Guardar ubicación'}
+          {saving ? 'Guardando ubicación...' : 'Confirmar y Continuar'}
         </button>
       </footer>
     </div>

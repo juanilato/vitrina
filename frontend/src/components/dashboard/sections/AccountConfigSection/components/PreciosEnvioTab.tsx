@@ -3,20 +3,25 @@ import useAccountConfig from '../hooks/useAccountConfig';
 import { PrecioEnvioData, CreatePrecioEnvioData } from '../types';
 import PriceZoneMap from './PriceZoneMap';
 import './PreciosEnvioTab.css';
+import './PreciosEnvioTab_styles.css';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
+import EditLocationAltIcon from '@mui/icons-material/EditLocationAlt';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { SkeletonForm } from '../../../../skeletons';
 interface PreciosEnvioTabProps {
   ubicacionId: number;
   ubicacionDireccion: string;
   ubicacionCoords?: { lat: number; lng: number };
   onClose: () => void;
+  onChangeLocation?: () => void;
 }
 // Tabulador de precios de envío selecciona, guarda y agrega precios de ser necesario 
 const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
   ubicacionId,
   ubicacionDireccion,
   ubicacionCoords,
+  onChangeLocation,
 }) => {
   const {
     getPreciosEnvio,
@@ -36,6 +41,7 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
   }));
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [mapDraft, setMapDraft] = useState<{ distancia: number; precio: number }>({ distancia: 3, precio: 0 });
+  const [showChangeLocationModal, setShowChangeLocationModal] = useState(false);
 
   const loadPrecios = useCallback(async () => {
     try {
@@ -117,12 +123,20 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
 
 {/* Header */}
 <header className="pe-header card">
-
-
-    <div>
-      <p className="muted">{ubicacionDireccion || 'Ubicación sin dirección'}</p>
-
+  <div>
+    <h3 className="title">Precios de Envío por Distancia</h3>
+    <p className="muted">{ubicacionDireccion || 'Ubicación sin dirección'}</p>
   </div>
+  {onChangeLocation && (
+    <button
+      className="btn-change-location"
+      onClick={() => setShowChangeLocationModal(true)}
+      title="Cambiar ubicación principal"
+    >
+      <EditLocationAltIcon fontSize="small" />
+      Cambiar Ubicación
+    </button>
+  )}
 </header>
 
       <div className="pe-grid">
@@ -143,8 +157,8 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
                     <td colSpan={3}>
                       <div className="empty-precios">
                         <span className="empty-icon">🚚</span>
-                        <p className="empty-title">Sin precios de envío</p>
-                        <p className="empty-description">Agregá un precio basado en distancia para esta ubicación.</p>
+                        <p className="empty-title">Sin precios de envío configurados</p>
+                        <p className="empty-description">Agregá el primer radio de cobertura y su precio de envío usando el mapa</p>
                       </div>
                     </td>
                   </tr>
@@ -205,7 +219,8 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
    <div className="pzmfloating-save">
   <button
     className="btn-fab btn-fab--primary"
-    aria-label={saving ? 'Actualizando precios de envío' : 'Guardar precio y radio'}
+    title={editingId ? 'Actualizar radio y precio de envío' : 'Agregar nuevo radio de cobertura'}
+    aria-label={saving ? 'Guardando cambios...' : editingId ? 'Actualizar radio y precio' : 'Agregar radio de cobertura'}
     disabled={saving || mapDraft.precio <= 0}
     onClick={async () => {
       try {
@@ -230,7 +245,7 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
       }
     }}
   >
-    {saving ? '…' :  <AddLocationAltIcon fontSize="small" />} 
+    {saving ? '…' :  <AddLocationAltIcon fontSize="small" />}
   </button>
 </div>
             </div>
@@ -241,6 +256,48 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
           )}
         </section>
       </div>
+
+      {/* Modal de confirmación para cambiar ubicación */}
+      {showChangeLocationModal && (
+        <div className="modal-overlay" onClick={() => setShowChangeLocationModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <WarningAmberIcon className="warning-icon" />
+              <h3>¿Cambiar Ubicación Principal?</h3>
+            </div>
+            <div className="modal-body">
+              <p className="warning-text">
+                Al cambiar la ubicación principal de tu empresa, se eliminarán <strong>todos los precios de envío configurados</strong>.
+              </p>
+              <p className="info-text">
+                Esto se debe a que los radios de cobertura están vinculados a la ubicación actual.
+                Deberás configurar nuevamente los precios de envío desde la nueva ubicación.
+              </p>
+              <div className="current-location">
+                <strong>Ubicación actual:</strong>
+                <p>{ubicacionDireccion}</p>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => setShowChangeLocationModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn-danger"
+                onClick={() => {
+                  setShowChangeLocationModal(false);
+                  onChangeLocation?.();
+                }}
+              >
+                Sí, Cambiar Ubicación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
