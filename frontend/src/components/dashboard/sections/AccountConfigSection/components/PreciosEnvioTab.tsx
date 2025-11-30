@@ -65,12 +65,6 @@ const PreciosEnvioTab: React.FC<PreciosEnvioTabProps> = ({
     }
   }, [ubicacionCoords]);
 
-  const handleAdd = () => {
-    setFormData({ ubicacionId, precio: 0, distancia: 3 });
-    setMapDraft({ distancia: 3, precio: 0 });
-    setEditingId(null);
-  };
-
   const handleEdit = (precio: PrecioEnvioData) => {
     setFormData({ ubicacionId, precio: precio.precio, distancia: precio.distancia });
     setEditingId(precio.id);
