@@ -146,17 +146,20 @@ export class PedidosService {
 
 
 
-      // Calcular descuentos
+      // Calcular descuentos usando el precio calculado (con extras incluidos)
       const itemsForDiscount = itemsConPrecios.map(item => ({
         productoId: item.productoId,
         cantidad: item.cantidad,
-        precioBase: parseFloat(productos.find(p => p.id === item.productoId)?.precio.toString() || '0')
+        precioBase: item.precioCalculado // Usar el precio ya calculado con extras
       }));
 
       const { totalDiscount, itemDiscounts, promocionesAplicadas } = await this.promocionesService.calculateOrderDiscounts(
         createPedidoDto.empresaId,
         itemsForDiscount
       );
+
+      console.log('🎯 Promociones aplicadas calculadas:', JSON.stringify(promocionesAplicadas, null, 2));
+      console.log('💰 Descuento total:', totalDiscount);
 
       const totalFinal = subtotal - totalDiscount + costoEnvio;
 
@@ -193,6 +196,8 @@ export class PedidosService {
             promocionesAplicadas: promocionesAplicadas.length > 0 ? promocionesAplicadas : null,
           }
         });
+
+        console.log('✅ Pedido creado con promocionesAplicadas:', newPedido.promocionesAplicadas);
 
         // Renombrar la foto con el ID real del pedido si existe
         if (transferenciaFotoFileName) {
@@ -238,6 +243,8 @@ export class PedidosService {
       }
 
       const pedidoCompleto = await this.findOne(pedido.id);
+
+      console.log('📦 Pedido completo obtenido con promocionesAplicadas:', pedidoCompleto.promocionesAplicadas);
 
       // Crear notificaciones
       try {
@@ -354,6 +361,7 @@ export class PedidosService {
         descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
+        promocionesAplicadas: pedido.promocionesAplicadas || undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         empresa: pedido.empresa,
@@ -497,6 +505,7 @@ export class PedidosService {
         descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
+        promocionesAplicadas: pedido.promocionesAplicadas || undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -642,8 +651,10 @@ export class PedidosService {
         repartidorLng: pedido.repartidorLng,
         repartidorUltActualizacion: pedido.repartidorUltActualizacion,
         subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : 0,
+        descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
+        promocionesAplicadas: pedido.promocionesAplicadas || undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,

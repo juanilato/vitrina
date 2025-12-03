@@ -144,6 +144,9 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
       // Procesar horarios, dividiendo los que cruzan medianoche
       const horariosToInsert: any[] = [];
 
+      // Agrupar horarios por día para calcular slotIndex correctamente
+      const horariosPorDia: Record<string, any[]> = {};
+
       for (const h of dto.horarios) {
         if (h.cerrado) {
           // Si está cerrado, guardar tal cual
@@ -159,37 +162,73 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
           // Horario que cruza medianoche: dividir en dos franjas
           // Ejemplo: LUN 20:00-02:00 → LUN 20:00-24:00 + MAR 00:00-02:00
 
+          const nextDay = getNextDay(h.day);
+
           // Primera parte: día actual desde abreMin hasta medianoche (1440)
-          horariosToInsert.push({
+          if (!horariosPorDia[h.day]) horariosPorDia[h.day] = [];
+          horariosPorDia[h.day].push({
             empresaId,
             day: h.day,
-            slotIndex: h.slotIndex,
+            originalSlotIndex: h.slotIndex,
             abreMin: h.abreMin,
             cierraMin: 1440,
             cerrado: false,
+            isFromMidnightCross: true, // Marca para identificar origen
           });
 
           // Segunda parte: día siguiente desde medianoche (0) hasta cierraMin
-          const nextDay = getNextDay(h.day);
-          horariosToInsert.push({
+          // Usar un slotIndex alto para que no colisione con horarios normales del día
+          if (!horariosPorDia[nextDay]) horariosPorDia[nextDay] = [];
+          horariosPorDia[nextDay].push({
             empresaId,
             day: nextDay,
-            slotIndex: h.slotIndex,
+            originalSlotIndex: h.slotIndex,
             abreMin: 0,
             cierraMin: h.cierraMin,
             cerrado: false,
+            isFromMidnightCross: true,
+            isContinuation: true, // Marca que es continuación del día anterior
           });
         } else {
           // Horario normal (no cruza medianoche)
-          horariosToInsert.push({
+          if (!horariosPorDia[h.day]) horariosPorDia[h.day] = [];
+          horariosPorDia[h.day].push({
             empresaId,
             day: h.day,
-            slotIndex: h.slotIndex,
+            originalSlotIndex: h.slotIndex,
             abreMin: h.abreMin,
             cierraMin: h.cierraMin,
             cerrado: false,
+            isFromMidnightCross: false,
           });
         }
+      }
+
+      // Asignar slotIndex correctos por día
+      for (const day of Object.keys(horariosPorDia)) {
+        const daySlots = horariosPorDia[day];
+
+        // Ordenar: primero las continuaciones de medianoche, luego los horarios normales
+        daySlots.sort((a, b) => {
+          // Continuaciones de medianoche van primero (empiezan a las 00:00)
+          if (a.isContinuation && !b.isContinuation) return -1;
+          if (!a.isContinuation && b.isContinuation) return 1;
+
+          // Luego ordenar por hora de inicio
+          if (a.abreMin !== b.abreMin) return a.abreMin - b.abreMin;
+
+          // Si tienen la misma hora, mantener orden original
+          return a.originalSlotIndex - b.originalSlotIndex;
+        });
+
+        // Asignar slotIndex secuencial
+        daySlots.forEach((slot, index) => {
+          const { originalSlotIndex, isFromMidnightCross, isContinuation, ...cleanSlot } = slot;
+          horariosToInsert.push({
+            ...cleanSlot,
+            slotIndex: index,
+          });
+        });
       }
 
       await tx.horarioAtencion.createMany({

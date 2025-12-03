@@ -54,6 +54,71 @@ const getCurrentMinutes = (): number => {
   return now.getHours() * 60 + now.getMinutes();
 };
 
+// Helper para recombinar horarios que cruzan medianoche
+const combineSchedules = (horarios: HorarioAtencion[]): { day: DayOfWeek; displaySlots: { abreMin: number; cierraMin: number }[] }[] => {
+  const grouped = horarios.reduce((acc, h) => {
+    if (!acc[h.day]) acc[h.day] = [];
+    acc[h.day].push(h);
+    return acc;
+  }, {} as Record<DayOfWeek, HorarioAtencion[]>);
+
+  const days = [DayOfWeek.LUN, DayOfWeek.MAR, DayOfWeek.MIE, DayOfWeek.JUE, DayOfWeek.VIE, DayOfWeek.SAB, DayOfWeek.DOM];
+  const result: { day: DayOfWeek; displaySlots: { abreMin: number; cierraMin: number }[] }[] = [];
+  const processedIds = new Set<number>();
+
+  for (let i = 0; i < days.length; i++) {
+    const day = days[i];
+    const dayHorarios = (grouped[day] || []).sort((a, b) => a.slotIndex - b.slotIndex);
+    const prevDay = days[(i - 1 + 7) % 7];
+    const prevDayHorarios = grouped[prevDay] || [];
+    const displaySlots: { abreMin: number; cierraMin: number }[] = [];
+
+    for (const h of dayHorarios) {
+      if (processedIds.has(h.id) || h.cerrado) continue;
+
+      // Caso 1: Empieza a medianoche (puede ser continuación)
+      if (h.abreMin === 0) {
+        const matchingPrev = prevDayHorarios.find(
+          prev => prev.cierraMin === 1440 && !processedIds.has(prev.id)
+        );
+
+        if (matchingPrev) {
+          // No agregamos aquí, se agregó en el día anterior
+          processedIds.add(h.id);
+          continue;
+        }
+      }
+
+      // Caso 2: Termina a medianoche (buscar continuación)
+      if (h.cierraMin === 1440) {
+        const nextDay = days[(i + 1) % 7];
+        const nextDayHorarios = grouped[nextDay] || [];
+        const continuation = nextDayHorarios.find(
+          next => next.abreMin === 0 && !processedIds.has(next.id)
+        );
+
+        if (continuation) {
+          // Recombinar: mostrar en este día como horario que cruza medianoche
+          displaySlots.push({ abreMin: h.abreMin, cierraMin: continuation.cierraMin });
+          processedIds.add(h.id);
+          processedIds.add(continuation.id);
+          continue;
+        }
+      }
+
+      // Caso 3: Horario normal
+      displaySlots.push({ abreMin: h.abreMin, cierraMin: h.cierraMin });
+      processedIds.add(h.id);
+    }
+
+    if (displaySlots.length > 0) {
+      result.push({ day, displaySlots });
+    }
+  }
+
+  return result;
+};
+
 export const BusinessHours: React.FC<BusinessHoursProps> = ({
   horarios,
   compact = false,
@@ -64,21 +129,22 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-  const { isOpen, currentStatus, todaySchedule, groupedHorarios } = useMemo(() => {
+  const { isOpen, currentStatus, todayDisplaySlots, groupedHorarios } = useMemo(() => {
     if (!horarios || horarios.length === 0) {
       return {
         isOpen: false,
         currentStatus: 'Sin horarios definidos',
-        todaySchedule: null,
+        todayDisplaySlots: null,
         groupedHorarios: {},
       };
     }
 
     const currentDay = getCurrentDay();
     const currentMinutes = getCurrentMinutes();
-    const todayHorarios = horarios.filter(
-      (h) => h.day === currentDay && !h.cerrado
-    );
+
+    // Combinar horarios que cruzan medianoche para la visualización
+    const combinedSchedules = combineSchedules(horarios);
+    const todaySchedule = combinedSchedules.find(s => s.day === currentDay);
 
     const grouped = horarios.reduce((acc, horario) => {
       if (!acc[horario.day]) acc[horario.day] = [];
@@ -86,18 +152,21 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
       return acc;
     }, {} as Record<DayOfWeek, HorarioAtencion[]>);
 
-    if (todayHorarios.length === 0) {
+    if (!todaySchedule || todaySchedule.displaySlots.length === 0) {
       return {
         isOpen: false,
         currentStatus: 'Cerrado hoy',
-        todaySchedule: null,
+        todayDisplaySlots: null,
         groupedHorarios: grouped,
       };
     }
 
-    // Verificar si está abierto actualmente
-    // Los horarios que cruzan medianoche ya vienen divididos desde el backend,
-    // por lo que la validación normal funciona correctamente
+    // Verificar si está abierto actualmente usando los horarios originales (divididos)
+    // porque la lógica de verificación necesita las franjas exactas
+    const todayHorarios = horarios.filter(
+      (h) => h.day === currentDay && !h.cerrado
+    );
+
     const isCurrentlyOpen = todayHorarios.some(
       (h) => currentMinutes >= h.abreMin && currentMinutes < h.cierraMin
     );
@@ -107,9 +176,17 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
       const slot = todayHorarios.find(
         (h) => currentMinutes >= h.abreMin && currentMinutes < h.cierraMin
       );
-      status = slot
-        ? `Abierto · Cierra ${formatTime(slot.cierraMin === 1440 ? 0 : slot.cierraMin)}`
-        : 'Abierto';
+
+      if (slot) {
+        // Buscar el displaySlot correspondiente para mostrar la hora de cierre correcta
+        const displaySlot = todaySchedule.displaySlots.find(ds =>
+          ds.abreMin <= slot.abreMin && ds.cierraMin >= slot.cierraMin
+        ) || todaySchedule.displaySlots[0];
+
+        status = `Abierto · Cierra ${formatTime(displaySlot.cierraMin)}`;
+      } else {
+        status = 'Abierto';
+      }
     } else {
       const next = todayHorarios.find((h) => currentMinutes < h.abreMin);
       status = next
@@ -120,7 +197,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
     return {
       isOpen: isCurrentlyOpen,
       currentStatus: status,
-      todaySchedule: todayHorarios,
+      todayDisplaySlots: todaySchedule.displaySlots,
       groupedHorarios: grouped,
     };
   }, [horarios]);
@@ -198,15 +275,13 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
         <View style={styles.todayInfo}>
           <Text style={styles.todayLabel}>{DAY_LABELS[currentDay]}</Text>
-          {todaySchedule?.length ? (
+          {todayDisplaySlots?.length ? (
             <View style={styles.todayTimes}>
-              {todaySchedule
-                .sort((a, b) => a.slotIndex - b.slotIndex)
-                .map((horario, i) => (
-                  <Text key={i} style={styles.todayTimeText}>
-                    {formatTime(horario.abreMin)}-{formatTime(horario.cierraMin === 1440 ? 0 : horario.cierraMin)}
-                  </Text>
-                ))}
+              {todayDisplaySlots.map((slot, i) => (
+                <Text key={i} style={styles.todayTimeText}>
+                  {formatTime(slot.abreMin)}-{formatTime(slot.cierraMin)}
+                </Text>
+              ))}
             </View>
           ) : (
             <Text style={styles.closedText}>Cerrado</Text>
@@ -223,54 +298,59 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
       {/* Lista animada */}
       {expanded && (
         <View style={styles.scheduleList}>
-          {Object.entries(DAY_LABELS).map(([day, label], index) => {
-            const dayHorarios = groupedHorarios[day as DayOfWeek] || [];
-            const isToday = day === currentDay;
-            const hasCerrado =
-              dayHorarios.length === 0 || dayHorarios.every((h) => h.cerrado);
+          {(() => {
+            // Combinar horarios que cruzan medianoche
+            const combinedSchedules = combineSchedules(horarios || []);
+            const scheduleMap = combinedSchedules.reduce((acc, item) => {
+              acc[item.day] = item.displaySlots;
+              return acc;
+            }, {} as Record<DayOfWeek, { abreMin: number; cierraMin: number }[]>);
 
-            const opacity = animatedValues[index].interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 1],
-            });
+            return Object.entries(DAY_LABELS).map(([day, label], index) => {
+              const displaySlots = scheduleMap[day as DayOfWeek] || [];
+              const isToday = day === currentDay;
+              const hasCerrado = displaySlots.length === 0;
 
-            const translateY = animatedValues[index].interpolate({
-              inputRange: [0, 1],
-              outputRange: [10, 0],
-            });
+              const opacity = animatedValues[index].interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 1],
+              });
 
-            return (
-              <Animated.View
-                key={day}
-                style={[
-                  styles.dayRow,
-                  {
-                    opacity,
-                    transform: [{ translateY }],
-                  },
-                  isToday && styles.todayRow,
-                ]}
-              >
-                <Text style={[styles.dayText, isToday && styles.todayText]}>
-                  {label.substring(0, 3)}
-                </Text>
-                {hasCerrado ? (
-                  <Text style={styles.closedTextSmall}>Cerrado</Text>
-                ) : (
-                  <View style={styles.timesContainer}>
-                    {dayHorarios
-                      .filter((h) => !h.cerrado)
-                      .sort((a, b) => a.slotIndex - b.slotIndex)
-                      .map((h, i) => (
+              const translateY = animatedValues[index].interpolate({
+                inputRange: [0, 1],
+                outputRange: [10, 0],
+              });
+
+              return (
+                <Animated.View
+                  key={day}
+                  style={[
+                    styles.dayRow,
+                    {
+                      opacity,
+                      transform: [{ translateY }],
+                    },
+                    isToday && styles.todayRow,
+                  ]}
+                >
+                  <Text style={[styles.dayText, isToday && styles.todayText]}>
+                    {label.substring(0, 3)}
+                  </Text>
+                  {hasCerrado ? (
+                    <Text style={styles.closedTextSmall}>Cerrado</Text>
+                  ) : (
+                    <View style={styles.timesContainer}>
+                      {displaySlots.map((slot, i) => (
                         <Text key={i} style={styles.timeText}>
-                          {formatTime(h.abreMin)}-{formatTime(h.cierraMin === 1440 ? 0 : h.cierraMin)}
+                          {formatTime(slot.abreMin)}-{formatTime(slot.cierraMin)}
                         </Text>
                       ))}
-                  </View>
-                )}
-              </Animated.View>
-            );
-          })}
+                    </View>
+                  )}
+                </Animated.View>
+              );
+            });
+          })()}
         </View>
       )}
     </View>

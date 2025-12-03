@@ -39,13 +39,100 @@ const DAYS: { key: DayKey; label: string }[] = [
 const hydrateSchedule = (horarios: HorarioAtencionData[] | undefined): Record<DayKey, TimeSlot[]> => {
   const result: Record<DayKey, TimeSlot[]> = { LUN: [], MAR: [], MIE: [], JUE: [], VIE: [], SAB: [], DOM: [] };
   if (!horarios) return result;
+
+  // Helper para obtener el día anterior
+  const getPreviousDay = (day: DayKey): DayKey => {
+    const days: DayKey[] = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
+    const currentIndex = days.indexOf(day);
+    return days[(currentIndex - 1 + 7) % 7];
+  };
+
+  // Agrupar por día
+  const grouped: Record<DayKey, HorarioAtencionData[]> = { LUN: [], MAR: [], MIE: [], JUE: [], VIE: [], SAB: [], DOM: [] };
   for (const h of horarios) {
-    const openH = Math.floor(h.abreMin / 60).toString().padStart(2, '0');
-    const openM = (h.abreMin % 60).toString().padStart(2, '0');
-    const closeH = Math.floor(h.cierraMin / 60).toString().padStart(2, '0');
-    const closeM = (h.cierraMin % 60).toString().padStart(2, '0');
-    result[h.day].push({ open: `${openH}:${openM}`, close: `${closeH}:${closeM}` });
+    grouped[h.day].push(h);
   }
+
+  // Ordenar por slotIndex dentro de cada día
+  for (const day of Object.keys(grouped) as DayKey[]) {
+    grouped[day].sort((a, b) => a.slotIndex - b.slotIndex);
+  }
+
+  const processedIds = new Set<number>(); // IDs de horarios ya procesados
+
+  // Procesar cada día
+  for (const day of Object.keys(grouped) as DayKey[]) {
+    const dayHorarios = grouped[day];
+    const previousDay = getPreviousDay(day);
+    const previousDayHorarios = grouped[previousDay] || [];
+
+    for (const h of dayHorarios) {
+      if (processedIds.has(h.id)) continue;
+
+      // CASO 1: Horario que empieza a medianoche (00:00)
+      // Puede ser una continuación del día anterior
+      if (h.abreMin === 0) {
+        // Buscar si hay un horario del día anterior que termine a medianoche (1440)
+        // y que sea el primero disponible (slotIndex más bajo no procesado)
+        const matchingPrevious = previousDayHorarios.find(
+          prev => prev.cierraMin === 1440 && !processedIds.has(prev.id)
+        );
+
+        if (matchingPrevious) {
+          // RECOMBINAR: Mostrar en el día anterior como horario que cruza medianoche
+          const openH = Math.floor(matchingPrevious.abreMin / 60).toString().padStart(2, '0');
+          const openM = (matchingPrevious.abreMin % 60).toString().padStart(2, '0');
+          const closeH = Math.floor(h.cierraMin / 60).toString().padStart(2, '0');
+          const closeM = (h.cierraMin % 60).toString().padStart(2, '0');
+
+          result[previousDay].push({ open: `${openH}:${openM}`, close: `${closeH}:${closeM}` });
+          processedIds.add(matchingPrevious.id);
+          processedIds.add(h.id);
+          continue;
+        }
+
+        // Si no hay match, es un horario normal que empieza a medianoche
+        const openH = Math.floor(h.abreMin / 60).toString().padStart(2, '0');
+        const openM = (h.abreMin % 60).toString().padStart(2, '0');
+        const closeH = Math.floor(h.cierraMin / 60).toString().padStart(2, '0');
+        const closeM = (h.cierraMin % 60).toString().padStart(2, '0');
+        result[h.day].push({ open: `${openH}:${openM}`, close: `${closeH}:${closeM}` });
+        processedIds.add(h.id);
+        continue;
+      }
+
+      // CASO 2: Horario que termina a medianoche (1440)
+      // Este ya se procesará cuando encontremos su continuación en el día siguiente
+      // Solo lo agregamos si NO hay continuación
+      if (h.cierraMin === 1440) {
+        const nextDay = Object.keys(grouped)[(Object.keys(grouped).indexOf(day) + 1) % 7] as DayKey;
+        const nextDayHorarios = grouped[nextDay] || [];
+
+        const hasContinuation = nextDayHorarios.some(
+          next => next.abreMin === 0 && !processedIds.has(next.id)
+        );
+
+        if (!hasContinuation) {
+          // No hay continuación, mostrar como horario normal
+          const openH = Math.floor(h.abreMin / 60).toString().padStart(2, '0');
+          const openM = (h.abreMin % 60).toString().padStart(2, '0');
+          result[h.day].push({ open: `${openH}:${openM}`, close: '23:59' });
+          processedIds.add(h.id);
+        }
+        // Si hay continuación, se procesará desde el día siguiente
+        continue;
+      }
+
+      // CASO 3: Horario normal (no cruza medianoche)
+      const openH = Math.floor(h.abreMin / 60).toString().padStart(2, '0');
+      const openM = (h.abreMin % 60).toString().padStart(2, '0');
+      const closeH = Math.floor(h.cierraMin / 60).toString().padStart(2, '0');
+      const closeM = (h.cierraMin % 60).toString().padStart(2, '0');
+      result[h.day].push({ open: `${openH}:${openM}`, close: `${closeH}:${closeM}` });
+      processedIds.add(h.id);
+    }
+  }
+
   return result;
 };
 
@@ -90,11 +177,16 @@ const PreferencesTab: React.FC = () => {
         (preferences.schedule[key] || []).map((slot, idx) => {
           const [oh, om] = slot.open.split(':').map(Number);
           const [ch, cm] = slot.close.split(':').map(Number);
+          const abreMin = Math.min(1439, Math.max(0, (oh || 0) * 60 + (om || 0)));
+          const cierraMin = Math.max(0, (ch || 0) * 60 + (cm || 0));
+
+          // Permitir horarios que cruzan medianoche (ej: 20:00 a 02:00)
+          // El backend se encargará de dividirlos en dos franjas
           return {
             day: key,
             slotIndex: idx,
-            abreMin: Math.min(1440, Math.max(0, (oh || 0) * 60 + (om || 0))),
-            cierraMin: Math.min(1440, Math.max(0, (ch || 0) * 60 + (cm || 0))),
+            abreMin,
+            cierraMin: cierraMin === 0 ? 0 : Math.min(1440, cierraMin),
             cerrado: false,
           };
         })
