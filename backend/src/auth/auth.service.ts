@@ -20,7 +20,7 @@ export class AuthService {
     private jwtService: JwtService,
     private verificationService: VerificationService
   ) {
- this.audiences = (process.env.GOOGLE_CLIENT_IDS || '')
+    this.audiences = (process.env.GOOGLE_CLIENT_IDS || '')
       .split(',')
       .map(s => s.trim())
       .filter(Boolean);
@@ -39,7 +39,7 @@ export class AuthService {
     const { email, password } = loginDto;
 
     // Buscar usuario en ambas tablas
-    let user = await this.prisma.cliente.findUnique({
+    let user: any = await this.prisma.cliente.findUnique({
       where: { email }
     });
 
@@ -54,13 +54,13 @@ export class AuthService {
 
     if (!user) {
       user = await this.prisma.repartidor.findUnique({
-        where:{ email }
+        where: { email }
       });
       userType = 'repartidor';
     }
     if (!user) {
-        throw new UnauthorizedException('Credenciales inválidas');
-      }
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
     // Verificar que la cuenta esté verificada
     if (!user.isVerified) {
       throw new UnauthorizedException('Cuenta no verificada. Por favor verifica tu email antes de iniciar sesión.');
@@ -98,8 +98,8 @@ export class AuthService {
     };
   }
 
-  
-async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | 'repartidor')/*: Promise<TokenResponseDto>*/ {
+
+  async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | 'repartidor')/*: Promise<TokenResponseDto>*/ {
     console.log('🔵 [Google Auth] Iniciando - Tipo solicitado:', requestedType || 'no especificado');
 
     // 1) Verificar token de Google (firma + audiencia)
@@ -242,7 +242,7 @@ async loginWithGoogle(idToken: string, requestedType?: 'cliente' | 'empresa' | '
       },
     };
   }
-async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa' | 'repartidor') {
+  async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa' | 'repartidor') {
     // 1) Verificar token de Google
     const ticket = await this.google.verifyIdToken({
       idToken,
@@ -390,7 +390,7 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa' | 'reparti
 
     // Generar código de verificación
     const code = await this.verificationService.generateVerificationCode(email, 'cliente');
-    
+
     // Guardar datos del usuario pendiente en la tabla de verificación con el código generado
     const verificationRecord = await this.prisma.verificationCode.create({
       data: {
@@ -486,94 +486,94 @@ async registerWithGoogle(idToken: string, type: 'cliente' | 'empresa' | 'reparti
     };
   }
 
-async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
-  const { email, name, password } = registerRepartidorDto;
+  async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
+    const { email, name, password } = registerRepartidorDto;
 
-  // 🔍 Verificar si el email ya existe en repartidores
-  const existingUser = await this.prisma.repartidor.findUnique({
-    where: { email },
-  });
-
-  if (existingUser) {
-    throw new ConflictException('El email ya está registrado');
-  }
-
-  // 🔍 Verificar si ya hay un código pendiente
-  const existingCode = await this.prisma.verificationCode.findFirst({
-    where: {
-      email,
-      userType: 'repartidor',
-      isUsed: false,
-      expiresAt: { gt: new Date() },
-    },
-  });
-
-  if (existingCode) {
-    throw new ConflictException(
-      'Ya se envió un código de verificación. Espera 1 minuto o solicita uno nuevo.'
-    );
-  }
-
-  // 🔐 Encriptar la contraseña
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // 🧩 Generar un código de vinculación único
-  let codigoVinculo: string;
-  let isUnique = false;
-
-  while (!isUnique) {
-    // genera algo como "A7Z9K3"
-    codigoVinculo = [...Array(6)]
-      .map(() => Math.random().toString(36).charAt(2).toUpperCase())
-      .join('');
-
-    // verifica si ya existe ese código en algún repartidor
-    const existingCodigo = await this.prisma.repartidor.findFirst({
-      where: { codigoVinculo },
+    // 🔍 Verificar si el email ya existe en repartidores
+    const existingUser = await this.prisma.repartidor.findUnique({
+      where: { email },
     });
 
-    if (!existingCodigo) {
-      isUnique = true;
+    if (existingUser) {
+      throw new ConflictException('El email ya está registrado');
     }
-  }
 
-  // 💾 Preparar datos del usuario pendiente
-  const pendingData = {
-    email,
-    name,
-    password: hashedPassword,
-    codigoVinculo,
-  };
+    // 🔍 Verificar si ya hay un código pendiente
+    const existingCode = await this.prisma.verificationCode.findFirst({
+      where: {
+        email,
+        userType: 'repartidor',
+        isUsed: false,
+        expiresAt: { gt: new Date() },
+      },
+    });
 
-  // 🔢 Generar código de verificación temporal (para email)
-  const code = await this.verificationService.generateVerificationCode(
-    email,
-    'repartidor'
-  );
+    if (existingCode) {
+      throw new ConflictException(
+        'Ya se envió un código de verificación. Espera 1 minuto o solicita uno nuevo.'
+      );
+    }
 
-  // 🗄️ Guardar el registro de verificación
-  await this.prisma.verificationCode.create({
-    data: {
+    // 🔐 Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 🧩 Generar un código de vinculación único
+    let codigoVinculo: string;
+    let isUnique = false;
+
+    while (!isUnique) {
+      // genera algo como "A7Z9K3"
+      codigoVinculo = [...Array(6)]
+        .map(() => Math.random().toString(36).charAt(2).toUpperCase())
+        .join('');
+
+      // verifica si ya existe ese código en algún repartidor
+      const existingCodigo = await this.prisma.repartidor.findFirst({
+        where: { codigoVinculo },
+      });
+
+      if (!existingCodigo) {
+        isUnique = true;
+      }
+    }
+
+    // 💾 Preparar datos del usuario pendiente
+    const pendingData = {
       email,
-      code,
+      name,
+      password: hashedPassword,
+      codigoVinculo,
+    };
+
+    // 🔢 Generar código de verificación temporal (para email)
+    const code = await this.verificationService.generateVerificationCode(
+      email,
+      'repartidor'
+    );
+
+    // 🗄️ Guardar el registro de verificación
+    await this.prisma.verificationCode.create({
+      data: {
+        email,
+        code,
+        userType: 'repartidor',
+        expiresAt: new Date(Date.now() + 1 * 60 * 1000),
+        isUsed: false,
+        pendingUserData: JSON.stringify(pendingData),
+      },
+    });
+
+    // 📧 Enviar email
+    await this.verificationService.sendVerificationEmail(email, name, 'repartidor');
+
+    // ✅ Respuesta
+    return {
+      message: 'Código de verificación enviado. Por favor verifica tu email para completar el registro.',
+      email,
       userType: 'repartidor',
-      expiresAt: new Date(Date.now() + 1 * 60 * 1000),
-      isUsed: false,
-      pendingUserData: JSON.stringify(pendingData),
-    },
-  });
-
-  // 📧 Enviar email
-  await this.verificationService.sendVerificationEmail(email, name, 'repartidor');
-
-  // ✅ Respuesta
-  return {
-    message: 'Código de verificación enviado. Por favor verifica tu email para completar el registro.',
-    email,
-    userType: 'repartidor',
-    codigoVinculo,
-  };
-}
+      codigoVinculo,
+    };
+  }
 
 
   // verificación de codigo
@@ -724,7 +724,7 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
         audience: jwtConfig.audience,
       }),
       this.jwtService.signAsync(payload, {
-       expiresIn: jwtConfig.expiresIn as any,
+        expiresIn: jwtConfig.expiresIn as any,
         issuer: jwtConfig.issuer,
         audience: jwtConfig.audience,
       })
@@ -756,9 +756,9 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(this.deg2rad(lat1)) *
-        Math.cos(this.deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos(this.deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c;
     return distance;
@@ -804,19 +804,24 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
               },
             },
           },
-        preferenciasWeb: {
-                    select: {
-                     
-                      envioDomicilio: true,
-                      dashboardFoto: true,
-                      horarios: true,
-               
-                    },
-        },
+          preferenciasWeb: {
+            select: {
+
+              envioDomicilio: true,
+              dashboardFoto: true,
+              horarios: true,
+
+            },
+          },
           Valoraciones: {
             select: {
               calificacionEmpresa: true,
             },
+          },
+          promociones: {
+            where: {
+              activo: true
+            }
           },
         },
         orderBy: {
@@ -825,7 +830,7 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
       });
 
       // Calcular promedio de valoraciones para cada empresa
-      const companiesWithRating = companies.map(company => {
+      const companiesWithRating = companies.map((company: any) => {
         const valoraciones = company.Valoraciones || [];
         const totalValoraciones = valoraciones.length;
         const rating = totalValoraciones > 0
@@ -994,19 +999,20 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
 
 
       const company = await this.prisma.empresa.findUnique({
-          where: { id,
-            isVerified: true,
+        where: {
+          id,
+          isVerified: true,
+        },
+        include: {
+          ubicacion: true,
+          preferenciasWeb: {
+            include: {
+              horarios: true
+            }
           },
-          include: {
-            ubicacion: true,
-            preferenciasWeb: {
-              include: {
-                horarios: true
-              }
-            },
-            productos: true
-          }
-        });
+          productos: true
+        }
+      });
       if (!company) {
         throw new NotFoundException('Empresa no encontrada');
       }
@@ -1041,6 +1047,14 @@ async registerRepartidor(registerRepartidorDto: RegisterRepartidorDto) {
           preferenciasWeb: {
             include: {
               horarios: true
+            }
+          },
+          promociones: {
+            where: {
+              activo: true
+            },
+            include: {
+              productos: true
             }
           }
         }

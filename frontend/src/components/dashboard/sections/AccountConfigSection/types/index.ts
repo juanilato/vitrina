@@ -91,10 +91,10 @@ export interface HorarioAtencionData {
 
 export interface UpdatePreferenciasPayload {
   empresaId?: string;
-  colorBotones: string | null;
-  colorFondo: string | null;
+  colorBotones: string | null | undefined;
+  colorFondo: string | null | undefined;
   envioDomicilio: boolean;
-  dashboardFoto: string | null;
+  dashboardFoto: string | null | undefined;
   horarios: {
     day: DayKey;
     slotIndex: number;
@@ -107,7 +107,7 @@ export interface UpdatePreferenciasPayload {
 // --- Ubicaciones ---
 export interface UbicacionData {
   id: number;
-  empresaId?: string; 
+  empresaId?: string;
   direccion?: string;
   lat?: number;
   lng?: number;

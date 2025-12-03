@@ -104,12 +104,31 @@ export const CartItem: React.FC<CartItemProps> = ({
           )}
 
           <View style={styles.priceRow}>
-            <Text style={styles.price}>
-              ${formatPrice(pricePerUnit)}
-            </Text>
+            {item.discount && item.discount > 0 ? (
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text style={[styles.price, { textDecorationLine: 'line-through', color: colors.gray400, fontSize: 12 }]}>
+                    ${formatPrice(pricePerUnit)}
+                  </Text>
+                  <Text style={[styles.price, { color: colors.success }]}>
+                    ${formatPrice(pricePerUnit - (item.discount / item.quantity))}
+                  </Text>
+                </View>
+                {item.appliedPromotion && (
+                  <Text style={{ fontSize: 10, color: colors.success, fontWeight: '600' }}>
+                    {item.appliedPromotion}
+                  </Text>
+                )}
+              </View>
+            ) : (
+              <Text style={styles.price}>
+                ${formatPrice(pricePerUnit)}
+              </Text>
+            )}
+
             {item.quantity > 1 && (
               <Text style={styles.itemTotal}>
-                Total: ${formatPrice(itemTotal)}
+                Total: ${formatPrice(itemTotal - (item.discount || 0))}
               </Text>
             )}
           </View>

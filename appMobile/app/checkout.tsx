@@ -64,6 +64,37 @@ export default function CheckoutScreen() {
     return cart.items;
   }, [cart.items, companyIdParam]);
 
+  // Calculate totals for the current checkout items
+  const { checkoutSubtotal, checkoutDiscount, checkoutTotal } = useMemo(() => {
+    const sub = checkoutItems.reduce((sum, item) => {
+      const basePrice = typeof item.product.precio === 'string'
+        ? parseFloat(item.product.precio)
+        : (item.product.precio || item.product.price || 0);
+
+      const agregadosPrice = item.agregados?.reduce((s, a) => {
+        const aPrecio = typeof a.precio === 'string' ? parseFloat(a.precio) : a.precio;
+        return s + aPrecio;
+      }, 0) || 0;
+
+      const ingredientesExtrasPrice = item.ingredientesExtras?.reduce((s, ie) => {
+        const precioExtra = ie.productoIngrediente.precioExtra;
+        const precio = typeof precioExtra === 'string' ? parseFloat(precioExtra) : (precioExtra || 0);
+        return s + (precio * ie.cantidad);
+      }, 0) || 0;
+
+      return sum + ((basePrice + agregadosPrice + ingredientesExtrasPrice) * item.quantity);
+    }, 0);
+
+    const disc = checkoutItems.reduce((sum, item) => sum + (item.discount || 0), 0);
+
+    // Delivery fee is handled separately in state
+    return {
+      checkoutSubtotal: sub,
+      checkoutDiscount: disc,
+      checkoutTotal: sub - disc
+    };
+  }, [checkoutItems]);
+
   const { selectedLocation, locations } = useLocation();
 
   const [deliveryType, setDeliveryTypeLocal] = useState<DeliveryType>(
@@ -1078,11 +1109,27 @@ export default function CheckoutScreen() {
                         "{item.notes}"
                       </Text>
                     ) : null}
+                    {item.appliedPromotion && (
+                      <Text style={{ fontSize: 11, color: colors.success, fontWeight: '600', marginTop: 2 }}>
+                        {item.appliedPromotion}
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.itemPriceContainer}>
-                    <Text style={styles.itemPrice}>
-                      ${((item.product.price || item.product.precio || 0) * item.quantity).toLocaleString('es-AR')}
-                    </Text>
+                    {item.discount && item.discount > 0 ? (
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={[styles.itemPrice, { textDecorationLine: 'line-through', color: colors.gray400, fontSize: 12 }]}>
+                          ${((item.product.price || item.product.precio || 0) * item.quantity).toLocaleString('es-AR')}
+                        </Text>
+                        <Text style={[styles.itemPrice, { color: colors.success }]}>
+                          ${(((item.product.price || item.product.precio || 0) * item.quantity) - item.discount).toLocaleString('es-AR')}
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.itemPrice}>
+                        ${((item.product.price || item.product.precio || 0) * item.quantity).toLocaleString('es-AR')}
+                      </Text>
+                    )}
                   </View>
                 </View>
               ))}
@@ -1091,9 +1138,18 @@ export default function CheckoutScreen() {
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
               <Text style={styles.summaryValue}>
-                ${cart.subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                ${checkoutSubtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
               </Text>
             </View>
+
+            {checkoutDiscount > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, { color: colors.success }]}>Descuento</Text>
+                <Text style={[styles.summaryValue, { color: colors.success }]}>
+                  -${checkoutDiscount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.summaryRow}>
               <View style={{ flex: 1 }}>
@@ -1126,7 +1182,7 @@ export default function CheckoutScreen() {
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>
-                ${cart.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                ${(checkoutTotal + (cart.deliveryFee || 0)).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
               </Text>
             </View>
           </View>
@@ -1313,7 +1369,7 @@ export default function CheckoutScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 }
 

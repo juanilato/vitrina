@@ -84,7 +84,7 @@ const normalizeSocials = (arr: SocialLink[]) =>
     label: (r.label || "Link").trim(),
     value: (r.value || "").trim(),
   }));
-  
+
 const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   const { user } = useAuthOptimized();
   const { data: dashboardData, loading: contextLoading, refetchEmpresaConfig } = useDashboardData();
@@ -125,7 +125,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         ubicaciones: empresaData.ubicaciones,
         rawResponse: response.data
       });
-      
+
       // Log simple para verificar
       console.log('UBICACIONES:', empresaData.ubicaciones);
 
@@ -205,16 +205,16 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     try {
       // Remover empresaId del payload si existe
       const { empresaId, ...locationData } = data as any;
-      
+
       console.log('🏢 [FRONTEND] Enviando datos de actualización:', locationData);
-      
+
       const response = await axiosInstance.patch(`/empresas/${user.id}/ubicaciones/${locationId}`, locationData);
-      
+
       console.log('🏢 [FRONTEND] Respuesta del servidor:', response.data);
-      
+
       // Recargar datos de la empresa
       await loadEmpresaData();
-      
+
       setState(prev => ({
         ...prev,
         saving: false,
@@ -248,17 +248,17 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     try {
       // Remover empresaId del payload ya que el backend lo obtiene del parámetro de la URL
       const { empresaId, ...locationData } = data as any;
-      
-      console.log('🏢 [FRONTEND] Enviando datos de ubicación:', locationData);
-      
-      const response = await axiosInstance.post(`/empresas/${user.id}/ubicaciones`, locationData);
-      
 
-      
+      console.log('🏢 [FRONTEND] Enviando datos de ubicación:', locationData);
+
+      const response = await axiosInstance.post(`/empresas/${user.id}/ubicaciones`, locationData);
+
+
+
       // Recargar datos de la empresa
 
       await loadEmpresaData();
-      
+
 
       setState(prev => ({
         ...prev,
@@ -290,10 +290,10 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
 
     try {
       await axiosInstance.delete(`/empresas/${user.id}/ubicaciones/${locationId}`);
-      
+
       // Recargar datos de la empresa
       await loadEmpresaData();
-      
+
       setState(prev => ({
         ...prev,
         saving: false,
@@ -324,7 +324,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
         currentPassword,
         newPassword
       });
-      
+
       setState(prev => ({
         ...prev,
         saving: false,
@@ -357,7 +357,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
 
     try {
       let response: any;
-      if (dashboard){
+      if (dashboard) {
         console.log('📤 [UPLOAD] Subiendo foto de dashboard...');
         response = await axiosInstance.post(`/empresas/${user.id}/upload-dashboard`, formData, {
           headers: {
@@ -365,7 +365,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
           },
         });
         console.log('✅ [UPLOAD] Dashboard foto subida:', response.data);
-      }else{
+      } else {
         console.log('📤 [UPLOAD] Subiendo logo...');
         response = await axiosInstance.post(`/empresas/${user.id}/upload-logo`, formData, {
           headers: {
@@ -445,7 +445,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
   // Detectar cambios en el formulario
   useEffect(() => {
     if (state.empresaData) {
-      const hasChanges = 
+      const hasChanges =
         state.formData.name !== state.empresaData.name ||
         state.formData.email !== state.empresaData.email ||
         state.formData.logo !== (state.empresaData.logo || '') ||
@@ -461,9 +461,9 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
       ubicacionesCount: state.formData.ubicaciones?.length || 0,
       ubicaciones: state.formData.ubicaciones
     });
-    
-  // Log simple para verificar
-  console.log('UBICACIONES EN HOOK:', state.formData.ubicaciones);
+
+    // Log simple para verificar
+    console.log('UBICACIONES EN HOOK:', state.formData.ubicaciones);
   }, [state.formData.ubicaciones]);
 
   // Precios de envío
@@ -523,11 +523,11 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     }
   }, [user?.id]);
 
-  const updatePreferences = useCallback(async (payload: any) =>{
+  const updatePreferences = useCallback(async (payload: any) => {
     if (!user?.id) return;
     console.log("PAYLOAD", payload);
     setState(prev => ({ ...prev, saving: true, error: null, success: null }));
-    try{
+    try {
       await axiosInstance.patch(`/empresas/${user.id}/preferencias`, payload);
       await loadEmpresaData();
       setState(prev => ({
@@ -542,8 +542,8 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
       setTimeout(() => {
         setState(prev => ({ ...prev, success: null }));
       }, 3000);
-    } catch (error: any){
-      console.error ('Error al guardar preferencias', error);
+    } catch (error: any) {
+      console.error('Error al guardar preferencias', error);
       setState(prev => ({
         ...prev,
         saving: false,
@@ -552,7 +552,7 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
       throw error;
     }
 
-  },[user?.id, loadEmpresaData])
+  }, [user?.id, loadEmpresaData])
 
   // Guardar solo apariencia (colores y envío a domicilio)
   const updateApariencia = useCallback(async (colorBotones: string, colorFondo: string, envioDomicilio: boolean) => {
@@ -561,14 +561,14 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     console.log('🎨 [APARIENCIA] Guardando apariencia...');
 
     const payload = {
-      empresaId: state.empresaData.id,
-      colorBotones: colorBotones || null,
-      colorFondo: colorFondo || null,
+      empresaId: String(state.empresaData.id),
+      colorBotones: colorBotones || undefined,
+      colorFondo: colorFondo || undefined,
       envioDomicilio,
-      dashboardFoto: state.empresaData?.preferenciasWeb?.dashboardFoto || null,
+      dashboardFoto: state.empresaData?.preferenciasWeb?.dashboardFoto || undefined,
       horarios: (state.empresaData?.preferenciasWeb?.horarios || []).map((h: any) => ({
         day: h.day,
-        slotIndex: 0,
+        slotIndex: h.slotIndex ?? 0,
         abreMin: h.abreMin,
         cierraMin: h.cierraMin,
         cerrado: h.cerrado || false
@@ -595,20 +595,25 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
     ];
 
     const payload = {
-      empresaId: state.empresaData.id,
-      colorBotones: state.empresaData?.preferenciasWeb?.colorBotones || null,
-      colorFondo: state.empresaData?.preferenciasWeb?.colorFondo || null,
+      empresaId: String(state.empresaData.id),
+      colorBotones: state.empresaData?.preferenciasWeb?.colorBotones || undefined,
+      colorFondo: state.empresaData?.preferenciasWeb?.colorFondo || undefined,
       envioDomicilio: state.empresaData?.preferenciasWeb?.envioDomicilio || false,
-      dashboardFoto: state.empresaData?.preferenciasWeb?.dashboardFoto || null,
+      dashboardFoto: state.empresaData?.preferenciasWeb?.dashboardFoto || undefined,
       horarios: DAYS.flatMap(({ key }) =>
         (schedule[key] || []).map((slot: any, idx: number) => {
           const [oh, om] = slot.open.split(':').map(Number);
           const [ch, cm] = slot.close.split(':').map(Number);
+          const abreMin = Math.min(1439, Math.max(0, (oh || 0) * 60 + (om || 0)));
+          const cierraMin = Math.max(0, (ch || 0) * 60 + (cm || 0));
+
+          // Permitir horarios que cruzan medianoche (ej: 20:00 a 02:00)
+          // El backend se encargará de dividirlos en dos franjas
           return {
             day: key,
             slotIndex: idx,
-            abreMin: (oh || 0) * 60 + (om || 0),
-            cierraMin: (ch || 0) * 60 + (cm || 0),
+            abreMin,
+            cierraMin: cierraMin === 0 ? 0 : Math.min(1440, cierraMin), // Permitir 00:00 (medianoche)
             cerrado: false,
           };
         })
@@ -620,128 +625,128 @@ const useAccountConfig = (): AccountConfigState & AccountConfigActions => {
 
 
 
-const updateEmpresaExtras = useCallback(async (payload: UpdateEmpresaExtrasPayload) => {
-  const { empresaId, alias, redesSociales } = payload;
+  const updateEmpresaExtras = useCallback(async (payload: UpdateEmpresaExtrasPayload) => {
+    const { empresaId, alias, redesSociales } = payload;
 
-  // Optimistic UI
-  setState(s => ({
-    ...s,
-    empresaData: s.empresaData
-      ? {
+    // Optimistic UI
+    setState(s => ({
+      ...s,
+      empresaData: s.empresaData
+        ? {
           ...s.empresaData,
           alias: alias || undefined,
           redesSociales: normalizeSocials(redesSociales || []),
         }
-      : s.empresaData,
-    saving: true,
-    error: null,
-    success: null,
-  }));
-
-  try {
-    // PATCH directo a tu backend (siguiendo tu convención /empresas/:id/...)
-    const normalizedSocials = normalizeSocials(redesSociales || []);
-
-    const { data: updated } = await axiosInstance.patch<EmpresaData>(
-      `/empresas/${empresaId}/extras`,
-      {
-        alias: alias || undefined, // 👈 undefined si está vacío
-        redesSociales: normalizedSocials.length > 0 ? normalizedSocials : [], // 👈 array vacío si no hay redes
-      }
-    );
-
-    setState(s => ({
-      ...s,
-      empresaData: updated || s.empresaData,
-      saving: false,
-      success: "Datos de empresa actualizados",
+        : s.empresaData,
+      saving: true,
+      error: null,
+      success: null,
     }));
 
-    // Actualizar el contexto global
-    await refetchEmpresaConfig();
-  } catch (e: any) {
-    setState(s => ({
-      ...s,
-      saving: false,
-      error: e?.response?.data?.message || e?.message || "No se pudieron guardar los extras de la empresa",
-    }));
-    // revert/refresh (te conviene refrescar del back)
-    await loadEmpresaData().catch(() => {});
-    throw e;
-  }
-}, [loadEmpresaData]);
+    try {
+      // PATCH directo a tu backend (siguiendo tu convención /empresas/:id/...)
+      const normalizedSocials = normalizeSocials(redesSociales || []);
 
+      const { data: updated } = await axiosInstance.patch<EmpresaData>(
+        `/empresas/${empresaId}/extras`,
+        {
+          alias: alias || undefined, // 👈 undefined si está vacío
+          redesSociales: normalizedSocials.length > 0 ? normalizedSocials : [], // 👈 array vacío si no hay redes
+        }
+      );
 
+      setState(s => ({
+        ...s,
+        empresaData: updated || s.empresaData,
+        saving: false,
+        success: "Datos de empresa actualizados",
+      }));
 
-
-const cargaUbicacionInicial = useCallback(async (empresaId: string,ubicacion: Ubicacion) => {
-
-  try {
-    // PATCH directo a tu backend (siguiendo tu convención /empresas/:id/...)
-    const { data: updated } = await axiosInstance.post<Ubicacion>(
-      `/empresas/${empresaId}/ubicaciones`,
-      {
-        ...ubicacion
-      }
-    );
-    return updated;
-    }  catch (e: any) {
-
-    await loadEmpresaData().catch(() => {});
-    throw e;
-  }
-}, [loadEmpresaData]);
-
-// Obtener categorías
-const getCategorias = useCallback(async (): Promise<CategoriaData[]> => {
-  try {
-    // Primero intentar usar las categorías del contexto si están disponibles
-    if (dashboardData?.categorias && dashboardData.categorias.length > 0) {
-      console.log('✅ [ACCOUNT CONFIG HOOK] Usando categorías pre-cargadas del contexto');
-      return dashboardData.categorias;
+      // Actualizar el contexto global
+      await refetchEmpresaConfig();
+    } catch (e: any) {
+      setState(s => ({
+        ...s,
+        saving: false,
+        error: e?.response?.data?.message || e?.message || "No se pudieron guardar los extras de la empresa",
+      }));
+      // revert/refresh (te conviene refrescar del back)
+      await loadEmpresaData().catch(() => { });
+      throw e;
     }
+  }, [loadEmpresaData]);
 
-    // Si no están en el contexto, cargar desde la API
-    const response = await axiosInstance.get('/categorias');
-    return response.data;
-  } catch (error: any) {
-    console.error('Error al cargar categorías:', error);
-    throw error;
-  }
-}, [dashboardData?.categorias]);
 
-// Actualizar categorías y subcategorías
-const updateCategorias = useCallback(async (payload: UpdateCategoriasPayload) => {
-  if (!user?.id) return;
 
-  setState(prev => ({ ...prev, saving: true, error: null, success: null }));
 
-  try {
-    const response = await axiosInstance.patch(`/empresas/${user.id}/categorias`, payload);
-    const updatedEmpresa: EmpresaData = response.data;
+  const cargaUbicacionInicial = useCallback(async (empresaId: string, ubicacion: Ubicacion) => {
 
-    setState(prev => ({
-      ...prev,
-      saving: false,
-      empresaData: updatedEmpresa,
-      success: 'Categorías actualizadas exitosamente'
-    }));
+    try {
+      // PATCH directo a tu backend (siguiendo tu convención /empresas/:id/...)
+      const { data: updated } = await axiosInstance.post<Ubicacion>(
+        `/empresas/${empresaId}/ubicaciones`,
+        {
+          ...ubicacion
+        }
+      );
+      return updated;
+    } catch (e: any) {
 
-    // Actualizar el contexto global
-    await refetchEmpresaConfig();
+      await loadEmpresaData().catch(() => { });
+      throw e;
+    }
+  }, [loadEmpresaData]);
 
-    setTimeout(() => {
-      setState(prev => ({ ...prev, success: null }));
-    }, 3000);
-  } catch (error: any) {
-    console.error('Error al actualizar categorías:', error);
-    setState(prev => ({
-      ...prev,
-      saving: false,
-      error: error.response?.data?.message || 'Error al actualizar categorías'
-    }));
-  }
-}, [user?.id]);
+  // Obtener categorías
+  const getCategorias = useCallback(async (): Promise<CategoriaData[]> => {
+    try {
+      // Primero intentar usar las categorías del contexto si están disponibles
+      if (dashboardData?.categorias && dashboardData.categorias.length > 0) {
+        console.log('✅ [ACCOUNT CONFIG HOOK] Usando categorías pre-cargadas del contexto');
+        return dashboardData.categorias;
+      }
+
+      // Si no están en el contexto, cargar desde la API
+      const response = await axiosInstance.get('/categorias');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error al cargar categorías:', error);
+      throw error;
+    }
+  }, [dashboardData?.categorias]);
+
+  // Actualizar categorías y subcategorías
+  const updateCategorias = useCallback(async (payload: UpdateCategoriasPayload) => {
+    if (!user?.id) return;
+
+    setState(prev => ({ ...prev, saving: true, error: null, success: null }));
+
+    try {
+      const response = await axiosInstance.patch(`/empresas/${user.id}/categorias`, payload);
+      const updatedEmpresa: EmpresaData = response.data;
+
+      setState(prev => ({
+        ...prev,
+        saving: false,
+        empresaData: updatedEmpresa,
+        success: 'Categorías actualizadas exitosamente'
+      }));
+
+      // Actualizar el contexto global
+      await refetchEmpresaConfig();
+
+      setTimeout(() => {
+        setState(prev => ({ ...prev, success: null }));
+      }, 3000);
+    } catch (error: any) {
+      console.error('Error al actualizar categorías:', error);
+      setState(prev => ({
+        ...prev,
+        saving: false,
+        error: error.response?.data?.message || 'Error al actualizar categorías'
+      }));
+    }
+  }, [user?.id]);
 
   return {
     ...state,

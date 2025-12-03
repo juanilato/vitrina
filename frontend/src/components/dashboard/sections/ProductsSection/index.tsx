@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { ProductModal, ProductsSkeletonLoader } from './components';
 import StockManagementModal from './components/StockManagementModal';
 import CategoryManager from './components/CategoryManager';
+import PromotionsManager from './components/PromotionsManager';
 import { useProducts } from './hooks/useProducts';
 import { ProductWithExtras } from './types';
 import './ProductsSection.css';
@@ -16,6 +18,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 
 const ProductsSection: React.FC = () => {
   const {
@@ -36,35 +39,35 @@ const ProductsSection: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [showInfoReference, setShowInfoReference] = useState(false);
-  const [showCategoryManager, setShowCategoryManager] = useState(false); 
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showPromotionsManager, setShowPromotionsManager] = useState(false);
+
   const filteredProducts = products.filter((product) => {
-  const nombre = product.nombre || '';
-  const descripcion = product.descripcion || '';
-  const searchTermLower = searchTerm.toLowerCase();
+    const nombre = product.nombre || '';
+    const descripcion = product.descripcion || '';
+    const searchTermLower = searchTerm.toLowerCase();
 
-  const matchesSearch =
-    nombre.toLowerCase().includes(searchTermLower) ||
-    descripcion.toLowerCase().includes(searchTermLower);
+    const matchesSearch =
+      nombre.toLowerCase().includes(searchTermLower) ||
+      descripcion.toLowerCase().includes(searchTermLower);
 
-  // Ojo con null/undefined en activo: normalizalo a boolean
-  const isActive = product.activo === true;
+    // Ojo con null/undefined en activo: normalizalo a boolean
+    const isActive = product.activo === true;
 
-  const matchesStatus =
-    statusFilter === 'all'
-      ? true
-      : statusFilter === 'active'
-      ? isActive
-      : !isActive; 
+    const matchesStatus =
+      statusFilter === 'all'
+        ? true
+        : statusFilter === 'active'
+          ? isActive
+          : !isActive;
 
-  return matchesSearch && matchesStatus;
-});
+    return matchesSearch && matchesStatus;
+  });
 
   const handleAddProduct = () => {
     setEditingProduct(null);
     setShowAddModal(true);
   };
-
-
 
   const handleEditProduct = (product: ProductWithExtras) => {
     setEditingProduct(product);
@@ -159,118 +162,119 @@ const ProductsSection: React.FC = () => {
           </button>
         </div>
 
-<div className="sidebar-content">
-  <div className="sidebar-section">
-    <h3 className="sidebar-section-title">Buscar</h3>
-    <div className="sidebar-search">
-      <input
-        type="text"
-        placeholder="Nombre o descripción..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="sidebar-search-input"
-      />
-      <span className="sidebar-search-icon">🔍</span>
-    </div>
-  </div>
+        <div className="sidebar-content">
+          <div className="sidebar-section">
+            <h3 className="sidebar-section-title">Buscar</h3>
+            <div className="sidebar-search">
+              <input
+                type="text"
+                placeholder="Nombre o descripción..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="sidebar-search-input"
+              />
+              <span className="sidebar-search-icon">🔍</span>
+            </div>
+          </div>
 
-  <div className="sidebar-section">
-    <h3 className="sidebar-section-title">Estado</h3>
+          <div className="sidebar-section">
+            <h3 className="sidebar-section-title">Estado</h3>
 
-    {/* Reutilizamos el patrón "lista vertical" del nav */}
-    <div className="cnav-list sidebar-filters">
-      {/* Todos */}
-      <button
-        className={`cnav-item ${statusFilter === 'all' ? 'active' : ''}`}
-        onClick={() => setStatusFilter('all')}
-        aria-pressed={statusFilter === 'all'}
-      >
-        <span className="cnav-icon"><FilterListOutlinedIcon fontSize="small" /></span>
-        <span className="cnav-label">Todos</span>
-        <span className="cnav-pill">{products.length}</span>
-      </button>
+            {/* Reutilizamos el patrón "lista vertical" del nav */}
+            <div className="cnav-list sidebar-filters">
+              {/* Todos */}
+              <button
+                className={`cnav-item ${statusFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('all')}
+                aria-pressed={statusFilter === 'all'}
+              >
+                <span className="cnav-icon"><FilterListOutlinedIcon fontSize="small" /></span>
+                <span className="cnav-label">Todos</span>
+                <span className="cnav-pill">{products.length}</span>
+              </button>
 
-      {/* Activos */}
-      <button
-        className={`cnav-item ${statusFilter === 'active' ? 'active' : ''}`}
-        onClick={() => setStatusFilter('active')}
-        aria-pressed={statusFilter === 'active'}
-      >
-        <span className="cnav-icon"><CheckCircleOutlineOutlinedIcon fontSize="small" /></span>
-        <span className="cnav-label">Activos</span>
-        <span className="cnav-pill">{stats.activos}</span>
-      </button>
+              {/* Activos */}
+              <button
+                className={`cnav-item ${statusFilter === 'active' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('active')}
+                aria-pressed={statusFilter === 'active'}
+              >
+                <span className="cnav-icon"><CheckCircleOutlineOutlinedIcon fontSize="small" /></span>
+                <span className="cnav-label">Activos</span>
+                <span className="cnav-pill">{stats.activos}</span>
+              </button>
 
-      {/* Inactivos */}
-      <button
-        className={`cnav-item ${statusFilter === 'inactive' ? 'active' : ''}`}
-        onClick={() => setStatusFilter('inactive')}
-        aria-pressed={statusFilter === 'inactive'}
-      >
-        <span className="cnav-icon"><HighlightOffOutlinedIcon fontSize="small" /></span>
-        <span className="cnav-label">Inactivos</span>
-        <span className="cnav-pill">{stats.inactivos}</span>
-      </button>
-    </div>
-  </div>
+              {/* Inactivos */}
+              <button
+                className={`cnav-item ${statusFilter === 'inactive' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('inactive')}
+                aria-pressed={statusFilter === 'inactive'}
+              >
+                <span className="cnav-icon"><HighlightOffOutlinedIcon fontSize="small" /></span>
+                <span className="cnav-label">Inactivos</span>
+                <span className="cnav-pill">{stats.inactivos}</span>
+              </button>
+            </div>
+          </div>
 
-  <div className="sidebar-section">
-    {/* Botón primario con el mismo patrón del nav */}
-    <button className="cnav-item cnav-item--primary" onClick={handleAddProduct}>
-      <span className="cnav-icon"><AddOutlinedIcon fontSize="small" /></span>
-      <span className="cnav-label">Agregar producto</span>
-    </button>
+          <div className="sidebar-section">
+            {/* Botón primario con el mismo patrón del nav */}
+            <button className="cnav-item cnav-item--primary" onClick={handleAddProduct}>
+              <span className="cnav-icon"><AddOutlinedIcon fontSize="small" /></span>
+              <span className="cnav-label">Agregar producto</span>
+            </button>
 
-    {/* Botón para gestionar categorías */}
-    <button className="cnav-item" onClick={() => setShowCategoryManager(true)}>
-      <span className="cnav-icon"><CategoryOutlinedIcon fontSize="small" /></span>
-      <span className="cnav-label">Gestionar categorías</span>
-    </button>
-  </div>
+            {/* Botón para gestionar categorías */}
+            <button className="cnav-item" onClick={() => setShowCategoryManager(true)}>
+              <span className="cnav-icon"><CategoryOutlinedIcon fontSize="small" /></span>
+              <span className="cnav-label">Gestionar categorías</span>
+            </button>
 
-  {searchTerm && (
-    <div className="sidebar-section">
-      {/* Botón sutil para limpiar */}
-      <button
-        className="cnav-item cnav-item--subtle"
-        onClick={() => setSearchTerm('')}
-      >
-        <span className="cnav-icon">🔄</span>
-        <span className="cnav-label">Limpiar búsqueda</span>
-      </button>
-    </div>
-  )}
-</div>
+            {/* Botón para gestionar promociones */}
+            <button className="cnav-item" onClick={() => setShowPromotionsManager(true)}>
+              <span className="cnav-icon"><LocalOfferOutlinedIcon fontSize="small" /></span>
+              <span className="cnav-label">Promociones</span>
+            </button>
+          </div>
+
+          {searchTerm && (
+            <div className="sidebar-section">
+              {/* Botón sutil para limpiar */}
+              <button
+                className="cnav-item cnav-item--subtle"
+                onClick={() => setSearchTerm('')}
+              >
+                <span className="cnav-icon">🔄</span>
+                <span className="cnav-label">Limpiar búsqueda</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Contenido principal */}
       <div className="products-main">
-        {/* Header del contenido */}
+        {/* Lista de productos (formato tabla liviana) */}
+        <div className="products-list">
+          <div className="products-list-header">
+            <div className="hcell h-product">Producto</div>
+            <div className="hcell h-status">Estado</div>
+            <div className="hcell h-date">Creado</div>
+            <div className="hcell h-actions">Acciones</div>
+          </div>
 
-
-
-{/* Lista de productos (formato tabla liviana) */}
-<div className="products-list">
-  <div className="products-list-header">
-    <div className="hcell h-product">Producto</div>
-    <div className="hcell h-status">Estado</div>
-
-    <div className="hcell h-date">Creado</div>
-    <div className="hcell h-actions">Acciones</div>
-  </div>
-
-  <div className="products-list-body">
-    {filteredProducts.map((product) => (
-      <ProductRow
-        key={product.id}
-        product={product}
-        onEdit={handleEditProduct}
-        onDelete={handleDeleteProduct}
-        onManageStock={handleManageStock}
-      />
-    ))}
-  </div>
-</div>
+          <div className="products-list-body">
+            {filteredProducts.map((product) => (
+              <ProductRow
+                key={product.id}
+                product={product}
+                onEdit={handleEditProduct}
+                onDelete={handleDeleteProduct}
+                onManageStock={handleManageStock}
+              />
+            ))}
+          </div>
+        </div>
 
         {filteredProducts.length === 0 && (
           <div className="empty-state">
@@ -322,6 +326,14 @@ const ProductsSection: React.FC = () => {
         <CategoryManager
           empresaId={user.id}
           onClose={() => setShowCategoryManager(false)}
+        />
+      )}
+
+      {/* Modal para gestionar promociones */}
+      {showPromotionsManager && user && (
+        <PromotionsManager
+          empresaId={user.id}
+          onClose={() => setShowPromotionsManager(false)}
         />
       )}
 

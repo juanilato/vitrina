@@ -323,13 +323,13 @@ export default function OrderDetailScreen() {
                         },
                         ...(mapData.repartidor
                           ? [
-                              {
-                                lat: mapData.repartidor.latitud,
-                                lng: mapData.repartidor.longitud,
-                                title: 'Repartidor',
-                                color: colors.orange,
-                              },
-                            ]
+                            {
+                              lat: mapData.repartidor.latitud,
+                              lng: mapData.repartidor.longitud,
+                              title: 'Repartidor',
+                              color: colors.orange,
+                            },
+                          ]
                           : []),
                       ]}
                       center={{
@@ -425,7 +425,20 @@ export default function OrderDetailScreen() {
                         <Text style={styles.notasText}>Nota: {item.notas}</Text>
                       )}
                     </View>
-                    <Text style={styles.productPrice}>${((item.precioUnitario || item.precio) * item.cantidad).toFixed(2)}</Text>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      {(item.descuento || 0) > 0 ? (
+                        <>
+                          <Text style={[styles.productPrice, { textDecorationLine: 'line-through', color: '#9ca3af', fontSize: 11, marginTop: 0 }]}>
+                            ${((item.precioUnitario || item.precio) * item.cantidad).toFixed(2)}
+                          </Text>
+                          <Text style={[styles.productPrice, { color: '#10b981', marginTop: 0 }]}>
+                            ${(((item.precioUnitario || item.precio) * item.cantidad) - (item.descuento || 0)).toFixed(2)}
+                          </Text>
+                        </>
+                      ) : (
+                        <Text style={styles.productPrice}>${((item.precioUnitario || item.precio) * item.cantidad).toFixed(2)}</Text>
+                      )}
+                    </View>
                   </View>
                 );
               })
@@ -471,6 +484,12 @@ export default function OrderDetailScreen() {
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Envío</Text>
                 <Text style={styles.infoValue}>${order.costoEnvio.toFixed(2)}</Text>
+              </View>
+            )}
+            {(order.descuento || 0) > 0 && (
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: '#10b981' }]}>Descuento</Text>
+                <Text style={[styles.infoValue, { color: '#10b981' }]}>-${(order.descuento || 0).toFixed(2)}</Text>
               </View>
             )}
             <View style={styles.totalRow}>

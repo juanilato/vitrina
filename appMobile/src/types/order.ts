@@ -18,6 +18,12 @@ export type OrderStatus =
 export type TipoEntrega = 'delivery' | 'retiro';
 export type FormaPago = 'transferencia' | 'efectivo';
 
+export interface PromocionAplicada {
+  nombre: string;
+  tipo: string;
+  descuentoAplicado: number;
+}
+
 export interface DeliveryLocation {
   direccion: string;
   lat: number;
@@ -39,6 +45,7 @@ export interface Pedido {
   formaPago: FormaPago;
   metodoPago?: 'efectivo' | 'transferencia';
   subtotal: number;
+  descuento?: number;
   costoEnvio: number;
   total: number;
   direccionEntrega?: string;
@@ -46,6 +53,7 @@ export interface Pedido {
   notas?: string;
   motivoRechazo?: string;
   entregadoAt?: string; // Timestamp de cuando se entregó el pedido
+  promocionesAplicadas?: PromocionAplicada[];
   createdAt: string;
   updatedAt: string;
   // Tiempos estimados de entrega
@@ -74,6 +82,8 @@ export interface ItemPedido {
   cantidad: number;
   precio: number;
   precioUnitario: number;
+  descuento?: number;
+  promocionAplicada?: string;
   notas?: string;
   ingredientesExtras?: IngredienteExtra[];
   producto?: Product;

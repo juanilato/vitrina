@@ -8,10 +8,10 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-generator erd {
-  provider = "prisma-erd-generator"
-  output   = "./ERD.svg" // o "./ERD.png"
-}
+//generator erd {
+//  provider = "prisma-erd-generator"
+//  output   = "./ERD.svg" // o "./ERD.png"
+//}
 
 // ——— Cuenta cliente ———
 model Cliente {
@@ -161,6 +161,8 @@ model Empresa {
   tiempoPreparacionBase Int? @default(15) // Tiempo base de preparación en minutos
   tiempoExtraPorPedido  Int? @default(2)  // Tiempo adicional por cada pedido simultáneo
 
+  promociones Promocion[]
+
   @@index([categoriaId])
 }
 
@@ -304,6 +306,8 @@ model Productos {
   // Relación con categorías de productos (muchos a muchos)
   categorias ProductoCategoria[]
 
+  promociones PromocionProducto[]
+
   @@unique([empresaId, nombre])
   @@index([empresaId])
 }
@@ -428,6 +432,10 @@ model Pedido {
   formaPago     String  @default("transferencia")
   motivoRechazo String?
 
+  // Horario de entrega/retiro preferido
+  tipoHorario String? // "asap" | "scheduled"
+  horario     String? // "14:30"
+
   // Ubicación del pedido (para delivery)
   direccion String?
   lat       Float?
@@ -440,8 +448,13 @@ model Pedido {
 
   // Costos del pedido
   subtotal   Decimal? @db.Decimal(12, 2) // Total de productos sin envío
+  descuento  Decimal? @db.Decimal(12, 2) // Descuento total aplicado
   costoEnvio Decimal? @db.Decimal(12, 2) // Costo de envío calculado
-  total      Decimal? @db.Decimal(12, 2) // Total final (subtotal + envío)
+  total      Decimal? @db.Decimal(12, 2) // Total final (subtotal - descuento + envío)
+
+  // Promociones aplicadas (JSON con info de las promos al momento del pedido)
+  // Estructura: [{ nombre: string, tipo: string, descuentoAplicado: number }]
+  promocionesAplicadas Json?
 
   // Control de valoración
   entregadoAt DateTime? // Fecha y hora de entrega para calcular tiempo de solicitud de valoración
@@ -482,6 +495,8 @@ model ItemPedido {
 
   cantidad Int
   precio   Decimal @db.Decimal(12, 2)
+  descuento Decimal? @db.Decimal(12, 2) // Descuento aplicado a este item
+  promocionAplicada String? // Nombre de la promoción aplicada
 
   // Notas específicas para este item del pedido
   notas String?
@@ -809,4 +824,47 @@ model Valoracion {
   @@index([clienteId])
   @@index([repartidorId])
   @@index([createdAt])
+}
+
+// ——— Promociones ———
+model Promocion {
+  id            String   @id @default(cuid())
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  nombre        String
+  descripcion   String?
+  tipo          TipoPromocion
+  configuracion Json     // { cantidadCompra, porcentajeDescuento, diasAplicables, cantidadPaga, cantidadLleva }
+  alcance       AlcancePromocion @default(TODOS)
+  activo        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  productos     PromocionProducto[]
+
+  @@index([empresaId])
+  @@index([activo])
+}
+
+model PromocionProducto {
+  id          Int       @id @default(autoincrement())
+  promocionId String
+  promocion   Promocion @relation(fields: [promocionId], references: [id], onDelete: Cascade)
+  productoId  String
+  producto    Productos @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@unique([promocionId, productoId])
+  @@index([promocionId])
+  @@index([productoId])
+}
+
+enum TipoPromocion {
+  CANTIDAD
+  DIA
+  BXPY
+}
+
+enum AlcancePromocion {
+  TODOS
+  SELECCIONADOS
 }

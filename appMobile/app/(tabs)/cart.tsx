@@ -48,6 +48,7 @@ export default function CartScreen() {
           companyName: item.companyName,
           items: [],
           subtotal: 0,
+          totalDiscount: 0,
           totalItems: 0,
         };
       }
@@ -72,10 +73,11 @@ export default function CartScreen() {
 
       acc[key].items.push(item);
       acc[key].subtotal += itemTotal;
+      acc[key].totalDiscount += (item.discount || 0);
       acc[key].totalItems += item.quantity;
 
       return acc;
-    }, {} as Record<string, { companyId: string; companyName: string; items: typeof cart.items; subtotal: number; totalItems: number }>);
+    }, {} as Record<string, { companyId: string; companyName: string; items: typeof cart.items; subtotal: number; totalDiscount: number; totalItems: number }>);
 
     return Object.values(grouped);
   }, [cart.items]);
@@ -193,7 +195,27 @@ export default function CartScreen() {
 
             {/* Price and Quantity Row */}
             <View style={styles.itemFooter}>
-              <Text style={styles.itemPrice}>${formatPrice(unitPrice)}</Text>
+              <View>
+                {item.discount && item.discount > 0 ? (
+                  <View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Text style={[styles.itemPrice, { textDecorationLine: 'line-through', color: colors.textTertiary, fontSize: 12 }]}>
+                        ${formatPrice(unitPrice)}
+                      </Text>
+                      <Text style={[styles.itemPrice, { color: colors.success }]}>
+                        ${formatPrice(unitPrice - (item.discount / item.quantity))}
+                      </Text>
+                    </View>
+                    {item.appliedPromotion && (
+                      <Text style={{ fontSize: 10, color: colors.success, fontWeight: '600' }}>
+                        {item.appliedPromotion}
+                      </Text>
+                    )}
+                  </View>
+                ) : (
+                  <Text style={styles.itemPrice}>${formatPrice(unitPrice)}</Text>
+                )}
+              </View>
 
               {/* Quantity Controls */}
               <View style={styles.quantityControls}>
@@ -323,6 +345,17 @@ export default function CartScreen() {
                     <Text style={styles.summaryLabel}>Subtotal</Text>
                     <Text style={styles.summaryValue}>${formatPrice(company.subtotal)}</Text>
                   </View>
+                  {company.totalDiscount > 0 && (
+                    <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryLabel, { color: colors.success }]}>Descuento</Text>
+                      <Text style={[styles.summaryValue, { color: colors.success }]}>-${formatPrice(company.totalDiscount)}</Text>
+                    </View>
+                  )}
+                  <View style={[styles.summaryRow, { marginTop: 4, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border }]}>
+                    <Text style={[styles.summaryLabel, { fontWeight: '700' }]}>Total</Text>
+                    <Text style={[styles.summaryValue, { fontSize: 20 }]}>${formatPrice(company.subtotal - company.totalDiscount)}</Text>
+                  </View>
+
                   <TouchableOpacity
                     style={styles.companyCheckoutButton}
                     onPress={() => handleCheckoutByCompany(company.companyId)}
@@ -332,7 +365,7 @@ export default function CartScreen() {
                       Continuar con este pedido
                     </Text>
                     <Text style={styles.companyCheckoutButtonPrice}>
-                      ${formatPrice(company.subtotal)}
+                      ${formatPrice(company.subtotal - company.totalDiscount)}
                     </Text>
                   </TouchableOpacity>
                 </View>

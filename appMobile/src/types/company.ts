@@ -80,6 +80,33 @@ export interface Company {
   subcategoriaId?: string;
   categoria?: Categoria;
   subcategorias?: Subcategoria[];
+
+  promociones?: Promocion[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum TipoPromocion {
+  CANTIDAD = 'CANTIDAD',
+  DIA = 'DIA',
+  BXPY = 'BXPY',
+}
+
+export enum AlcancePromocion {
+  TODOS = 'TODOS',
+  SELECCIONADOS = 'SELECCIONADOS',
+}
+
+export interface Promocion {
+  id: string;
+  empresaId: string;
+  nombre: string;
+  descripcion?: string;
+  tipo: TipoPromocion;
+  configuracion: any;
+  alcance: AlcancePromocion;
+  activo: boolean;
+  productos?: { productoId: string }[];
   createdAt: string;
   updatedAt: string;
 }

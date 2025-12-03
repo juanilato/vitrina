@@ -160,21 +160,19 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
 
   useEffect(() => {
     // Animar barra de progreso
-    Animated.spring(progressAnim, {
+    Animated.timing(progressAnim, {
       toValue: currentIndex >= 0 ? currentIndex : 0,
-      friction: 8,
-      tension: 40,
+      duration: 300,
       useNativeDriver: false,
     }).start();
 
     // Animar aparición de círculos completados
     steps.forEach((_, index) => {
       if (index <= currentIndex) {
-        Animated.spring(scaleAnims[index], {
+        Animated.timing(scaleAnims[index], {
           toValue: 1,
-          friction: 6,
-          tension: 40,
-          delay: index * 100,
+          duration: 300,
+          delay: index * 50,
           useNativeDriver: true,
         }).start();
       }
@@ -185,13 +183,13 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
       const pulse = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnims[currentIndex], {
-            toValue: 1.3,
-            duration: 800,
+            toValue: 1.15,
+            duration: 1000,
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnims[currentIndex], {
             toValue: 1,
-            duration: 800,
+            duration: 1000,
             useNativeDriver: true,
           }),
         ])

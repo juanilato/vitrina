@@ -6,6 +6,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationsWebSocketGateway } from '../websocket/websocket.gateway';
 import { TempPhotoService } from './services/temp-photo.service';
 import { DeliveryTimeEstimationService } from './services/delivery-time-estimation.service';
+import { PromocionesService } from '../promociones/promociones.service';
 
 @Injectable()
 export class PedidosService {
@@ -15,7 +16,8 @@ export class PedidosService {
     private webSocketGateway: NotificationsWebSocketGateway,
     private tempPhotoService: TempPhotoService,
     private deliveryTimeEstimationService: DeliveryTimeEstimationService,
-  ) {}
+    private promocionesService: PromocionesService,
+  ) { }
 
   // crea pedido
   async create(createPedidoDto: CreatePedidoDto): Promise<PedidoWithItems> {
@@ -117,10 +119,10 @@ export class PedidosService {
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a =
-          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-          Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const distanciaKm = R * c;
 
         // Buscar precio de envío según distancia
@@ -142,7 +144,21 @@ export class PedidosService {
         }
       }
 
-      const totalFinal = subtotal + costoEnvio;
+
+
+      // Calcular descuentos
+      const itemsForDiscount = itemsConPrecios.map(item => ({
+        productoId: item.productoId,
+        cantidad: item.cantidad,
+        precioBase: parseFloat(productos.find(p => p.id === item.productoId)?.precio.toString() || '0')
+      }));
+
+      const { totalDiscount, itemDiscounts, promocionesAplicadas } = await this.promocionesService.calculateOrderDiscounts(
+        createPedidoDto.empresaId,
+        itemsForDiscount
+      );
+
+      const totalFinal = subtotal - totalDiscount + costoEnvio;
 
       // Manejar foto de transferencia si existe
       let transferenciaFotoFileName: string | null = null;
@@ -171,8 +187,10 @@ export class PedidosService {
             lat: createPedidoDto.ubicacion?.lat || null,
             lng: createPedidoDto.ubicacion?.lng || null,
             subtotal: subtotal,
+            descuento: totalDiscount,
             costoEnvio: costoEnvio,
             total: totalFinal,
+            promocionesAplicadas: promocionesAplicadas.length > 0 ? promocionesAplicadas : null,
           }
         });
 
@@ -190,14 +208,19 @@ export class PedidosService {
         }
 
         // Crear los items del pedido con precios calculados
-        const itemsData = itemsConPrecios.map(item => ({
-          pedidoId: newPedido.id,
-          productoId: item.productoId,
-          cantidad: item.cantidad,
-          precio: item.precioCalculado, // Precio ya calculado con extras
-          notas: item.notas || null,
-          ingredientesExtras: item.ingredientesExtras ? JSON.stringify(item.ingredientesExtras) : null,
-        }));
+        const itemsData = itemsConPrecios.map(item => {
+          const discountInfo = itemDiscounts.get(item.productoId);
+          return {
+            pedidoId: newPedido.id,
+            productoId: item.productoId,
+            cantidad: item.cantidad,
+            precio: item.precioCalculado, // Precio ya calculado con extras
+            descuento: discountInfo?.discount || 0,
+            promocionAplicada: discountInfo?.promotionName || null,
+            notas: item.notas || null,
+            ingredientesExtras: item.ingredientesExtras ? JSON.stringify(item.ingredientesExtras) : null,
+          };
+        });
 
         await prisma.itemPedido.createMany({
           data: itemsData
@@ -306,6 +329,10 @@ export class PedidosService {
         where: { email: clienteEmail }
       });
 
+      if (!cliente) {
+        throw new NotFoundException('Cliente no encontrado');
+      }
+
       // Convertir Decimal a number para compatibilidad con el frontend
       return await Promise.all(pedidos.map(async (pedido) => ({
         id: pedido.id,
@@ -324,6 +351,7 @@ export class PedidosService {
         repartidorLng: pedido.repartidorLng,
         repartidorUltActualizacion: pedido.repartidorUltActualizacion,
         subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : 0,
+        descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
         createdAt: pedido.createdAt,
@@ -354,8 +382,10 @@ export class PedidosService {
             console.log('📦 Es array?:', Array.isArray(extrasArray));
 
             if (Array.isArray(extrasArray) && extrasArray.length > 0) {
-              ingredientesExtrasDetallados = await Promise.all(
+              ingredientesExtrasDetallados = (await Promise.all(
                 extrasArray.map(async (extra: any) => {
+                  if (!extra.productoIngredienteId) return null;
+
                   console.log('🔎 Buscando productoIngrediente ID:', extra.productoIngredienteId);
 
                   const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
@@ -372,16 +402,18 @@ export class PedidosService {
 
                   console.log('📍 ProductoIngrediente encontrado:', productoIngrediente);
 
+                  if (!productoIngrediente) return null;
+
                   return {
                     productoIngredienteId: extra.productoIngredienteId,
                     cantidad: extra.cantidad,
-                    ingrediente: productoIngrediente?.ingrediente,
-                    precioExtra: productoIngrediente?.precioExtra
+                    ingrediente: productoIngrediente.ingrediente,
+                    precioExtra: productoIngrediente.precioExtra
                       ? parseFloat(productoIngrediente.precioExtra.toString())
                       : undefined
                   };
                 })
-              );
+              )).filter(item => item !== null);
               console.log('✨ ingredientesExtrasDetallados:', ingredientesExtrasDetallados);
             }
           }
@@ -400,12 +432,18 @@ export class PedidosService {
               nombre: item.producto.nombre,
               name: item.producto.nombre,
               precio: item.producto.precio ? parseFloat(item.producto.precio.toString()) : 0
-            }
+            },
+            descuento: item.descuento ? parseFloat(item.descuento.toString()) : 0,
+            promocionAplicada: item.promocionAplicada
           };
         })),
       })));
     } catch (error) {
-      throw new BadRequestException('Error al obtener pedidos del cliente');
+      console.error('Error al obtener pedidos del cliente:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al obtener pedidos del cliente: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -456,6 +494,7 @@ export class PedidosService {
         repartidorLng: pedido.repartidorLng,
         repartidorUltActualizacion: pedido.repartidorUltActualizacion,
         subtotal: pedido.subtotal ? parseFloat(pedido.subtotal.toString()) : 0,
+        descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
         createdAt: pedido.createdAt,
@@ -533,7 +572,9 @@ export class PedidosService {
               nombre: item.producto.nombre,
               name: item.producto.nombre,
               precio: item.producto.precio ? parseFloat(item.producto.precio.toString()) : 0
-            }
+            },
+            descuento: item.descuento ? parseFloat(item.descuento.toString()) : 0,
+            promocionAplicada: item.promocionAplicada
           };
         })),
       })));
@@ -683,7 +724,9 @@ export class PedidosService {
               nombre: item.producto.nombre,
               name: item.producto.nombre, // Alias for frontend compatibility
               precio: item.producto.precio ? parseFloat(item.producto.precio.toString()) : 0
-            }
+            },
+            descuento: item.descuento ? parseFloat(item.descuento.toString()) : 0,
+            promocionAplicada: item.promocionAplicada
           };
         })),
       } as any;
@@ -830,11 +873,11 @@ export class PedidosService {
   async getStats(empresaId: string) {
     try {
       const [
-        total, 
-        pendientesConfirmacion, 
-        confirmados, 
+        total,
+        pendientesConfirmacion,
+        confirmados,
         noConfirmados,
-        enProceso, 
+        enProceso,
         esperandoDelivery,
         enCamino,
         entregados,
@@ -886,7 +929,7 @@ export class PedidosService {
       // Actualizar el pedido a estado no_confirmado
       const pedidoActualizado = await this.prisma.pedido.update({
         where: { id },
-        data: { 
+        data: {
           estado: 'no_confirmado',
           motivoRechazo: motivo || null
         }
@@ -972,14 +1015,14 @@ export class PedidosService {
       const fs = require('fs');
       const path = require('path');
       const tempDir = this.tempPhotoService['tempDir'];
-      
+
       if (!fs.existsSync(tempDir)) {
         return null;
       }
 
       const files = fs.readdirSync(tempDir);
       const fotoFile = files.find(file => file.includes(`_${pedidoId}_`));
-      
+
       if (!fotoFile) {
         return null;
       }
@@ -991,7 +1034,7 @@ export class PedidosService {
 
       // Extraer tipo MIME del Base64
       const mimeType = base64.split(';')[0].split(':')[1];
-      
+
       return { base64, mimeType };
     } catch (error) {
       console.error('Error obteniendo foto de transferencia:', error);

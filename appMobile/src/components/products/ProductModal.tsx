@@ -19,7 +19,7 @@ import {
   Easing,
   Dimensions,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
+// import { BlurView } from 'expo-blur'; // Removed for better online compatibility
 import { Ionicons } from '@expo/vector-icons';
 import { Product, Agregado } from '../../types/company';
 import { CartIngredienteExtra } from '../../types/cart';
@@ -108,8 +108,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   // Animación de rebote al cambiar el precio
   useEffect(() => {
     Animated.sequence([
-      Animated.spring(scaleAnim, { toValue: 1.1, useNativeDriver: true, tension: 100 }),
-      Animated.spring(scaleAnim, { toValue: 1, friction: 3, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1.05, duration: 150, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
     ]).start();
   }, [total]);
 
@@ -154,7 +154,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
         <View style={styles.modalContainer}>
           {/* Header con drag handle */}
           <View style={styles.header}>

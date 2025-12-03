@@ -15,7 +15,7 @@ import EnvioToggle from './components/EnvioToggle';
 import ColorPicker from './components/ColorPicker';
 import CalendarSchedule from './components/ScheduleEditor';
 import ImageUploader from './components/imageUploader';
-import {LiveSitePreview} from './components/liveWebPage';
+import { LiveSitePreview } from './components/liveWebPage';
 import AliasesEditor from './components/AliasEditor';
 import SocialLinksEditor from './components/SocialLinksEditor';
 import CatalogQRGenerator from './components/CatalogQRGenerator';
@@ -81,11 +81,11 @@ const PreferencesTab: React.FC = () => {
     }
 
     const payload: UpdatePreferenciasPayload = {
-      empresaId: empresaData.id,
-      colorBotones: preferences.colorBotones || null,
-      colorFondo: preferences.colorFondo || null,
+      empresaId: String(empresaData.id),
+      colorBotones: preferences.colorBotones || undefined,
+      colorFondo: preferences.colorFondo || undefined,
       envioDomicilio: preferences.envioDomicilio,
-      dashboardFoto: preferences.dashboardFotoUrl || null,
+      dashboardFoto: preferences.dashboardFotoUrl || undefined,
       horarios: DAYS.flatMap(({ key }) =>
         (preferences.schedule[key] || []).map((slot, idx) => {
           const [oh, om] = slot.open.split(':').map(Number);
@@ -93,8 +93,8 @@ const PreferencesTab: React.FC = () => {
           return {
             day: key,
             slotIndex: idx,
-            abreMin: (oh || 0) * 60 + (om || 0),
-            cierraMin: (ch || 0) * 60 + (cm || 0),
+            abreMin: Math.min(1440, Math.max(0, (oh || 0) * 60 + (om || 0))),
+            cierraMin: Math.min(1440, Math.max(0, (ch || 0) * 60 + (cm || 0))),
             cerrado: false,
           };
         })
@@ -200,7 +200,7 @@ const PreferencesTab: React.FC = () => {
           </div>
 
           {/* Segmented control (horizontal) */}
-      <nav className="seg-tabs minimal" role="tablist" aria-label="Secciones de preferencias">
+          <nav className="seg-tabs minimal" role="tablist" aria-label="Secciones de preferencias">
             {[
               { id: 'logos', label: 'Logos' },
               { id: 'appearance', label: 'Apariencia' },
@@ -240,7 +240,7 @@ const PreferencesTab: React.FC = () => {
                   await uploadFoto(file, false);
                   setPreferences(prev => ({ ...prev }));
                 }}
-                onRemove={() => {}}
+                onRemove={() => { }}
               />
               <ImageUploader
                 label="Foto de fondo"

@@ -20,6 +20,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { ValoracionesModule } from './valoraciones/valoraciones.module';
 import { CategoriasProductoModule } from './categorias-producto/categorias-producto.module';
 import { PreferenciasClienteModule } from './preferencias-cliente/preferencias-cliente.module';
+import { PromocionesModule } from './promociones/promociones.module';
 
 
 @Module({
@@ -41,8 +42,9 @@ import { PreferenciasClienteModule } from './preferencias-cliente/preferencias-c
     ValoracionesModule,
     CategoriasProductoModule,
     PreferenciasClienteModule,
+    PromocionesModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
-export class AppModule {}
+export class AppModule { }

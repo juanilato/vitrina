@@ -385,6 +385,42 @@ const OrderModal: React.FC<OrderModalProps> = ({
             </div>
           )}
 
+          {/* Promociones Aplicadas */}
+          {pedido.promocionesAplicadas && pedido.promocionesAplicadas.length > 0 && (
+            <div className="order-modal-section">
+              <h3 className="modal-section-title">
+                🏷️ Promociones Aplicadas
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {pedido.promocionesAplicadas.map((promo, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      backgroundColor: '#f0fdf4',
+                      border: '1px solid #86efac',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: '600', color: '#15803d' }}>{promo.nombre}</div>
+                      <div style={{ fontSize: '12px', color: '#16a34a', marginTop: '4px' }}>
+                        {promo.tipo === 'CANTIDAD' && 'Descuento por cantidad'}
+                        {promo.tipo === 'BXPY' && 'Lleva y Paga'}
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: '700', color: '#15803d', fontSize: '16px' }}>
+                      -${promo.descuentoAplicado.toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Lista de Items */}
           <div className="order-modal-section">
             <h3 className="modal-section-title">
@@ -423,7 +459,23 @@ const OrderModal: React.FC<OrderModalProps> = ({
                       </div>
                     </div>
                     <div className="order-modal-item-subtotal">
-                      ${(item.precio * item.cantidad).toFixed(2)}
+                      {item.descuento && item.descuento > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                          <span style={{ textDecoration: 'line-through', fontSize: '0.85em', color: '#9ca3af' }}>
+                            ${(item.precio * item.cantidad).toFixed(2)}
+                          </span>
+                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                            ${((item.precio * item.cantidad) - item.descuento).toFixed(2)}
+                          </span>
+                          {item.promocionAplicada && (
+                            <span style={{ fontSize: '0.75em', color: '#10b981' }}>
+                              {item.promocionAplicada}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        `$${(item.precio * item.cantidad).toFixed(2)}`
+                      )}
                     </div>
                   </div>
                 );
@@ -443,6 +495,13 @@ const OrderModal: React.FC<OrderModalProps> = ({
                 <div className="order-modal-total-row">
                   <span>Envío</span>
                   <span>${pedido.costoEnvio.toFixed(2)}</span>
+                </div>
+              )}
+
+              {pedido.descuento !== undefined && pedido.descuento > 0 && (
+                <div className="order-modal-total-row">
+                  <span style={{ color: '#10b981' }}>Descuento</span>
+                  <span style={{ color: '#10b981' }}>-${pedido.descuento.toFixed(2)}</span>
                 </div>
               )}
 

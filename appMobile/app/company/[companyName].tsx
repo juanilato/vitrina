@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -443,14 +444,74 @@ export default function CompanyStoreScreen() {
           }] : [])
         ]}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ProductCard
-            product={item}
-            onPress={() => handleProductPress(item)}
-            onAddToCart={() => handleQuickAddToCart(item.id)}
-            buttonColor={buttonColor}
-          />
-        )}
+        renderItem={({ item }) => {
+          // 1. Find applicable promotions
+          const activePromotions = company.promociones?.filter(promo => {
+            if (!promo.activo) return false;
+
+            // Check scope
+            if (promo.alcance === 'SELECCIONADOS') {
+              // Check if product is in the list
+              // Note: backend returns 'productos' as PromocionProducto[] which has 'productoId'
+              const isIncluded = promo.productos?.some((p: any) => p.productoId === item.id);
+              if (!isIncluded) return false;
+            }
+
+            // Check days (optional, but good to have)
+            if (promo.configuracion?.diasAplicables?.length > 0) {
+              const today = new Date().getDay(); // 0 = Sunday, 1 = Monday...
+              // Our DAYS_OF_WEEK map: 0=Domingo, 1=Lunes... matches JS getDay()
+              if (!promo.configuracion.diasAplicables.includes(today)) return false;
+            }
+
+            return true;
+          }) || [];
+
+          // 2. Calculate best discounted price
+          let bestPrice = item.precio;
+          let hasDiscount = false;
+
+          activePromotions.forEach(promo => {
+            let currentPrice = item.precio;
+
+            if (promo.tipo === 'CANTIDAD') {
+              // Direct discount (quantity 1) or volume discount
+              // If quantity > 1, it's conditional, but we might want to show the potential price?
+              // For now, let's strictly apply strike-through only for direct unit discounts (quantity === 1)
+              // OR if the user wants to see the "offer" price.
+              // The user said: "if it says 10 percent off... price must be crossed out".
+              // Let's assume this applies primarily to direct discounts.
+              if (promo.configuracion.cantidadCompra === 1 && promo.configuracion.porcentajeDescuento) {
+                const discount = (item.precio * promo.configuracion.porcentajeDescuento) / 100;
+                currentPrice = item.precio - discount;
+              }
+            }
+
+            // else if (promo.tipo === 'BXPY') {
+            //   // Effective price per unit: (Paga / Lleva) * Precio
+            //   if (promo.configuracion.cantidadLleva && promo.configuracion.cantidadPaga) {
+            //     const ratio = promo.configuracion.cantidadPaga / promo.configuracion.cantidadLleva;
+            //     currentPrice = item.precio * ratio;
+            //   }
+            // }
+
+            if (currentPrice < bestPrice) {
+              bestPrice = currentPrice;
+              hasDiscount = true;
+            }
+          });
+
+          return (
+            <ProductCard
+              product={item}
+              onPress={() => handleProductPress(item)}
+              onAddToCart={() => handleQuickAddToCart(item.id)}
+              buttonColor={buttonColor}
+              promotions={activePromotions}
+              discountedPrice={hasDiscount ? bestPrice : undefined}
+            />
+          );
+        }}
         renderSectionHeader={({ section }) => (
           <View style={styles.categoryHeader}>
             {section.icon && <Text style={styles.categoryIcon}>{section.icon}</Text>}
@@ -467,6 +528,33 @@ export default function CompanyStoreScreen() {
             {company.description && (
               <View style={styles.descriptionCard}>
                 <Text style={styles.description}>{company.description}</Text>
+              </View>
+            )}
+
+            {/* Promotions Section */}
+            {company.promociones && company.promociones.length > 0 && (
+              <View style={styles.promotionsSection}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="pricetag" size={14} color={colors.textSecondary} />
+                  <Text style={styles.sectionTitle}>Promociones</Text>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.promotionsList}>
+                  {company.promociones.map((promo) => (
+                    <View key={promo.id} style={styles.promotionCard}>
+                      <View style={[styles.promotionIconContainer, { backgroundColor: `${buttonColor}15` }]}>
+                        <Ionicons name="gift" size={16} color={buttonColor} />
+                      </View>
+                      <View style={styles.promotionInfo}>
+                        <Text style={styles.promotionName}>{promo.nombre}</Text>
+                        {promo.descripcion && (
+                          <Text style={styles.promotionDescription} numberOfLines={2}>
+                            {promo.descripcion}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
               </View>
             )}
 
@@ -1286,5 +1374,64 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   categoryChipTextSelected: {
     fontWeight: '700',
     color: colors.gray900,
+  },
+
+  promotionsSection: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.xs,
+    gap: 6,
+  },
+  sectionTitle: {
+    ...textStyles.subheadline,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  promotionsList: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  promotionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: isDark ? colors.gray100 : colors.gray50,
+    borderRadius: 8,
+    padding: spacing.sm,
+    width: 240,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: isDark ? colors.gray200 : colors.gray200,
+  },
+  promotionIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  promotionInfo: {
+    flex: 1,
+  },
+  promotionName: {
+    ...textStyles.caption1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 0,
+  },
+  promotionDescription: {
+    ...textStyles.caption2,
+    color: colors.textTertiary,
+    fontSize: 11,
+    lineHeight: 14,
   },
 });

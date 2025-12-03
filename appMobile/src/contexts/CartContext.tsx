@@ -9,6 +9,7 @@ import { Alert } from 'react-native';
 import { Product, Agregado } from '../types/company';
 import { CartItem, Cart, CheckoutData, DeliveryType, PaymentMethod, CartIngredienteExtra } from '../types/cart';
 import { STORAGE_KEYS } from '../utils/constants';
+import { promotionsService, Promocion } from '../services/promotions.service';
 
 interface CartContextData {
   cart: Cart;
@@ -47,17 +48,11 @@ interface CartContextData {
 const CartContext = createContext<CartContextData>({} as CartContextData);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [cart, setCart] = useState<Cart>({
-    items: [],
-    totalItems: 0,
-    subtotal: 0,
-    deliveryFee: 0,
-    total: 0,
-    companyId: undefined,
-  });
-  const [loading, setLoading] = useState(true);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [deliveryFee, setDeliveryFeeState] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+  const [promotions, setPromotions] = useState<Record<string, Promocion[]>>({});
 
   // Load cart from storage on mount
   useEffect(() => {
@@ -69,19 +64,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!loading) {
       saveCart();
     }
-  }, [cart, loading]);
-
-  // Recalculate totals whenever items or delivery fee change
-  useEffect(() => {
-    recalculateTotals();
-  }, [cart.items, deliveryFee]);
+  }, [cartItems, deliveryFee, loading]);
 
   const loadCart = async () => {
     try {
       const cartData = await AsyncStorage.getItem(STORAGE_KEYS.CART);
       if (cartData) {
         const savedCart: Cart = JSON.parse(cartData);
-        setCart(savedCart);
+        setCartItems(savedCart.items || []);
+        setDeliveryFeeState(savedCart.deliveryFee || 0);
+
+        // Fetch promotions for companies in the cart
+        const companies = new Set(savedCart.items.map(item => item.companyId));
+        companies.forEach(companyId => fetchPromotions(companyId));
       }
     } catch (error) {
       console.error('Error loading cart:', error);
@@ -89,6 +84,68 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   };
+
+  // Calculate derived cart state
+  const cart = React.useMemo(() => {
+    let subtotal = 0;
+    let totalDiscount = 0;
+    let totalItems = 0;
+
+    const itemsWithDiscounts = cartItems.map(item => {
+      // Calculate item subtotal
+      const priceRaw = item.product.precio || item.product.price || 0;
+      const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+
+      const agregadosPrice = item.agregados?.reduce(
+        (sum, agregado) => {
+          const agregadoPrecio = typeof agregado.precio === 'string'
+            ? parseFloat(agregado.precio)
+            : agregado.precio;
+          return sum + agregadoPrecio;
+        },
+        0
+      ) || 0;
+
+      const ingredientesExtrasPrice = item.ingredientesExtras?.reduce(
+        (sum, ingredienteExtra) => {
+          const precioExtra = ingredienteExtra.productoIngrediente.precioExtra;
+          const precio = typeof precioExtra === 'string'
+            ? parseFloat(precioExtra)
+            : (precioExtra || 0);
+          return sum + (precio * ingredienteExtra.cantidad);
+        },
+        0
+      ) || 0;
+
+      const itemSubtotal = (price + agregadosPrice + ingredientesExtrasPrice) * item.quantity;
+      subtotal += itemSubtotal;
+      totalItems += item.quantity;
+
+      // Calculate Discount
+      const companyPromotions = promotions[item.companyId] || [];
+      const { discount, promotionName } = calculateItemDiscount(item, companyPromotions);
+
+      totalDiscount += discount;
+
+      return {
+        ...item,
+        discount,
+        appliedPromotion: promotionName
+      };
+    });
+
+    const total = subtotal - totalDiscount + deliveryFee;
+
+    return {
+      items: itemsWithDiscounts,
+      totalItems,
+      subtotal,
+      totalDiscount,
+      deliveryFee,
+      total: Math.max(0, total),
+      companyId: undefined,
+    };
+  }, [cartItems, deliveryFee, promotions]);
 
   const saveCart = async () => {
     try {
@@ -98,53 +155,87 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const recalculateTotals = () => {
-    setCart((prev) => {
-      const totalItems = prev.items.reduce((sum, item) => sum + item.quantity, 0);
-      const subtotal = prev.items.reduce(
-        (sum, item) => {
-          // Convertir precio a número (puede venir como string del backend)
-          const priceRaw = item.product.precio || item.product.price || 0;
-          const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+  const fetchPromotions = async (companyId: string) => {
+    if (promotions[companyId]) return; // Already loaded
 
-          // Calcular precio con agregados (sistema antiguo)
-          const agregadosPrice = item.agregados?.reduce(
-            (sum, agregado) => {
-              const agregadoPrecio = typeof agregado.precio === 'string'
-                ? parseFloat(agregado.precio)
-                : agregado.precio;
-              return sum + agregadoPrecio;
-            },
-            0
-          ) || 0;
-
-          // Calcular precio con ingredientes extras (sistema nuevo)
-          const ingredientesExtrasPrice = item.ingredientesExtras?.reduce(
-            (sum, ingredienteExtra) => {
-              const precioExtra = ingredienteExtra.productoIngrediente.precioExtra;
-              const precio = typeof precioExtra === 'string'
-                ? parseFloat(precioExtra)
-                : (precioExtra || 0);
-              return sum + (precio * ingredienteExtra.cantidad);
-            },
-            0
-          ) || 0;
-
-          return sum + (price + agregadosPrice + ingredientesExtrasPrice) * item.quantity;
-        },
-        0
-      );
-      const total = subtotal + deliveryFee;
-
-      return {
-        ...prev,
-        totalItems,
-        subtotal,
-        deliveryFee,
-        total,
-      };
-    });
+    try {
+      const data = await promotionsService.getByEmpresa(companyId);
+      setPromotions(prev => ({ ...prev, [companyId]: data }));
+    } catch (error) {
+      console.error('Error fetching promotions for company:', companyId, error);
+    }
   };
+
+  // Helper function for discount calculation (moved inside or kept outside, here inside for access to helpers if needed, but it's pure logic)
+  function calculateItemDiscount(item: CartItem, companyPromotions: Promocion[]): { discount: number; promotionName?: string } {
+    const today = new Date().getDay(); // 0=Sunday, 1=Monday...
+
+    // Filter applicable promotions
+    const applicablePromos = companyPromotions.filter(p => {
+      if (!p.activo) return false;
+
+      // Check days
+      if (p.configuracion.diasAplicables && p.configuracion.diasAplicables.length > 0) {
+        if (!p.configuracion.diasAplicables.includes(today)) return false;
+      }
+
+      // Check scope (alcance)
+      if (p.alcance === 'SELECCIONADOS') {
+        const productInPromo = p.productos?.some(pp => pp.producto.id === item.product.id);
+        if (!productInPromo) return false;
+      }
+
+      return true;
+    });
+
+    let bestDiscount = 0;
+    let bestPromoName = undefined;
+
+    // Calculate price per unit (including extras)
+    const priceRaw = item.product.precio || item.product.price || 0;
+    const basePrice = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+
+    const agregadosPrice = item.agregados?.reduce((sum, agg) => sum + (typeof agg.precio === 'string' ? parseFloat(agg.precio) : agg.precio), 0) || 0;
+
+    const extrasPrice = item.ingredientesExtras?.reduce((sum, extra) => {
+      const pExtra = extra.productoIngrediente.precioExtra;
+      return sum + (typeof pExtra === 'string' ? parseFloat(pExtra) : (pExtra || 0)) * extra.cantidad;
+    }, 0) || 0;
+
+    const unitPrice = basePrice + agregadosPrice + extrasPrice;
+    const totalItemPrice = unitPrice * item.quantity;
+
+    for (const promo of applicablePromos) {
+      let currentDiscount = 0;
+
+      if (promo.tipo === 'CANTIDAD') {
+        const minQty = promo.configuracion.cantidadCompra || 1;
+        if (item.quantity >= minQty) {
+          const percentage = promo.configuracion.porcentajeDescuento || 0;
+          currentDiscount = totalItemPrice * (percentage / 100);
+        }
+      } else if (promo.tipo === 'BXPY') {
+        const lleva = promo.configuracion.cantidadLleva || 2;
+        const paga = promo.configuracion.cantidadPaga || 1;
+
+        if (item.quantity >= lleva) {
+          const sets = Math.floor(item.quantity / lleva);
+          const remainder = item.quantity % lleva;
+          const payableQty = (sets * paga) + remainder;
+          const freeQty = item.quantity - payableQty;
+
+          currentDiscount = freeQty * unitPrice;
+        }
+      }
+
+      if (currentDiscount > bestDiscount) {
+        bestDiscount = currentDiscount;
+        bestPromoName = promo.nombre;
+      }
+    }
+
+    return { discount: bestDiscount, promotionName: bestPromoName };
+  }
 
   const addItem = useCallback(
     (
@@ -156,30 +247,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       notes?: string,
       ingredientesExtras?: CartIngredienteExtra[]
     ) => {
-      setCart((prev) => {
-        // Ahora permitimos múltiples empresas en el carrito
+      // Fetch promotions for this company if not present
+      fetchPromotions(companyId);
+
+      setCartItems((prevItems) => {
         // Con agregados, ingredientes extras o notas, siempre agregar como item nuevo (no combinar)
         if ((agregados && agregados.length > 0) || (ingredientesExtras && ingredientesExtras.length > 0)) {
-          return {
-            ...prev,
-            items: [
-              ...prev.items,
-              {
-                product,
-                quantity,
-                companyId,
-                companyName,
-                agregados,
-                ingredientesExtras,
-                notes,
-              },
-            ],
-            companyId: undefined, // Ya no usamos un solo companyId
-          };
+          return [
+            ...prevItems,
+            {
+              product,
+              quantity,
+              companyId,
+              companyName,
+              agregados,
+              ingredientesExtras,
+              notes,
+            },
+          ];
         }
 
         // Check if product already exists in cart (sin agregados ni ingredientes extras)
-        const existingItemIndex = prev.items.findIndex(
+        const existingItemIndex = prevItems.findIndex(
           (item) =>
             item.product.id === product.id &&
             item.companyId === companyId &&
@@ -189,59 +278,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (existingItemIndex > -1) {
           // Update quantity of existing item
-          const newItems = [...prev.items];
+          const newItems = [...prevItems];
           newItems[existingItemIndex] = {
             ...newItems[existingItemIndex],
             quantity: newItems[existingItemIndex].quantity + quantity,
           };
-
-          return {
-            ...prev,
-            items: newItems,
-          };
+          return newItems;
         }
 
         // Add new item
-        return {
-          ...prev,
-          items: [
-            ...prev.items,
-            {
-              product,
-              quantity,
-              companyId,
-              companyName,
-            },
-          ],
-          companyId: undefined, // Ya no usamos un solo companyId
-        };
+        return [
+          ...prevItems,
+          {
+            product,
+            quantity,
+            companyId,
+            companyName,
+          },
+        ];
       });
     },
     []
   );
 
   const removeItem = useCallback((productId: string) => {
-    setCart((prev) => {
-      const newItems = prev.items.filter((item) => item.product.id !== productId);
-
-      return {
-        ...prev,
-        items: newItems,
-        companyId: newItems.length === 0 ? undefined : prev.companyId,
-      };
-    });
+    setCartItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
   }, []);
 
   const removeItemsByCompany = useCallback((companyId: string) => {
-    setCart((prev) => {
-      const newItems = prev.items.filter((item) => item.companyId !== companyId);
-
-      return {
-        ...prev,
-        items: newItems,
-        companyId: newItems.length === 0 ? undefined : prev.companyId,
-      };
-    });
+    setCartItems((prevItems) => prevItems.filter((item) => item.companyId !== companyId));
   }, []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
@@ -250,50 +315,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    setCart((prev) => {
-      const itemIndex = prev.items.findIndex((item) => item.product.id === productId);
-      if (itemIndex === -1) return prev;
+    setCartItems((prevItems) => {
+      const itemIndex = prevItems.findIndex((item) => item.product.id === productId);
+      if (itemIndex === -1) return prevItems;
 
-      const newItems = [...prev.items];
+      const newItems = [...prevItems];
       newItems[itemIndex] = {
         ...newItems[itemIndex],
         quantity,
       };
-
-      return {
-        ...prev,
-        items: newItems,
-      };
+      return newItems;
     });
   }, [removeItem]);
 
   const updateItemNotes = useCallback((productId: string, notes: string) => {
-    setCart((prev) => {
-      const itemIndex = prev.items.findIndex((item) => item.product.id === productId);
-      if (itemIndex === -1) return prev;
+    setCartItems((prevItems) => {
+      const itemIndex = prevItems.findIndex((item) => item.product.id === productId);
+      if (itemIndex === -1) return prevItems;
 
-      const newItems = [...prev.items];
+      const newItems = [...prevItems];
       newItems[itemIndex] = {
         ...newItems[itemIndex],
         notes,
       };
-
-      return {
-        ...prev,
-        items: newItems,
-      };
+      return newItems;
     });
   }, []);
 
   const clearCart = useCallback(() => {
-    setCart({
-      items: [],
-      totalItems: 0,
-      subtotal: 0,
-      deliveryFee: 0,
-      total: 0,
-      companyId: undefined,
-    });
+    setCartItems([]);
     setDeliveryFeeState(0);
     setCheckoutData(null);
   }, []);

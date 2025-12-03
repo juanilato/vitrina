@@ -95,6 +95,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
       };
     }
 
+    // Verificar si está abierto actualmente
+    // Los horarios que cruzan medianoche ya vienen divididos desde el backend,
+    // por lo que la validación normal funciona correctamente
     const isCurrentlyOpen = todayHorarios.some(
       (h) => currentMinutes >= h.abreMin && currentMinutes < h.cierraMin
     );
@@ -105,7 +108,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
         (h) => currentMinutes >= h.abreMin && currentMinutes < h.cierraMin
       );
       status = slot
-        ? `Abierto · Cierra ${formatTime(slot.cierraMin)}`
+        ? `Abierto · Cierra ${formatTime(slot.cierraMin === 1440 ? 0 : slot.cierraMin)}`
         : 'Abierto';
     } else {
       const next = todayHorarios.find((h) => currentMinutes < h.abreMin);
@@ -201,7 +204,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
                 .sort((a, b) => a.slotIndex - b.slotIndex)
                 .map((horario, i) => (
                   <Text key={i} style={styles.todayTimeText}>
-                    {formatTime(horario.abreMin)}-{formatTime(horario.cierraMin)}
+                    {formatTime(horario.abreMin)}-{formatTime(horario.cierraMin === 1440 ? 0 : horario.cierraMin)}
                   </Text>
                 ))}
             </View>
@@ -260,7 +263,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
                       .sort((a, b) => a.slotIndex - b.slotIndex)
                       .map((h, i) => (
                         <Text key={i} style={styles.timeText}>
-                          {formatTime(h.abreMin)}-{formatTime(h.cierraMin)}
+                          {formatTime(h.abreMin)}-{formatTime(h.cierraMin === 1440 ? 0 : h.cierraMin)}
                         </Text>
                       ))}
                   </View>

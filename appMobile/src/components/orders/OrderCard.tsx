@@ -55,7 +55,29 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
     >
       {/* Header con estado y fecha */}
       <View style={styles.header}>
-        <Text style={styles.date}>{formatDate(order.createdAt)}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={styles.date}>{formatDate(order.createdAt)}</Text>
+          {(order.descuento || 0) > 0 && order.promocionesAplicadas && order.promocionesAplicadas.length > 0 && (
+            <View style={{
+              backgroundColor: '#10b981',
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4
+            }}>
+              <Ionicons name="pricetag" size={12} color={colors.white} />
+              <Text style={{ fontSize: 10, color: colors.white, fontWeight: '700' }}>
+                {order.promocionesAplicadas.length === 1
+                  ? order.promocionesAplicadas[0].nombre.length > 15
+                    ? order.promocionesAplicadas[0].nombre.substring(0, 12) + '...'
+                    : order.promocionesAplicadas[0].nombre
+                  : `${order.promocionesAplicadas.length} Promos`}
+              </Text>
+            </View>
+          )}
+        </View>
         <OrderStatusBadge status={order.estado as any} />
       </View>
 
@@ -84,11 +106,29 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
                 <Text style={styles.productQuantityText}>{item.cantidad}x</Text>
               </View>
               <Text style={styles.productName} numberOfLines={1}>
-                {item.producto?.nombre || item.customizacion?.nombre || 'Producto'}
+                {item.producto?.nombre || 'Producto'}
               </Text>
-              <Text style={styles.productPrice}>
-                ${(item.precioUnitario * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </Text>
+              <View style={{ alignItems: 'flex-end' }}>
+                {item.descuento && item.descuento > 0 ? (
+                  <>
+                    <Text style={[styles.productPrice, { textDecorationLine: 'line-through', color: '#9ca3af', fontSize: 12 }]}>
+                      ${(item.precio * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                    </Text>
+                    <Text style={[styles.productPrice, { color: '#10b981' }]}>
+                      ${((item.precio * item.cantidad) - item.descuento).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                    </Text>
+                    {item.promocionAplicada && (
+                      <Text style={{ fontSize: 10, color: '#10b981', fontWeight: '600', marginTop: 2 }}>
+                        {item.promocionAplicada}
+                      </Text>
+                    )}
+                  </>
+                ) : (
+                  <Text style={styles.productPrice}>
+                    ${(item.precio * item.cantidad).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  </Text>
+                )}
+              </View>
             </View>
           ))}
         </View>
@@ -170,7 +210,14 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
       {/* Footer */}
       <View style={styles.footer}>
         <View style={styles.totalSection}>
-          <Text style={styles.totalLabel}>Total</Text>
+          <View>
+            <Text style={styles.totalLabel}>Total</Text>
+            {(order.descuento || 0) > 0 && (
+              <Text style={[styles.totalLabel, { color: '#10b981', fontSize: 11 }]}>
+                Desc. -${(order.descuento || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              </Text>
+            )}
+          </View>
           <Text style={styles.totalAmount}>
             ${(order.total || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
           </Text>

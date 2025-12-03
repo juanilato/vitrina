@@ -179,7 +179,7 @@ export default function CategoryScreen() {
           )}
         </View>
         <Text style={[styles.chipText, isSelected && styles.chipTextSelected]} numberOfLines={1}>
-          {subcategory.nombre} 
+          {subcategory.nombre}
         </Text>
       </TouchableOpacity>
     );
@@ -241,105 +241,117 @@ export default function CategoryScreen() {
               resizeMode="cover"
               imageStyle={styles.backgroundImageStyle}
             >
-            <View style={styles.gradientOverlay}>
-              {/* Logo con borde blanco */}
-              <View style={styles.logoWrapper}>
-                {item.logo ? (
-                  <Image
-                    source={{ uri: item.logo }}
-                    style={styles.logoSmall}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.logoPlaceholder}>
-                    <Ionicons name="business" size={24} color={colors.gray400} />
-                  </View>
-                )}
-              </View>
-
-              {/* Content */}
-              <View style={styles.contentWithBackground}>
-                {/* Nombre en estilo chip */}
-                <View style={styles.nameChip}>
-                  <Text style={styles.nameChipText} numberOfLines={1}>
-                    {item.name}
-                  </Text>
+              <View style={styles.gradientOverlay}>
+                {/* Logo con borde blanco */}
+                <View style={styles.logoWrapper}>
+                  {item.logo ? (
+                    <Image
+                      source={{ uri: item.logo }}
+                      style={styles.logoSmall}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.logoPlaceholder}>
+                      <Ionicons name="business" size={24} color={colors.gray400} />
+                    </View>
+                  )}
                 </View>
 
-                {/* Social Links Row */}
-                {item.redesSociales && item.redesSociales.length > 0 && (
-                  <View style={styles.socialLinksRowCard}>
-                    {item.redesSociales.slice(0, 4).map((social, index) => {
-                      const getSocialIcon = (key: string) => {
-                        const iconMap: Record<string, any> = {
-                          instagram: 'logo-instagram',
-                          facebook: 'logo-facebook',
-                          twitter: 'logo-twitter',
-                          whatsapp: 'logo-whatsapp',
-                          tiktok: 'logo-tiktok',
-                          web: 'globe-outline',
-                        };
-                        return iconMap[key.toLowerCase()] || 'link-outline';
-                      };
+                {/* Content */}
+                <View style={styles.contentWithBackground}>
+                  {/* Nombre en estilo chip */}
+                  <View style={styles.nameChipRow}>
+                    <View style={styles.nameChip}>
+                      <Text style={styles.nameChipText} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                    </View>
+                  </View>
 
-                      return (
-                        <View key={index} style={styles.socialIconCard}>
-                          <Ionicons
-                            name={getSocialIcon(social.key)}
-                            size={16}
-                            color={colors.white}
-                          />
-                        </View>
-                      );
-                    })}
+                  {/* Promotion Badge - Below Name */}
+                  {item.promociones && item.promociones.length > 0 && (
+                    <View style={styles.promotionBadgeGlass}>
+                      <Ionicons name="pricetag" size={12} color={colors.white} />
+                      <Text style={styles.promotionBadgeTextGlass} numberOfLines={1}>
+                        {item.promociones[0].nombre}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Social Links Row */}
+                  {item.redesSociales && item.redesSociales.length > 0 && (
+                    <View style={styles.socialLinksRowCard}>
+                      {item.redesSociales.slice(0, 4).map((social, index) => {
+                        const getSocialIcon = (key: string) => {
+                          const iconMap: Record<string, any> = {
+                            instagram: 'logo-instagram',
+                            facebook: 'logo-facebook',
+                            twitter: 'logo-twitter',
+                            whatsapp: 'logo-whatsapp',
+                            tiktok: 'logo-tiktok',
+                            web: 'globe-outline',
+                          };
+                          return iconMap[key.toLowerCase()] || 'link-outline';
+                        };
+
+                        return (
+                          <View key={index} style={styles.socialIconCard}>
+                            <Ionicons
+                              name={getSocialIcon(social.key)}
+                              size={16}
+                              color={colors.white}
+                            />
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+
+                {/* Horarios - Absolute bottom left */}
+                {item.preferenciasWeb?.horarios && (
+                  <View style={styles.hoursAbsoluteBottomLeft}>
+                    <BusinessHours horarios={item.preferenciasWeb.horarios} compact />
                   </View>
                 )}
+
+                {/* Arrow */}
+                <View style={styles.arrowWhite}>
+                  <Ionicons name="chevron-forward" size={20} color={colors.white} />
+                </View>
               </View>
 
-              {/* Horarios - Absolute bottom left */}
-              {item.preferenciasWeb?.horarios && (
-                <View style={styles.hoursAbsoluteBottomLeft}>
-                  <BusinessHours horarios={item.preferenciasWeb.horarios} compact />
+              {/* Rating Chip - Positioned at bottom right */}
+              {item.rating !== undefined && item.rating > 0 && (
+                <View style={styles.ratingChipAbsolute}>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.ratingChipText}>
+                    {item.rating.toFixed(1)}
+                  </Text>
+                  {item.reviewCount !== undefined && item.reviewCount > 0 && (
+                    <Text style={styles.ratingChipCount}>
+                      ({item.reviewCount})
+                    </Text>
+                  )}
                 </View>
               )}
 
-              {/* Arrow */}
-              <View style={styles.arrowWhite}>
-                <Ionicons name="chevron-forward" size={20} color={colors.white} />
-              </View>
-            </View>
-
-            {/* Rating Chip - Positioned at bottom right */}
-            {item.rating !== undefined && item.rating > 0 && (
-              <View style={styles.ratingChipAbsolute}>
-                <Ionicons name="star" size={14} color="#FFD700" />
-                <Text style={styles.ratingChipText}>
-                  {item.rating.toFixed(1)}
-                </Text>
-                {item.reviewCount !== undefined && item.reviewCount > 0 && (
-                  <Text style={styles.ratingChipCount}>
-                    ({item.reviewCount})
-                  </Text>
-                )}
-              </View>
-            )}
-
-            {/* Delivery Icon - Top Right */}
-            {item.preferenciasWeb && (
-              <View style={[
-                styles.deliveryIconTopRight,
-                !item.preferenciasWeb.envioDomicilio && styles.deliveryIconDisabled
-              ]}>
-                <Ionicons
-                  name={item.preferenciasWeb.envioDomicilio ? "bicycle" : "bicycle-outline"}
-                  size={16}
-                  color={colors.white}
-                />
-                {!item.preferenciasWeb.envioDomicilio && (
-                  <View style={styles.deliverySlash} />
-                )}
-              </View>
-            )}
+              {/* Delivery Icon - Top Right */}
+              {item.preferenciasWeb && (
+                <View style={[
+                  styles.deliveryIconTopRight,
+                  !item.preferenciasWeb.envioDomicilio && styles.deliveryIconDisabled
+                ]}>
+                  <Ionicons
+                    name={item.preferenciasWeb.envioDomicilio ? "bicycle" : "bicycle-outline"}
+                    size={16}
+                    color={colors.white}
+                  />
+                  {!item.preferenciasWeb.envioDomicilio && (
+                    <View style={styles.deliverySlash} />
+                  )}
+                </View>
+              )}
             </ImageBackground>
           </TouchableOpacity>
         </Animated.View>
@@ -365,46 +377,58 @@ export default function CategoryScreen() {
           onPress={() => handleCompanyPress(item)}
           activeOpacity={0.7}
         >
-            <View style={styles.companyCardContent}>
-              {/* Logo */}
-              {item.logo ? (
-                <Image source={{ uri: item.logo }} style={styles.companyLogo} />
-              ) : (
-                <View style={styles.companyLogoPlaceholder}>
-                  <Ionicons name="business" size={24} color={colors.gray400} />
-                </View>
-              )}
+          <View style={styles.companyCardContent}>
+            {/* Logo */}
+            {item.logo ? (
+              <Image source={{ uri: item.logo }} style={styles.companyLogo} />
+            ) : (
+              <View style={styles.companyLogoPlaceholder}>
+                <Ionicons name="business" size={24} color={colors.gray400} />
+              </View>
+            )}
 
-              {/* Info */}
-              <View style={styles.companyInfo}>
+            {/* Info */}
+            <View style={styles.companyInfo}>
+              <View style={styles.nameRow}>
                 <Text style={styles.companyName} numberOfLines={1}>
                   {item.name}
                 </Text>
-                {item.description && (
-                  <Text style={styles.companyDescription} numberOfLines={2}>
-                    {item.description}
-                  </Text>
-                )}
               </View>
+              {item.description && (
+                <Text style={styles.companyDescription} numberOfLines={2}>
+                  {item.description}
+                </Text>
+              )}
 
-              {/* Arrow */}
-              <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+              {/* Promotion Badge - Bottom Row */}
+              {item.promociones && item.promociones.length > 0 && (
+                <View style={styles.promotionBadgeRow}>
+                  <Ionicons name="pricetag" size={12} color={colors.primary} />
+                  <Text style={styles.promotionBadgeTextBottom} numberOfLines={1}>
+                    {item.promociones[0].nombre}
+                  </Text>
+                </View>
+              )}
             </View>
 
-            {/* Rating Chip - Positioned at bottom right */}
-            {item.rating !== undefined && item.rating > 0 && (
-              <View style={styles.ratingChipAbsoluteSimple}>
-                <Ionicons name="star" size={14} color="#FFD700" />
-                <Text style={styles.ratingChipTextSimple}>
-                  {item.rating.toFixed(1)}
+            {/* Arrow */}
+            <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+          </View>
+
+          {/* Rating Chip - Positioned at bottom right */}
+          {item.rating !== undefined && item.rating > 0 && (
+            <View style={styles.ratingChipAbsoluteSimple}>
+              <Ionicons name="star" size={14} color="#FFD700" />
+              <Text style={styles.ratingChipTextSimple}>
+                {item.rating.toFixed(1)}
+              </Text>
+              {item.reviewCount !== undefined && item.reviewCount > 0 && (
+                <Text style={styles.ratingChipCountSimple}>
+                  ({item.reviewCount})
                 </Text>
-                {item.reviewCount !== undefined && item.reviewCount > 0 && (
-                  <Text style={styles.ratingChipCountSimple}>
-                    ({item.reviewCount})
-                  </Text>
-                )}
-              </View>
-            )}
+              )}
+            </View>
+          )}
         </TouchableOpacity>
       </Animated.View>
     );
@@ -482,8 +506,8 @@ export default function CategoryScreen() {
           {isSearching
             ? `No encontramos empresas con "${searchQuery}"`
             : hasFilter
-            ? 'No hay empresas en esta subcategoría'
-            : 'Esta categoría no tiene empresas disponibles'}
+              ? 'No hay empresas en esta subcategoría'
+              : 'Esta categoría no tiene empresas disponibles'}
         </Text>
         {(hasFilter || isSearching) && (
           <TouchableOpacity
@@ -788,8 +812,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
-
-  // Company Card Styles
   companyCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -829,7 +851,49 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: colors.text,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: 4,
+  },
+  nameChipRow: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
+    marginBottom: 4,
+  },
+  promotionBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 4,
+  },
+  promotionBadgeTextBottom: {
+    ...textStyles.caption1,
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  promotionBadgeGlass: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  promotionBadgeTextGlass: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   companyDescription: {
     ...textStyles.caption1,

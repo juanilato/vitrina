@@ -17,12 +17,15 @@ export interface CartItem {
   agregados?: Agregado[]; // Deprecated - mantener por compatibilidad
   ingredientesExtras?: CartIngredienteExtra[]; // Nuevo sistema de ingredientes
   notes?: string;
+  discount?: number; // Descuento aplicado a este item
+  appliedPromotion?: string; // Nombre de la promoción aplicada
 }
 
 export interface Cart {
   items: CartItem[];
   totalItems: number;
   subtotal: number;
+  totalDiscount: number; // Total de descuentos
   deliveryFee: number;
   total: number;
   companyId?: string; // Cart can only have items from one company

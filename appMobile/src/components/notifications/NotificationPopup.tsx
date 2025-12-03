@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+// import { BlurView } from 'expo-blur'; // Removed for better online compatibility
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Notification } from '../../types/notification';
@@ -41,10 +41,9 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
     if (visible) {
       // Slide in from top
       Animated.parallel([
-        Animated.spring(translateY, {
+        Animated.timing(translateY, {
           toValue: 0,
-          tension: 50,
-          friction: 7,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
@@ -154,9 +153,9 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
         onPress={handlePress}
         style={styles.touchable}
       >
-        {/* Glass effect con blur para iOS */}
+        {/* Glass effect - simplified for compatibility */}
         {Platform.OS === 'ios' ? (
-          <BlurView intensity={80} tint="light" style={styles.blurContainer}>
+          <View style={[styles.blurContainer, styles.iosBackground]}>
             <View style={styles.content}>
               {/* Icon con gradiente */}
               <LinearGradient
@@ -203,7 +202,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
                 <Ionicons name="close" size={20} color={colors.gray600} />
               </TouchableOpacity>
             </View>
-          </BlurView>
+          </View>
         ) : (
           <View style={[styles.blurContainer, styles.androidBackground]}>
             <View style={styles.content}>
@@ -286,6 +285,10 @@ const styles = StyleSheet.create({
 
   androidBackground: {
     backgroundColor: 'rgba(255, 255, 255, 0.97)',
+  },
+
+  iosBackground: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
 
   content: {

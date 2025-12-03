@@ -174,26 +174,21 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
-    // Animación de entrada compleja
+    // Animación de entrada simplificada
     Animated.parallel([
-      // Fade in suave
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 300,
         useNativeDriver: true,
       }),
-      // Slide up desde abajo
-      Animated.spring(slideAnim, {
+      Animated.timing(slideAnim, {
         toValue: 0,
-        tension: 50,
-        friction: 8,
+        duration: 300,
         useNativeDriver: true,
       }),
-      // Scale up
-      Animated.spring(scaleAnim, {
+      Animated.timing(scaleAnim, {
         toValue: 1,
-        tension: 40,
-        friction: 8,
+        duration: 300,
         useNativeDriver: true,
       }),
     ]).start();
@@ -212,13 +207,13 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
       const pulse = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.15,
-            duration: 1200,
+            toValue: 1.1,
+            duration: 1000,
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 1200,
+            duration: 1000,
             useNativeDriver: true,
           }),
         ])
@@ -263,7 +258,7 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
     >
       <TouchableOpacity onPress={handlePress} activeOpacity={0.85}>
         <LinearGradient
-          colors={statusConfig.gradientColors}
+          colors={statusConfig.gradientColors as any}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradientCard}
@@ -294,9 +289,24 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order }) => {
                 <Text style={styles.statusLabel}>
                   {order.empresa?.name || 'Pedido'} • {itemCount} {itemCount === 1 ? 'item' : 'items'}
                 </Text>
+                {(order.descuento || 0) > 0 && order.promocionesAplicadas && order.promocionesAplicadas.length > 0 && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                    <Ionicons name="pricetag" size={10} color="#4ade80" />
+                    <Text style={{ fontSize: 9, color: '#4ade80', fontWeight: '600', marginLeft: 2 }}>
+                      {order.promocionesAplicadas.length === 1
+                        ? order.promocionesAplicadas[0].nombre
+                        : `${order.promocionesAplicadas.length} promociones`}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
             <View style={styles.rightSection}>
+              {(order.descuento || 0) > 0 && (
+                <Text style={[styles.totalAmount, { fontSize: 12, color: '#4ade80', fontWeight: '600', textAlign: 'right' }]}>
+                  Desc. -{formatPrice(order.descuento || 0)}
+                </Text>
+              )}
               <Text style={styles.totalAmount}>{formatPrice(total)}</Text>
             </View>
           </View>

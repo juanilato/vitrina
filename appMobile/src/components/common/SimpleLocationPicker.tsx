@@ -22,7 +22,6 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 import { Button } from './Button';
-import { MapFallback } from './MapViewUniversal';
 
 interface SimpleLocationPickerProps {
   visible: boolean;
@@ -52,10 +51,10 @@ export function SimpleLocationPicker({
   } | null>(
     initialLocation
       ? {
-          lat: initialLocation.lat,
-          lng: initialLocation.lng,
-          address: 'Ubicación guardada',
-        }
+        lat: initialLocation.lat,
+        lng: initialLocation.lng,
+        address: 'Ubicación guardada',
+      }
       : null
   );
   const [manualAddress, setManualAddress] = useState('');

@@ -98,12 +98,10 @@ async findOne(id: string) {
 async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
     // Validaciones simples de rango/consistencia
     for (const h of dto.horarios ?? []) {
-    if (h.abreMin >= h.cierraMin) {
-      throw new BadRequestException(`Horario inválido ${h.day}#${h.slotIndex}: abreMin >= cierraMin`);
-    }
-    if (h.abreMin < 0 || h.cierraMin > 1440) {
+    if (h.abreMin < 0 || h.abreMin >= 1440 || h.cierraMin < 0 || h.cierraMin > 1440) {
       throw new BadRequestException(`Horario fuera de rango ${h.day}#${h.slotIndex}`);
     }
+    // Permitimos que cierraMin < abreMin (horarios que cruzan medianoche)
   }
 
   return this.prisma.$transaction(async (tx) => {
@@ -114,7 +112,7 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
         preferenciasWeb: {
           upsert: {
             create: {
-              
+
               colorBotones: dto.colorBotones ?? null,
               colorFondo: dto.colorFondo ?? null,
               envioDomicilio: dto.envioDomicilio,
@@ -136,15 +134,66 @@ async updatePrefenencias(empresaId: string, dto: UpdatePreferenciasDto) {
     await tx.horarioAtencion.deleteMany({ where: { empresaId } });
 
     if (dto.horarios?.length) {
+      // Helper para obtener el siguiente día
+      const getNextDay = (day: string): string => {
+        const days = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
+        const currentIndex = days.indexOf(day);
+        return days[(currentIndex + 1) % 7];
+      };
+
+      // Procesar horarios, dividiendo los que cruzan medianoche
+      const horariosToInsert: any[] = [];
+
+      for (const h of dto.horarios) {
+        if (h.cerrado) {
+          // Si está cerrado, guardar tal cual
+          horariosToInsert.push({
+            empresaId,
+            day: h.day,
+            slotIndex: h.slotIndex,
+            abreMin: h.abreMin,
+            cierraMin: h.cierraMin,
+            cerrado: true,
+          });
+        } else if (h.abreMin > h.cierraMin) {
+          // Horario que cruza medianoche: dividir en dos franjas
+          // Ejemplo: LUN 20:00-02:00 → LUN 20:00-24:00 + MAR 00:00-02:00
+
+          // Primera parte: día actual desde abreMin hasta medianoche (1440)
+          horariosToInsert.push({
+            empresaId,
+            day: h.day,
+            slotIndex: h.slotIndex,
+            abreMin: h.abreMin,
+            cierraMin: 1440,
+            cerrado: false,
+          });
+
+          // Segunda parte: día siguiente desde medianoche (0) hasta cierraMin
+          const nextDay = getNextDay(h.day);
+          horariosToInsert.push({
+            empresaId,
+            day: nextDay,
+            slotIndex: h.slotIndex,
+            abreMin: 0,
+            cierraMin: h.cierraMin,
+            cerrado: false,
+          });
+        } else {
+          // Horario normal (no cruza medianoche)
+          horariosToInsert.push({
+            empresaId,
+            day: h.day,
+            slotIndex: h.slotIndex,
+            abreMin: h.abreMin,
+            cierraMin: h.cierraMin,
+            cerrado: false,
+          });
+        }
+      }
+
       await tx.horarioAtencion.createMany({
-        data: dto.horarios.map((h) => ({
-          empresaId,           // ✅ aquí sí corresponde
-          day: h.day,          // enum DayOfWeek (LUN..DOM)
-          slotIndex: h.slotIndex,
-          abreMin: h.abreMin,
-          cierraMin: h.cierraMin,
-          cerrado: h.cerrado,
-        })),
+        data: horariosToInsert,
         skipDuplicates: true,
       });
     }

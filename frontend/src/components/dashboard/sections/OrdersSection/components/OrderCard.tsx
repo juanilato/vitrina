@@ -65,14 +65,35 @@ const OrderRow: React.FC<OrderCardProps> = ({
     <>
       <div className="modern-order-card">
         <div className="order-card-header">
-          <div className="order-id-badge">#{pedido.id.slice(0, 8).toUpperCase()}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="order-id-badge">#{pedido.id.slice(0, 8).toUpperCase()}</div>
+            {pedido.descuento && pedido.descuento > 0 && pedido.promocionesAplicadas && pedido.promocionesAplicadas.length > 0 && (
+              <div
+                style={{
+                  backgroundColor: '#10b981',
+                  color: '#ffffff',
+                  padding: '4px 10px',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title={pedido.promocionesAplicadas.map(p => p.nombre).join(', ')}
+              >
+                <span>🏷️</span>
+                <span>{pedido.promocionesAplicadas.length === 1 ? pedido.promocionesAplicadas[0].nombre : `${pedido.promocionesAplicadas.length} Promos`}</span>
+              </div>
+            )}
+          </div>
           <div className="order-card-actions">
             <button
               className="btn-action btn-action-view"
               onClick={() => onViewDetails?.(pedido)}
               title="Ver detalles del pedido"
             >
-            Detalles
+              Detalles
             </button>
             {nextStatus && (
               <button
@@ -192,7 +213,18 @@ const OrderRow: React.FC<OrderCardProps> = ({
               {pedido.items?.length ?? 0} {(pedido.items?.length ?? 0) === 1 ? 'item' : 'items'}
               <span className={`items-arrow ${showItems ? 'open' : ''}`}>▼</span>
             </div>
-            <div className="order-total">{fmtMoney(pedido.total)}</div>
+            <div className="order-total">
+              {pedido.descuento && pedido.descuento > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <span style={{ fontSize: '0.85em', color: '#10b981', fontWeight: 'normal' }}>
+                    Desc. -{fmtMoney(pedido.descuento)}
+                  </span>
+                  <span>{fmtMoney(pedido.total)}</span>
+                </div>
+              ) : (
+                fmtMoney(pedido.total)
+              )}
+            </div>
           </div>
 
           {/* Lista desplegable de items */}
@@ -242,7 +274,23 @@ const OrderRow: React.FC<OrderCardProps> = ({
                         {item.cantidad} × {fmtMoney(item.precio)}
                       </div>
                       <div className="order-item-subtotal">
-                        {fmtMoney(item.precio * item.cantidad)}
+                        {item.descuento && item.descuento > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            <span style={{ textDecoration: 'line-through', fontSize: '0.85em', color: '#9ca3af' }}>
+                              {fmtMoney(item.precio * item.cantidad)}
+                            </span>
+                            <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                              {fmtMoney((item.precio * item.cantidad) - item.descuento)}
+                            </span>
+                            {item.promocionAplicada && (
+                              <span style={{ fontSize: '0.75em', color: '#10b981' }}>
+                                {item.promocionAplicada}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          fmtMoney(item.precio * item.cantidad)
+                        )}
                       </div>
                     </div>
                   );

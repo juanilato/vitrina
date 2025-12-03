@@ -24,6 +24,8 @@ interface ProductCardProps {
   onAddToCart?: () => void;
   buttonColor?: string;
   showExtrasIndicator?: boolean;
+  discountedPrice?: number;
+  promotions?: any[]; // Using any[] for now to avoid circular dependency or import issues, but ideally Promocion[]
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -32,6 +34,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
   buttonColor,
   showExtrasIndicator = true,
+  discountedPrice,
+  promotions,
 }) => {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
@@ -83,7 +87,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
 
           <View style={styles.bottomRow}>
-            <Text style={styles.price}>${formatPrice(product.precio)}</Text>
+            {discountedPrice ? (
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+                <Text style={styles.originalPrice}>${formatPrice(product.precio)}</Text>
+                <Text style={styles.discountedPrice}>${formatPrice(discountedPrice)}</Text>
+              </View>
+            ) : (
+              <Text style={styles.price}>${formatPrice(product.precio)}</Text>
+            )}
 
             {/* Customization Indicator */}
             {showExtrasIndicator && hasCustomizations && (
@@ -93,6 +104,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </View>
             )}
           </View>
+
+          {/* Promotions Badges */}
+          {promotions && promotions.length > 0 && (
+            <View style={styles.promotionsContainer}>
+              {promotions.map((promo, index) => (
+                <View key={index} style={styles.promoBadge}>
+                  <Text style={styles.promoText}>
+                    {promo.nombre}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Add Button */}
@@ -210,6 +234,21 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontSize: normalize(15),
   },
 
+  originalPrice: {
+    ...textStyles.caption1,
+    color: colors.gray500,
+    textDecorationLine: 'line-through',
+    marginRight: 4,
+    fontSize: normalize(12),
+  },
+
+  discountedPrice: {
+    ...textStyles.callout,
+    color: colors.error, // Or a specific promotion color
+    fontWeight: '700',
+    fontSize: normalize(15),
+  },
+
   customizationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -240,5 +279,25 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
+  },
+
+  promotionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 4,
+  },
+
+  promoBadge: {
+    backgroundColor: colors.error,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+
+  promoText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

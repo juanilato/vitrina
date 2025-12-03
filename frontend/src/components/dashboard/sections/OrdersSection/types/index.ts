@@ -14,6 +14,8 @@ export interface ItemPedido {
   productoId: string;
   cantidad: number;
   precio: number;
+  descuento?: number;
+  promocionAplicada?: string;
   notas?: string;
   ingredientesExtras?: IngredienteExtra[];
   producto?: {
@@ -21,6 +23,12 @@ export interface ItemPedido {
     nombre: string;
     precio: number;
   };
+}
+
+export interface PromocionAplicada {
+  nombre: string;
+  tipo: string;
+  descuentoAplicado: number;
 }
 
 export interface Pedido {
@@ -39,8 +47,10 @@ export interface Pedido {
   lat?: number;
   lng?: number;
   subtotal?: number;
+  descuento?: number;
   costoEnvio?: number;
   total?: number;
+  promocionesAplicadas?: PromocionAplicada[];
   createdAt: string;
   updatedAt: string;
 }
