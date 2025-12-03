@@ -13,8 +13,10 @@ export class Pedido {
   repartidorLng?: number;
   repartidorUltActualizacion?: Date;
   subtotal?: number;
+  descuento?: number;
   costoEnvio?: number;
   total?: number;
+  promocionesAplicadas?: any[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +38,8 @@ export class ItemPedido {
     nombre: string;
     precio: number;
   };
+  descuento?: number;
+  promocionAplicada?: string;
 }
 
 export class PedidoWithItems extends Pedido {

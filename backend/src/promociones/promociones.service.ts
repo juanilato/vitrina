@@ -98,6 +98,7 @@ export class PromocionesService {
     }> {
         const promotions = await this.findAllByEmpresa(empresaId);
         const activePromotions = promotions.filter((p: any) => p.activo);
+        console.log(`🔍 [Promo Check] Promociones activas encontradas: ${activePromotions.length}`);
 
         const itemDiscounts = new Map<string, { discount: number; promotionName: string }>();
         const promocionesMap = new Map<string, { nombre: string; tipo: string; descuentoAplicado: number }>();
@@ -106,9 +107,27 @@ export class PromocionesService {
         // Helper to check days
         const isDayApplicable = (config: any) => {
             if (!config?.diasAplicables || config.diasAplicables.length === 0) return true;
+
             const days = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
-            const currentDay = days[new Date().getDay()];
-            return config.diasAplicables.includes(currentDay);
+            const now = new Date();
+            const currentDayIndex = now.getDay(); // 0 = Domingo, 1 = Lunes, etc.
+            const currentDayName = days[currentDayIndex];
+
+            console.log(`🔍 [Promo Check] Hoy es: ${currentDayName} (Index: ${currentDayIndex}), Dias validos: ${JSON.stringify(config.diasAplicables)}`);
+
+            // Verificar si diasAplicables contiene el nombre del día O el índice del día
+            const isApplicable = config.diasAplicables.some((d: any) => {
+                // Si es número, comparar con el índice
+                if (typeof d === 'number') return d === currentDayIndex;
+                // Si es string, comparar con el nombre
+                if (typeof d === 'string') return d === currentDayName;
+                // Si es string numérico ("0", "1"), intentar convertir
+                if (!isNaN(parseInt(d))) return parseInt(d) === currentDayIndex;
+                return false;
+            });
+
+            console.log(`🔍 [Promo Check] Es aplicable?: ${isApplicable}`);
+            return isApplicable;
         };
 
         for (const item of items) {

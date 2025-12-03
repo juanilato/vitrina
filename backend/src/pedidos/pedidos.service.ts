@@ -158,8 +158,10 @@ export class PedidosService {
         itemsForDiscount
       );
 
-      console.log('🎯 Promociones aplicadas calculadas:', JSON.stringify(promocionesAplicadas, null, 2));
-      console.log('💰 Descuento total:', totalDiscount);
+      console.log('🔍 [DEBUG] Promociones calculadas:', JSON.stringify(promocionesAplicadas, null, 2));
+      console.log('🔍 [DEBUG] Descuento total:', totalDiscount);
+
+
 
       const totalFinal = subtotal - totalDiscount + costoEnvio;
 
@@ -197,7 +199,10 @@ export class PedidosService {
           }
         });
 
-        console.log('✅ Pedido creado con promocionesAplicadas:', newPedido.promocionesAplicadas);
+        console.log('🔍 [DEBUG] Pedido creado ID:', newPedido.id);
+        console.log('🔍 [DEBUG] Promociones guardadas en DB:', JSON.stringify(newPedido.promocionesAplicadas, null, 2));
+
+
 
         // Renombrar la foto con el ID real del pedido si existe
         if (transferenciaFotoFileName) {
@@ -244,7 +249,7 @@ export class PedidosService {
 
       const pedidoCompleto = await this.findOne(pedido.id);
 
-      console.log('📦 Pedido completo obtenido con promocionesAplicadas:', pedidoCompleto.promocionesAplicadas);
+
 
       // Crear notificaciones
       try {
@@ -361,7 +366,7 @@ export class PedidosService {
         descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
-        promocionesAplicadas: pedido.promocionesAplicadas || undefined,
+        promocionesAplicadas: (pedido.promocionesAplicadas as any[]) || undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         empresa: pedido.empresa,
@@ -372,29 +377,27 @@ export class PedidosService {
             // Prisma devuelve el campo Json como objeto, no como string
             let extrasArray = item.ingredientesExtras;
 
-            console.log('🔍 ingredientesExtras raw:', item.ingredientesExtras);
-            console.log('🔍 Tipo:', typeof extrasArray);
+
 
             // Si es string, parsearlo
             if (typeof extrasArray === 'string') {
               try {
                 extrasArray = JSON.parse(extrasArray);
-                console.log('✅ Parseado exitosamente:', extrasArray);
+
               } catch (e) {
                 console.error('❌ Error parseando ingredientesExtras:', e);
                 extrasArray = [];
               }
             }
 
-            console.log('📦 Array final:', extrasArray);
-            console.log('📦 Es array?:', Array.isArray(extrasArray));
+
 
             if (Array.isArray(extrasArray) && extrasArray.length > 0) {
               ingredientesExtrasDetallados = (await Promise.all(
                 extrasArray.map(async (extra: any) => {
                   if (!extra.productoIngredienteId) return null;
 
-                  console.log('🔎 Buscando productoIngrediente ID:', extra.productoIngredienteId);
+
 
                   const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
                     where: { id: extra.productoIngredienteId },
@@ -408,7 +411,7 @@ export class PedidosService {
                     }
                   });
 
-                  console.log('📍 ProductoIngrediente encontrado:', productoIngrediente);
+
 
                   if (!productoIngrediente) return null;
 
@@ -422,7 +425,7 @@ export class PedidosService {
                   };
                 })
               )).filter(item => item !== null);
-              console.log('✨ ingredientesExtrasDetallados:', ingredientesExtrasDetallados);
+
             }
           }
 
@@ -505,7 +508,7 @@ export class PedidosService {
         descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
-        promocionesAplicadas: pedido.promocionesAplicadas || undefined,
+        promocionesAplicadas: (pedido.promocionesAplicadas as any[]) || undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -517,27 +520,25 @@ export class PedidosService {
             // Prisma devuelve el campo Json como objeto, no como string
             let extrasArray = item.ingredientesExtras;
 
-            console.log('🔍 ingredientesExtras raw:', item.ingredientesExtras);
-            console.log('🔍 Tipo:', typeof extrasArray);
+
 
             // Si es string, parsearlo
             if (typeof extrasArray === 'string') {
               try {
                 extrasArray = JSON.parse(extrasArray);
-                console.log('✅ Parseado exitosamente:', extrasArray);
+
               } catch (e) {
                 console.error('❌ Error parseando ingredientesExtras:', e);
                 extrasArray = [];
               }
             }
 
-            console.log('📦 Array final:', extrasArray);
-            console.log('📦 Es array?:', Array.isArray(extrasArray));
+
 
             if (Array.isArray(extrasArray) && extrasArray.length > 0) {
               ingredientesExtrasDetallados = await Promise.all(
                 extrasArray.map(async (extra: any) => {
-                  console.log('🔎 Buscando productoIngrediente ID:', extra.productoIngredienteId);
+
 
                   const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
                     where: { id: extra.productoIngredienteId },
@@ -551,7 +552,7 @@ export class PedidosService {
                     }
                   });
 
-                  console.log('📍 ProductoIngrediente encontrado:', productoIngrediente);
+
 
                   return {
                     productoIngredienteId: extra.productoIngredienteId,
@@ -563,7 +564,7 @@ export class PedidosService {
                   };
                 })
               );
-              console.log('✨ ingredientesExtrasDetallados:', ingredientesExtrasDetallados);
+
             }
           }
 
@@ -636,6 +637,9 @@ export class PedidosService {
         throw new NotFoundException('Pedido no encontrado');
       }
 
+      console.log('🔍 [DEBUG] findOne - Pedido ID:', pedido.id);
+      console.log('🔍 [DEBUG] findOne - Promociones en DB:', JSON.stringify(pedido.promocionesAplicadas, null, 2));
+
       return {
         id: pedido.id,
         clienteId: pedido.clienteId,
@@ -654,7 +658,7 @@ export class PedidosService {
         descuento: pedido.descuento ? parseFloat(pedido.descuento.toString()) : 0,
         costoEnvio: pedido.costoEnvio ? parseFloat(pedido.costoEnvio.toString()) : 0,
         total: pedido.total ? parseFloat(pedido.total.toString()) : 0,
-        promocionesAplicadas: pedido.promocionesAplicadas || undefined,
+        promocionesAplicadas: (pedido.promocionesAplicadas as any[]) || undefined,
         createdAt: pedido.createdAt,
         updatedAt: pedido.updatedAt,
         cliente: pedido.cliente,
@@ -671,27 +675,25 @@ export class PedidosService {
             // Prisma devuelve el campo Json como objeto, no como string
             let extrasArray = item.ingredientesExtras;
 
-            console.log('🔍 ingredientesExtras raw:', item.ingredientesExtras);
-            console.log('🔍 Tipo:', typeof extrasArray);
+
 
             // Si es string, parsearlo
             if (typeof extrasArray === 'string') {
               try {
                 extrasArray = JSON.parse(extrasArray);
-                console.log('✅ Parseado exitosamente:', extrasArray);
+
               } catch (e) {
                 console.error('❌ Error parseando ingredientesExtras:', e);
                 extrasArray = [];
               }
             }
 
-            console.log('📦 Array final:', extrasArray);
-            console.log('📦 Es array?:', Array.isArray(extrasArray));
+
 
             if (Array.isArray(extrasArray) && extrasArray.length > 0) {
               ingredientesExtrasDetallados = await Promise.all(
                 extrasArray.map(async (extra: any) => {
-                  console.log('🔎 Buscando productoIngrediente ID:', extra.productoIngredienteId);
+
 
                   const productoIngrediente = await this.prisma.productoIngrediente.findUnique({
                     where: { id: extra.productoIngredienteId },
@@ -705,7 +707,7 @@ export class PedidosService {
                     }
                   });
 
-                  console.log('📍 ProductoIngrediente encontrado:', productoIngrediente);
+
 
                   return {
                     productoIngredienteId: extra.productoIngredienteId,
@@ -717,7 +719,7 @@ export class PedidosService {
                   };
                 })
               );
-              console.log('✨ ingredientesExtrasDetallados:', ingredientesExtrasDetallados);
+
             }
           }
 
