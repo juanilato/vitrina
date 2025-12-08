@@ -171,50 +171,50 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    minHeight: normalize(135),
+    minHeight: normalize(120),
     marginBottom: spacing.lg,
-    borderRadius: normalize(20),
+    borderRadius: normalize(16),
     overflow: 'hidden',
-    elevation: 5,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   cardDark: {
-    elevation: 7,
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   cardWide: {
     width: width - (CARD_MARGIN * 2),
-    minHeight: normalize(130),
+    minHeight: normalize(120),
   },
   cardTall: {
-    minHeight: normalize(155),
+    minHeight: normalize(140),
   },
 
   gradient: {
     flex: 1,
-    padding: spacing.lg,
+    padding: spacing.md,
     justifyContent: 'space-between',
-    gap: spacing.md,
-    paddingBottom: spacing.md,
+    gap: spacing.xs,
+    paddingBottom: spacing.sm,
   },
 
-  // Header Section
+  // Header Section - Desestructurado
   headerSection: {
-    gap: spacing.md,
+    gap: spacing.sm,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
 
   featherIcon: {
-    width: normalize(48),
-    height: normalize(48),
-    borderRadius: normalize(12),
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: normalize(52),
+    height: normalize(52),
+    borderRadius: normalize(14),
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
@@ -222,33 +222,35 @@ const styles = StyleSheet.create({
 
   name: {
     ...textStyles.subheadline,
-    fontSize: normalize(15),
+    fontSize: normalize(16),
     color: '#FFFFFF',
     fontWeight: '700',
     flex: 1,
-    marginLeft: spacing.sm,
+    marginLeft: spacing.xs,
+    marginTop: spacing.xs,
   },
 
-  // Companies Grid
+  // Companies Grid - Iconos chiquitos
   companiesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.xs,
     justifyContent: 'flex-start',
     marginTop: spacing.xs,
+    alignItems: 'center',
   },
 
   companyIconWrapper: {
-    width: '18%',
-    aspectRatio: 1,
-    borderRadius: normalize(12),
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(8),
     overflow: 'hidden',
   },
 
   companyIcon: {
     width: '100%',
     height: '100%',
-    borderRadius: normalize(12),
+    borderRadius: normalize(8),
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -261,17 +263,17 @@ const styles = StyleSheet.create({
   },
 
   companyInitial: {
-    fontSize: normalize(12),
+    fontSize: normalize(10),
     fontWeight: '700',
     color: '#FFFFFF',
   },
 
   moreIndicator: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
 
   moreText: {
-    fontSize: normalize(12),
+    fontSize: normalize(10),
     fontWeight: '700',
     color: '#FFFFFF',
   },
