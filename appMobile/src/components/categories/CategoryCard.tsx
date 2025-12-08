@@ -62,6 +62,9 @@ const categoryIconMap: Record<string, string> = {
   'libros': 'book',
   'juguetes': 'award',
   'mascotas': 'heart',
+  'alimentos y bebidas': 'coffee',
+  'moda y accesorios': 'shopping-bag',
+  'arte y manualidades': 'edit-3',
 };
 
 const getIconForCategory = (categoryName: string, defaultIcon: string): string => {
@@ -105,7 +108,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.75}
+      activeOpacity={0.85}
       style={cardStyle}
       onPress={handleCategoryPress}
     >
@@ -120,11 +123,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           <View style={styles.featherIcon}>
             <Feather
               name={iconName as any}
-              size={normalize(24)}
+              size={normalize(26)}
               color="#FFFFFF"
             />
           </View>
-          <Text style={styles.name} numberOfLines={2}>
+          <Text style={styles.name} numberOfLines={1}>
             {nombre}
           </Text>
         </View>
@@ -132,7 +135,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
         {/* Companies Grid - Mostrar solo iconos/logos */}
         {companies && companies.length > 0 && (
           <View style={styles.companiesGrid}>
-            {companies.map((company, index) => (
+            {companies.slice(0, 4).map((company, index) => (
               <TouchableOpacity
                 key={company.id || index}
                 style={styles.companyIconWrapper}
@@ -153,6 +156,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
                 )}
               </TouchableOpacity>
             ))}
+            {companies.length > 4 && (
+              <View style={[styles.companyIconWrapper, styles.moreIndicator]}>
+                <Text style={styles.moreText}>+{companies.length - 4}</Text>
+              </View>
+            )}
           </View>
         )}
       </LinearGradient>
@@ -253,6 +261,16 @@ const styles = StyleSheet.create({
   },
 
   companyInitial: {
+    fontSize: normalize(12),
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  moreIndicator: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+
+  moreText: {
     fontSize: normalize(12),
     fontWeight: '700',
     color: '#FFFFFF',

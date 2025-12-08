@@ -193,99 +193,31 @@ export default function HomeScreen() {
       );
     }
 
-    // Crear patrón alternado: 2 normales, 1 wide, 2 normales, 1 wide...
-    const grid = [];
-    let i = 0;
-    let rowIndex = 0;
-
-    while (i < validCategories.length) {
-      const row = [];
-      const isWideRow = i > 0 && i % 6 === 0 && i < validCategories.length;
-
-      // Cada 3 filas (6 categorías), insertar una categoría wide
-      if (isWideRow) {
-        const cat = validCategories[i];
-        // Validar que cat existe y tiene id antes de renderizar
-        if (cat && cat.id) {
-          // Wide cards don't animate horizontally
-          grid.push(
-            <View
-              key={`row-wide-${cat.id}`}
-              style={styles.row}
-            >
-              <CategoryCard
-                id={cat.id}
-                nombre={cat.nombre}
-                icono={cat.icono}
-                companies={getCategoryCompanies(cat.id)}
-                companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
-                variant="wide"
-              />
-            </View>
-          );
-        }
-        i++;
-      } else {
-        // Fila normal con 2 categorías - alternando izquierda y derecha
-        const isLeftRow = rowIndex % 2 === 0;
-        const horizontalAnim = isLeftRow ? categoryLeftAnim : categoryRightAnim;
-
-        if (i < validCategories.length) {
-          const cat = validCategories[i];
-          // Validar que cat existe y tiene id antes de renderizar
-          if (cat && cat.id) {
-            row.push(
-              <CategoryCard
-                key={cat.id}
-                id={cat.id}
-                nombre={cat.nombre}
-                icono={cat.icono}
-                companies={getCategoryCompanies(cat.id)}
-                companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
-              />
-            );
-          }
-          i++;
-        }
-
-        if (i < validCategories.length) {
-          const cat = validCategories[i];
-          // Validar que cat existe y tiene id antes de renderizar
-          if (cat && cat.id) {
-            row.push(
-              <CategoryCard
-                key={cat.id}
-                id={cat.id}
-                nombre={cat.nombre}
-                icono={cat.icono}
-                companies={getCategoryCompanies(cat.id)}
-                companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
-              />
-            );
-          }
-          i++;
-        }
-
-        if (row.length > 0) {
-          grid.push(
-            <Animated.View
-              key={`row-${rowIndex}`}
-              style={[
-                styles.row,
-                {
-                  transform: [{ translateX: horizontalAnim }],
-                }
-              ]}
-            >
-              {row}
-            </Animated.View>
-          );
-          rowIndex++;
-        }
-      }
-    }
-
-    return <View style={styles.grid}>{grid}</View>;
+    // Crear feed simple estilo Facebook/Instagram - una categoría por fila
+    return (
+      <View style={styles.feedContainer}>
+        {validCategories.map((cat, index) => (
+          <Animated.View
+            key={cat.id}
+            style={[
+              {
+                opacity: headerOpacity,
+                transform: [{ translateY: headerAnim }],
+              },
+            ]}
+          >
+            <CategoryCard
+              id={cat.id}
+              nombre={cat.nombre}
+              icono={cat.icono}
+              companies={getCategoryCompanies(cat.id)}
+              companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
+              variant="wide"
+            />
+          </Animated.View>
+        ))}
+      </View>
+    );
   };
 
   return (
@@ -654,6 +586,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
   },
+
+  // Feed Style - Facebook/Instagram
+  feedContainer: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing['3xl'],
+    gap: spacing.md,
+  },
+
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
