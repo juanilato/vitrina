@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePromocionDto } from './dto/create-promocion.dto';
 import { UpdatePromocionDto } from './dto/update-promocion.dto';
+import { isPromocionActiveNow, PromocionConfig } from './promocion.utils';
 
 @Injectable()
 export class PromocionesService {
@@ -46,6 +47,34 @@ export class PromocionesService {
                 },
             },
             orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    /**
+     * Obtiene solo las promociones activas de una empresa
+     * Considera: activo=true, día aplicable, y horario (incluyendo horarios que cruzan medianoche)
+     */
+    async findActiveByEmpresa(empresaId: string) {
+        const allPromos = await this.prismaClient.promocion.findMany({
+            where: {
+                empresaId,
+                activo: true,
+            },
+            include: {
+                productos: {
+                    include: {
+                        producto: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        // Filtrar por día y horario usando la utilidad
+        const now = new Date();
+        return allPromos.filter((promo: any) => {
+            const config = promo.configuracion as PromocionConfig;
+            return isPromocionActiveNow(config, now);
         });
     }
 
@@ -104,30 +133,9 @@ export class PromocionesService {
         const promocionesMap = new Map<string, { nombre: string; tipo: string; descuentoAplicado: number }>();
         let totalDiscount = 0;
 
-        // Helper to check days
-        const isDayApplicable = (config: any) => {
-            if (!config?.diasAplicables || config.diasAplicables.length === 0) return true;
-
-            const days = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
-            const now = new Date();
-            const currentDayIndex = now.getDay(); // 0 = Domingo, 1 = Lunes, etc.
-            const currentDayName = days[currentDayIndex];
-
-            console.log(`🔍 [Promo Check] Hoy es: ${currentDayName} (Index: ${currentDayIndex}), Dias validos: ${JSON.stringify(config.diasAplicables)}`);
-
-            // Verificar si diasAplicables contiene el nombre del día O el índice del día
-            const isApplicable = config.diasAplicables.some((d: any) => {
-                // Si es número, comparar con el índice
-                if (typeof d === 'number') return d === currentDayIndex;
-                // Si es string, comparar con el nombre
-                if (typeof d === 'string') return d === currentDayName;
-                // Si es string numérico ("0", "1"), intentar convertir
-                if (!isNaN(parseInt(d))) return parseInt(d) === currentDayIndex;
-                return false;
-            });
-
-            console.log(`🔍 [Promo Check] Es aplicable?: ${isApplicable}`);
-            return isApplicable;
+        // Helper to check if promotion is currently active (day + time)
+        const isPromoActive = (config: any) => {
+            return isPromocionActiveNow(config as PromocionConfig);
         };
 
         for (const item of items) {
@@ -141,8 +149,8 @@ export class PromocionesService {
                     if (!isIncluded) continue;
                 }
 
-                // 2. Check Days
-                if (!isDayApplicable(promo.configuracion)) continue;
+                // 2. Check if promo is active (day + time)
+                if (!isPromoActive(promo.configuracion)) continue;
 
                 // 3. Calculate Discount based on Type
                 let currentDiscount = 0;

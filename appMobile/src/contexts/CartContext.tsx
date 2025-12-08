@@ -10,6 +10,7 @@ import { Product, Agregado } from '../types/company';
 import { CartItem, Cart, CheckoutData, DeliveryType, PaymentMethod, CartIngredienteExtra } from '../types/cart';
 import { STORAGE_KEYS } from '../utils/constants';
 import { promotionsService, Promocion } from '../services/promotions.service';
+import { isPromocionActiveNow } from '../utils/promotions';
 
 interface CartContextData {
   cart: Cart;
@@ -166,18 +167,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Helper function for discount calculation (moved inside or kept outside, here inside for access to helpers if needed, but it's pure logic)
+  // Helper function for discount calculation with time-aware validation
   function calculateItemDiscount(item: CartItem, companyPromotions: Promocion[]): { discount: number; promotionName?: string } {
-    const today = new Date().getDay(); // 0=Sunday, 1=Monday...
+    const now = new Date();
 
-    // Filter applicable promotions
+    // Filter applicable promotions using the new time-aware validation
     const applicablePromos = companyPromotions.filter(p => {
       if (!p.activo) return false;
 
-      // Check days
-      if (p.configuracion.diasAplicables && p.configuracion.diasAplicables.length > 0) {
-        if (!p.configuracion.diasAplicables.includes(today)) return false;
-      }
+      // Check day and time (supports schedules that cross midnight)
+      if (!isPromocionActiveNow(p.configuracion, now)) return false;
 
       // Check scope (alcance)
       if (p.alcance === 'SELECCIONADOS') {

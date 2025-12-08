@@ -1,0 +1,12 @@
+# Actualizar sombras en .btn-primary
+s/box-shadow: var(--vitrina-shadow);/box-shadow: var(--vitrina-shadow-md);/g
+
+# Actualizar sombras en hover .btn-primary
+s/box-shadow: var(--vitrina-shadow-lg);/box-shadow: var(--vitrina-shadow-primary);/g
+
+# Actualizar gradiente y sombra en .login-mode .btn-primary
+s/box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);/box-shadow: var(--vitrina-shadow-primary);/g
+s/background: linear-gradient(135deg, var(--vitrina-primary), var(--vitrina-secondary));$/background: var(--vitrina-gradient-hero);/g
+
+# Actualizar hover en .login-mode .btn-primary
+s/box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);/box-shadow: var(--vitrina-shadow-accent);/g

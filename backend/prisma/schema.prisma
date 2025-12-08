@@ -834,7 +834,13 @@ model Promocion {
   nombre        String
   descripcion   String?
   tipo          TipoPromocion
-  configuracion Json     // { cantidadCompra, porcentajeDescuento, diasAplicables, cantidadPaga, cantidadLleva }
+  // configuracion contiene:
+  // - cantidadCompra, porcentajeDescuento, cantidadPaga, cantidadLleva (según tipo)
+  // - diasAplicables: number[] (0=Domingo, 1=Lunes, etc.) - vacío = todos los días
+  // - horaInicio: number (minutos desde medianoche, ej: 20*60=1200 para 20:00)
+  // - horaFin: number (minutos desde medianoche, puede ser > 1440 si cruza medianoche)
+  //   Ejemplo: 20:00 a 04:00 del día siguiente = horaInicio: 1200, horaFin: 1680 (28*60)
+  configuracion Json
   alcance       AlcancePromocion @default(TODOS)
   activo        Boolean  @default(true)
   createdAt     DateTime @default(now())

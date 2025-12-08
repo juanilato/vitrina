@@ -31,8 +31,9 @@ import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton
 import { FloatingSocialLinks } from '../../src/components/companies/FloatingSocialLinks';
 import { Toast } from '../../src/components/common';
 import { textStyles, spacing, shadows, borderRadius } from '../../src/theme';
-import { Product, Agregado } from '../../src/types/company';
+import { Product, Agregado, Promocion } from '../../src/types/company';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { getActivePromociones, isPromocionActiveNow, getPromoScheduleText } from '../../src/utils/promotions';
 import { CartIngredienteExtra } from '../../src/types/cart';
 import { Animated, Easing, LayoutAnimation, Platform, UIManager } from 'react-native';
 import ratingService from '../../src/services/rating.service';
@@ -445,23 +446,18 @@ export default function CompanyStoreScreen() {
         ]}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
-          // 1. Find applicable promotions
+          // 1. Find applicable promotions using time-aware validation
           const activePromotions = company.promociones?.filter(promo => {
             if (!promo.activo) return false;
+
+            // Check if promo is active (day + time, including midnight-crossing schedules)
+            if (!isPromocionActiveNow(promo.configuracion)) return false;
 
             // Check scope
             if (promo.alcance === 'SELECCIONADOS') {
               // Check if product is in the list
-              // Note: backend returns 'productos' as PromocionProducto[] which has 'productoId'
               const isIncluded = promo.productos?.some((p: any) => p.productoId === item.id);
               if (!isIncluded) return false;
-            }
-
-            // Check days (optional, but good to have)
-            if (promo.configuracion?.diasAplicables?.length > 0) {
-              const today = new Date().getDay(); // 0 = Sunday, 1 = Monday...
-              // Our DAYS_OF_WEEK map: 0=Domingo, 1=Lunes... matches JS getDay()
-              if (!promo.configuracion.diasAplicables.includes(today)) return false;
             }
 
             return true;
@@ -531,32 +527,41 @@ export default function CompanyStoreScreen() {
               </View>
             )}
 
-            {/* Promotions Section */}
-            {company.promociones && company.promociones.length > 0 && (
-              <View style={styles.promotionsSection}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons name="pricetag" size={14} color={colors.textSecondary} />
-                  <Text style={styles.sectionTitle}>Promociones</Text>
+            {/* Promotions Section - Only show active promos */}
+            {(() => {
+              const activePromos = company.promociones ? getActivePromociones(company.promociones as Promocion[]) : [];
+              if (activePromos.length === 0) return null;
+
+              return (
+                <View style={styles.promotionsSection}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="pricetag" size={14} color={colors.textSecondary} />
+                    <Text style={styles.sectionTitle}>Promociones activas</Text>
+                  </View>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.promotionsList}>
+                    {activePromos.map((promo) => (
+                      <View key={promo.id} style={styles.promotionCard}>
+                        <View style={[styles.promotionIconContainer, { backgroundColor: `${buttonColor}15` }]}>
+                          <Ionicons name="gift" size={16} color={buttonColor} />
+                        </View>
+                        <View style={styles.promotionInfo}>
+                          <Text style={styles.promotionName}>{promo.nombre}</Text>
+                          {promo.descripcion ? (
+                            <Text style={styles.promotionDescription} numberOfLines={2}>
+                              {promo.descripcion}
+                            </Text>
+                          ) : (
+                            <Text style={styles.promotionDescription} numberOfLines={1}>
+                              {getPromoScheduleText(promo.configuracion)}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+                    ))}
+                  </ScrollView>
                 </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.promotionsList}>
-                  {company.promociones.map((promo) => (
-                    <View key={promo.id} style={styles.promotionCard}>
-                      <View style={[styles.promotionIconContainer, { backgroundColor: `${buttonColor}15` }]}>
-                        <Ionicons name="gift" size={16} color={buttonColor} />
-                      </View>
-                      <View style={styles.promotionInfo}>
-                        <Text style={styles.promotionName}>{promo.nombre}</Text>
-                        {promo.descripcion && (
-                          <Text style={styles.promotionDescription} numberOfLines={2}>
-                            {promo.descripcion}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
+              );
+            })()}
 
             {/* Search Bar */}
             <View style={styles.searchContainer}>

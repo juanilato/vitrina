@@ -15,6 +15,10 @@ export interface Promocion {
         // Para tipo DIA
         diasAplicables?: number[]; // 0=Domingo, 1=Lunes, etc.
 
+        // Horarios (pueden cruzar medianoche)
+        horaInicio?: number; // Minutos desde medianoche (ej: 20*60=1200 para 20:00)
+        horaFin?: number; // Minutos desde medianoche (puede ser > 1440 si cruza medianoche)
+
         // Para tipo BXPY
         cantidadPaga?: number; // Ej: 1 (Paga 1)
         cantidadLleva?: number; // Ej: 2 (Llevando 2)

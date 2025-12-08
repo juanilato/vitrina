@@ -1,30 +1,35 @@
-/* ====== PALETA & TOKENS (formal/corporativo) ====== */
+/* ====== COMPANY DASHBOARD - MODERNIZADO ====== */
+/* Usa variables globales de Vitrina pero mantiene compatibilidad */
 :root {
-  --app-bg: #f5f6f8;
-  --surface: #ffffff;
+  /* Mapeo de variables locales a sistema Vitrina */
+  --app-bg: var(--vitrina-light);
+  --surface: var(--vitrina-white);
   --surface-alt: #f9fafb;
-  --border: #e6e7ea;
-  --border-strong: #dcdde1;
-  --text: #1e222b;
-  --text-muted: #6b7280;
-  --primary: #2a5bd7;      /* azul corporativo sobrio */
-  --primary-600: #1f47ad;
-  --accent: #0ea5e9;
-  --success: #20a35b;
+  --border: var(--vitrina-border);
+  --border-strong: var(--vitrina-border-dark);
+  --text: var(--vitrina-text-primary);
+  --text-muted: var(--vitrina-text-tertiary);
+  --primary: var(--vitrina-primary);
+  --primary-600: #051627;
+  --accent: var(--vitrina-accent);
+  --success: var(--vitrina-success);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
+  /* Radios actualizados al nuevo sistema */
+  --radius-sm: var(--vitrina-radius);        /* 8px */
+  --radius-md: var(--vitrina-radius-md);     /* 12px */
+  --radius-lg: var(--vitrina-radius-lg);     /* 16px */
 
-  --shadow-100: 0 1px 2px rgba(0,0,0,.04);
-  --shadow-200: 0 6px 14px rgba(0,0,0,.06);
-  --shadow-300: 0 10px 24px rgba(0,0,0,.08);
+  /* Sombras actualizadas */
+  --shadow-100: var(--vitrina-shadow-xs);
+  --shadow-200: var(--vitrina-shadow-md);
+  --shadow-300: var(--vitrina-shadow-lg);
 
+  /* Layout */
   --titlebar-h: 44px;
   --sidebar-w: 280px;
   --statusbar-h: 30px;
 
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+  --font: var(--vitrina-font-family, 'Inter'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -32,22 +37,21 @@
 /* ====== SHELL GENERAL ====== */
 .desktop-shell {
   min-height: 100vh;
-  background: linear-gradient(180deg, #eef0f4 0%, #f6f7f9 100%);
-
+  background: var(--vitrina-gradient-light);
   font-family: var(--font);
   color: var(--text);
 }
 
-/* Marco de “ventana” */
+/* Marco de "ventana" */
 .app-window {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-300);
+  border-radius: var(--vitrina-radius-xl);     /* 20px - más moderno */
+  box-shadow: var(--vitrina-shadow-xl);
   display: grid;
-
   grid-template-rows: var(--titlebar-h) auto var(--statusbar-h);
   overflow: hidden;
+  transition: box-shadow var(--vitrina-transition) var(--vitrina-ease-out);
 }
 
 /* ====== BARRA DE TÍTULO ====== */
@@ -74,12 +78,23 @@
 .app-title { font-weight: 600; font-size: 14px; color: #2b313b; opacity: .9; }
 
 .titlebar-right .toolbar-btn {
-  height: 28px; padding: 0 10px; font-size: 12.5px;
+  height: 30px;
+  padding: 0 12px;
+  font-size: var(--vitrina-text-xs);
   border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: 6px; cursor: pointer; color: var(--text);
+  border-radius: var(--vitrina-radius);
+  cursor: pointer;
+  color: var(--text);
+  transition: all var(--vitrina-transition) var(--vitrina-ease-out);
+  font-weight: var(--vitrina-font-medium);
 }
-.titlebar-right .toolbar-btn:hover { border-color: var(--primary); color: var(--primary); }
+.titlebar-right .toolbar-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: var(--vitrina-shadow-sm);
+}
 
 /* ====== CUERPO (SIDEBAR + WORKSPACE) ====== */
 .app-body {

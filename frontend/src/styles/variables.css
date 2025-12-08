@@ -34,22 +34,36 @@
   --vitrina-border-light: #f1f5f9;
   --vitrina-border-dark: #cbd5e0;
   
-  /* Sombras */
-  --vitrina-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --vitrina-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --vitrina-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --vitrina-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-  --vitrina-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  /* Sombras - Sistema Mejorado */
+  --vitrina-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --vitrina-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --vitrina-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --vitrina-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --vitrina-shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  --vitrina-shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1);
+  --vitrina-shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.18), 0 10px 20px rgba(0, 0, 0, 0.12);
+
+  /* Sombras de Color (para hover/focus) */
+  --vitrina-shadow-primary: 0 4px 14px rgba(10, 42, 67, 0.25);
+  --vitrina-shadow-secondary: 0 4px 14px rgba(46, 157, 102, 0.35);
+  --vitrina-shadow-accent: 0 4px 14px rgba(0, 122, 204, 0.3);
+  --vitrina-shadow-success: 0 4px 12px rgba(46, 157, 102, 0.3);
+  --vitrina-shadow-danger: 0 4px 12px rgba(220, 38, 38, 0.3);
   
-  /* Radios de Borde */
-  --vitrina-border-radius: 8px;
-  --vitrina-border-radius-xl: 20px;
-  --vitrina-radius-sm: 4px;
-  --vitrina-radius: 8px;
-  --vitrina-radius-md: 12px;
-  --vitrina-radius-lg: 16px;
-  --vitrina-radius-xl: 20px;
-  --vitrina-radius-full: 50%;
+  /* Radios de Borde - Sistema Moderno */
+  --vitrina-border-radius: 8px;        /* Por compatibilidad */
+  --vitrina-border-radius-lg: 12px;    /* Por compatibilidad */
+  --vitrina-border-radius-xl: 20px;    /* Por compatibilidad */
+  --vitrina-radius-xs: 4px;
+  --vitrina-radius-sm: 6px;
+  --vitrina-radius: 8px;               /* Default estándar */
+  --vitrina-radius-md: 12px;           /* Tarjetas pequeñas */
+  --vitrina-radius-lg: 16px;           /* Tarjetas grandes */
+  --vitrina-radius-xl: 20px;           /* Modales y containers */
+  --vitrina-radius-2xl: 24px;          /* Hero sections */
+  --vitrina-radius-3xl: 32px;          /* Elementos especiales */
+  --vitrina-radius-full: 9999px;       /* Botones redondeados/badges */
+  --vitrina-radius-circle: 50%;        /* Avatares */
   
   /* Espaciado */
   --vitrina-space-xs: 0.25rem;
@@ -91,10 +105,25 @@
   --vitrina-z-tooltip: 1070;
   --vitrina-z-toast: 1080;
   
-  /* Transiciones */
-  --vitrina-transition-fast: 0.15s ease;
-  --vitrina-transition: 0.3s ease;
-  --vitrina-transition-slow: 0.5s ease;
+  /* Transiciones - Sistema Completo */
+  --vitrina-transition-fast: 150ms ease;
+  --vitrina-transition: 200ms ease;
+  --vitrina-transition-base: 250ms ease;
+  --vitrina-transition-slow: 300ms ease;
+  --vitrina-transition-slower: 400ms ease;
+
+  /* Timing Functions (curvas de animación) */
+  --vitrina-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --vitrina-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --vitrina-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --vitrina-ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --vitrina-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Duraciones específicas */
+  --vitrina-duration-instant: 100ms;
+  --vitrina-duration-fast: 200ms;
+  --vitrina-duration-normal: 300ms;
+  --vitrina-duration-slow: 500ms;
   
   /* Breakpoints (para uso en JavaScript) */
   --vitrina-breakpoint-sm: 640px;
@@ -102,6 +131,32 @@
   --vitrina-breakpoint-lg: 1024px;
   --vitrina-breakpoint-xl: 1280px;
   --vitrina-breakpoint-2xl: 1536px;
+
+  /* Gradientes Predefinidos */
+  --vitrina-gradient-primary: linear-gradient(135deg, var(--vitrina-primary) 0%, #051627 100%);
+  --vitrina-gradient-secondary: linear-gradient(135deg, var(--vitrina-secondary) 0%, #26824f 100%);
+  --vitrina-gradient-accent: linear-gradient(135deg, var(--vitrina-accent) 0%, #005a9e 100%);
+  --vitrina-gradient-warm: linear-gradient(135deg, var(--vitrina-orange) 0%, #d4590f 100%);
+  --vitrina-gradient-hero: linear-gradient(135deg, var(--vitrina-primary) 0%, var(--vitrina-accent) 100%);
+  --vitrina-gradient-success: linear-gradient(135deg, var(--vitrina-success) 0%, #26824f 100%);
+  --vitrina-gradient-light: linear-gradient(180deg, #f8f9fa 0%, var(--vitrina-white) 100%);
+
+  /* Overlays con gradiente */
+  --vitrina-overlay-dark: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
+  --vitrina-overlay-light: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
+
+  /* Opacidades */
+  --vitrina-opacity-disabled: 0.5;
+  --vitrina-opacity-hover: 0.8;
+  --vitrina-opacity-loading: 0.6;
+  --vitrina-opacity-overlay: 0.4;
+
+  /* Blur (para glassmorphism) */
+  --vitrina-blur-sm: 8px;
+  --vitrina-blur: 12px;
+  --vitrina-blur-md: 16px;
+  --vitrina-blur-lg: 24px;
+  --vitrina-blur-xl: 40px;
 }
 
 /* Variables para Modo Oscuro (futuro) */

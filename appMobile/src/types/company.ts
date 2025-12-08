@@ -97,16 +97,26 @@ export enum AlcancePromocion {
   SELECCIONADOS = 'SELECCIONADOS',
 }
 
+export interface PromocionConfig {
+  diasAplicables?: number[]; // 0=Domingo, 1=Lunes, ..., 6=Sábado
+  horaInicio?: number; // Minutos desde medianoche (ej: 20*60=1200 para 20:00)
+  horaFin?: number; // Minutos desde medianoche, puede ser > 1440 si cruza medianoche
+  cantidadCompra?: number;
+  porcentajeDescuento?: number;
+  cantidadPaga?: number;
+  cantidadLleva?: number;
+}
+
 export interface Promocion {
   id: string;
   empresaId: string;
   nombre: string;
   descripcion?: string;
   tipo: TipoPromocion;
-  configuracion: any;
+  configuracion: PromocionConfig;
   alcance: AlcancePromocion;
   activo: boolean;
-  productos?: { productoId: string }[];
+  productos?: { productoId: string; producto?: Product }[];
   createdAt: string;
   updatedAt: string;
 }

@@ -32,7 +32,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-import type { Company, Subcategoria } from '../../src/types/company';
+import type { Company, Subcategoria, Promocion } from '../../src/types/company';
+import { getActivePromociones } from '../../src/utils/promotions';
 
 export default function CategoryScreen() {
   const router = useRouter();
@@ -215,6 +216,9 @@ export default function CategoryScreen() {
 
     const dashboardFoto = item.preferenciasWeb?.dashboardFoto;
 
+    // Filtrar solo promociones activas (por día y horario)
+    const activePromos = item.promociones ? getActivePromociones(item.promociones as Promocion[]) : [];
+
     if (dashboardFoto) {
       // Versión con dashboard foto (como en CompanyCard)
       return (
@@ -268,12 +272,12 @@ export default function CategoryScreen() {
                     </View>
                   </View>
 
-                  {/* Promotion Badge - Below Name */}
-                  {item.promociones && item.promociones.length > 0 && (
+                  {/* Promotion Badge - Below Name (only active promos) */}
+                  {activePromos.length > 0 && (
                     <View style={styles.promotionBadgeGlass}>
                       <Ionicons name="pricetag" size={12} color={colors.white} />
                       <Text style={styles.promotionBadgeTextGlass} numberOfLines={1}>
-                        {item.promociones[0].nombre}
+                        {activePromos[0].nombre}
                       </Text>
                     </View>
                   )}
@@ -400,12 +404,12 @@ export default function CategoryScreen() {
                 </Text>
               )}
 
-              {/* Promotion Badge - Bottom Row */}
-              {item.promociones && item.promociones.length > 0 && (
+              {/* Promotion Badge - Bottom Row (only active promos) */}
+              {activePromos.length > 0 && (
                 <View style={styles.promotionBadgeRow}>
                   <Ionicons name="pricetag" size={12} color={colors.primary} />
                   <Text style={styles.promotionBadgeTextBottom} numberOfLines={1}>
-                    {item.promociones[0].nombre}
+                    {activePromos[0].nombre}
                   </Text>
                 </View>
               )}

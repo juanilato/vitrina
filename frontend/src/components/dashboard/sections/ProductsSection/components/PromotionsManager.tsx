@@ -11,6 +11,20 @@ import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumb
 import PercentOutlinedIcon from '@mui/icons-material/PercentOutlined';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
+
+// Utilidades para convertir horarios
+const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+};
+
+const minutesToTime = (minutes: number): string => {
+    const adjustedMinutes = minutes >= 1440 ? minutes - 1440 : minutes;
+    const hours = Math.floor(adjustedMinutes / 60);
+    const mins = adjustedMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
 
 interface PromotionsManagerProps {
     empresaId: string;
@@ -43,6 +57,12 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ empresaId, onClos
     const [cantidadCompra, setCantidadCompra] = useState<number>(2);
     const [porcentajeDescuento, setPorcentajeDescuento] = useState<number>(10);
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
+
+    // Schedule State (horarios)
+    const [hasSchedule, setHasSchedule] = useState(false);
+    const [horaInicio, setHoraInicio] = useState('20:00');
+    const [horaFin, setHoraFin] = useState('23:59');
+    const [crossesMidnight, setCrossesMidnight] = useState(false);
 
     // Scope State
     const [alcance, setAlcance] = useState<AlcanceType>('TODOS');
@@ -100,9 +120,23 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ empresaId, onClos
         };
 
         // Common configuration for all types
-        const commonConfig = {
+        const commonConfig: any = {
             diasAplicables: selectedDays.length > 0 ? selectedDays : undefined
         };
+
+        // Add schedule if configured
+        if (hasSchedule) {
+            const inicioMinutes = timeToMinutes(horaInicio);
+            let finMinutes = timeToMinutes(horaFin);
+
+            // Si cruza medianoche, agregar 1440 (24 horas) a la hora de fin
+            if (crossesMidnight) {
+                finMinutes += 1440;
+            }
+
+            commonConfig.horaInicio = inicioMinutes;
+            commonConfig.horaFin = finMinutes;
+        }
 
         if (tipo === 'CANTIDAD') {
             promoData.configuracion = {
@@ -162,6 +196,26 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ empresaId, onClos
 
         setSelectedDays(promo.configuracion.diasAplicables || []);
 
+        // Set Schedule (horarios)
+        if (promo.configuracion.horaInicio !== undefined && promo.configuracion.horaFin !== undefined) {
+            setHasSchedule(true);
+            setHoraInicio(minutesToTime(promo.configuracion.horaInicio));
+
+            // Si horaFin >= 1440, significa que cruza medianoche
+            if (promo.configuracion.horaFin >= 1440) {
+                setCrossesMidnight(true);
+                setHoraFin(minutesToTime(promo.configuracion.horaFin - 1440));
+            } else {
+                setCrossesMidnight(false);
+                setHoraFin(minutesToTime(promo.configuracion.horaFin));
+            }
+        } else {
+            setHasSchedule(false);
+            setHoraInicio('20:00');
+            setHoraFin('23:59');
+            setCrossesMidnight(false);
+        }
+
         // Set Scope
         setAlcance(promo.alcance);
         if (promo.alcance === 'SELECCIONADOS' && promo.productos) {
@@ -193,6 +247,10 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ empresaId, onClos
         setCantidadLleva(2);
         setAlcance('TODOS');
         setSelectedProductIds([]);
+        setHasSchedule(false);
+        setHoraInicio('20:00');
+        setHoraFin('23:59');
+        setCrossesMidnight(false);
     };
 
     const toggleDay = (dayId: number) => {
@@ -437,6 +495,86 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ empresaId, onClos
                                     Si no seleccionas ninguno, aplica todos los días.
                                 </p>
                             </div>
+
+                            {/* Schedule Section (Horarios) */}
+                            <div className="pm-form-group">
+                                <label className="pm-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <AccessTimeOutlinedIcon style={{ fontSize: 18 }} />
+                                    Horario específico (Opcional)
+                                </label>
+                                <div className="pm-scope-selector" style={{ marginBottom: '12px' }}>
+                                    <label className={`pm-scope-option ${!hasSchedule ? 'selected' : ''}`}>
+                                        <input
+                                            type="radio"
+                                            name="hasSchedule"
+                                            checked={!hasSchedule}
+                                            onChange={() => setHasSchedule(false)}
+                                        />
+                                        Todo el día
+                                    </label>
+                                    <label className={`pm-scope-option ${hasSchedule ? 'selected' : ''}`}>
+                                        <input
+                                            type="radio"
+                                            name="hasSchedule"
+                                            checked={hasSchedule}
+                                            onChange={() => setHasSchedule(true)}
+                                        />
+                                        Horario específico
+                                    </label>
+                                </div>
+
+                                {hasSchedule && (
+                                    <>
+                                        <div className="pm-row-group">
+                                            <div className="pm-form-group" style={{ marginBottom: 0 }}>
+                                                <label className="pm-label" style={{ fontSize: '12px' }}>Hora de inicio</label>
+                                                <input
+                                                    type="time"
+                                                    className="pm-input"
+                                                    value={horaInicio}
+                                                    onChange={(e) => setHoraInicio(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="pm-form-group" style={{ marginBottom: 0 }}>
+                                                <label className="pm-label" style={{ fontSize: '12px' }}>Hora de fin</label>
+                                                <input
+                                                    type="time"
+                                                    className="pm-input"
+                                                    value={horaFin}
+                                                    onChange={(e) => setHoraFin(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div
+                                            className={`pm-midnight-option ${crossesMidnight ? 'selected' : ''}`}
+                                            onClick={() => setCrossesMidnight(!crossesMidnight)}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                padding: '10px 12px',
+                                                backgroundColor: crossesMidnight ? '#059669' : '#f3f4f6',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                marginTop: '8px',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            {crossesMidnight ? (
+                                                <CheckBoxIcon fontSize="small" style={{ color: '#fff' }} />
+                                            ) : (
+                                                <CheckBoxOutlineBlankIcon fontSize="small" style={{ color: '#9CA3AF' }} />
+                                            )}
+                                            <span style={{ fontSize: '13px', color: crossesMidnight ? '#fff' : '#374151' }}>
+                                                Cruza medianoche (ej: 20:00 a 04:00 del día siguiente)
+                                            </span>
+                                        </div>
+                                        <p className="pm-helper-text" style={{ marginTop: '8px' }}>
+                                            Ejemplo: Lunes de 20:00 a 04:00 = activa lunes 20:00 hasta martes 04:00
+                                        </p>
+                                    </>
+                                )}
+                            </div>
                         </div>
 
                         <div className="pm-form-actions">
@@ -519,6 +657,19 @@ const PromotionsManager: React.FC<PromotionsManagerProps> = ({ empresaId, onClos
                                                         {promo.configuracion.diasAplicables.map(d =>
                                                             DAYS_OF_WEEK.find(day => day.id === d)?.label.substring(0, 3)
                                                         ).join(', ')}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {/* Schedule Details */}
+                                            {promo.configuracion.horaInicio !== undefined && promo.configuracion.horaFin !== undefined && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                                                    <AccessTimeOutlinedIcon style={{ fontSize: 16 }} />
+                                                    <span style={{ fontSize: '12px' }}>
+                                                        {minutesToTime(promo.configuracion.horaInicio)} - {minutesToTime(promo.configuracion.horaFin)}
+                                                        {promo.configuracion.horaFin >= 1440 && (
+                                                            <span style={{ color: '#059669', fontWeight: 600, marginLeft: '4px' }}>(+1 día)</span>
+                                                        )}
                                                     </span>
                                                 </div>
                                             )}

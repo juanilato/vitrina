@@ -18,6 +18,15 @@ export class PromocionesController {
         return this.promocionesService.findAllByEmpresa(empresaId);
     }
 
+    /**
+     * Obtiene solo las promociones activas de una empresa
+     * Considera: activo=true, día aplicable, y horario (incluyendo horarios que cruzan medianoche)
+     */
+    @Get('empresa/:empresaId/activas')
+    findActiveByEmpresa(@Param('empresaId') empresaId: string) {
+        return this.promocionesService.findActiveByEmpresa(empresaId);
+    }
+
     @Patch(':id')
     update(@Param('id') id: string, @Body() updatePromocionDto: UpdatePromocionDto) {
         return this.promocionesService.update(id, updatePromocionDto);

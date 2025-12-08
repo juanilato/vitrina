@@ -233,17 +233,17 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
 
 const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
+    backgroundColor: `${colors.primary}08`,
+    borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: isDark ? colors.gray200 : colors.gray100,
+    borderColor: `${colors.primary}15`,
     shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: isDark ? 0.3 : 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
 
   header: {
@@ -255,7 +255,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   date: {
     ...typography.bodySmall,
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textTertiary,
     fontWeight: '500',
   },
@@ -264,27 +264,28 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 2,
-    borderBottomColor: isDark ? colors.primary + '30' : colors.primary + '20',
-    backgroundColor: isDark ? colors.primary + '15' : colors.primary + '05',
-    padding: spacing.sm,
-    borderRadius: 12,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
+    backgroundColor: `${colors.primary}12`,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
   },
 
   companyLogo: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 10,
     backgroundColor: isDark ? colors.gray100 : colors.white,
-    marginRight: spacing.md,
-    borderWidth: 2,
-    borderColor: colors.primary + '30',
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+    flexShrink: 0,
   },
 
   companyInfo: {
@@ -293,19 +294,19 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   companyName: {
     ...typography.h3,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.primary,
-    fontSize: 18,
-    letterSpacing: -0.5,
+    fontSize: 15,
+    letterSpacing: -0.3,
   },
 
   productsSection: {
     marginBottom: spacing.md,
-    backgroundColor: isDark ? colors.gray100 : colors.gray50,
+    backgroundColor: `${colors.primary}08`,
     padding: spacing.md,
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: isDark ? colors.gray200 : colors.gray100,
+    borderColor: `${colors.primary}15`,
   },
 
   productsTitle: {
@@ -313,9 +314,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontWeight: '700',
     color: colors.textSecondary,
     marginBottom: spacing.sm,
-    fontSize: 13,
+    fontSize: 12,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
 
   productItem: {
@@ -326,37 +327,35 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   productQuantityBadge: {
-    backgroundColor: colors.primary,
+    backgroundColor: `${colors.primary}20`,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 8,
-    minWidth: 36,
+    minWidth: 32,
     alignItems: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: `${colors.primary}30`,
+    flexShrink: 0,
   },
 
   productQuantityText: {
     ...typography.bodySmall,
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.white,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.primary,
   },
 
   productName: {
     ...typography.bodyMedium,
     flex: 1,
     color: colors.text,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
 
   productPrice: {
     ...typography.bodyMedium,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: colors.primary,
   },
@@ -369,12 +368,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: isDark ? colors.primary + '20' : colors.primary + '10',
+    backgroundColor: `${colors.primary}12`,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: isDark ? colors.primary + '40' : colors.primary + '20',
+    borderColor: `${colors.primary}20`,
     marginBottom: spacing.xs,
   },
 
@@ -382,21 +381,23 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     ...typography.bodyMedium,
     color: colors.primary,
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 13,
   },
 
   addressContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.xs,
-    backgroundColor: isDark ? colors.gray100 : colors.gray50,
+    backgroundColor: `${colors.primary}08`,
     padding: spacing.sm,
-    borderRadius: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: `${colors.primary}15`,
   },
 
   address: {
     ...typography.bodySmall,
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textSecondary,
     fontWeight: '500',
     flex: 1,
@@ -408,7 +409,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: isDark ? colors.gray200 : colors.gray50,
+    borderTopColor: `${colors.primary}15`,
   },
 
   totalSection: {
@@ -419,43 +420,44 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   totalLabel: {
     ...typography.bodyMedium,
-    fontSize: 13,
+    fontSize: 12,
     color: colors.textTertiary,
     fontWeight: '500',
   },
 
   totalAmount: {
     ...typography.h3,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: colors.primary,
     letterSpacing: -0.5,
   },
 
   arrowContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: isDark ? colors.primary + '20' : colors.primary + '10',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: isDark ? colors.primary + '40' : colors.primary + '20',
+    borderColor: `${colors.primary}25`,
+    flexShrink: 0,
   },
 
   trackingBanner: {
     backgroundColor: colors.orange,
-    borderRadius: 12,
+    borderRadius: 10,
     padding: spacing.md,
     marginBottom: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     shadowColor: colors.orange,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   trackingContent: {
@@ -468,19 +470,20 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     ...typography.bodyMedium,
     color: colors.white,
     fontWeight: '700',
+    fontSize: 13,
   },
 
-  // Rating Section
+  // Rating Section - Cute & Subtle
   ratingSection: {
     marginBottom: spacing.md,
   },
 
   ratingDisplay: {
-    backgroundColor: isDark ? colors.gray100 : colors.gray50,
-    borderRadius: 12,
+    backgroundColor: `${colors.primary}08`,
+    borderRadius: 10,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: isDark ? colors.gray200 : colors.gray100,
+    borderColor: `${colors.primary}15`,
   },
 
   ratingHeader: {
@@ -492,7 +495,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   ratingTitle: {
     ...typography.bodyMedium,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
   },
@@ -505,21 +508,20 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   ratingValue: {
     ...typography.h3,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: colors.text,
   },
 
   rateButton: {
-    backgroundColor: isDark ? colors.orange + '20' : colors.orange + '10',
-    borderRadius: 12,
+    backgroundColor: `${colors.primary}12`,
+    borderRadius: 10,
     padding: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1.5,
-    borderColor: isDark ? colors.orange + '50' : colors.orange + '30',
-    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: `${colors.primary}25`,
   },
 
   rateButtonContent: {
@@ -530,8 +532,8 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   rateButtonText: {
     ...typography.bodyMedium,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: colors.orange,
+    color: colors.primary,
   },
 });
