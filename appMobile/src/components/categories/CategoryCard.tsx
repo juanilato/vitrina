@@ -7,6 +7,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import { textStyles, spacing, COLORS } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { normalize } from '../../utils/responsive';
@@ -26,19 +27,50 @@ interface CategoryCardProps {
   companies?: CompanyPreview[];
 }
 
-// Colores para las category cards - vibrantess y modernos
-const categoryColors = [
-  '#FF6B6B', // Rojo
-  '#4ECDC4', // Turquesa
-  '#FFD93D', // Amarillo
-  '#6BCB77', // Verde
-  '#4D96FF', // Azul
-  '#FF9F43', // Naranja
-  '#A29BFE', // Púrpura
-  '#FD79A8', // Rosa
-  '#00B894', // Verde oscuro
-  '#0984E3', // Azul oscuro
+// Gradientes modernos y naturales
+const categoryGradients = [
+  ['#667eea', '#764ba2'], // Púrpura-Violeta
+  ['#f093fb', '#f5576c'], // Rosa-Rojo
+  ['#4facfe', '#00f2fe'], // Azul-Cyan
+  ['#43e97b', '#38f9d7'], // Verde-Mint
+  ['#fa709a', '#fee140'], // Rosa-Amarillo
+  ['#30cfd0', '#330867'], // Cyan-Púrpura
+  ['#a8edea', '#fed6e3'], // Menta-Rosado
+  ['#ff9a56', '#ff6a88'], // Naranja-Rojo
+  ['#2e2e78', '#662d91'], // Azul oscuro-Púrpura
+  ['#08aeea', '#2af598'], // Cyan-Verde
 ];
+
+// Mapeo de iconos Feather según categoría
+const categoryIconMap: Record<string, string> = {
+  'comida': 'utensils',
+  'bebida': 'coffee',
+  'postre': 'heart',
+  'café': 'coffee',
+  'hamburguesa': 'shopping-bag',
+  'pizza': 'square',
+  'sushi': 'box',
+  'pollo': 'wind',
+  'ensalada': 'leaf',
+  'fruta': 'circle',
+  'bebidas': 'droplet',
+  'ropa': 'layers',
+  'electrónica': 'cpu',
+  'belleza': 'sparkles',
+  'hogar': 'home',
+  'deportes': 'activity',
+  'libros': 'book',
+  'juguetes': 'gift',
+  'mascotas': 'paw',
+};
+
+const getIconForCategory = (categoryName: string, defaultIcon: string): string => {
+  if (defaultIcon && defaultIcon !== '') {
+    return defaultIcon;
+  }
+  const normalized = categoryName.toLowerCase().trim();
+  return categoryIconMap[normalized] || 'tag';
+};
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   id,
@@ -51,35 +83,49 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   const { colors, isDark } = useTheme();
   const router = useRouter();
 
-  const colorIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % categoryColors.length;
-  const cardColor = categoryColors[colorIndex];
+  const gradientIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % categoryGradients.length;
+  const gradient = categoryGradients[gradientIndex];
+  const iconName = getIconForCategory(nombre, icono);
 
   const cardStyle = [
     styles.card,
     variant === 'wide' && styles.cardWide,
     variant === 'tall' && styles.cardTall,
     isDark && styles.cardDark,
-    { backgroundColor: cardColor },
   ];
 
   const handleCompanyPress = (companyId: string) => {
     router.push(`/company/${companyId}`);
   };
 
+  const handleCategoryPress = () => {
+    // Si hay una sola empresa, navegar a ella
+    if (companies && companies.length === 1) {
+      handleCompanyPress(companies[0].id);
+    }
+    // Si hay múltiples, podrías agregar lógica adicional
+  };
+
   return (
     <TouchableOpacity
       activeOpacity={0.75}
       style={cardStyle}
+      onPress={handleCategoryPress}
     >
       <LinearGradient
-        colors={[cardColor, `${cardColor}dd`]}
+        colors={gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         {/* Header Section */}
         <View style={styles.headerSection}>
-          {icono && <Text style={styles.icon}>{icono}</Text>}
+          <Feather
+            name={iconName as any}
+            size={normalize(32)}
+            color="#FFFFFF"
+            style={styles.featherIcon}
+          />
           <Text style={styles.name} numberOfLines={2}>
             {nombre}
           </Text>
@@ -154,12 +200,13 @@ const styles = StyleSheet.create({
 
   // Header Section
   headerSection: {
-    gap: spacing.sm,
+    gap: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
-  icon: {
-    fontSize: normalize(40),
-    marginBottom: normalize(4),
+  featherIcon: {
+    marginRight: normalize(4),
   },
 
   name: {
@@ -170,6 +217,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+    flex: 1,
   },
 
   // Companies Grid
@@ -184,23 +232,21 @@ const styles = StyleSheet.create({
   companyIconWrapper: {
     width: '20%',
     aspectRatio: 1,
-    borderRadius: normalize(12),
+    borderRadius: normalize(14),
     overflow: 'hidden',
   },
 
   companyIcon: {
     width: '100%',
     height: '100%',
-    borderRadius: normalize(12),
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderRadius: normalize(14),
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
 
   companyIconPlaceholder: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
 
   companyInitial: {
