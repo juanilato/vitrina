@@ -68,7 +68,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git status:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

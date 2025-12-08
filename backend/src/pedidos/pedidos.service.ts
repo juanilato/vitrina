@@ -328,7 +328,8 @@ export class PedidosService {
             select: {
               id: true,
               name: true,
-              email: true
+              email: true,
+              logo: true
             }
           }
         },
@@ -757,7 +758,7 @@ export class PedidosService {
         where: { id },
         include: {
           cliente: { select: { id: true, name: true } },
-          empresa: { select: { id: true, name: true } }
+          empresa: { select: { id: true, name: true, logo: true } }
         }
       });
 
@@ -931,7 +932,7 @@ export class PedidosService {
         where: { id },
         include: {
           cliente: { select: { id: true, name: true } },
-          empresa: { select: { id: true, name: true } }
+          empresa: { select: { id: true, name: true, logo: true } }
         }
       });
 
@@ -1093,7 +1094,7 @@ export class PedidosService {
         where: { id: pedidoId },
         include: {
           cliente: { select: { id: true, name: true, email: true } },
-          empresa: { select: { id: true, name: true } }
+          empresa: { select: { id: true, name: true, logo: true } }
         }
       });
 
@@ -1188,7 +1189,7 @@ export class PedidosService {
         where: { id: pedidoId },
         include: {
           cliente: { select: { id: true, name: true } },
-          empresa: { select: { id: true, name: true } },
+          empresa: { select: { id: true, name: true, logo: true } },
           repartidor: { select: { id: true, name: true } }
         }
       });
@@ -1388,7 +1389,7 @@ export class PedidosService {
         where: { id: pedidoId },
         include: {
           cliente: { select: { id: true, name: true } },
-          empresa: { select: { id: true, name: true } },
+          empresa: { select: { id: true, name: true, logo: true } },
           repartidor: { select: { id: true, name: true } }
         }
       });

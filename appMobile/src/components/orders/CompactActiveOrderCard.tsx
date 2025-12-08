@@ -69,37 +69,33 @@ export const CompactActiveOrderCard: React.FC<CompactActiveOrderCardProps> = ({ 
       </LinearGradient>
 
       <View style={styles.content}>
-        <View style={styles.leftContent}>
-          {order.empresa?.logo ? (
+        {order.empresa?.logo && (
+          <View style={styles.logoWrapper}>
             <Image
               source={{ uri: order.empresa.logo }}
               style={styles.logo}
             />
-          ) : (
-            <View style={[styles.logo, styles.logoPlaceholder]}>
-              <Text style={styles.logoText}>{order.empresa?.name?.charAt(0) || '?'}</Text>
-            </View>
-          )}
-          <View style={styles.infoColumn}>
-            <Text style={[styles.companyName, { color: colors.text }]} numberOfLines={1}>
-              {order.empresa?.name || 'Pedido'}
-            </Text>
-            <Text style={[styles.items, { color: colors.textSecondary }]}>
-              {totalItems} artículo{totalItems !== 1 ? 's' : ''}
-            </Text>
           </View>
-        </View>
+        )}
 
-        <View style={styles.rightContent}>
-          <Text style={[styles.total, { color: colors.primary }]}>
+        <View style={styles.infoColumn}>
+          <Text style={[styles.companyName, { color: colors.text }]} numberOfLines={1}>
+            {order.empresa?.name || 'Pedido'}
+          </Text>
+          <Text style={[styles.items, { color: colors.textSecondary }]}>
+            {totalItems} artículo{totalItems !== 1 ? 's' : ''}
+          </Text>
+          <Text style={[styles.total, { color: colors.primary }]} numberOfLines={1}>
             ${(order.total || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
           </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={SIZES.iconMd}
-            color={colors.primary}
-          />
         </View>
+
+        <Ionicons
+          name="chevron-forward"
+          size={SIZES.iconMd}
+          color={colors.primary}
+          style={styles.chevron}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -135,21 +131,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SIZES.lg,
     paddingVertical: SIZES.lg,
-    gap: SIZES.lg,
+    gap: SIZES.md,
   },
 
-  leftContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SIZES.lg,
-    flex: 1,
+  logoWrapper: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   logo: {
-    width: normalize(50),
-    height: normalize(50),
-    borderRadius: SIZES.radiusSm,
+    width: normalize(70),
+    height: normalize(70),
+    borderRadius: SIZES.radiusMd,
     backgroundColor: COLORS.gray100,
+    resizeMode: 'cover',
   },
 
   logoPlaceholder: {
@@ -159,7 +157,7 @@ const styles = StyleSheet.create({
   },
 
   logoText: {
-    fontSize: SIZES.fontLg,
+    fontSize: SIZES.fontXl,
     fontWeight: SIZES.fontWeightBold,
     color: COLORS.primary,
   },
@@ -176,15 +174,15 @@ const styles = StyleSheet.create({
 
   items: {
     fontSize: SIZES.fontSm,
-  },
-
-  rightContent: {
-    alignItems: 'flex-end',
-    gap: SIZES.xs,
+    marginBottom: SIZES.xs,
   },
 
   total: {
     fontSize: SIZES.fontLg,
     fontWeight: SIZES.fontWeightBold,
+  },
+
+  chevron: {
+    marginLeft: SIZES.sm,
   },
 });

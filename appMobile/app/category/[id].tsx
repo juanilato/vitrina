@@ -20,7 +20,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCompanies } from '../../src/hooks/useCompanies';
 import { useCategoryById } from '../../src/hooks/useCategoryById';
@@ -34,6 +34,92 @@ const { width } = Dimensions.get('window');
 
 import type { Company, Subcategoria, Promocion } from '../../src/types/company';
 import { getActivePromociones } from '../../src/utils/promotions';
+import { normalize } from '../../src/utils/responsive';
+
+// Icon mapping for subcategories
+const subcategoryIconMap: Record<string, string> = {
+  'Pizza': 'circle',
+  'Sushi': 'package',
+  'Hamburguesas': 'target',
+  'Empanadas': 'box',
+  'Panadería y Repostería': 'cake',
+  'Bebidas y Licores': 'droplet',
+  'Productos Orgánicos': 'leaf',
+  'Catering': 'users',
+  'Ropa': 'layers',
+  'Calzado': 'edit',
+  'Bolsos y Carteras': 'briefcase',
+  'Joyería': 'star',
+  'Ropa Deportiva': 'zap',
+  'Lencería': 'heart',
+  'Celulares y Tablets': 'smartphone',
+  'Computadoras': 'cpu',
+  'Accesorios Electrónicos': 'headphones',
+  'Gaming': 'joystick',
+  'Audio y Video': 'tv',
+  'Software y Servicios': 'code',
+  'Muebles': 'square',
+  'Decoración': 'palette',
+  'Electrodomésticos': 'zap',
+  'Jardín y Exterior': 'leaf',
+  'Iluminación': 'sun',
+  'Textiles del Hogar': 'layers',
+  'Cosméticos': 'star',
+  'Cuidado de la Piel': 'droplet',
+  'Perfumería': 'wind',
+  'Peluquería y Barbería': 'scissors',
+  'Spa y Masajes': 'relax',
+  'Suplementos': 'pill',
+  'Repuestos': 'tool',
+  'Accesorios para Vehículos': 'truck',
+  'Talleres Mecánicos': 'tool',
+  'Lavado y Detailing': 'droplet',
+  'Neumáticos': 'circle',
+  'Lubricantes': 'droplet',
+  'Equipamiento': 'target',
+  'Gimnasios': 'activity',
+  'Suplementos Deportivos': 'droplet',
+  'Bicicletas': 'activity',
+  'Deportes Acuáticos': 'droplet',
+  'Consultoría': 'bar-chart-2',
+  'Legal': 'award',
+  'Contabilidad': 'calculator',
+  'Marketing': 'trending-up',
+  'Diseño Gráfico': 'edit',
+  'Fotografía': 'camera',
+  'Alimentos': 'package',
+  'Veterinaria': 'plus-circle',
+  'Accesorios': 'box',
+  'Peluquería Canina': 'scissors',
+  'Juguetes': 'play-circle',
+  'Cuidado y Salud': 'heart',
+  'Idiomas': 'book',
+  'Capacitación Técnica': 'cpu',
+  'Clases Particulares': 'users',
+  'Cursos Online': 'monitor',
+  'Material Educativo': 'file-text',
+  'Talleres': 'tool',
+  'Pinturas y Lienzos': 'edit',
+  'Materiales de Arte': 'pencil',
+  'Artesanías': 'package',
+  'Scrapbooking': 'book',
+  'Manualidades DIY': 'tool',
+  'Talleres Creativos': 'play-circle',
+  'Maquinaria Agrícola': 'truck',
+  'Insumos Agrícolas': 'leaf',
+  'Herramientas Industriales': 'tool',
+  'Equipamiento Industrial': 'cpu',
+  'Productos Químicos': 'flask',
+  'Semillas y Plantas': 'leaf',
+};
+
+const getIconForSubcategory = (subcategoryName: string, defaultIcon?: string): string => {
+  if (defaultIcon && defaultIcon !== '') {
+    return defaultIcon;
+  }
+  const normalized = subcategoryName.trim();
+  return subcategoryIconMap[normalized] || 'tag';
+};
 
 export default function CategoryScreen() {
   const router = useRouter();
@@ -166,19 +252,6 @@ export default function CategoryScreen() {
         onPress={() => handleSubcategoryPress(subcategory.id)}
         activeOpacity={0.7}
       >
-        <View style={styles.chipIconContainer}>
-          {subcategory.icono ? (
-            <Text style={[styles.chipIcon, isSelected && styles.chipIconSelected]}>
-              {subcategory.icono}
-            </Text>
-          ) : (
-            <Ionicons
-              name={subcategory.id === 'all' ? 'grid' : 'pricetag'}
-              size={14}
-              color={isSelected ? colors.primary : colors.gray500}
-            />
-          )}
-        </View>
         <Text style={[styles.chipText, isSelected && styles.chipTextSelected]} numberOfLines={1}>
           {subcategory.nombre}
         </Text>
@@ -548,9 +621,13 @@ export default function CategoryScreen() {
           </TouchableOpacity>
 
           <View style={styles.categoryBadge}>
-            {currentCategory?.icono && (
+            {currentCategory && (
               <View style={styles.categoryIconContainer}>
-                <Text style={styles.categoryIcon}>{currentCategory.icono}</Text>
+                <Feather
+                  name={getIconForSubcategory(currentCategory.nombre, currentCategory.icono) as any}
+                  size={normalize(18)}
+                  color={colors.primary}
+                />
               </View>
             )}
             <View style={styles.categoryTextContainer}>
@@ -754,34 +831,28 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: isDark ? colors.gray100 : colors.gray50,
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    marginRight: spacing.xs,
-    borderWidth: 1,
-    borderColor: isDark ? colors.gray200 : colors.gray200,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginRight: spacing.sm,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   subcategoryChipSelected: {
-    backgroundColor: isDark ? `${colors.primary}25` : `${colors.primary}15`,
+    backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   chipIconContainer: {
     marginRight: 4,
   },
-  chipIcon: {
-    fontSize: 14,
-  },
-  chipIconSelected: {
-    // Mantener el icono igual cuando está seleccionado
-  },
   chipText: {
     ...textStyles.body,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.textTertiary,
   },
   chipTextSelected: {
-    color: colors.primary,
+    color: colors.white,
     fontWeight: '700',
   },
 

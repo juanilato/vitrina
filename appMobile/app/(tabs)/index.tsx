@@ -3,7 +3,7 @@
  * Rediseño con categorías destacadas y navegación mejorada
  */
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,19 +15,21 @@ import {
   Dimensions,
   TextInput,
   Animated,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCategories } from '../../src/hooks/useCategories';
 import { useCompanies } from '../../src/hooks/useCompanies';
-import { CategoryCard, CategorySelector } from '../../src/components/categories';
+import { CategoryCard3D, CategorySelector } from '../../src/components/categories';
 import { MenuDrawer } from '../../src/components/navigation/MenuDrawer';
 import { LocationsDrawer } from '../../src/components/navigation/LocationsDrawer';
 import { textStyles, spacing, SIZES, COLORS } from '../../src/theme';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLocation } from '../../src/contexts/LocationContext';
 import { useActiveOrder } from '../../src/hooks/useActiveOrder';
+import { useOrders } from '../../src/hooks/useOrders';
 import { CompactActiveOrderCard } from '../../src/components/orders/CompactActiveOrderCard';
 import { Logo } from '../../src/components/common/Logo';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -42,6 +44,7 @@ export default function HomeScreen() {
   const { companies } = useCompanies();
   const { selectedLocation } = useLocation();
   const { activeOrder, loading: loadingOrder, refresh: refreshOrder } = useActiveOrder();
+  const { orders } = useOrders();
   const [refreshing, setRefreshing] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -125,6 +128,25 @@ export default function HomeScreen() {
       .slice(0, 5);
   };
 
+  // Obtener empresas recientes de los pedidos
+  const getRecentCompanies = useMemo(() => {
+    if (!orders || orders.length === 0) return [];
+
+    // Agrupar empresas únicas por ID, preservando el orden más reciente
+    const companyMap = new Map();
+
+    orders.forEach((order) => {
+      if (order.empresa && order.empresa.id) {
+        if (!companyMap.has(order.empresa.id)) {
+          companyMap.set(order.empresa.id, order.empresa);
+        }
+      }
+    });
+
+    // Convertir a array y limitar a 6 empresas recientes
+    return Array.from(companyMap.values()).slice(0, 6);
+  }, [orders]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await Promise.all([refresh(), refreshOrder()]);
@@ -193,29 +215,29 @@ export default function HomeScreen() {
       );
     }
 
-    // Crear feed simple estilo Facebook/Instagram - una categoría por fila
+    // Crear carrusel horizontal - una al lado de la otra
     return (
-      <View style={styles.feedContainer}>
-        {validCategories.map((cat, index) => (
-          <Animated.View
-            key={cat.id}
-            style={[
-              {
-                opacity: headerOpacity,
-                transform: [{ translateY: headerAnim }],
-              },
-            ]}
+      <View>
+        <View style={styles.carouselTitleSection}>
+          <Text style={styles.carouselTitle}>Categorías</Text>
+        </View>
+        <View style={styles.carouselSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            scrollEventThrottle={16}
           >
-            <CategoryCard
-              id={cat.id}
-              nombre={cat.nombre}
-              icono={cat.icono}
-              companies={getCategoryCompanies(cat.id)}
-              companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
-              variant="wide"
-            />
-          </Animated.View>
-        ))}
+            {validCategories.map((cat) => (
+              <CategoryCard3D
+                key={cat.id}
+                id={cat.id}
+                nombre={cat.nombre}
+                icono={cat.icono}
+                companies={getCategoryCompanies(cat.id)}
+              />
+            ))}
+          </ScrollView>
+        </View>
       </View>
     );
   };
@@ -331,50 +353,45 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* Categories Grid con animación */}
-        {loading && !refreshing ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Cargando categorías...</Text>
-          </View>
-        ) : categories.length > 0 ? (
-          <View>
-            {/* Category Selector */}
-            <CategorySelector
-              categories={categories}
-              selectedCategoryId={selectedCategoryId}
-              onSelectCategory={setSelectedCategoryId}
-            />
+        {/* Horizontal Carousel */}
+        {renderCategoryGrid()}
 
-            {/* Categories Grid */}
-            <View style={styles.grid}>
-              {categories
-                .filter((cat) => !selectedCategoryId || cat.id === selectedCategoryId)
-                .map((category) => {
-                  const totalCompanies = companies.filter((c) => c.categoriaId === category.id).length;
-
-                  return (
-                    <CategoryCard
-                      key={category.id}
-                      id={category.id}
-                      nombre={category.nombre}
-                      icono={category.icono}
-                      companies={getCategoryCompanies(category.id)}
-                      companyCount={totalCompanies}
-                    />
-                  );
-                })}
+        {/* Featured Section - Recent Companies */}
+        {getRecentCompanies.length > 0 && (
+          <View style={styles.featuredSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Tus empresas frecuentes</Text>
             </View>
-          </View>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name="grid-outline"
-              size={normalize(64)}
-              color={colors.textQuaternary}
-            />
-            <Text style={styles.emptyTitle}>No hay categorías</Text>
-            <Text style={styles.emptySubtitle}>Intenta refrescar la pantalla</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              scrollEventThrottle={16}
+            >
+              {getRecentCompanies.map((empresa) => (
+                <TouchableOpacity
+                  key={empresa.id}
+                  style={styles.companyCardRecent}
+                  onPress={() => router.push(`/company/${empresa.name.replace(/\s+/g, '')}`)}
+                  activeOpacity={0.7}
+                >
+                  {empresa.logo ? (
+                    <Image
+                      source={{ uri: empresa.logo }}
+                      style={styles.companyLogoRecent}
+                    />
+                  ) : (
+                    <View style={[styles.companyLogoRecent, styles.companyLogoPlaceholder]}>
+                      <Text style={styles.companyLogoText}>
+                        {empresa.name?.charAt(0).toUpperCase() || '?'}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={styles.companyNameRecent} numberOfLines={1}>
+                    {empresa.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
 
@@ -593,6 +610,80 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing['3xl'],
     gap: spacing.md,
+  },
+
+  // Carousel Style - Horizontal scrolling
+  carouselTitleSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
+  },
+  carouselTitle: {
+    ...textStyles.headline,
+    fontSize: normalize(22),
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.5,
+  },
+  carouselSection: {
+    height: normalize(200),
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
+  },
+
+  // Featured Section
+  featuredSection: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  sectionTitle: {
+    ...textStyles.headline,
+    fontSize: normalize(20),
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.5,
+  },
+  seeAll: {
+    ...textStyles.body,
+    fontSize: normalize(13),
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  companyCardRecent: {
+    width: normalize(110),
+    alignItems: 'center',
+    marginRight: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  companyLogoRecent: {
+    width: normalize(80),
+    height: normalize(80),
+    borderRadius: normalize(16),
+    backgroundColor: colors.gray100,
+    marginBottom: spacing.sm,
+  },
+  companyLogoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${colors.primary}15`,
+  },
+  companyLogoText: {
+    fontSize: normalize(28),
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  companyNameRecent: {
+    ...textStyles.caption1,
+    fontSize: normalize(12),
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
   },
 
   row: {
