@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn var(--vitrina-transition);
 }
 
 @keyframes fadeIn {
@@ -23,12 +23,12 @@
 
 .account-type-modal {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--vitrina-radius-xl);
   padding: 32px;
   max-width: 600px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s ease;
+  box-shadow: var(--vitrina-shadow-xl);
+  animation: slideUp var(--vitrina-transition);
 }
 
 @keyframes slideUp {
@@ -68,8 +68,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: var(--vitrina-radius);
+  transition: all var(--vitrina-transition);
 }
 
 .close-button:hover {
@@ -87,10 +87,10 @@
 .account-type-card {
   background: #f9f9f9;
   border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: var(--vitrina-radius-md);
   padding: 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--vitrina-transition);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -101,31 +101,31 @@
   border-color: #7c3aed;
   background: #faf5ff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+  box-shadow: var(--vitrina-shadow-md);
 }
 
 .account-type-card.selected {
   border-color: #7c3aed;
   background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+  box-shadow: var(--vitrina-shadow-primary);
 }
 
 .account-type-icon {
   width: 64px;
   height: 64px;
   background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-  border-radius: 12px;
+  border-radius: var(--vitrina-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
   color: white;
-  transition: all 0.3s ease;
+  transition: all var(--vitrina-transition);
 }
 
 .account-type-card.selected .account-type-icon {
   transform: scale(1.1);
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  box-shadow: var(--vitrina-shadow-accent);
 }
 
 .account-type-card h3 {
@@ -148,16 +148,16 @@
   background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--vitrina-radius);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--vitrina-transition);
 }
 
 .continue-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  box-shadow: var(--vitrina-shadow-accent);
 }
 
 .continue-button:active {

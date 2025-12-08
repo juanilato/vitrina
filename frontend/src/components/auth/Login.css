@@ -17,7 +17,7 @@
   height: 600px;
   display: flex;
   background: var(--vitrina-white);
-  border-radius: var(--vitrina-border-radius-xl);
+  border-radius: var(--vitrina-radius-xl);
   box-shadow: var(--vitrina-shadow-xl);
   overflow: hidden;
   position: relative;
@@ -158,9 +158,9 @@
   width: 100%;
   padding: 0.75rem 1rem;
   border: 1.5px solid var(--vitrina-border);
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-radius-md);
   font-size: 0.875rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--vitrina-transition);
   background: var(--vitrina-white);
   color: var(--vitrina-text);
 }
@@ -196,7 +196,7 @@
 .login-mode .form-input::placeholder {
   color: var(--vitrina-text-secondary);
   opacity: 1;
-  transition: all 0.3s ease;
+  transition: all var(--vitrina-transition);
 }
 
 .login-mode .form-input:focus::placeholder {
@@ -214,10 +214,10 @@
   width: 100%;
   padding: 0.75rem 2rem;
   border: none;
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--vitrina-transition-slow);
   font-size: 0.875rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -228,13 +228,13 @@
 .btn-primary {
   background: var(--vitrina-primary);
   color: var(--vitrina-white);
-  box-shadow: var(--vitrina-shadow);
+  box-shadow: var(--vitrina-shadow-md);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--vitrina-secondary);
   transform: translateY(-2px);
-  box-shadow: var(--vitrina-shadow-lg);
+  box-shadow: var(--vitrina-shadow-primary);
 }
 
 .btn-primary:active {
@@ -249,15 +249,15 @@
 
 /* Botón principal - Sign In: Color del panel derecho */
 .login-mode .btn-primary {
-  background: linear-gradient(135deg, var(--vitrina-primary), var(--vitrina-secondary));
+  background: var(--vitrina-gradient-hero);
   color: var(--vitrina-white);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+  box-shadow: var(--vitrina-shadow-primary);
 }
 
 .login-mode .btn-primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--vitrina-secondary), var(--vitrina-primary));
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--vitrina-shadow-accent);
 }
 
 /* Footer del formulario */
@@ -286,7 +286,7 @@
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all var(--vitrina-transition);
   margin-left: auto;
   position: relative;
 }
@@ -326,7 +326,7 @@
 
 /* Sign In: Derecha azul */
 .auth-visual-panel.login-mode {
-  background: linear-gradient(135deg, var(--vitrina-primary), var(--vitrina-secondary));
+  background: var(--vitrina-gradient-hero);
   animation: fadeInRight 1.2s ease-out;
 }
 
@@ -399,7 +399,7 @@
   padding: 0.75rem;
   background: rgba(254, 242, 242, 0.9);
   border: 1px solid rgba(254, 202, 202, 0.8);
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-radius-md);
   border-left: 3px solid var(--vitrina-error);
   text-align: center;
   animation: shake 0.5s ease-in-out;

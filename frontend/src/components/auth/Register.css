@@ -17,7 +17,7 @@
   height: 600px;
   display: flex;
   background: var(--vitrina-white);
-  border-radius: var(--vitrina-border-radius-xl);
+  border-radius: var(--vitrina-radius-xl);
   box-shadow: var(--vitrina-shadow-xl);
   overflow: hidden;
   position: relative;
@@ -162,9 +162,9 @@
   width: 100%;
   padding: 0.75rem 1rem;
   border: 1.5px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-radius-md);
   font-size: 0.875rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--vitrina-transition);
   background: rgba(255, 255, 255, 0.1);
   color: var(--vitrina-white);
   appearance: none;
@@ -198,7 +198,7 @@ select.form-input {
 
 .form-input::placeholder {
   color: rgba(255, 255, 255, 0.6);
-  transition: color 0.3s ease;
+  transition: color var(--vitrina-transition);
 }
 
 .form-input:focus::placeholder {
@@ -216,7 +216,7 @@ select.form-input {
   color: var(--vitrina-white);
   padding: 0.75rem;
   font-size: 0.875rem;
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-radius-md);
   margin: 2px;
 }
 
@@ -225,10 +225,10 @@ select.form-input {
   width: 100%;
   padding: 0.75rem 2rem;
   border: none;
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--vitrina-transition-slow);
   font-size: 0.875rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -239,13 +239,13 @@ select.form-input {
 .btn-primary {
   background: var(--vitrina-white);
   color: var(--vitrina-primary);
-  box-shadow: var(--vitrina-shadow);
+  box-shadow: var(--vitrina-shadow-md);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
-  box-shadow: var(--vitrina-shadow-lg);
+  box-shadow: var(--vitrina-shadow-secondary);
 }
 
 .btn-primary:active {
@@ -372,7 +372,7 @@ select.form-input {
   padding: 0.75rem;
   background: rgba(220, 38, 38, 0.1);
   border: 1px solid rgba(220, 38, 38, 0.3);
-  border-radius: var(--vitrina-border-radius);
+  border-radius: var(--vitrina-radius-md);
   border-left: 3px solid #dc2626;
   text-align: center;
   animation: shake 0.5s ease-in-out;
@@ -515,7 +515,7 @@ select.form-input {
 
 .register-mode .form-input::placeholder {
   color: rgba(255, 255, 255, 0.6);
-  transition: color 0.3s ease;
+  transition: color var(--vitrina-transition);
 }
 
 .register-mode .form-input:focus::placeholder {
@@ -567,5 +567,5 @@ select.form-input {
 
 .google-login-container iframe:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15) !important;
+  box-shadow: var(--vitrina-shadow-secondary) !important;
 }
