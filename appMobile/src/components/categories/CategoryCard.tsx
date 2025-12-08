@@ -1,14 +1,17 @@
 /**
  * CategoryCard Component
- * Displays a category card with icon and name
+ * Displays a category card with icon, name, and expandable company list
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { textStyles, spacing } from '../../theme';
+import { Ionicons } from '@expo/vector-icons';
+import { textStyles, spacing, COLORS } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { normalize, wp } from '../../utils/responsive';
+import { normalize } from '../../utils/responsive';
+import { CompanyPreview } from '../../types/company';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = spacing.md;
@@ -18,8 +21,9 @@ interface CategoryCardProps {
   id: string;
   nombre: string;
   icono?: string;
-  onPress: () => void;
   variant?: 'normal' | 'wide' | 'tall';
+  companyCount?: number;
+  companies?: CompanyPreview[];
 }
 
 // Gradientes para modo claro (vibrantes y coloridos)
@@ -58,92 +62,219 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   id,
   nombre,
   icono,
-  onPress,
   variant = 'normal',
+  companyCount = 0,
+  companies = [],
 }) => {
   const { colors, isDark } = useTheme();
+  const router = useRouter();
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Seleccionar gradientes según el tema
-  const gradients = isDark ? darkGradients : lightGradients;
+  // Nuevos colores para las category cards
+  const categoryColors = [
+    '#FF6B6B', // Rojo
+    '#4ECDC4', // Turquesa
+    '#FFD93D', // Amarillo
+    '#6BCB77', // Verde
+    '#4D96FF', // Azul
+    '#FF9F43', // Naranja
+    '#A29BFE', // Púrpura
+    '#FD79A8', // Rosa
+    '#00B894', // Verde oscuro
+    '#0984E3', // Azul oscuro
+  ];
 
-  // Generar un color basado en el ID
-  const colorIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % gradients.length;
-  const gradient = gradients[colorIndex];
+  const colorIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % categoryColors.length;
+  const cardColor = categoryColors[colorIndex];
 
   const cardStyle = [
     styles.card,
     variant === 'wide' && styles.cardWide,
     variant === 'tall' && styles.cardTall,
     isDark && styles.cardDark,
+    isExpanded && styles.cardExpanded,
+    { backgroundColor: cardColor },
   ];
 
+  const handleCompanyPress = (companyId: string) => {
+    router.push(`/company/${companyId}`);
+  };
+
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={cardStyle}>
-      <LinearGradient
-        colors={gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
+    <View>
+      <TouchableOpacity
+        onPress={() => setIsExpanded(!isExpanded)}
+        activeOpacity={0.7}
+        style={cardStyle}
       >
-        <View style={styles.content}>
-          {icono && <Text style={styles.icon}>{icono}</Text>}
-          <Text style={[styles.name, isDark && styles.nameDark]} numberOfLines={2}>
-            {nombre}
-          </Text>
+        <View style={styles.cardHeader}>
+          <View style={styles.titleSection}>
+            {icono && <Text style={styles.icon}>{icono}</Text>}
+            <Text style={styles.name} numberOfLines={1}>
+              {nombre}
+            </Text>
+          </View>
+          <View style={styles.expandIcon}>
+            <Ionicons
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size={24}
+              color="#FFFFFF"
+            />
+          </View>
         </View>
-      </LinearGradient>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {/* Expanded Companies List */}
+      {isExpanded && companies && companies.length > 0 && (
+        <View style={[styles.expandedContainer, { borderTopColor: cardColor }]}>
+          {companies.map((company) => (
+            <TouchableOpacity
+              key={company.id}
+              style={styles.companyItem}
+              onPress={() => handleCompanyPress(company.id)}
+              activeOpacity={0.7}
+            >
+              {/* Company Logo/Image */}
+              {company.logo ? (
+                <Image
+                  source={{ uri: company.logo }}
+                  style={styles.companyLogo}
+                />
+              ) : (
+                <View style={[styles.companyLogo, styles.companyLogoPlaceholder]}>
+                  <Text style={styles.companyLogoText}>
+                    {company.name?.charAt(0).toUpperCase() || '?'}
+                  </Text>
+                </View>
+              )}
+
+              {/* Company Name */}
+              <Text style={styles.companyName} numberOfLines={2}>
+                {company.name}
+              </Text>
+
+              {/* Arrow */}
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    minHeight: normalize(110),
-    marginBottom: spacing.sm,
-    borderRadius: normalize(12),
-    overflow: 'hidden',
-    elevation: 2,
+    minHeight: normalize(100),
+    marginBottom: spacing.md,
+    borderRadius: 0, // Un solo borde puntiagudo
+    overflow: 'visible',
+    elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   cardDark: {
-    elevation: 4,
+    elevation: 6,
     shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowRadius: 8,
   },
   cardWide: {
     width: width - (CARD_MARGIN * 2),
-    minHeight: normalize(100),
+    minHeight: normalize(90),
   },
   cardTall: {
-    minHeight: normalize(130),
+    minHeight: normalize(120),
   },
-  gradient: {
+  cardExpanded: {
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  titleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
     flex: 1,
-    padding: spacing.md,
-    justifyContent: 'flex-end',
-  },
-  content: {
-    gap: spacing.xs,
   },
   icon: {
     fontSize: normalize(32),
-    marginBottom: 2,
   },
   name: {
     ...textStyles.subheadline,
-    fontSize: normalize(14),
+    fontSize: normalize(16),
     color: '#FFFFFF',
-    fontWeight: '600',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    fontWeight: '700',
+    flex: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  nameDark: {
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
-    textShadowRadius: 3,
+  expandIcon: {
+    padding: spacing.sm,
+  },
+
+  // Expanded Container Styles
+  expandedContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 4,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    paddingVertical: spacing.md,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginBottom: spacing.md,
+  },
+
+  // Company Item Styles
+  companyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+
+  companyLogo: {
+    width: normalize(60),
+    height: normalize(60),
+    borderRadius: normalize(12),
+    backgroundColor: '#E8E8E8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  companyLogoPlaceholder: {
+    backgroundColor: '#E8E8E8',
+  },
+
+  companyLogoText: {
+    fontSize: normalize(24),
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+
+  companyName: {
+    flex: 1,
+    fontSize: normalize(15),
+    fontWeight: '600',
+    color: '#333333',
   },
 });

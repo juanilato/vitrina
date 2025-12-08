@@ -125,6 +125,12 @@ export interface CompanyWithProducts extends Company {
   products?: Product[];
 }
 
+export interface CompanyPreview {
+  id: string;
+  name: string;
+  logo?: string;
+}
+
 export interface Agregado {
   id: string;
   nombre: string;

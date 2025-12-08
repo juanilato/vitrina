@@ -20,14 +20,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCategories } from '../../src/hooks/useCategories';
+import { useCompanies } from '../../src/hooks/useCompanies';
 import { CategoryCard } from '../../src/components/categories/CategoryCard';
 import { MenuDrawer } from '../../src/components/navigation/MenuDrawer';
 import { LocationsDrawer } from '../../src/components/navigation/LocationsDrawer';
-import { textStyles, spacing } from '../../src/theme';
+import { textStyles, spacing, SIZES, COLORS } from '../../src/theme';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useLocation } from '../../src/contexts/LocationContext';
 import { useActiveOrder } from '../../src/hooks/useActiveOrder';
-import { ActiveOrderCard } from '../../src/components/orders/ActiveOrderCard';
+import { CompactActiveOrderCard } from '../../src/components/orders/CompactActiveOrderCard';
 import { Logo } from '../../src/components/common/Logo';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize } from '../../src/utils/responsive';
@@ -38,6 +39,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { categories, loading, refresh } = useCategories();
+  const { companies } = useCompanies();
   const { selectedLocation } = useLocation();
   const { activeOrder, loading: loadingOrder, refresh: refreshOrder } = useActiveOrder();
   const [refreshing, setRefreshing] = useState(false);
@@ -114,29 +116,18 @@ export default function HomeScreen() {
     }
   }, [activeOrder, loadingOrder]);
 
+  // Obtener empresas para cada categoría (máximo 5)
+  const getCategoryCompanies = (categoryId: string) => {
+    return companies
+      .filter((c) => c.categoriaId === categoryId)
+      .map(c => ({ id: c.id, name: c.name, logo: c.logo }))
+      .slice(0, 5);
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await Promise.all([refresh(), refreshOrder()]);
     setRefreshing(false);
-  };
-
-  const handleCategoryPress = (categoryId: string, categoryName: string) => {
-    console.log('[HomeScreen] Category pressed:', {
-      id: categoryId,
-      name: categoryName,
-    });
-
-    // Validar que tenemos un ID válido
-    if (!categoryId) {
-      console.error('[HomeScreen] Cannot navigate: categoryId is undefined');
-      return;
-    }
-
-    // Navegar a pantalla de empresas filtradas por categoría
-    router.push({
-      pathname: '/category/[id]',
-      params: { id: categoryId, name: categoryName },
-    });
   };
 
   const handleOpenLocationDrawer = () => {
@@ -225,7 +216,8 @@ export default function HomeScreen() {
                 id={cat.id}
                 nombre={cat.nombre}
                 icono={cat.icono}
-                onPress={() => handleCategoryPress(cat.id, cat.nombre)}
+                companies={getCategoryCompanies(cat.id)}
+                companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
                 variant="wide"
               />
             </View>
@@ -247,7 +239,8 @@ export default function HomeScreen() {
                 id={cat.id}
                 nombre={cat.nombre}
                 icono={cat.icono}
-                onPress={() => handleCategoryPress(cat.id, cat.nombre)}
+                companies={getCategoryCompanies(cat.id)}
+                companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
               />
             );
           }
@@ -264,7 +257,8 @@ export default function HomeScreen() {
                 id={cat.id}
                 nombre={cat.nombre}
                 icono={cat.icono}
-                onPress={() => handleCategoryPress(cat.id, cat.nombre)}
+                companies={getCategoryCompanies(cat.id)}
+                companyCount={companies.filter((c) => c.categoriaId === cat.id).length}
               />
             );
           }
@@ -400,14 +394,44 @@ export default function HomeScreen() {
               }
             ]}
           >
-            <ActiveOrderCard order={activeOrder} />
+            <CompactActiveOrderCard order={activeOrder} />
           </Animated.View>
         )}
 
         {/* Categories Grid con animación */}
-        <View>
-          {renderCategoryGrid()}
-        </View>
+        {loading && !refreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Cargando categorías...</Text>
+          </View>
+        ) : categories.length > 0 ? (
+          <View style={styles.grid}>
+            {categories.map((category) => {
+              const totalCompanies = companies.filter((c) => c.categoriaId === category.id).length;
+
+              return (
+                <CategoryCard
+                  key={category.id}
+                  id={category.id}
+                  nombre={category.nombre}
+                  icono={category.icono}
+                  companies={getCategoryCompanies(category.id)}
+                  companyCount={totalCompanies}
+                />
+              );
+            })}
+          </View>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons
+              name="grid-outline"
+              size={normalize(64)}
+              color={colors.textQuaternary}
+            />
+            <Text style={styles.emptyTitle}>No hay categorías</Text>
+            <Text style={styles.emptySubtitle}>Intenta refrescar la pantalla</Text>
+          </View>
+        )}
 
         {/* Bottom spacer for floating tab bar */}
         <View style={{ height: 100 }} />
@@ -429,99 +453,101 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Navbar Styles - Glass Effect
+  // Navbar Styles - Cute & Soft
   navbar: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   navbarGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: normalize(12),
-    borderRadius: normalize(20),
+    paddingVertical: normalize(14),
+    borderRadius: normalize(24),
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.4)' : 'rgba(255, 255, 255, 0.8)',
   },
 
-  // Logo Card Styles
+  // Logo Card Styles - Cute & Friendly
   logoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-    paddingHorizontal: normalize(12),
-    paddingVertical: normalize(8),
-    borderRadius: normalize(16),
-    gap: normalize(10),
+    backgroundColor: `${colors.primary}10`,
+    paddingHorizontal: normalize(14),
+    paddingVertical: normalize(10),
+    borderRadius: normalize(20),
+    gap: normalize(12),
     flex: 1,
-    marginRight: spacing.md,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
   },
   logoIconContainer: {
-    width: normalize(40),
-    height: normalize(40),
-    borderRadius: normalize(12),
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(14),
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   logoTextContainer: {
     flex: 1,
   },
   logoTitle: {
     ...textStyles.body,
-    fontSize: normalize(18),
+    fontSize: normalize(20),
     fontWeight: '800',
     color: colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
   },
   locationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 3,
     gap: normalize(4),
+    backgroundColor: `${colors.primary}15`,
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(2),
+    borderRadius: normalize(8),
   },
   locationBadgeText: {
     ...textStyles.caption1,
-    fontSize: normalize(11),
-    color: colors.textSecondary,
-    fontWeight: '600',
+    fontSize: normalize(10),
+    color: colors.primary,
+    fontWeight: '700',
   },
 
-  // Action Buttons
+  // Action Buttons - Cute & Friendly
   navActions: {
     flexDirection: 'row',
     gap: normalize(8),
   },
   glassButton: {
-    width: normalize(40),
-    height: normalize(40),
-    borderRadius: normalize(12),
+    width: normalize(44),
+    height: normalize(44),
+    borderRadius: normalize(14),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: `${colors.primary}12`,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: `${colors.primary}20`,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
   },
 
   // Legacy styles (kept for compatibility)
@@ -579,70 +605,95 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.text,
   },
 
-  // Header Styles
+  // Header Styles - Cute & Friendly
   header: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
   greeting: {
     ...textStyles.headline,
-    fontSize: normalize(20),
+    fontSize: normalize(28),
     color: colors.text,
-    fontWeight: '700',
-    marginBottom: 4,
+    fontWeight: '800',
+    marginBottom: 6,
+    letterSpacing: -1,
   },
   subtitle: {
     ...textStyles.subheadline,
-    fontSize: normalize(14),
+    fontSize: normalize(15),
     color: colors.textSecondary,
-    fontWeight: '400',
+    fontWeight: '500',
+    paddingHorizontal: spacing.xs,
   },
 
   // Active Order Section
   activeOrderSection: {
     paddingTop: spacing.md,
+    paddingHorizontal: spacing.md,
   },
 
-  // Grid Styles
+  // Grid Styles - Cute spacing
   scrollView: {
     flex: 1,
   },
   grid: {
     paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
 
-  // Loading & Empty States
+  // Loading & Empty States - Cute & Friendly
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing['4xl'],
+    backgroundColor: `${colors.primary}05`,
+    borderRadius: 20,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.lg,
+    borderWidth: 1,
+    borderColor: `${colors.primary}10`,
   },
   loadingText: {
     ...textStyles.subheadline,
     color: colors.textSecondary,
     marginTop: spacing.md,
+    fontSize: normalize(14),
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing['4xl'],
+    backgroundColor: `${colors.primary}05`,
+    borderRadius: 20,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.lg,
+    borderWidth: 1,
+    borderColor: `${colors.primary}10`,
   },
   emptyTitle: {
     ...textStyles.headline,
-    color: colors.textSecondary,
+    color: colors.text,
     marginTop: spacing.lg,
     marginBottom: spacing.xs,
+    fontSize: normalize(20),
+    fontWeight: '700',
   },
   emptySubtitle: {
     ...textStyles.subheadline,
-    color: colors.textTertiary,
+    color: colors.textSecondary,
+    fontSize: normalize(14),
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
   },
+
 });
