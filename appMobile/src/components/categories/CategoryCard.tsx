@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = spacing.md;
-const CARD_WIDTH = (width - (CARD_MARGIN * 3)) / 2;
+const CARD_WIDTH = width - (CARD_MARGIN * 2);
 
 interface CategoryCardProps {
   id: string;

@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCategories } from '../../src/hooks/useCategories';
 import { useCompanies } from '../../src/hooks/useCompanies';
-import { CategoryCard } from '../../src/components/categories/CategoryCard';
+import { CategoryCard, CategorySelector } from '../../src/components/categories';
 import { MenuDrawer } from '../../src/components/navigation/MenuDrawer';
 import { LocationsDrawer } from '../../src/components/navigation/LocationsDrawer';
 import { textStyles, spacing, SIZES, COLORS } from '../../src/theme';
@@ -47,6 +47,7 @@ export default function HomeScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showMenuDrawer, setShowMenuDrawer] = useState(false);
   const [showLocationsDrawer, setShowLocationsDrawer] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   // Animaciones
   const navbarAnim = useRef(new Animated.Value(-50)).current;
@@ -405,21 +406,33 @@ export default function HomeScreen() {
             <Text style={styles.loadingText}>Cargando categorías...</Text>
           </View>
         ) : categories.length > 0 ? (
-          <View style={styles.grid}>
-            {categories.map((category) => {
-              const totalCompanies = companies.filter((c) => c.categoriaId === category.id).length;
+          <View>
+            {/* Category Selector */}
+            <CategorySelector
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={setSelectedCategoryId}
+            />
 
-              return (
-                <CategoryCard
-                  key={category.id}
-                  id={category.id}
-                  nombre={category.nombre}
-                  icono={category.icono}
-                  companies={getCategoryCompanies(category.id)}
-                  companyCount={totalCompanies}
-                />
-              );
-            })}
+            {/* Categories Grid */}
+            <View style={styles.grid}>
+              {categories
+                .filter((cat) => !selectedCategoryId || cat.id === selectedCategoryId)
+                .map((category) => {
+                  const totalCompanies = companies.filter((c) => c.categoriaId === category.id).length;
+
+                  return (
+                    <CategoryCard
+                      key={category.id}
+                      id={category.id}
+                      nombre={category.nombre}
+                      icono={category.icono}
+                      companies={getCategoryCompanies(category.id)}
+                      companyCount={totalCompanies}
+                    />
+                  );
+                })}
+            </View>
           </View>
         ) : (
           <View style={styles.emptyContainer}>
