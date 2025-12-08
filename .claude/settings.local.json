@@ -67,7 +67,8 @@
       "Bash(\"c:\\Users\\maria\\OneDrive\\Documentos\\web\\vitrina\\frontend\\src\\components\\dashboard\\sections\\OrdersSection\\OrdersSection.css\")",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(npx ts-node:*)"
     ],
     "deny": [],
     "ask": []

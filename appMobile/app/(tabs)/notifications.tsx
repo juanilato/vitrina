@@ -185,44 +185,50 @@ export default function NotificationsScreen() {
         onPress={() => handleNotificationPress(item)}
         activeOpacity={0.8}
       >
-        <View style={styles.notificationContent}>
-          {/* Icon con gradiente */}
-          <LinearGradient
-            colors={style.gradientColors as any}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.iconContainer}
-          >
-            {item.metadata?.icono ? (
-              <Text style={styles.iconEmoji}>{item.metadata.icono}</Text>
-            ) : (
-              <Ionicons name={style.icon} size={24} color="#fff" />
-            )}
-          </LinearGradient>
-
-          {/* Content */}
-          <View style={styles.textContent}>
-            <View style={styles.titleRow}>
+        {/* Letter Header */}
+        <View style={styles.letterHeader}>
+          <View style={styles.letterHeaderContent}>
+            <LinearGradient
+              colors={style.gradientColors as any}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.iconContainer}
+            >
+              {item.metadata?.icono ? (
+                <Text style={styles.iconEmoji}>{item.metadata.icono}</Text>
+              ) : (
+                <Ionicons name={style.icon} size={20} color="#fff" />
+              )}
+            </LinearGradient>
+            <View style={styles.headerTextContent}>
               <Text style={[styles.title, !item.leida && styles.titleUnread]} numberOfLines={1}>
                 {item.titulo}
               </Text>
-              {!item.leida && <View style={styles.unreadDot} />}
-            </View>
-            <Text style={styles.message} numberOfLines={2}>
-              {item.mensaje}
-            </Text>
-            <View style={styles.footer}>
-              {item.metadata?.totalAmount && (
-                <Text style={styles.totalAmount}>
-                  ${item.metadata.totalAmount.toLocaleString('es-AR')}
-                </Text>
-              )}
               <Text style={styles.time}>{formatTime(item.createdAt)}</Text>
             </View>
           </View>
+          {!item.leida && <View style={styles.unreadIndicator} />}
+        </View>
 
-          {/* Chevron */}
-          <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+        {/* Letter Body */}
+        <View style={styles.letterBody}>
+          <Text style={styles.message} numberOfLines={3}>
+            {item.mensaje}
+          </Text>
+          {item.metadata?.totalAmount && (
+            <View style={styles.amountSection}>
+              <Text style={styles.amountLabel}>Monto:</Text>
+              <Text style={styles.totalAmount}>
+                ${item.metadata.totalAmount.toLocaleString('es-AR')}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Letter Footer */}
+        <View style={styles.letterFooter}>
+          <Text style={styles.viewDetailsText}>Ver detalles</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.primary} />
         </View>
       </TouchableOpacity>
     );
@@ -284,7 +290,7 @@ export default function NotificationsScreen() {
           <View style={styles.headerRow}>
             <View style={styles.notificationBadge}>
               <View style={styles.notificationIconContainer}>
-                <Ionicons name="notifications" size={22} color={colors.primary} />
+                <Ionicons name="notifications" size={24} color={colors.white} />
                 {unreadCount > 0 && (
                   <View style={styles.notificationCountBadge}>
                     <Text style={styles.notificationCountText}>{unreadCount}</Text>
@@ -385,23 +391,24 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Header - Modern Glass Design
+  // Header - Cute & Soft
   header: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   headerGradient: {
     paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingVertical: 14,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
-    gap: spacing.sm,
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.4)' : 'rgba(255, 255, 255, 0.8)',
+    gap: spacing.md,
   },
 
   headerRow: {
@@ -410,65 +417,70 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  // Notification Badge
+  // Notification Badge - Cute & Friendly
   notificationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    gap: 10,
+    backgroundColor: `${colors.primary}10`,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 12,
     flex: 1,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
   },
   notificationIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: `${colors.primary}15`,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   notificationCountBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -6,
+    right: -6,
     backgroundColor: colors.secondary,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
+    borderWidth: 2,
+    borderColor: isDark ? colors.background : colors.white,
   },
   notificationCountText: {
     color: colors.white,
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
   },
   notificationTextContainer: {
     flex: 1,
   },
   notificationLabel: {
     ...typography.caption1,
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.primary,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   notificationTitle: {
     ...typography.body,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     color: colors.text,
-    marginTop: 2,
+    marginTop: 3,
+    letterSpacing: -0.5,
   },
 
   markAllButton: {
@@ -476,230 +488,297 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: colors.secondary,
-    shadowColor: colors.secondary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   markAllButtonText: {
     ...typography.bodySmall,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.white,
   },
 
-  // Filter
+  // Filter - Cute & Soft
   filterContainer: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: spacing.md,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.background,
   },
 
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 20,
-    backgroundColor: colors.gray100,
-    borderWidth: 1,
-    borderColor: 'transparent',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: 18,
+    backgroundColor: `${colors.primary}08`,
+    borderWidth: 1.5,
+    borderColor: `${colors.primary}15`,
   },
 
   filterChipActive: {
-    backgroundColor: colors.secondary,
-    borderColor: colors.secondary,
+    backgroundColor: `${colors.primary}12`,
+    borderColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   filterChipText: {
     ...typography.bodySmall,
-    fontSize: 13,
+    fontSize: 14,
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 
   filterChipTextActive: {
-    color: colors.white,
+    color: colors.primary,
+    fontWeight: '800',
   },
 
   filterBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 10,
-    backgroundColor: colors.gray300,
+    backgroundColor: `${colors.primary}12`,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
   },
 
   filterBadgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 
   filterBadgeText: {
     ...typography.caption1,
-    fontSize: 11,
-    color: colors.text,
-    fontWeight: '700',
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '800',
   },
 
   filterBadgeTextActive: {
     color: colors.white,
   },
 
-  // Loading
+  // Loading - Cute & Friendly
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.lg,
+    backgroundColor: `${colors.primary}05`,
+    borderRadius: 20,
+    padding: spacing.xl,
   },
 
-  // List
+  // List - Cute spacing
   listContent: {
     padding: spacing.lg,
-    paddingBottom: 100, // Space for tab bar
+    paddingBottom: 120,
+    gap: spacing.sm,
   },
 
-  // Section Header
+  // Section Header - Cute & Friendly
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
     marginBottom: spacing.sm,
   },
 
   sectionTitle: {
     ...typography.bodyMedium,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: colors.text,
     textTransform: 'capitalize',
+    letterSpacing: -0.5,
   },
 
   sectionBadge: {
-    backgroundColor: colors.gray200,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: `${colors.primary}12`,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
   },
 
   sectionCount: {
     ...typography.caption1,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.text,
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
   },
 
-  // Notification Card
+  // Letter Card - Paper Style
   notificationCard: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    marginBottom: spacing.sm,
+    backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+    borderRadius: 8,
+    marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: isDark ? colors.black : '#000',
+    borderColor: isDark ? '#3a3a3a' : '#e5e7eb',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
     elevation: 2,
+    overflow: 'hidden',
   },
 
   notificationCardUnread: {
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: colors.secondary,
-    backgroundColor: `${colors.secondary}05`,
+    backgroundColor: isDark ? '#2d2a2f' : '#fef9f9',
   },
 
-  notificationContent: {
+  // Letter Header
+  letterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: isDark ? '#252525' : '#fafafa',
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? '#3a3a3a' : '#e5e7eb',
+  },
+
+  letterHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
     gap: spacing.sm,
-  },
-
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  iconEmoji: {
-    fontSize: 26,
-  },
-
-  textContent: {
     flex: 1,
   },
 
-  titleRow: {
-    flexDirection: 'row',
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: 4,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  iconEmoji: {
+    fontSize: 22,
+  },
+
+  headerTextContent: {
+    flex: 1,
   },
 
   title: {
     ...typography.bodyMedium,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: colors.textSecondary,
-    flex: 1,
+    letterSpacing: -0.2,
+    marginBottom: 2,
   },
 
   titleUnread: {
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.text,
   },
 
-  unreadDot: {
+  time: {
+    ...typography.caption1,
+    fontSize: 10,
+    color: colors.textTertiary,
+    fontWeight: '600',
+  },
+
+  unreadIndicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.secondary,
+    flexShrink: 0,
+  },
+
+  // Letter Body
+  letterBody: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
   },
 
   message: {
     ...typography.bodySmall,
     fontSize: 13,
     color: colors.textSecondary,
-    lineHeight: 18,
-    marginBottom: 6,
+    lineHeight: 19,
+    marginBottom: spacing.sm,
   },
 
-  footer: {
+  amountSection: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: isDark ? '#333' : '#f3f4f6',
+  },
+
+  amountLabel: {
+    ...typography.caption1,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
 
   totalAmount: {
-    ...typography.bodySmall,
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.secondary,
+    ...typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.primary,
+    letterSpacing: -0.5,
   },
 
-  time: {
+  // Letter Footer
+  letterFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: isDark ? '#252525' : '#fafafa',
+    borderTopWidth: 1,
+    borderTopColor: isDark ? '#3a3a3a' : '#e5e7eb',
+  },
+
+  viewDetailsText: {
     ...typography.caption1,
     fontSize: 11,
-    color: colors.textTertiary,
-    fontWeight: '500',
+    fontWeight: '700',
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

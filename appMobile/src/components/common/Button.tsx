@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fontSizes, fontWeights, borderRadius, spacing } from '../../theme';
+import { COLORS, SIZES, SHADOWS } from '../../theme';
 import { normalize } from '../../utils/responsive';
 
 interface ButtonProps extends TouchableOpacityProps {
@@ -38,7 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const isDisabled = disabled || loading;
 
-  const iconColor = variant === 'outline' || variant === 'ghost' ? colors.primary : colors.white;
+  const iconColor = variant === 'outline' || variant === 'ghost' ? COLORS.primary : COLORS.white;
 
   return (
     <TouchableOpacity
@@ -56,14 +56,14 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'outline' || variant === 'ghost' ? colors.primary : colors.white}
+          color={variant === 'outline' || variant === 'ghost' ? COLORS.primary : COLORS.white}
         />
       ) : (
         <View style={styles.content}>
           {icon && (
             <Ionicons
               name={icon}
-              size={size === 'sm' ? 18 : size === 'lg' ? 24 : 20}
+              size={size === 'sm' ? SIZES.iconSm : size === 'lg' ? SIZES.iconLg : SIZES.iconMd}
               color={iconColor}
               style={styles.icon}
             />
@@ -89,79 +89,80 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: SIZES.radiusButton,
+    ...SHADOWS.md,
   },
 
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: SIZES.xs,
   },
 
   icon: {
-    marginRight: 4,
+    marginRight: SIZES.xs,
   },
 
-  // Variants (Brandbook: naranja para CTAs, verde para secundario)
+  // Variants (Vitrina: naranja para CTAs, verde para secundario)
   primary: {
-    backgroundColor: colors.orange,  // Naranja - CTAs principales
+    backgroundColor: COLORS.quaternary,  // Naranja - CTAs principales
   },
   secondary: {
-    backgroundColor: colors.secondary,  // Verde - Acciones secundarias
+    backgroundColor: COLORS.secondary,  // Verde - Acciones secundarias
   },
   outline: {
-    backgroundColor: 'transparent',
+    backgroundColor: COLORS.transparent,
     borderWidth: 1.5,
-    borderColor: colors.primary,  // Azul oscuro para borde
+    borderColor: COLORS.primary,  // Azul oscuro para borde
   },
   ghost: {
-    backgroundColor: 'transparent',
+    backgroundColor: COLORS.transparent,
   },
 
   // Sizes
   sm: {
-    height: 36,
-    paddingHorizontal: spacing.md,
+    height: SIZES.buttonHeightSm,
+    paddingHorizontal: SIZES.base,
   },
   md: {
-    height: 44,
-    paddingHorizontal: spacing.lg,
+    height: SIZES.buttonHeightMd,
+    paddingHorizontal: SIZES.lg,
   },
   lg: {
-    height: 50,
-    paddingHorizontal: spacing.xl,
+    height: SIZES.buttonHeightLg,
+    paddingHorizontal: SIZES.xl,
   },
 
   // Text styles
   text: {
-    fontWeight: fontWeights.semibold,
+    fontWeight: SIZES.fontWeightSemibold,
   },
   primaryText: {
-    color: colors.white,
-    fontSize: fontSizes.base,
+    color: COLORS.white,
+    fontSize: SIZES.fontBase,
   },
   secondaryText: {
-    color: colors.white,
-    fontSize: fontSizes.base,
+    color: COLORS.white,
+    fontSize: SIZES.fontBase,
   },
   outlineText: {
-    color: colors.primary,
-    fontSize: fontSizes.base,
+    color: COLORS.primary,
+    fontSize: SIZES.fontBase,
   },
   ghostText: {
-    color: colors.primary,
-    fontSize: fontSizes.base,
+    color: COLORS.primary,
+    fontSize: SIZES.fontBase,
   },
 
   // Size text
   smText: {
-    fontSize: fontSizes.sm,
+    fontSize: SIZES.fontSm,
   },
   mdText: {
-    fontSize: fontSizes.base,
+    fontSize: SIZES.fontBase,
   },
   lgText: {
-    fontSize: normalize(15),
+    fontSize: SIZES.fontLg,
   },
 
   // States

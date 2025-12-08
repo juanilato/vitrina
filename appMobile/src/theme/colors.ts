@@ -2,74 +2,144 @@
  * Vitrina Brand Colors
  * Based on Brandbook - Manual de Identidad Visual
  * Paleta de colores para transmitir confianza, innovación y dinamismo
+ * Inspirado en diseño limpio, luminoso y comercial
  */
 
 export const colors = {
-  // Brand colors (from Vitrina Brandbook)
-  primary: '#0A2A43',      // Azul oscuro - Color principal de marca
+  // ============================================
+  // COLORES PRINCIPALES
+  // ============================================
+
+  // Primary - Azul oscuro de marca (Vitrina)
+  primary: '#0A2A43',
   primaryLight: '#0D3354',
   primaryDark: '#071D2F',
 
-  secondary: '#2E9D66',    // Verde - Color secundario
+  // Secondary - Verde (Productos/Servicios)
+  secondary: '#2E9D66',
   secondaryLight: '#3DB378',
   secondaryDark: '#258652',
 
-  accent: '#007ACC',       // Azul brillante - Elementos interactivos
-  accentLight: '#1A8FDB',
-  accentDark: '#0066B3',
+  // Tertiary - Azul brillante (Interactivo)
+  tertiary: '#007ACC',
+  tertiaryLight: '#1A8FDB',
+  tertiaryDark: '#0066B3',
 
-  orange: '#F26B1D',       // Naranja - CTAs y elementos destacados
-  orangeLight: '#F4843D',
-  orangeDark: '#D85F19',
+  // Quaternary - Naranja (CTAs destacados)
+  quaternary: '#F26B1D',
+  quaternaryLight: '#F4843D',
+  quaternaryDark: '#D85F19',
 
-  // Neutrals
+  // ============================================
+  // COLORES PASTEL PARA ACCESOS RÁPIDOS
+  // ============================================
+
+  pastelBlue: '#E3F2FD',      // Fondo Productos
+  pastelGreen: '#ECFDF5',     // Fondo Servicios
+  pastelCyan: '#E0F7FA',      // Fondo Pedidos
+  pastelOrange: '#FFF3E0',    // Fondo Promociones
+
+  // ============================================
+  // COLORES NEUTRALES
+  // ============================================
+
   white: '#FFFFFF',
   black: '#000000',
-  background: '#F9F9F9',   // Blanco del brandbook
+  transparent: 'transparent',
+
+  // Background
+  background: '#F8F9FA',       // Gris muy claro
+  backgroundLight: '#FFFFFF',
+  backgroundDark: '#F3F4F6',
+  backgroundSecondary: '#FFFFFF',
+  backgroundTertiary: '#F9F9F9',
 
   // Grays
   gray50: '#FAFAFA',
   gray100: '#F5F5F5',
-  gray200: '#E5E5E5',
-  gray300: '#D4D4D4',
-  gray400: '#A3A3A3',
-  gray500: '#737373',
-  gray600: '#525252',
-  gray700: '#404040',
-  gray800: '#333333',      // Gris oscuro para texto (del brandbook)
-  gray900: '#171717',
+  gray200: '#EEEEEE',
+  gray300: '#E0E0E0',
+  gray400: '#BDBDBD',
+  gray500: '#9E9E9E',
+  gray600: '#757575',
+  gray700: '#616161',
+  gray800: '#424242',
+  gray900: '#212121',
 
-  // Semantic colors (using brand colors)
-  success: '#2E9D66',      // Verde
-  green50: '#ECFDF5',      // Verde claro para fondos
-  error: '#DC2626',        // Red
-  warning: '#F26B1D',      // Naranja
-  info: '#007ACC',         // Azul brillante
+  // ============================================
+  // COLORES DE ESTADO
+  // ============================================
 
-  // Backgrounds
-  backgroundSecondary: '#FFFFFF',
-  backgroundTertiary: '#F9F9F9',
+  success: '#2E9D66',          // Verde
+  successLight: '#3DB378',
+  successDark: '#258652',
+  green50: '#ECFDF5',
 
-  // Text (según brandbook: textos en gris oscuro #333)
+  warning: '#F26B1D',          // Naranja
+  warningLight: '#F4843D',
+  warningDark: '#D85F19',
+
+  error: '#F44336',            // Rojo
+  errorLight: '#E57373',
+  errorDark: '#D32F2F',
+
+  info: '#007ACC',             // Azul
+  infoLight: '#1A8FDB',
+  infoDark: '#0066B3',
+
+  // ============================================
+  // TEXT COLORS
+  // ============================================
+
+  textPrimary: '#212121',      // gray-900
+  textSecondary: '#757575',    // gray-600
+  textLight: '#9E9E9E',        // gray-500
+  textWhite: '#FFFFFF',
   text: '#333333',
-  textSecondary: '#525252',
   textTertiary: '#8E8E93',
   textQuaternary: '#C7C7CC',
 
-  // Borders
-  border: '#E5E5EA',
-  borderLight: '#F2F2F7',
+  // ============================================
+  // BORDER COLORS
+  // ============================================
 
-  // Overlay
-  overlay: 'rgba(10, 42, 67, 0.5)',     // Using primary color
-  overlayLight: 'rgba(10, 42, 67, 0.1)',
+  border: '#EEEEEE',           // gray-200
+  borderLight: '#F5F5F5',      // gray-100
+  borderDark: '#E0E0E0',       // gray-300
+
+  // ============================================
+  // OVERLAYS Y SOMBRAS
+  // ============================================
+
+  shadow: 'rgba(0, 0, 0, 0.08)',
+  shadowMedium: 'rgba(0, 0, 0, 0.12)',
+  shadowStrong: 'rgba(0, 0, 0, 0.16)',
+  shadowColor: '#0A2A43',
+  overlay: 'rgba(10, 42, 67, 0.5)',
+  overlayLight: 'rgba(10, 42, 67, 0.3)',
+
+  // White overlays para glassmorphism
+  whiteOverlay80: 'rgba(255, 255, 255, 0.8)',
+  whiteOverlay90: 'rgba(255, 255, 255, 0.9)',
 
   // Card
   card: '#FFFFFF',
   cardBorder: 'rgba(10, 42, 67, 0.04)',
 
-  // Shadow
-  shadowColor: '#0A2A43',  // Primary color for shadows
+  // ============================================
+  // GRADIENTS (para uso con linear-gradient)
+  // ============================================
+
+  gradientBlueGreen: ['#E3F2FD', '#ECFDF5'],
+  gradientCyanOrange: ['#E0F7FA', '#FFF3E0'],
+
+  // Accent colors (alias para compatibilidad)
+  accent: '#007ACC',
+  accentLight: '#1A8FDB',
+  accentDark: '#0066B3',
+  orange: '#F26B1D',
+  orangeLight: '#F4843D',
+  orangeDark: '#D85F19',
 } as const;
 
 // Dark theme colors (iOS style - grises suaves)

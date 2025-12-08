@@ -7,7 +7,7 @@ import {
     TextInputProps,
     ViewStyle,
 } from 'react-native';
-import { colors, fontSizes, spacing, borderRadius, fontWeights } from '../../theme';
+import { COLORS, SIZES, SHADOWS } from '../../theme';
 import { normalize } from '../../utils/responsive';
 
 interface InputProps extends TextInputProps {
@@ -33,7 +33,7 @@ export const Input: React.FC<InputProps> = ({
                     props.editable === false && styles.disabled,
                     style,
                 ]}
-                placeholderTextColor={colors.textTertiary}
+                placeholderTextColor={COLORS.textTertiary}
                 {...props}
             />
             {error && <Text style={styles.errorText}>{error}</Text>}
@@ -43,36 +43,40 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
     container: {
-        marginBottom: spacing.sm,
+        marginBottom: SIZES.md,
     },
     label: {
-        fontSize: fontSizes.sm,
-        fontWeight: fontWeights.medium,
-        color: colors.textSecondary,
-        marginBottom: spacing.xs,
-        marginLeft: spacing.xs,
+        fontSize: SIZES.fontSm,
+        fontWeight: SIZES.fontWeightSemibold,
+        color: COLORS.textSecondary,
+        marginBottom: SIZES.xs,
+        marginLeft: SIZES.xs,
     },
     input: {
-        backgroundColor: colors.white,
+        backgroundColor: COLORS.white,
         borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: borderRadius.lg,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.md,
-        fontSize: fontSizes.base,
-        color: colors.text,
+        borderColor: COLORS.border,
+        borderRadius: SIZES.radiusInput,
+        paddingHorizontal: SIZES.base,
+        paddingVertical: SIZES.md,
+        fontSize: SIZES.fontBase,
+        color: COLORS.textPrimary,
+        height: SIZES.inputHeight,
+        ...SHADOWS.sm,
     },
     inputError: {
-        borderColor: colors.error,
+        borderColor: COLORS.error,
+        borderWidth: 1.5,
     },
     disabled: {
-        backgroundColor: colors.background,
-        color: colors.textTertiary,
+        backgroundColor: COLORS.gray100,
+        color: COLORS.textLight,
     },
     errorText: {
-        fontSize: fontSizes.xs,
-        color: colors.error,
-        marginTop: spacing.xs,
-        marginLeft: spacing.xs,
+        fontSize: SIZES.fontXs,
+        color: COLORS.error,
+        marginTop: SIZES.xs,
+        marginLeft: SIZES.xs,
+        fontWeight: SIZES.fontWeightMedium,
     },
 });

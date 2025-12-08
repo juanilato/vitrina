@@ -85,7 +85,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 
   const gradientIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % categoryGradients.length;
   const gradient = categoryGradients[gradientIndex];
-  const iconName = getIconForCategory(nombre, icono);
+  const iconName = getIconForCategory(nombre, icono || '');
 
   const cardStyle = [
     styles.card,
@@ -99,11 +99,8 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   };
 
   const handleCategoryPress = () => {
-    // Si hay una sola empresa, navegar a ella
-    if (companies && companies.length === 1) {
-      handleCompanyPress(companies[0].id);
-    }
-    // Si hay múltiples, podrías agregar lógica adicional
+    // Navegar a la pantalla de categoría para ver todas las empresas
+    router.push(`/category/${id}?name=${nombre}`);
   };
 
   return (
@@ -120,12 +117,13 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       >
         {/* Header Section */}
         <View style={styles.headerSection}>
-          <Feather
-            name={iconName as any}
-            size={normalize(32)}
-            color="#FFFFFF"
-            style={styles.featherIcon}
-          />
+          <View style={styles.featherIcon}>
+            <Feather
+              name={iconName as any}
+              size={normalize(24)}
+              color="#FFFFFF"
+            />
+          </View>
           <Text style={styles.name} numberOfLines={2}>
             {nombre}
           </Text>
@@ -165,30 +163,27 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    minHeight: normalize(140),
+    minHeight: normalize(135),
     marginBottom: spacing.lg,
-    borderTopLeftRadius: normalize(18),
-    borderTopRightRadius: normalize(18),
-    borderBottomLeftRadius: normalize(18),
-    borderBottomRightRadius: 0, // Una esquina puntiaguda
+    borderRadius: normalize(20),
     overflow: 'hidden',
-    elevation: 4,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   cardDark: {
-    elevation: 6,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    elevation: 7,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
   },
   cardWide: {
     width: width - (CARD_MARGIN * 2),
     minHeight: normalize(130),
   },
   cardTall: {
-    minHeight: normalize(160),
+    minHeight: normalize(155),
   },
 
   gradient: {
@@ -196,6 +191,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     justifyContent: 'space-between',
     gap: spacing.md,
+    paddingBottom: spacing.md,
   },
 
   // Header Section
@@ -203,58 +199,62 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   featherIcon: {
-    marginRight: normalize(4),
+    width: normalize(48),
+    height: normalize(48),
+    borderRadius: normalize(12),
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
   },
 
   name: {
     ...textStyles.subheadline,
-    fontSize: normalize(16),
+    fontSize: normalize(15),
     color: '#FFFFFF',
     fontWeight: '700',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
     flex: 1,
+    marginLeft: spacing.sm,
   },
 
   // Companies Grid
   companiesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing.xs,
     justifyContent: 'flex-start',
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
 
   companyIconWrapper: {
-    width: '20%',
+    width: '18%',
     aspectRatio: 1,
-    borderRadius: normalize(14),
+    borderRadius: normalize(12),
     overflow: 'hidden',
   },
 
   companyIcon: {
     width: '100%',
     height: '100%',
-    borderRadius: normalize(14),
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: normalize(12),
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
 
   companyIconPlaceholder: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
 
   companyInitial: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontWeight: '700',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
 });

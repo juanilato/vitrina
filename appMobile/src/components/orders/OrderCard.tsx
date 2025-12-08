@@ -6,12 +6,13 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { PedidoWithDetails } from '../../types/order';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { RatingStars } from '../common/RatingStars';
 import { useTheme } from '../../contexts/ThemeContext';
-import { spacing } from '../../theme/spacing';
+import { SIZES, SHADOWS } from '../../theme';
 import { textStyles as typography } from '../../theme/typography';
 
 interface OrderCardProps {
@@ -53,53 +54,48 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      {/* Header con estado y fecha */}
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={styles.date}>{formatDate(order.createdAt)}</Text>
-          {(order.descuento || 0) > 0 && order.promocionesAplicadas && order.promocionesAplicadas.length > 0 && (
-            <View style={{
-              backgroundColor: '#10b981',
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 12,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4
-            }}>
-              <Ionicons name="pricetag" size={12} color={colors.white} />
-              <Text style={{ fontSize: 10, color: colors.white, fontWeight: '700' }}>
-                {order.promocionesAplicadas.length === 1
-                  ? order.promocionesAplicadas[0].nombre.length > 15
-                    ? order.promocionesAplicadas[0].nombre.substring(0, 12) + '...'
-                    : order.promocionesAplicadas[0].nombre
-                  : `${order.promocionesAplicadas.length} Promos`}
-              </Text>
-            </View>
-          )}
-        </View>
-        <OrderStatusBadge status={order.estado as any} />
-      </View>
-
-      {/* Company Info - Destacada */}
-      <View style={styles.companySection}>
+      {/* Paper Header - Company Name & Logo */}
+      <LinearGradient
+        colors={isDark
+          ? ['rgba(42, 42, 42, 0.95)', 'rgba(30, 30, 30, 0.9)']
+          : ['rgba(255, 255, 255, 0.98)', 'rgba(249, 250, 251, 0.95)']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.paperHeader}
+      >
         {order.empresa?.logo && (
-          <Image
-            source={{ uri: order.empresa.logo }}
-            style={styles.companyLogo}
-          />
+          <View style={styles.logoContainer}>
+            <Image
+              source={{ uri: order.empresa.logo }}
+              style={styles.companyLogo}
+            />
+          </View>
         )}
         <View style={styles.companyInfo}>
           <Text style={styles.companyName} numberOfLines={1}>
             {order.empresa?.name || 'Empresa'}
           </Text>
+          <View style={styles.dateContainer}>
+            <Ionicons name="time-outline" size={12} color={colors.textSecondary} />
+            <Text style={styles.date}>{formatDate(order.createdAt)}</Text>
+          </View>
         </View>
+      </LinearGradient>
+
+      {/* Estado Badge */}
+      <View style={styles.statusSection}>
+        <Text style={styles.statusLabel}>Estado del pedido</Text>
+        <OrderStatusBadge status={order.estado as any} />
       </View>
 
       {/* Lista de productos */}
       {order.items && order.items.length > 0 && (
         <View style={styles.productsSection}>
-          <Text style={styles.productsTitle}>Productos:</Text>
+          <View style={styles.productsSectionHeader}>
+            <Ionicons name="list" size={14} color={colors.textSecondary} />
+            <Text style={styles.productsTitle}>Detalle del pedido</Text>
+          </View>
           {order.items.map((item, index) => (
             <View key={index} style={styles.productItem}>
               <View style={styles.productQuantityBadge}>
@@ -207,24 +203,36 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
         </View>
       )}
 
+      {/* Promociones aplicadas - Abajo */}
+      {(order.descuento || 0) > 0 && order.promocionesAplicadas && order.promocionesAplicadas.length > 0 && (
+        <View style={styles.promosSection}>
+          <View style={styles.promosDivider} />
+          <View style={styles.promosHeader}>
+            <Ionicons name="pricetag" size={14} color="#10b981" />
+            <Text style={styles.promosTitle}>Promociones aplicadas</Text>
+          </View>
+          {order.promocionesAplicadas.map((promo, index) => (
+            <View key={index} style={styles.promoItem}>
+              <Text style={styles.promoName}>{promo.nombre}</Text>
+              <Text style={styles.promoDiscount}>
+                -${((order.descuento || 0) / order.promocionesAplicadas!.length).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Footer */}
       <View style={styles.footer}>
         <View style={styles.totalSection}>
-          <View>
-            <Text style={styles.totalLabel}>Total</Text>
-            {(order.descuento || 0) > 0 && (
-              <Text style={[styles.totalLabel, { color: '#10b981', fontSize: 11 }]}>
-                Desc. -${(order.descuento || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-              </Text>
-            )}
-          </View>
+          <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalAmount}>
             ${(order.total || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
           </Text>
         </View>
 
         <View style={styles.arrowContainer}>
-          <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
+          <Ionicons name="chevron-forward" size={20} color={colors.white} />
         </View>
       </View>
     </TouchableOpacity>
@@ -232,59 +240,51 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
 };
 
 const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
+  // Paper Sheet Style - Friendly Invoice
   container: {
-    backgroundColor: `${colors.primary}08`,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+    borderRadius: SIZES.radiusMd,
+    padding: 0,
+    marginBottom: SIZES.lg,
     borderWidth: 1,
-    borderColor: `${colors.primary}15`,
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    borderColor: isDark ? '#3a3a3a' : '#e5e7eb',
+    ...SHADOWS.md,
+    overflow: 'hidden',
   },
 
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-
-  date: {
-    ...typography.bodySmall,
-    fontSize: 11,
-    color: colors.textTertiary,
-    fontWeight: '500',
-  },
-
-  companySection: {
+  // Paper Header - Premium Style with Gradient
+  paperHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    gap: spacing.md,
-    backgroundColor: `${colors.primary}12`,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: `${colors.primary}20`,
+    gap: SIZES.lg,
+    paddingHorizontal: SIZES.xl,
+    paddingTop: SIZES.xl,
+    paddingBottom: SIZES.xl,
+    borderBottomWidth: 3,
+    borderBottomColor: isDark ? '#3a3a3a' : '#e5e7eb',
+    borderStyle: 'dashed',
+  },
+
+  logoContainer: {
+    padding: 4,
+    backgroundColor: `${colors.primary}15`,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: `${colors.primary}25`,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
 
   companyLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    backgroundColor: isDark ? colors.gray100 : colors.white,
-    borderWidth: 1,
-    borderColor: `${colors.primary}20`,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+    borderWidth: 2,
+    borderColor: isDark ? '#4a4a4a' : '#f3f4f6',
     flexShrink: 0,
   },
 
@@ -294,54 +294,109 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   companyName: {
     ...typography.h3,
-    fontWeight: '700',
-    color: colors.primary,
-    fontSize: 15,
-    letterSpacing: -0.3,
+    fontWeight: '900',
+    color: colors.text,
+    fontSize: 19,
+    letterSpacing: -0.8,
+    marginBottom: 8,
+    textShadowColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
-  productsSection: {
-    marginBottom: spacing.md,
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.xs,
     backgroundColor: `${colors.primary}08`,
-    padding: spacing.md,
-    borderRadius: 10,
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
     borderWidth: 1,
     borderColor: `${colors.primary}15`,
   },
 
-  productsTitle: {
-    ...typography.bodyMedium,
+  date: {
+    ...typography.bodySmall,
+    fontSize: 11,
+    color: colors.text,
+    fontWeight: '700',
+  },
+
+  // Status Section - Friendly
+  statusSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.md,
+    backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? '#333' : '#f3f4f6',
+  },
+
+  statusLabel: {
+    ...typography.bodySmall,
+    fontSize: 11,
     fontWeight: '700',
     color: colors.textSecondary,
-    marginBottom: spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+
+  // Products List - Friendly Invoice Style
+  productsSection: {
+    paddingHorizontal: SIZES.lg,
+    paddingTop: SIZES.lg,
+    paddingBottom: SIZES.md,
+    backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
+  },
+
+  productsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.xs,
+    marginBottom: SIZES.md,
+    paddingBottom: SIZES.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: isDark ? '#333' : '#e5e7eb',
+  },
+
+  productsTitle: {
+    ...typography.bodySmall,
+    fontWeight: '800',
+    color: colors.text,
     fontSize: 12,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.8,
   },
 
   productItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
-    gap: spacing.sm,
+    paddingVertical: SIZES.md,
+    gap: SIZES.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? '#333' : '#f3f4f6',
   },
 
   productQuantityBadge: {
-    backgroundColor: `${colors.primary}20`,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    backgroundColor: `${colors.primary}10`,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
     minWidth: 32,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: `${colors.primary}30`,
+    borderColor: `${colors.primary}20`,
     flexShrink: 0,
   },
 
   productQuantityText: {
     ...typography.bodySmall,
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '900',
     color: colors.primary,
   },
 
@@ -349,139 +404,212 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     ...typography.bodyMedium,
     flex: 1,
     color: colors.text,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
+    letterSpacing: -0.2,
+    lineHeight: 20,
   },
 
   productPrice: {
     ...typography.bodyMedium,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.text,
   },
 
+  // Delivery Section - Friendly Style
   deliverySection: {
-    marginBottom: spacing.md,
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.md,
+    backgroundColor: isDark ? '#272727' : '#f9fafb',
+    borderTopWidth: 1,
+    borderTopColor: isDark ? '#333' : '#e5e7eb',
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? '#333' : '#e5e7eb',
   },
 
   deliveryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: `${colors.primary}12`,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: `${colors.primary}20`,
-    marginBottom: spacing.xs,
+    gap: SIZES.sm,
+    marginBottom: SIZES.xs,
   },
 
   deliveryText: {
-    ...typography.bodyMedium,
-    color: colors.primary,
-    fontWeight: '700',
+    ...typography.bodySmall,
+    color: colors.text,
+    fontWeight: '800',
     fontSize: 13,
+    letterSpacing: 0,
   },
 
   addressContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.xs,
-    backgroundColor: `${colors.primary}08`,
-    padding: spacing.sm,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: `${colors.primary}15`,
+    gap: SIZES.sm,
+    paddingLeft: SIZES.lg,
+    paddingTop: SIZES.xs,
   },
 
   address: {
     ...typography.bodySmall,
     fontSize: 12,
     color: colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '600',
+    flex: 1,
+    lineHeight: 18,
+  },
+
+  // Promos Section - Friendly Style
+  promosSection: {
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.md,
+    backgroundColor: isDark ? '#1f3a2c' : '#f0fdf4',
+    borderTopWidth: 1,
+    borderTopColor: isDark ? '#2d5a3f' : '#d1fae5',
+  },
+
+  promosDivider: {
+    height: 2,
+    backgroundColor: isDark ? '#2d5a3f' : '#d1fae5',
+    marginBottom: SIZES.sm,
+  },
+
+  promosHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.sm,
+    marginBottom: SIZES.md,
+  },
+
+  promosTitle: {
+    ...typography.bodySmall,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#10b981',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+
+  promoItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SIZES.sm,
+    paddingHorizontal: SIZES.sm,
+    backgroundColor: isDark ? '#254133' : '#dcfce7',
+    borderRadius: 8,
+    marginBottom: SIZES.xs,
+  },
+
+  promoName: {
+    ...typography.bodySmall,
+    fontSize: 13,
+    color: isDark ? '#86efac' : '#166534',
+    fontWeight: '700',
     flex: 1,
   },
 
+  promoDiscount: {
+    ...typography.bodySmall,
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#10b981',
+  },
+
+  // Footer - Friendly Total Style
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: `${colors.primary}15`,
+    paddingHorizontal: SIZES.xl,
+    paddingVertical: SIZES.lg,
+    backgroundColor: isDark ? '#252525' : '#f9fafb',
+    borderTopWidth: 3,
+    borderTopColor: isDark ? '#3a3a3a' : '#e5e7eb',
+    borderStyle: 'dashed',
   },
 
   totalSection: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.sm,
+    flexDirection: 'column',
+    gap: SIZES.xs,
   },
 
   totalLabel: {
-    ...typography.bodyMedium,
-    fontSize: 12,
-    color: colors.textTertiary,
-    fontWeight: '500',
+    ...typography.bodySmall,
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
   },
 
   totalAmount: {
-    ...typography.h3,
-    fontSize: 18,
-    fontWeight: '800',
+    ...typography.h2,
+    fontSize: 24,
+    fontWeight: '900',
     color: colors.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    textShadowColor: `${colors.primary}20`,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 
   arrowContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: `${colors.primary}15`,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: `${colors.primary}25`,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
     flexShrink: 0,
   },
 
   trackingBanner: {
     backgroundColor: colors.orange,
-    borderRadius: 10,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    marginHorizontal: SIZES.lg,
+    marginVertical: SIZES.md,
+    borderRadius: 14,
+    padding: SIZES.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     shadowColor: colors.orange,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
 
   trackingContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: SIZES.md,
   },
 
   trackingText: {
     ...typography.bodyMedium,
     color: colors.white,
-    fontWeight: '700',
-    fontSize: 13,
+    fontWeight: '900',
+    fontSize: 15,
+    letterSpacing: -0.5,
   },
 
-  // Rating Section - Cute & Subtle
+  // Rating Section - Invoice Style
   ratingSection: {
-    marginBottom: spacing.md,
+    marginHorizontal: SIZES.lg,
+    marginVertical: SIZES.md,
   },
 
   ratingDisplay: {
     backgroundColor: `${colors.primary}08`,
-    borderRadius: 10,
-    padding: spacing.md,
+    borderRadius: 12,
+    padding: SIZES.md,
     borderWidth: 1,
     borderColor: `${colors.primary}15`,
   },
@@ -489,51 +617,54 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   ratingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.sm,
+    gap: SIZES.xs,
+    marginBottom: SIZES.sm,
   },
 
   ratingTitle: {
     ...typography.bodyMedium,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 
   ratingContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: SIZES.md,
   },
 
   ratingValue: {
     ...typography.h3,
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
     color: colors.text,
+    letterSpacing: -0.8,
   },
 
   rateButton: {
-    backgroundColor: `${colors.primary}12`,
-    borderRadius: 10,
-    padding: spacing.md,
+    backgroundColor: `${colors.primary}08`,
+    borderRadius: 12,
+    padding: SIZES.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: `${colors.primary}25`,
+    borderColor: `${colors.primary}20`,
   },
 
   rateButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: SIZES.sm,
   },
 
   rateButtonText: {
     ...typography.bodyMedium,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.primary,
   },
 });

@@ -442,8 +442,34 @@ Reemplazar: transition: all var(--vitrina-transition) var(--vitrina-ease-out)
 
 ---
 
+---
+
+## ✨ Actualización 2.2: Estilo Minimalista
+
+Se ha simplificado el CSS de **ProductsSection.css** y **ProductModal.css** para un enfoque más limpio y consistente con **App.css**.
+
+### Cambios Realizados:
+
+#### Eliminado:
+- ❌ Efectos `::before` de brillo en botones
+- ❌ Transform y `translateY` en hover
+- ❌ Múltiples sombras complejas
+- ❌ Animaciones adicionales en inputs
+- ❌ Borders de 2px en inputs (ahora 1px)
+- ❌ Easings complejos (ahora solo `ease`)
+
+#### Mantenido:
+- ✅ Variables de Vitrina (colores, radios, sombras básicas)
+- ✅ Transiciones suaves (200ms)
+- ✅ Estados hover simples
+- ✅ Border radius consistentes
+
+### Estilo Final: Limpio, moderno, minimalista 📦
+
+---
+
 **Última actualización**: 07/12/2024
-**Versión**: 2.1
-**Sistema de diseño**: Vitrina Modern
+**Versión**: 2.2
+**Sistema de diseño**: Vitrina Modern (Minimalista)
 **Archivos actualizados**: 7/52 (13.5%)
 **Progreso**: 🟦🟦🟦⬜⬜⬜⬜⬜⬜⬜ 27%

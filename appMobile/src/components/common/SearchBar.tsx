@@ -1,6 +1,6 @@
 /**
  * SearchBar Component
- * iOS Modern Design
+ * Modern Design - Vitrina Style
  */
 
 import React from 'react';
@@ -12,7 +12,7 @@ import {
   TextInputProps,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, fontSizes, fontWeights } from '../../theme';
+import { COLORS, SIZES, SHADOWS } from '../../theme';
 
 interface SearchBarProps extends TextInputProps {
   onClear?: () => void;
@@ -29,8 +29,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     <View style={styles.container}>
       <Ionicons
         name="search"
-        size={20}
-        color={colors.textTertiary}
+        size={SIZES.iconMd}
+        color={COLORS.textSecondary}
         style={styles.searchIcon}
       />
 
@@ -39,7 +39,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.textTertiary}
+        placeholderTextColor={COLORS.textTertiary}
         returnKeyType="search"
         {...props}
       />
@@ -50,7 +50,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           style={styles.clearButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
+          <Ionicons name="close-circle" size={SIZES.iconMd} color={COLORS.textSecondary} />
         </TouchableOpacity>
       )}
     </View>
@@ -61,24 +61,32 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    height: 44,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radiusMd,
+    paddingHorizontal: SIZES.base,
+    height: SIZES.searchBarHeight,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOWS.md,
   },
 
   searchIcon: {
-    marginRight: spacing.sm,
+    marginRight: SIZES.md,
   },
 
   input: {
     flex: 1,
-    fontSize: fontSizes.base,
-    color: colors.text,
-    fontWeight: fontWeights.regular,
+    fontSize: SIZES.fontBase,
+    color: COLORS.textPrimary,
+    fontWeight: SIZES.fontWeightRegular,
+    padding: 0,
   },
 
   clearButton: {
-    marginLeft: spacing.xs,
+    marginLeft: SIZES.sm,
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

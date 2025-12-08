@@ -224,7 +224,7 @@ export default function OrdersScreen() {
         >
           <View style={styles.ordersBadge}>
             <View style={styles.ordersIconContainer}>
-              <Ionicons name="receipt" size={22} color={colors.primary} />
+              <Ionicons name="receipt" size={24} color={colors.white} />
               {stats.total > 0 && (
                 <View style={styles.ordersCountBadge}>
                   <Text style={styles.ordersCountText}>{stats.total}</Text>
@@ -242,59 +242,60 @@ export default function OrdersScreen() {
         </LinearGradient>
       </View>
 
-      {/* Compact Filters - Modern Grid Layout */}
+      {/* Cute Filters - Redesigned */}
       <View style={styles.filtersContainer}>
         <View style={styles.filtersGrid}>
-          {filterOptions.map((item, index) => {
+          {filterOptions.map((item) => {
             const isActive = filter === item.value;
             const count = item.value === 'all' ? stats.total :
                          item.value === 'active' ? stats.active :
                          item.value === 'completed' ? stats.completed :
                          stats.cancelled;
 
-            // Patrón: largo, corto, corto, largo
-            const widthStyle = index === 0 || index === 3
-              ? { width: '58%' as const }
-              : { width: '40%' as const };
-
             return (
               <TouchableOpacity
                 key={item.value}
                 style={[
                   styles.filterChip,
-                  widthStyle,
-                  isActive && [styles.filterChipActive, { backgroundColor: `${item.color}10` }],
+                  isActive && styles.filterChipActive,
                 ]}
                 onPress={() => setFilter(item.value)}
                 activeOpacity={0.7}
               >
-                <Ionicons
-                  name={item.icon}
-                  size={16}
-                  color={isActive ? item.color : colors.gray500}
-                />
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    isActive && { color: item.color, fontWeight: '700' },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
-                {count > 0 && (
-                  <View style={[
-                    styles.countBadge,
-                    isActive && { backgroundColor: item.color }
-                  ]}>
-                    <Text style={[
-                      styles.countBadgeText,
-                      isActive && styles.countBadgeTextActive
+                <View style={[
+                  styles.filterIconContainer,
+                  isActive && { backgroundColor: item.color }
+                ]}>
+                  <Ionicons
+                    name={item.icon}
+                    size={16}
+                    color={isActive ? colors.white : item.color}
+                  />
+                </View>
+                <View style={styles.filterTextContainer}>
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      isActive && { color: colors.text, fontWeight: '800' },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {item.label}
+                  </Text>
+                  {count > 0 && (
+                    <View style={[
+                      styles.countBadge,
+                      isActive && { backgroundColor: item.color }
                     ]}>
-                      {count}
-                    </Text>
-                  </View>
-                )}
+                      <Text style={[
+                        styles.countBadgeText,
+                        isActive && styles.countBadgeTextActive
+                      ]}>
+                        {count}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -407,87 +408,93 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Modern Glass Header
+  // Modern Glass Header - Cute & Soft
   navbar: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   navbarGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingVertical: 14,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.4)' : 'rgba(255, 255, 255, 0.8)',
   },
 
-  // Orders Badge
+  // Orders Badge - Cute & Friendly
   ordersBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    gap: 10,
+    backgroundColor: `${colors.primary}10`,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 12,
     flex: 1,
-    marginRight: spacing.md,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
   },
   ordersIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: `${colors.primary}15`,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   ordersCountBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    top: -6,
+    right: -6,
+    backgroundColor: colors.secondary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
+    borderWidth: 2,
+    borderColor: isDark ? colors.background : colors.white,
   },
   ordersCountText: {
     color: colors.white,
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
   },
   ordersTextContainer: {
     flex: 1,
   },
   ordersLabel: {
     ...typography.caption1,
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.primary,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   ordersTitle: {
     ...typography.body,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     color: colors.text,
-    marginTop: 2,
+    marginTop: 3,
+    letterSpacing: -0.5,
   },
   headerRight: {
     width: 36,
@@ -495,76 +502,114 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   // Compact Filters Container
   filtersContainer: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.background,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   filtersGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.xs,
+    gap: spacing.sm,
+    justifyContent: 'space-between',
   },
 
   // Compact Filter Chips
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: 12,
-    backgroundColor: colors.gray50,
-    gap: 5,
-  },
-  filterChipActive: {
-    borderWidth: 1.5,
-    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.4)' : 'rgba(255, 255, 255, 0.9)',
+    borderWidth: 1,
+    borderColor: `${colors.primary}10`,
+    gap: spacing.xs,
+    flex: 1,
+    minWidth: '48%',
+    maxWidth: '48%',
     shadowColor: isDark ? colors.black : '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.04,
     shadowRadius: 3,
+    elevation: 1,
+  },
+  filterChipActive: {
+    backgroundColor: `${colors.primary}08`,
+    borderColor: colors.primary,
+    borderWidth: 1.5,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
     elevation: 2,
+  },
+  filterIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: `${colors.primary}12`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  filterTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
   },
   filterChipText: {
     fontSize: 11,
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '700',
+    flex: 1,
   },
   countBadge: {
-    backgroundColor: colors.gray200,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+    backgroundColor: `${colors.primary}15`,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 8,
-    minWidth: 18,
+    minWidth: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: `${colors.primary}20`,
+    flexShrink: 0,
   },
   countBadgeText: {
     fontSize: 10,
-    color: colors.text,
-    fontWeight: '700',
+    color: colors.primary,
+    fontWeight: '800',
   },
   countBadgeTextActive: {
     color: colors.white,
   },
 
-  // Loading State
+  // Loading State - Cute & Friendly
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing['4xl'],
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.lg,
+    backgroundColor: `${colors.primary}05`,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: `${colors.primary}10`,
   },
   loadingText: {
     ...typography.bodyMedium,
     color: colors.textSecondary,
     marginTop: spacing.md,
+    fontSize: 14,
+    fontWeight: '600',
   },
 
-  // List Content
+  // List Content - Cute spacing
   listContent: {
-    padding: spacing.md,
-    paddingBottom: 100,
+    padding: spacing.lg,
+    paddingBottom: 120,
   },
 });
