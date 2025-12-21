@@ -19,8 +19,8 @@ import { CompanyPreview } from '../../types/company';
 import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = normalize(140); // Ancho fijo para carrusel
-const CARD_HEIGHT = normalize(160);
+const CARD_WIDTH = (width - normalize(56)) / 2; // 2 columnas con padding
+const CARD_HEIGHT = normalize(90); // Mucho más compactas
 
 interface CategoryCard3DProps {
   id: string;
@@ -30,18 +30,20 @@ interface CategoryCard3DProps {
   onPress?: () => void;
 }
 
-// Colores simples y limpios
-const categoryColors = [
-  '#FF6B6B', // Rojo
-  '#4ECDC4', // Turquesa
-  '#45B7D1', // Azul
-  '#FFA07A', // Salmón
-  '#98D8C8', // Menta
-  '#F7DC6F', // Amarillo
-  '#BB8FCE', // Púrpura
-  '#85C1E2', // Azul claro
-  '#F8B88B', // Naranja
-  '#A8E6CF', // Verde menta
+// Colores suaves para iconos
+const iconColors = [
+  '#0A2A43', // Azul oscuro principal
+  '#1565C0', // Azul medio
+  '#0277BD', // Azul cyan
+  '#00838F', // Cyan oscuro
+  '#00695C', // Verde azulado
+  '#2E7D32', // Verde
+  '#558B2F', // Verde lima
+  '#F57C00', // Naranja
+  '#E64A19', // Naranja rojizo
+  '#D32F2F', // Rojo
+  '#C2185B', // Rosa
+  '#7B1FA2', // Púrpura
 ];
 
 // Mapeo de iconos
@@ -82,8 +84,8 @@ export const CategoryCard3D: React.FC<CategoryCard3DProps> = ({
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
-  const colorIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % categoryColors.length;
-  const backgroundColor = categoryColors[colorIndex];
+  const colorIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % iconColors.length;
+  const iconColor = iconColors[colorIndex];
   const iconName = getIconForCategory(nombre, icono);
 
   const handlePress = () => {
@@ -100,27 +102,22 @@ export const CategoryCard3D: React.FC<CategoryCard3DProps> = ({
       style={styles.cardContainer}
       onPress={handlePress}
     >
-      <View
-        style={[
-          styles.card,
-          {
-            backgroundColor: backgroundColor,
-          },
-        ]}
-      >
-        {/* Static Icon */}
+      <View style={[styles.card, { backgroundColor: isDark ? colors.gray100 : '#F8F9FA' }]}>
+        {/* Icon con fondo translúcido */}
         <View style={styles.iconWrapper}>
           <Feather
             name={iconName as any}
-            size={normalize(48)}
-            color="#FFFFFF"
+            size={normalize(22)}
+            color={iconColor}
           />
         </View>
 
-        {/* Category Name */}
-        <Text style={styles.categoryName} numberOfLines={2}>
-          {nombre}
-        </Text>
+        {/* Category Name simple y limpio */}
+        <View style={styles.nameContainer}>
+          <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={2}>
+            {nombre}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -129,41 +126,45 @@ export const CategoryCard3D: React.FC<CategoryCard3DProps> = ({
 const styles = StyleSheet.create({
   cardContainer: {
     width: CARD_WIDTH,
-    marginRight: spacing.md,
-    marginVertical: spacing.md,
+    marginBottom: spacing.md,
   },
 
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: normalize(16),
-    padding: spacing.md,
-    justifyContent: 'space-between',
+    borderRadius: normalize(12),
+    padding: normalize(10),
+    justifyContent: 'center',
     alignItems: 'center',
-    elevation: 4,
+    // Sombra muy sutil
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
   },
 
   iconWrapper: {
-    width: normalize(80),
-    height: normalize(80),
-    borderRadius: normalize(40),
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: 'rgba(10, 42, 67, 0.08)', // Fondo translúcido azul
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: normalize(6),
+  },
+
+  nameContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xs,
   },
 
   categoryName: {
     ...textStyles.callout,
-    fontSize: normalize(14),
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: normalize(10),
+    fontWeight: '600',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    letterSpacing: -0.1,
   },
 });

@@ -10,25 +10,25 @@ export const colors = {
   // COLORES PRINCIPALES
   // ============================================
 
-  // Primary - Azul oscuro de marca (Vitrina)
-  primary: '#0A2A43',
+  // Primary - Azul oscuro profundo (profesional y elegante)
+  primary: '#0A2A43',      // Azul oscuro de marca
   primaryLight: '#0D3354',
   primaryDark: '#071D2F',
 
-  // Secondary - Verde (Productos/Servicios)
-  secondary: '#2E9D66',
-  secondaryLight: '#3DB378',
-  secondaryDark: '#258652',
+  // Secondary - Verde fresco y amigable
+  secondary: '#00C853',    // Verde más vibrante
+  secondaryLight: '#69F0AE',
+  secondaryDark: '#00A844',
 
-  // Tertiary - Azul brillante (Interactivo)
-  tertiary: '#007ACC',
-  tertiaryLight: '#1A8FDB',
-  tertiaryDark: '#0066B3',
+  // Tertiary - Púrpura moderno (apps de éxito)
+  tertiary: '#7C4DFF',     // Púrpura vibrante
+  tertiaryLight: '#B47CFF',
+  tertiaryDark: '#651FFF',
 
-  // Quaternary - Naranja (CTAs destacados)
-  quaternary: '#F26B1D',
-  quaternaryLight: '#F4843D',
-  quaternaryDark: '#D85F19',
+  // Quaternary - Naranja cálido y llamativo
+  quaternary: '#FF6F00',   // Naranja más vivo
+  quaternaryLight: '#FF9E40',
+  quaternaryDark: '#E65100',
 
   // ============================================
   // COLORES PASTEL PARA ACCESOS RÁPIDOS
@@ -47,12 +47,12 @@ export const colors = {
   black: '#000000',
   transparent: 'transparent',
 
-  // Background
-  background: '#F8F9FA',       // Gris muy claro
+  // Background - Tonos más suaves y profesionales
+  background: '#F5F7FA',       // Gris azulado muy suave
   backgroundLight: '#FFFFFF',
-  backgroundDark: '#F3F4F6',
+  backgroundDark: '#E8EDF3',   // Gris azulado para contraste
   backgroundSecondary: '#FFFFFF',
-  backgroundTertiary: '#F9F9F9',
+  backgroundTertiary: '#FAFBFC', // Casi blanco con toque azul
 
   // Grays
   gray50: '#FAFAFA',
@@ -70,22 +70,22 @@ export const colors = {
   // COLORES DE ESTADO
   // ============================================
 
-  success: '#2E9D66',          // Verde
-  successLight: '#3DB378',
-  successDark: '#258652',
-  green50: '#ECFDF5',
+  success: '#00C853',          // Verde vibrante
+  successLight: '#69F0AE',
+  successDark: '#00A844',
+  green50: '#E8F5E9',          // Verde muy suave
 
-  warning: '#F26B1D',          // Naranja
-  warningLight: '#F4843D',
-  warningDark: '#D85F19',
+  warning: '#FFA726',          // Naranja cálido
+  warningLight: '#FFB74D',
+  warningDark: '#FB8C00',
 
-  error: '#F44336',            // Rojo
-  errorLight: '#E57373',
-  errorDark: '#D32F2F',
+  error: '#EF5350',            // Rojo suave pero visible
+  errorLight: '#EF5350',
+  errorDark: '#C62828',
 
-  info: '#007ACC',             // Azul
-  infoLight: '#1A8FDB',
-  infoDark: '#0066B3',
+  info: '#29B6F6',             // Azul celeste
+  infoLight: '#4FC3F7',
+  infoDark: '#0288D1',
 
   // ============================================
   // TEXT COLORS

@@ -24,16 +24,19 @@ export const SIZES = {
   screenPaddingSm: 16,
 
   // ============================================
-  // BORDER RADIUS
+  // BORDER RADIUS - Modernos y amigables
   // ============================================
-  radiusSm: 8,            // Pequeños elementos
-  radiusMd: 12,           // Cards medianas
-  radiusLg: 16,           // Cards grandes
-  radiusXl: 20,           // Cards destacadas
+  radiusXs: 6,            // Elementos muy pequeños
+  radiusSm: 10,           // Pequeños elementos (badges, chips)
+  radiusMd: 14,           // Cards medianas, buttons
+  radiusLg: 18,           // Cards grandes
+  radiusXl: 24,           // Cards destacadas, modales
+  radius2xl: 28,          // Elementos principales
+  radius3xl: 32,          // Super redondeado
   radiusFull: 9999,       // Círculos perfectos
-  radiusButton: 12,       // Botones
-  radiusInput: 10,        // Inputs
-  radiusPill: 20,         // Pills/badges
+  radiusButton: 14,       // Botones
+  radiusInput: 12,        // Inputs
+  radiusPill: 24,         // Pills/badges grandes
 
   // ============================================
   // FONT SIZES
@@ -125,43 +128,61 @@ export const SIZES = {
 } as const;
 
 // ============================================
-// SHADOWS
+// SHADOWS - Sistema profesional y sutil
 // ============================================
 export const SHADOWS = {
-  // Shadow Small - Elementos sutiles
+  // Shadow XS - Elementos muy sutiles (badges, chips)
+  xs: {
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+
+  // Shadow Small - Elementos sutiles (buttons pequeños)
   sm: {
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowRadius: 6,
     elevation: 2,
   },
 
-  // Shadow Medium - Cards y botones
+  // Shadow Medium - Cards y botones principales
   md: {
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
+    shadowOpacity: 0.10,
+    shadowRadius: 12,
     elevation: 4,
   },
 
-  // Shadow Large - Modales y elementos flotantes
+  // Shadow Large - Cards destacadas y modales
   lg: {
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
     elevation: 8,
   },
 
-  // Shadow Extra Large - Headers y navigation
+  // Shadow Extra Large - Headers, navigation, overlays
   xl: {
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.20,
-    shadowRadius: 24,
+    shadowOpacity: 0.15,
+    shadowRadius: 28,
     elevation: 12,
+  },
+
+  // Shadow 2XL - Elementos flotantes principales
+  '2xl': {
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.18,
+    shadowRadius: 36,
+    elevation: 16,
   },
 
   // Shadow None - Sin sombra
@@ -171,6 +192,31 @@ export const SHADOWS = {
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
+  },
+
+  // Sombras colored para elementos interactivos
+  primary: {
+    shadowColor: '#1E88E5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
+  success: {
+    shadowColor: '#00C853',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
+  error: {
+    shadowColor: '#EF5350',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 5,
   },
 } as const;
 

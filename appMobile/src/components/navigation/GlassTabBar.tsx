@@ -24,23 +24,11 @@ const TAB_BAR_HEIGHT = normalize(85); // Total height including padding (reducid
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, isDark } = useTheme();
-  const [isVisible, setIsVisible] = useState(true);
-  const slideAnim = useRef(new Animated.Value(0)).current;
   const scaleAnims = useRef(
     state.routes.map(() => new Animated.Value(0))
   ).current;
 
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
-
-  // Animation for hiding/showing the tab bar
-  useEffect(() => {
-    Animated.spring(slideAnim, {
-      toValue: isVisible ? 10 : TAB_BAR_HEIGHT + 20, // Include bottom padding
-      useNativeDriver: true,
-      tension: 50,
-      friction: 8,
-    }).start();
-  }, [isVisible]);
 
   // Animation for tab transitions
   useEffect(() => {
@@ -63,58 +51,14 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
     return null;
   }
 
-  const toggleVisibility = () => {
-    setIsVisible(!isVisible);
-  };
-
   return (
-    <>
-      {/* Toggle Button - Moves with the tab bar */}
-      <Animated.View
+    <View style={styles.tabBarContainer}>
+      <View
         style={[
-          styles.toggleContainer,
-          {
-            transform: [{ translateY: slideAnim }],
-          },
+          styles.tabBarBackground,
+          { backgroundColor: isDark ? colors.gray100 : '#FFFFFF' }
         ]}
       >
-        <TouchableOpacity
-          onPress={toggleVisibility}
-          activeOpacity={0.7}
-          style={styles.toggleButton}
-        >
-          <LinearGradient
-            colors={isDark
-              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-            }
-            style={styles.toggleGradient}
-          >
-            <Ionicons
-              name={isVisible ? 'chevron-down' : 'chevron-up'}
-              size={normalize(20)}
-              color={colors.primary}
-            />
-          </LinearGradient>
-        </TouchableOpacity>
-      </Animated.View>
-
-      {/* Tab Bar with Glass Effect */}
-      <Animated.View
-        style={[
-          styles.tabBarContainer,
-          {
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={isDark
-            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-          }
-          style={styles.tabBarGradient}
-        >
           <View style={styles.tabBar}>
             {state.routes.map((route, index) => {
               const { options } = descriptors[route.key];
@@ -180,14 +124,19 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
                   <Animated.View
                     style={[
                       styles.tabContent,
-                      isFocused && styles.tabContentActive,
                       {
                         transform: [{ scale }],
                         opacity,
                       },
                     ]}
                   >
-                    <View style={styles.iconContainer}>{iconComponent}</View>
+                    {/* Icono con fondo translúcido cuando está activo */}
+                    <View style={[
+                      styles.iconContainer,
+                      isFocused && styles.iconContainerActive
+                    ]}>
+                      {iconComponent}
+                    </View>
                     <Text
                       style={[
                         styles.tabLabel,
@@ -201,95 +150,64 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
               );
             })}
           </View>
-        </LinearGradient>
-      </Animated.View>
-    </>
+      </View>
+    </View>
   );
 }
 
 const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
-  // Toggle Button
-  toggleContainer: {
-    position: 'absolute',
-    bottom: TAB_BAR_HEIGHT + normalize(20), // Position just above the tab bar
-    left: width / 2 - normalize(24),
-    zIndex: 1000,
-  },
-  toggleButton: {
-    elevation: 5,
-  },
-  toggleGradient: {
-    width: normalize(48),
-    height: normalize(32),
-    borderRadius: normalize(16),
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-  },
-
-  // Tab Bar Container
+  // Tab Bar Container - Simple y limpio
   tabBarContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
-    paddingTop: spacing.xs,
   },
-  tabBarGradient: {
-    borderRadius: normalize(24),
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: isDark ? 0.3 : 0.15,
-    shadowRadius: 16,
+  tabBarBackground: {
+    borderTopWidth: 1,
+    borderTopColor: isDark ? colors.gray300 : colors.gray200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 8,
   },
   tabBar: {
     flexDirection: 'row',
-    paddingVertical: normalize(8),
-    paddingHorizontal: spacing.sm,
+    paddingVertical: normalize(6),
+    paddingBottom: normalize(8),
     alignItems: 'center',
-    justifyContent: 'space-evenly',
-    gap: spacing.xs,
+    justifyContent: 'space-around',
   },
 
-  // Tab Item
+  // Tab Item - Simple y compacto
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: normalize(2),
-    maxWidth: normalize(90), // Limitar ancho máximo para mejor distribución
   },
   tabContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: normalize(6),
-    paddingHorizontal: normalize(12),
-    borderRadius: normalize(16),
-    minWidth: normalize(60),
-    minHeight: normalize(52),
-    width: '100%',
-  },
-  tabContentActive: {
-    backgroundColor: isDark ? 'rgba(58, 58, 58, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
+    paddingVertical: normalize(4),
+    paddingHorizontal: normalize(8),
   },
   iconContainer: {
-    marginBottom: normalize(3),
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(10),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: normalize(2),
+  },
+  iconContainerActive: {
+    backgroundColor: isDark ? 'rgba(10, 132, 255, 0.15)' : 'rgba(10, 42, 67, 0.08)',
   },
   tabLabel: {
-    fontSize: normalize(10),
-    fontWeight: '700',
-    marginTop: normalize(2),
+    fontSize: normalize(9),
+    fontWeight: '600',
+    marginTop: normalize(1),
     textAlign: 'center',
   },
 });

@@ -33,7 +33,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
-              size={24}
+              size={20}
               color={color}
             />
           ),
@@ -46,7 +46,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'cart' : 'cart-outline'}
-              size={24}
+              size={20}
               color={color}
             />
           ),
@@ -60,7 +60,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'receipt' : 'receipt-outline'}
-              size={24}
+              size={20}
               color={color}
             />
           ),
@@ -74,7 +74,7 @@ export default function TabsLayout() {
             <View>
               <Ionicons
                 name={focused ? 'notifications' : 'notifications-outline'}
-                size={24}
+                size={20}
                 color={color}
               />
               {unreadCount > 0 && (
