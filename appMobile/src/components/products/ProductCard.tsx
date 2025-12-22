@@ -140,18 +140,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.card,
-    borderRadius: normalize(10),
+    backgroundColor: isDark ? colors.gray100 : '#F8F9FA',
+    borderRadius: normalize(12),
     overflow: 'hidden',
-    marginBottom: spacing.xs,
-    shadowColor: isDark ? colors.black : '#000',
+    marginBottom: spacing.sm,
+    // Sombra muy sutil como CategoryCard
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: isDark ? 0.3 : 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: isDark ? colors.gray200 : `${themeColors.gray100}80`,
-    minHeight: normalize(90),
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
+    minHeight: normalize(85),
   },
 
   inactiveContainer: {
@@ -159,22 +158,22 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   imageContainer: {
-    width: normalize(90),
-    minHeight: normalize(90),
+    width: normalize(75),
+    minHeight: normalize(85),
     position: 'relative',
   },
 
   image: {
     width: '100%',
-    minHeight: normalize(90),
+    minHeight: normalize(85),
     height: '100%',
   },
 
   placeholder: {
     width: '100%',
-    minHeight: normalize(90),
+    minHeight: normalize(85),
     height: '100%',
-    backgroundColor: `${colors.primary}08`,
+    backgroundColor: 'rgba(10, 42, 67, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -183,10 +182,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     position: 'absolute',
     top: normalize(6),
     right: normalize(6),
-    width: normalize(24),
-    height: normalize(24),
-    borderRadius: normalize(12),
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    width: normalize(22),
+    height: normalize(22),
+    borderRadius: normalize(11),
+    backgroundColor: 'rgba(211, 47, 47, 0.9)', // Color rojo suave del tema
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -195,7 +194,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
+    paddingVertical: normalize(10),
     paddingHorizontal: spacing.sm,
     gap: spacing.xs,
   },
@@ -208,8 +207,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     ...textStyles.body,
     color: colors.text,
     fontWeight: '600',
-    fontSize: normalize(14),
+    fontSize: normalize(13),
     marginBottom: 2,
+    letterSpacing: -0.1,
   },
 
   description: {
@@ -229,9 +229,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   price: {
     ...textStyles.callout,
-    color: colors.primary,
+    color: '#0A2A43', // Azul oscuro profesional
     fontWeight: '700',
-    fontSize: normalize(15),
+    fontSize: normalize(14),
   },
 
   originalPrice: {
@@ -239,46 +239,45 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.gray500,
     textDecorationLine: 'line-through',
     marginRight: 4,
-    fontSize: normalize(12),
+    fontSize: normalize(11),
   },
 
   discountedPrice: {
     ...textStyles.callout,
-    color: colors.error, // Or a specific promotion color
+    color: '#2E7D32', // Verde profesional para descuento
     fontWeight: '700',
-    fontSize: normalize(15),
+    fontSize: normalize(14),
   },
 
   customizationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${colors.primary}10`,
+    backgroundColor: 'rgba(10, 42, 67, 0.08)',
     paddingHorizontal: normalize(6),
     paddingVertical: normalize(3),
     borderRadius: normalize(6),
     gap: normalize(3),
-    borderWidth: 0.5,
-    borderColor: `${colors.primary}25`,
   },
 
   customizationText: {
     ...textStyles.caption2,
-    color: colors.primary,
+    color: '#0A2A43',
     fontWeight: '600',
     fontSize: normalize(9),
   },
 
   addButton: {
-    width: normalize(36),
-    height: normalize(36),
-    borderRadius: normalize(18),
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(16),
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    // Sombra más sutil
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
   },
 
   promotionsContainer: {
@@ -289,14 +288,14 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   promoBadge: {
-    backgroundColor: colors.error,
+    backgroundColor: '#2E7D32', // Verde profesional
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 6,
   },
 
   promoText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '700',
   },

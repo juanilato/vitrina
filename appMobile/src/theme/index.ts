@@ -6,10 +6,12 @@
 export * from './colors';
 export * from './typography';
 export * from './spacing';
+export * from './statusColors';
 
 import { colors } from './colors';
 import { fontSizes, fontWeights, textStyles } from './typography';
 import { spacing, borderRadius, shadows, SIZES, SHADOWS } from './spacing';
+import { statusColors } from './statusColors';
 
 // Export constants for easier use (compatible with peluqueriamascotas style)
 export const COLORS = colors;
@@ -26,6 +28,7 @@ export const theme = {
   spacing,
   borderRadius,
   shadows,
+  statusColors,
   COLORS: colors,
   SIZES,
   SHADOWS,

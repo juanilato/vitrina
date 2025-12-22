@@ -1,6 +1,6 @@
 /**
  * Compact Active Order Card Component
- * Versión compacta y friendly del ActiveOrderCard
+ * Diseño minimalista y limpio
  */
 
 import React from 'react';
@@ -11,11 +11,10 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { PedidoWithDetails } from '../../types/order';
-import { COLORS, SIZES, SHADOWS } from '../../theme';
+import { statusColors } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { normalize } from '../../utils/responsive';
 
@@ -27,18 +26,7 @@ export const CompactActiveOrderCard: React.FC<CompactActiveOrderCardProps> = ({ 
   const router = useRouter();
   const { colors, isDark } = useTheme();
 
-  const statusConfig: Record<string, { label: string; icon: string; color: string }> = {
-    pendiente_confirmacion: { label: 'Por confirmar', icon: 'time-outline', color: '#F26B1D' },
-    confirmado: { label: 'Confirmado', icon: 'checkmark-circle', color: '#2E9D66' },
-    en_proceso: { label: 'Preparando', icon: 'flame-outline', color: '#007ACC' },
-    esperando_delivery: { label: 'Esperando', icon: 'bicycle-outline', color: '#F26B1D' },
-    en_camino: { label: 'En camino', icon: 'bicycle', color: '#0A2A43' },
-    entregado: { label: 'Entregado', icon: 'checkmark-done', color: '#2E9D66' },
-    esperando_retiro: { label: 'Listo', icon: 'storefront', color: '#2E9D66' },
-    cancelado: { label: 'Cancelado', icon: 'close-circle', color: '#DC2626' },
-  };
-
-  const config = statusConfig[order.estado] || statusConfig.pendiente_confirmacion;
+  const config = statusColors.order[order.estado] || statusColors.order.pendiente_confirmacion;
   const totalItems = order.items?.reduce((sum, item) => sum + item.cantidad, 0) || 0;
 
   const handlePress = () => {
@@ -121,10 +109,10 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: normalize(44),
-    height: normalize(44),
-    borderRadius: normalize(10),
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(8),
+
   },
 
   infoColumn: {
