@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { OrderModal, OrdersSkeletonLoader } from './components';
+import { OrderModal, SkeletonLoader } from './components';
 import LocalOrderModal from './components/LocalOrderModal';
 import { useOrders } from './hooks/useOrders';
 import { useAuthOptimized } from '../../../../hooks/useAuthOptimized';
-import { PedidoWithDetails } from './types';
+import { PedidoWithDetails, EstadoPedido } from './types';
 import './OrdersSection.css';
 import OrderRow from './components/OrderCard';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
@@ -75,7 +75,7 @@ const OrdersSection: React.FC = () => {
     setSelectedOrder(pedido);
   };
 
-  const handleStatusUpdate = async (pedidoId: string, newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' |  'esperando_delivery' | 'en_camino' | 'entregado' | 'esperando_retiro') => {
+  const handleStatusUpdate = async (pedidoId: string, newStatus: EstadoPedido) => {
     try {
       await handleUpdateOrderStatus(pedidoId, newStatus);
     } catch (err: any) {
@@ -85,7 +85,7 @@ const OrdersSection: React.FC = () => {
 
   // Mostrar loading
   if (loading) {
-    return <OrdersSkeletonLoader />;
+    return <SkeletonLoader />;
   }
 
   // Mostrar error

@@ -14,6 +14,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { textStyles, spacing } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useCategoryTransition } from '../../contexts/CategoryTransitionContext';
 import { normalize } from '../../utils/responsive';
 import { CompanyPreview } from '../../types/company';
 import { useRouter } from 'expo-router';
@@ -83,6 +84,7 @@ export const CategoryCard3D: React.FC<CategoryCard3DProps> = ({
 }) => {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { startTransition } = useCategoryTransition();
 
   const colorIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % iconColors.length;
   const iconColor = iconColors[colorIndex];
@@ -92,7 +94,16 @@ export const CategoryCard3D: React.FC<CategoryCard3DProps> = ({
     if (onPress) {
       onPress();
     } else {
-      router.push(`/category/${id}?name=${nombre}`);
+      console.log('[CategoryCard3D] Iniciando transición:', { nombre, iconName });
+
+      // Iniciar la animación de cortina
+      startTransition(nombre, iconName);
+
+      // Navegar a la pantalla de categoría después de que la cortina baje
+      setTimeout(() => {
+        console.log('[CategoryCard3D] Navegando a categoría');
+        router.push(`/category/${id}?name=${nombre}`);
+      }, 600); // Esperar a que la cortina termine de bajar con animación spring
     }
   };
 

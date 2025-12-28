@@ -27,6 +27,7 @@ import { useCategoryById } from '../../src/hooks/useCategoryById';
 import { BusinessHours } from '../../src/components/companies/BusinessHours';
 import { RatingStars } from '../../src/components/common/RatingStars';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useCategoryTransition } from '../../src/contexts/CategoryTransitionContext';
 import { textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -124,6 +125,7 @@ const getIconForSubcategory = (subcategoryName: string, defaultIcon?: string): s
 export default function CategoryScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { finishTransition } = useCategoryTransition();
   const { id, name } = useLocalSearchParams();
   const categoryId = typeof id === 'string' ? id : id?.[0];
 
@@ -184,6 +186,17 @@ export default function CategoryScreen() {
   }, [categoryCompanies, selectedSubcategoryId, searchQuery]);
 
   const loading = categoryLoading || companiesLoading;
+
+  // Notificar cuando termina de cargar
+  useEffect(() => {
+    if (!loading && currentCategory && filteredCompanies) {
+      // Pequeño delay para asegurar que el render está completo
+      const timer = setTimeout(() => {
+        finishTransition();
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, currentCategory, filteredCompanies, finishTransition]);
 
   // Refresh handler
   // Inicializar animaciones cuando las empresas cambian
@@ -602,45 +615,46 @@ export default function CategoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Modern Category Header */}
-      <View style={styles.header}>
-        <LinearGradient
-          colors={isDark
-            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-          }
-          style={styles.headerGradient}
-        >
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={20} color={colors.primary} />
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Modern Category Header - matching index style */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
 
-          <View style={styles.categoryBadge}>
-            {currentCategory && (
-              <View style={styles.categoryIconContainer}>
-                <Feather
-                  name={getIconForSubcategory(currentCategory.nombre, currentCategory.icono) as any}
-                  size={normalize(18)}
-                  color={colors.primary}
-                />
+            <View style={styles.categoryBadge}>
+              {currentCategory && (
+                <View style={styles.categoryIconContainer}>
+                  <Feather
+                    name={getIconForSubcategory(currentCategory.nombre, currentCategory.icono) as any}
+                    size={normalize(18)}
+                    color="#FFFFFF"
+                  />
+                </View>
+              )}
+              <View style={styles.categoryTextContainer}>
+                <Text style={styles.categoryLabel}>Categoría</Text>
+                <Text style={styles.categoryTitle} numberOfLines={1}>
+                  {name || currentCategory?.nombre || 'Categoría'}
+                </Text>
               </View>
-            )}
-            <View style={styles.categoryTextContainer}>
-              <Text style={styles.categoryLabel}>Categoría</Text>
-              <Text style={styles.categoryTitle} numberOfLines={1}>
-                {name || currentCategory?.nombre || 'Categoría'}
-              </Text>
             </View>
-          </View>
 
-          <View style={styles.headerRight} />
-        </LinearGradient>
-      </View>
+            <View style={styles.headerRight} />
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
       {/* Content */}
       {loading && !refreshing ? (
@@ -665,7 +679,7 @@ export default function CategoryScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -673,66 +687,54 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    
   },
 
-  // Header Styles - Modern Glass Design
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: isDark ? 0.3 : 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
+  // Header Styles - matching index exactly
   headerGradient: {
+    paddingBottom: spacing.lg,
+    borderBottomLeftRadius: normalize(32),
+    borderBottomRightRadius: normalize(32),
+    shadowColor: '#0A2A43',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  header: {
+    paddingHorizontal: spacing.lg,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    marginBottom: spacing.md,
+    marginTop: spacing.md,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: normalize(32),
+    height: normalize(32),
+    borderRadius: normalize(8),
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
 
   // Category Badge
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 16,
     gap: 10,
     flex: 1,
     marginHorizontal: spacing.md,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   categoryIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: isDark ? `${colors.primary}25` : `${colors.primary}15`,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -747,18 +749,16 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     ...textStyles.caption1,
     fontSize: 10,
     fontWeight: '600',
-    color: colors.textTertiary,
+    color: 'rgba(255, 255, 255, 0.7)',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-
   },
   categoryTitle: {
     ...textStyles.body,
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
     marginTop: 2,
-    width: 900,
   },
 
   // Legacy styles (kept for compatibility)
@@ -781,6 +781,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontSize: 11,
     color: colors.gray600,
     marginTop: 1,
+    
   },
 
   // List Styles

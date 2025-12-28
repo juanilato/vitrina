@@ -13,7 +13,9 @@ import { AppDataProvider } from '../src/contexts/AppDataContext';
 import { OrdersProvider } from '../src/contexts/OrdersContext';
 import { PreferencesProvider } from '../src/contexts/PreferencesContext';
 import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
+import { CategoryTransitionProvider, useCategoryTransition } from '../src/contexts/CategoryTransitionContext';
 import { NotificationPopup } from '../src/components/notifications';
+import { CategoryTransitionCurtain } from '../src/components/categories/CategoryTransitionCurtain';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, Platform } from 'react-native';
@@ -22,6 +24,7 @@ import { GOOGLE_MAPS_API_KEY } from '../src/config/keys';
 function AppContent() {
   const { showPopup, currentPopupNotification, dismissPopup } = useNotifications();
   const { colors, isDark } = useTheme();
+  const { transitionState, hideTransition } = useCategoryTransition();
 
   useEffect(() => {
     if (Platform.OS === 'web') {
@@ -71,6 +74,15 @@ function AppContent() {
           onDismiss={dismissPopup}
         />
       )}
+
+      {/* Category Transition Curtain - Always mounted */}
+      <CategoryTransitionCurtain
+        categoryName={transitionState.categoryName}
+        categoryIcon={transitionState.categoryIcon}
+        isLoading={transitionState.isLoading}
+        isVisible={transitionState.isVisible}
+        onAnimationComplete={hideTransition}
+      />
     </>
   );
 }
@@ -82,15 +94,17 @@ export default function RootLayout() {
         <AuthProvider>
           <PreferencesProvider>
             <ThemeProvider>
-              <OrdersProvider>
-                <NotificationsProvider>
-                  <LocationProvider>
-                    <CartProvider>
-                      <AppContent />
-                    </CartProvider>
-                  </LocationProvider>
-                </NotificationsProvider>
-              </OrdersProvider>
+              <CategoryTransitionProvider>
+                <OrdersProvider>
+                  <NotificationsProvider>
+                    <LocationProvider>
+                      <CartProvider>
+                        <AppContent />
+                      </CartProvider>
+                    </LocationProvider>
+                  </NotificationsProvider>
+                </OrdersProvider>
+              </CategoryTransitionProvider>
             </ThemeProvider>
           </PreferencesProvider>
         </AuthProvider>

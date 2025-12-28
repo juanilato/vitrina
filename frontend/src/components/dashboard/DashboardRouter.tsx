@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuthOptimized } from '../../hooks/useAuthOptimized';
 import { DashboardDataProvider } from '../../contexts/DashboardDataContext';
+import { ErrorBoundary } from '../common';
 
 import CompanyMainDashboard from './CompanyMainDashboard';
 import RepartidorMainDashboard from './RepartidorMainDashboard';
@@ -28,16 +29,20 @@ const DashboardRouter: React.FC = () => {
   // Render appropriate dashboard based on user type
   if (isCompany) {
     return (
-      <DashboardDataProvider>
-        <CompanyMainDashboard />
-      </DashboardDataProvider>
+      <ErrorBoundary>
+        <DashboardDataProvider>
+          <CompanyMainDashboard />
+        </DashboardDataProvider>
+      </ErrorBoundary>
     );
   }
 
-
-
   if (isRepartidor) {
-    return <RepartidorMainDashboard />;
+    return (
+      <ErrorBoundary>
+        <RepartidorMainDashboard />
+      </ErrorBoundary>
+    );
   }
 
   // Fallback - shouldn't happen with proper auth

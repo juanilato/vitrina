@@ -13,6 +13,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { normalize } from '../../utils/responsive';
 import { CompanyPreview } from '../../types/company';
 import { useRouter } from 'expo-router';
+import { useCategoryTransition } from '../../contexts/CategoryTransitionContext';
 
 const { width } = Dimensions.get('window');
 const CARD_MARGIN = spacing.md;
@@ -85,6 +86,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const router = useRouter();
+  const { startTransition } = useCategoryTransition();
 
   const gradientIndex = (id || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % categoryGradients.length;
   const gradient = categoryGradients[gradientIndex];
@@ -102,8 +104,16 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   };
 
   const handleCategoryPress = () => {
-    // Navegar a la pantalla de categoría para ver todas las empresas
-    router.push(`/category/${id}?name=${nombre}`);
+    console.log('[CategoryCard] Iniciando transición:', { nombre, iconName });
+
+    // Iniciar la animación de cortina
+    startTransition(nombre, iconName);
+
+    // Navegar a la pantalla de categoría después de que la cortina baje
+    setTimeout(() => {
+      console.log('[CategoryCard] Navegando a categoría');
+      router.push(`/category/${id}?name=${nombre}`);
+    }, 600); // Esperar a que la cortina termine de bajar con animación spring
   };
 
   return (

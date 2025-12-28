@@ -292,11 +292,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.md,
+    marginTop: spacing.md,
   },
   actionsButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.md,
   },
   actionButton: {
     width: normalize(32),

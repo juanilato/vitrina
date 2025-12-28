@@ -3,7 +3,6 @@ import useAccountConfig from '../hooks/useAccountConfig';
 import { PrecioEnvioData, CreatePrecioEnvioData } from '../types';
 import PriceZoneMap from './PriceZoneMap';
 import './PreciosEnvioTab.css';
-import './PreciosEnvioTab_styles.css';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 import EditLocationAltIcon from '@mui/icons-material/EditLocationAlt';

@@ -7,3 +7,27 @@ node_modules
 /backend/.env
 
 .env*
+
+# Archivos temporales y backups
+*.bak
+*.backup
+*.old
+*.new
+*.tmp
+temp_*
+*~
+.DS_Store
+
+# Build artifacts
+dist
+build
+*.log
+*.cache
+.expo
+.expo-shared
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo

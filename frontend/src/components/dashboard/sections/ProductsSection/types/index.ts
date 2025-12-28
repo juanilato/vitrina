@@ -1,45 +1,21 @@
-import { Producto, ProductoIngrediente as ProductoIngredienteBase } from '../../../../../services/productosService';
+/**
+ * ProductsSection - UI-specific types
+ * Usa tipos compartidos de @/types/models
+ */
 
-// Interfaz extendida para ingredientes en productos con información adicional para UI
-export interface ProductoIngrediente extends ProductoIngredienteBase {
-  nombre: string;
-  unidadMedida: string;
-  icono?: string;
-}
+import { ProductWithExtras, ProductoIngrediente } from '../../../../../types/models';
 
-export interface ProductCategoria {
-  id: string;
-  categoria: {
-    id: string;
-    nombre: string;
-    icono?: string;
-    orden: number;
-    activo: boolean;
-  };
-}
-
-export interface ProductWithExtras extends Producto {
-  // Solo campos que existen en el backend: nombre, descripcion, precio, empresaId, activo
-  // Campos adicionales para UI (opcionales)
-  category?: string; // Para mostrar en UI (simulado)
-  fotoUrl?: string; // Para mostrar en UI (simulado)
-  tipoStock?: string; // "individual" o "compuesto"
-  stockIndividual?: number;
-  permiteExtras?: boolean;
-  ingredientes?: ProductoIngrediente[];
-  categorias?: ProductCategoria[]; // Categorías asignadas al producto
-}
-
+// Props de componentes UI
 export interface ProductModalProps {
   product: ProductWithExtras | null;
-  user: any; // Usuario autenticado
+  user: any;
   onSave: (product: {
     nombre: string;
     descripcion: string;
     precio: number;
     activo: boolean;
     file?: File;
-    categoriaIds?: string[]; // IDs de categorías seleccionadas
+    categoriaIds?: string[];
   }) => void;
   onClose: () => void;
 }
@@ -70,8 +46,5 @@ export interface ProductCardProps {
   onManageStock?: (product: ProductWithExtras) => void;
 }
 
-export interface ProductsStats {
-  total: number;
-  activos: number;
-  inactivos: number;
-}
+// Re-export modelos compartidos para compatibilidad
+export type { ProductWithExtras, ProductoIngrediente, ProductsStats, ProductCategoria } from '../../../../../types/models';
