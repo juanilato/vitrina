@@ -1,7 +1,7 @@
 /**
  * CategoryTransitionCurtain Component
- * Vitrina con marco elegante adaptado a la estética de la app
- * Marco azul profundo con vidrio sutil que permite ver el contenido
+ * Loading animado tipo "Puerta de Vitrina" que se abre revelando el contenido
+ * Concepto: Dos puertas de vidrio que se separan mostrando los productos
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -31,130 +31,142 @@ export const CategoryTransitionCurtain: React.FC<CategoryTransitionCurtainProps>
 }) => {
   const insets = useSafeAreaInsets();
 
-  // Animaciones
-  const showcaseAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
-  const glassShimmer = useRef(new Animated.Value(0)).current;
-  const sparkle1 = useRef(new Animated.Value(0)).current;
-  const sparkle2 = useRef(new Animated.Value(0)).current;
-  const sparkle3 = useRef(new Animated.Value(0)).current;
-  const iconPulse = useRef(new Animated.Value(1)).current;
+  // Animaciones de las puertas
+  const leftDoorAnim = useRef(new Animated.Value(0)).current;
+  const rightDoorAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  // Animación del contenido
+  const contentScale = useRef(new Animated.Value(0.9)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
+
+  // Animación de la manija/handle
+  const handlePulse = useRef(new Animated.Value(1)).current;
+
+  // Animación de los dots
+  const dotsAnim = useRef(new Animated.Value(0)).current;
 
   console.log('[CategoryTransitionCurtain] Render:', { categoryName, isLoading, isVisible });
 
-  // Shimmer sutil
+  // Animación de los dots de carga
   useEffect(() => {
-    if (isLoading) {
-      const shimmerAnimation = Animated.loop(
+    if (isVisible && isLoading) {
+      const dotsAnimation = Animated.loop(
         Animated.sequence([
-          Animated.timing(glassShimmer, {
+          Animated.timing(dotsAnim, {
             toValue: 1,
-            duration: 3500,
+            duration: 1500,
             useNativeDriver: true,
           }),
-          Animated.timing(glassShimmer, {
+          Animated.timing(dotsAnim, {
             toValue: 0,
-            duration: 3500,
+            duration: 1500,
             useNativeDriver: true,
           }),
         ])
       );
-      shimmerAnimation.start();
-      return () => shimmerAnimation.stop();
+      dotsAnimation.start();
+      return () => dotsAnimation.stop();
     }
-  }, [isLoading]);
+  }, [isVisible, isLoading]);
 
-  // Partículas
+  // Animación de la manija
   useEffect(() => {
-    if (isLoading) {
-      const createSparkleAnim = (sparkle: Animated.Value, delay: number) =>
-        Animated.loop(
-          Animated.sequence([
-            Animated.delay(delay),
-            Animated.timing(sparkle, {
-              toValue: 1,
-              duration: 4000,
-              useNativeDriver: true,
-            }),
-            Animated.timing(sparkle, {
-              toValue: 0,
-              duration: 0,
-              useNativeDriver: true,
-            }),
-          ])
-        );
-
-      const anim1 = createSparkleAnim(sparkle1, 0);
-      const anim2 = createSparkleAnim(sparkle2, 1200);
-      const anim3 = createSparkleAnim(sparkle3, 2400);
-
-      anim1.start();
-      anim2.start();
-      anim3.start();
-
-      return () => {
-        anim1.stop();
-        anim2.stop();
-        anim3.stop();
-      };
-    }
-  }, [isLoading]);
-
-  // Pulso del icono
-  useEffect(() => {
-    if (isLoading) {
-      const pulseAnimation = Animated.loop(
+    if (isVisible && isLoading) {
+      const pulseAnim = Animated.loop(
         Animated.sequence([
-          Animated.timing(iconPulse, {
-            toValue: 1.05,
-            duration: 2000,
+          Animated.timing(handlePulse, {
+            toValue: 1.15,
+            duration: 1000,
             useNativeDriver: true,
           }),
-          Animated.timing(iconPulse, {
+          Animated.timing(handlePulse, {
             toValue: 1,
-            duration: 2000,
+            duration: 1000,
             useNativeDriver: true,
           }),
         ])
       );
-      pulseAnimation.start();
-      return () => pulseAnimation.stop();
+      pulseAnim.start();
+      return () => pulseAnim.stop();
     }
-  }, [isLoading]);
+  }, [isVisible, isLoading]);
 
-  // Animación principal
+  // Animación principal de las puertas
   useEffect(() => {
     if (!isVisible) {
-      showcaseAnim.setValue(0);
-      opacityAnim.setValue(1);
+      leftDoorAnim.setValue(0);
+      rightDoorAnim.setValue(0);
+      opacityAnim.setValue(0);
+      contentScale.setValue(0.9);
+      contentOpacity.setValue(0);
       return;
     }
 
     if (isLoading) {
-      console.log('[CategoryTransitionCurtain] Bajando vitrina');
-      opacityAnim.setValue(1);
+      // Las puertas se cierran (aparecen desde los lados)
+      console.log('[CategoryTransitionCurtain] Cerrando puertas');
 
-      Animated.spring(showcaseAnim, {
-        toValue: 1,
-        tension: 30,
-        friction: 9,
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.spring(leftDoorAnim, {
+          toValue: 1,
+          tension: 40,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+        Animated.spring(rightDoorAnim, {
+          toValue: 1,
+          tension: 40,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(contentScale, {
+          toValue: 1,
+          tension: 50,
+          friction: 8,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(contentOpacity, {
+          toValue: 1,
+          duration: 400,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
-      console.log('[CategoryTransitionCurtain] Subiendo vitrina');
+      // Las puertas se abren revelando el contenido
+      console.log('[CategoryTransitionCurtain] Abriendo puertas');
 
       Animated.sequence([
-        Animated.delay(200),
+        Animated.delay(150),
         Animated.parallel([
-          Animated.spring(showcaseAnim, {
-            toValue: 2,
+          Animated.spring(leftDoorAnim, {
+            toValue: 0,
             tension: 35,
-            friction: 10,
+            friction: 9,
+            useNativeDriver: true,
+          }),
+          Animated.spring(rightDoorAnim, {
+            toValue: 0,
+            tension: 35,
+            friction: 9,
             useNativeDriver: true,
           }),
           Animated.timing(opacityAnim, {
             toValue: 0,
-            duration: 700,
+            duration: 500,
+            delay: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(contentOpacity, {
+            toValue: 0,
+            duration: 300,
             useNativeDriver: true,
           }),
         ]),
@@ -171,473 +183,348 @@ export const CategoryTransitionCurtain: React.FC<CategoryTransitionCurtainProps>
     return null;
   }
 
-  const translateY = showcaseAnim.interpolate({
-    inputRange: [0, 1, 2],
-    outputRange: [-SCREEN_HEIGHT, 0, -SCREEN_HEIGHT],
+  const leftDoorTranslateX = leftDoorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-SCREEN_WIDTH / 2, 0],
   });
 
-  const shimmerTranslateX = glassShimmer.interpolate({
+  const rightDoorTranslateX = rightDoorAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-SCREEN_WIDTH * 0.5, SCREEN_WIDTH * 1.5],
+    outputRange: [SCREEN_WIDTH / 2, 0],
   });
 
   return (
     <Animated.View
       style={[
-        styles.showcaseContainer,
+        styles.container,
         {
-          transform: [{ translateY }],
           opacity: opacityAnim,
         },
       ]}
       pointerEvents="box-none"
     >
-      {/* Marco superior */}
-      <View style={[styles.frameTop, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={['#071D2F', '#0A2A43', '#0D3354', '#0A2A43', '#071D2F']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.frameGradient}
-        >
-          <View style={styles.frameHighlight} />
-          <View style={styles.frameShadowInner} />
-        </LinearGradient>
-      </View>
-
-      {/* Panel de vidrio */}
-      <View style={styles.glassPanel}>
-        <BlurView intensity={6} style={StyleSheet.absoluteFill} tint="light">
-          {/* Fondo sutil */}
+      {/* Puerta Izquierda */}
+      <Animated.View
+        style={[
+          styles.door,
+          styles.doorLeft,
+          {
+            transform: [{ translateX: leftDoorTranslateX }],
+          },
+        ]}
+      >
+        <BlurView intensity={10} style={StyleSheet.absoluteFill} tint="light">
+          {/* Gradiente de la puerta */}
           <LinearGradient
             colors={[
-              'rgba(10, 42, 67, 0.04)',
-              'rgba(10, 42, 67, 0.02)',
-              'rgba(10, 42, 67, 0.04)',
+              'rgba(10, 42, 67, 0.95)',
+              'rgba(13, 51, 84, 0.92)',
+              'rgba(10, 42, 67, 0.95)',
             ]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.glassGradient}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
           />
 
-          {/* Shimmer */}
+          {/* Marco decorativo */}
+          <View style={styles.doorFrame}>
+            <View style={styles.doorFrameInner} />
+          </View>
+
+          {/* Manija izquierda */}
           <Animated.View
             style={[
-              styles.shimmer,
+              styles.handle,
+              styles.handleLeft,
               {
-                opacity: 0.08,
-                transform: [{ translateX: shimmerTranslateX }],
+                transform: [{ scale: handlePulse }],
               },
             ]}
           >
             <LinearGradient
-              colors={[
-                'rgba(13, 51, 84, 0)',
-                'rgba(13, 51, 84, 0.15)',
-                'rgba(13, 51, 84, 0)',
-              ]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.shimmerGradient}
-            />
+              colors={['#0D3354', '#0A2A43']}
+              style={styles.handleGradient}
+            >
+              <View style={styles.handleShine} />
+            </LinearGradient>
           </Animated.View>
+        </BlurView>
+      </Animated.View>
 
-          {/* Contenido */}
-          <View style={styles.content}>
-            {/* Icono */}
+      {/* Puerta Derecha */}
+      <Animated.View
+        style={[
+          styles.door,
+          styles.doorRight,
+          {
+            transform: [{ translateX: rightDoorTranslateX }],
+          },
+        ]}
+      >
+        <BlurView intensity={10} style={StyleSheet.absoluteFill} tint="light">
+          {/* Gradiente de la puerta */}
+          <LinearGradient
+            colors={[
+              'rgba(10, 42, 67, 0.95)',
+              'rgba(13, 51, 84, 0.92)',
+              'rgba(10, 42, 67, 0.95)',
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+
+          {/* Marco decorativo */}
+          <View style={styles.doorFrame}>
+            <View style={styles.doorFrameInner} />
+          </View>
+
+          {/* Manija derecha */}
+          <Animated.View
+            style={[
+              styles.handle,
+              styles.handleRight,
+              {
+                transform: [{ scale: handlePulse }],
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={['#0D3354', '#0A2A43']}
+              style={styles.handleGradient}
+            >
+              <View style={styles.handleShine} />
+            </LinearGradient>
+          </Animated.View>
+        </BlurView>
+      </Animated.View>
+
+      {/* Contenido Central */}
+      <Animated.View
+        style={[
+          styles.centerContent,
+          {
+            transform: [{ scale: contentScale }],
+            opacity: contentOpacity,
+          },
+        ]}
+      >
+        {/* Logo/Icono de categoría */}
+        <View style={styles.logoContainer}>
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+            style={styles.logoGradient}
+          >
+            <Feather name={categoryIcon as any} size={normalize(40)} color="#0A2A43" />
+          </LinearGradient>
+        </View>
+
+        {/* Nombre de categoría */}
+        <Text style={styles.categoryName}>{categoryName}</Text>
+
+        {/* Animación de puntos */}
+        {isLoading && (
+          <View style={styles.dotsContainer}>
             <Animated.View
               style={[
-                styles.iconContainer,
+                styles.dot,
                 {
-                  transform: [{ scale: iconPulse }],
+                  opacity: dotsAnim.interpolate({
+                    inputRange: [0, 0.33, 0.66, 1],
+                    outputRange: [0.3, 1, 0.3, 0.3],
+                  }),
                 },
               ]}
-            >
-              <LinearGradient
-                colors={['rgba(13, 51, 84, 0.15)', 'rgba(10, 42, 67, 0.1)']}
-                style={StyleSheet.absoluteFill}
-              />
-              <Feather
-                name={categoryIcon as any}
-                size={normalize(42)}
-                color="#0A2A43"
-              />
-            </Animated.View>
-
-            {/* Nombre */}
-            <Text style={styles.categoryText}>{categoryName}</Text>
-
-            {/* Partículas */}
-            {isLoading && (
-              <View style={styles.sparklesContainer}>
-                <Animated.View
-                  style={[
-                    styles.sparkle,
-                    {
-                      left: '28%',
-                      top: '32%',
-                      opacity: sparkle1.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0, 0.3, 0],
-                      }),
-                      transform: [
-                        {
-                          translateY: sparkle1.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, -60],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  <View style={styles.sparkleCircle} />
-                </Animated.View>
-
-                <Animated.View
-                  style={[
-                    styles.sparkle,
-                    {
-                      left: '62%',
-                      top: '42%',
-                      opacity: sparkle2.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0, 0.25, 0],
-                      }),
-                      transform: [
-                        {
-                          translateY: sparkle2.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, -60],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  <View style={[styles.sparkleCircle, { width: 3, height: 3 }]} />
-                </Animated.View>
-
-                <Animated.View
-                  style={[
-                    styles.sparkle,
-                    {
-                      left: '45%',
-                      top: '52%',
-                      opacity: sparkle3.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0, 0.28, 0],
-                      }),
-                      transform: [
-                        {
-                          translateY: sparkle3.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, -60],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  <View style={[styles.sparkleCircle, { width: 4, height: 4 }]} />
-                </Animated.View>
-              </View>
-            )}
-
-            {/* Dots */}
-            {isLoading && (
-              <View style={styles.loadingTextContainer}>
-                <View style={styles.dotsContainer}>
-                  <Animated.View
-                    style={[
-                      styles.dot,
-                      {
-                        opacity: glassShimmer.interpolate({
-                          inputRange: [0, 0.33, 0.66, 1],
-                          outputRange: [0.2, 0.7, 0.2, 0.2],
-                        }),
-                      },
-                    ]}
-                  />
-                  <Animated.View
-                    style={[
-                      styles.dot,
-                      {
-                        opacity: glassShimmer.interpolate({
-                          inputRange: [0, 0.33, 0.66, 1],
-                          outputRange: [0.2, 0.2, 0.7, 0.2],
-                        }),
-                      },
-                    ]}
-                  />
-                  <Animated.View
-                    style={[
-                      styles.dot,
-                      {
-                        opacity: glassShimmer.interpolate({
-                          inputRange: [0, 0.33, 0.66, 1],
-                          outputRange: [0.2, 0.2, 0.2, 0.7],
-                        }),
-                      },
-                    ]}
-                  />
-                </View>
-              </View>
-            )}
+            />
+            <Animated.View
+              style={[
+                styles.dot,
+                {
+                  opacity: dotsAnim.interpolate({
+                    inputRange: [0, 0.33, 0.66, 1],
+                    outputRange: [0.3, 0.3, 1, 0.3],
+                  }),
+                },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.dot,
+                {
+                  opacity: dotsAnim.interpolate({
+                    inputRange: [0, 0.33, 0.66, 1],
+                    outputRange: [0.3, 0.3, 0.3, 1],
+                  }),
+                },
+              ]}
+            />
           </View>
+        )}
+      </Animated.View>
 
-          {/* Reflejos */}
-          <View style={styles.glassReflections}>
-            <View style={[styles.reflection, styles.reflection1]} />
-            <View style={[styles.reflection, styles.reflection2]} />
-            <View style={[styles.reflection, styles.reflection3]} />
-          </View>
-        </BlurView>
-      </View>
-
-      {/* Marco inferior */}
-      <View style={styles.frameBottom}>
-        <LinearGradient
-          colors={['#071D2F', '#0A2A43', '#0D3354', '#0A2A43', '#071D2F']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.frameGradient}
-        >
-          <View style={styles.frameHighlight} />
-          <View style={styles.frameShadowInner} />
-        </LinearGradient>
-      </View>
-
-      {/* Marco izquierdo */}
-      <View style={styles.frameSide}>
-        <LinearGradient
-          colors={['#071D2F', '#0A2A43', '#0D3354', '#0A2A43', '#071D2F']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        >
-          <View style={styles.frameEdge} />
-        </LinearGradient>
-      </View>
-
-      {/* Marco derecho */}
-      <View style={[styles.frameSide, styles.frameSideRight]}>
-        <LinearGradient
-          colors={['#071D2F', '#0A2A43', '#0D3354', '#0A2A43', '#071D2F']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        >
-          <View style={[styles.frameEdge, styles.frameEdgeRight]} />
-        </LinearGradient>
-      </View>
+      {/* Separador central (línea entre las puertas) */}
+      <View style={styles.divider} />
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
-  showcaseContainer: {
+  container: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: SCREEN_HEIGHT,
+    bottom: 0,
     zIndex: 9999,
     elevation: 9999,
   },
 
-  // Marcos
-  frameTop: {
-    height: 20,
-    width: '100%',
+  // Puertas
+  door: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: SCREEN_WIDTH / 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  doorLeft: {
+    left: 0,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  doorRight: {
+    right: 0,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255, 255, 255, 0.1)',
+  },
+
+  // Marco decorativo de las puertas
+  doorFrame: {
+    position: 'absolute',
+    top: 40,
+    bottom: 40,
+    left: 20,
+    right: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+  },
+  doorFrameInner: {
+    position: 'absolute',
+    top: 8,
+    bottom: 8,
+    left: 8,
+    right: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 6,
+  },
+
+  // Manijas
+  handle: {
+    position: 'absolute',
+    top: '50%',
+    width: 40,
+    height: 80,
+    marginTop: -40,
+    borderRadius: 20,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 10,
-  },
-  frameBottom: {
-    position: 'absolute',
-    bottom: 0,
-    height: 20,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  frameSide: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
     elevation: 8,
   },
-  frameSideRight: {
-    left: undefined,
-    right: 0,
-    shadowOffset: { width: -2, height: 0 },
+  handleLeft: {
+    right: 15,
   },
-  frameGradient: {
+  handleRight: {
+    left: 15,
+  },
+  handleGradient: {
     flex: 1,
-    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
   },
-  frameHighlight: {
+  handleShine: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '35%',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  frameShadowInner: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '25%',
-    backgroundColor: 'rgba(0, 0, 0, 0.15)',
-  },
-  frameEdge: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: '30%',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  frameEdgeRight: {
-    left: undefined,
-    right: 0,
+    top: 8,
+    left: 6,
+    width: 8,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 4,
   },
 
-  // Panel de vidrio
-  glassPanel: {
-    flex: 1,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(10, 42, 67, 0.03)',
-  },
-  glassGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  // Shimmer
-  shimmer: {
+  // Contenido central
+  centerContent: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: SCREEN_WIDTH * 0.4,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1,
   },
-  shimmerGradient: {
-    flex: 1,
-    width: '100%',
-  },
-
-  // Reflejos
-  glassReflections: {
-    ...StyleSheet.absoluteFillObject,
-    pointerEvents: 'none',
-  },
-  reflection: {
-    position: 'absolute',
-    backgroundColor: 'rgba(13, 51, 84, 0.03)',
-  },
-  reflection1: {
-    top: '18%',
-    left: '12%',
-    width: '28%',
-    height: 1.5,
-    transform: [{ rotate: '-42deg' }],
-  },
-  reflection2: {
-    top: '28%',
-    right: '18%',
-    width: '22%',
-    height: 1,
-    transform: [{ rotate: '38deg' }],
-  },
-  reflection3: {
-    top: '65%',
-    left: '40%',
-    width: '15%',
-    height: 0.8,
-    transform: [{ rotate: '-15deg' }],
-  },
-
-  // Contenido
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    zIndex: 2,
-  },
-  iconContainer: {
-    width: normalize(90),
-    height: normalize(90),
-    borderRadius: normalize(45),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-    borderWidth: 2,
-    borderColor: 'rgba(10, 42, 67, 0.15)',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  logoContainer: {
+    width: normalize(100),
+    height: normalize(100),
+    borderRadius: normalize(50),
     overflow: 'hidden',
+    marginBottom: 20,
     shadowColor: '#0A2A43',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  categoryText: {
-    fontSize: normalize(26),
-    fontWeight: '700',
-    color: '#0A2A43',
-    textAlign: 'center',
-    letterSpacing: 0.3,
-    textShadowColor: 'rgba(255, 255, 255, 0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-
-  // Partículas
-  sparklesContainer: {
-    ...StyleSheet.absoluteFillObject,
-    pointerEvents: 'none',
-  },
-  sparkle: {
-    position: 'absolute',
-  },
-  sparkleCircle: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#0D3354',
-  },
-
-  // Dots
-  loadingTextContainer: {
+  logoGradient: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
   },
+  categoryName: {
+    fontSize: normalize(24),
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+    marginBottom: 16,
+    textShadowColor: 'rgba(10, 42, 67, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+
+  // Dots de carga
   dotsContainer: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
+    marginTop: 8,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#0A2A43',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
+  },
+
+  // Divisor central
+  divider: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: SCREEN_WIDTH / 2 - 0.5,
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    zIndex: 2,
   },
 });
