@@ -71,6 +71,52 @@ export default function CompanyStoreScreen() {
     [company, colors.primary]
   );
 
+  // Función para verificar si está abierto ahora
+  const isOpenNow = React.useMemo(() => {
+    const horarios = company?.preferenciasWeb?.horarios;
+    if (!horarios || horarios.length === 0) return true; // Si no hay horarios, asumimos abierto
+
+    const now = new Date();
+    const currentDayIndex = now.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+    const dayMap = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
+    const currentDay = dayMap[currentDayIndex];
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Filtrar horarios del día actual
+    const todaySchedules = horarios.filter(h => h.day === currentDay && !h.cerrado);
+
+    // Verificar si está dentro de algún horario
+    for (const schedule of todaySchedules) {
+      if (schedule.cierraMin > 1440) {
+        // Cruza medianoche
+        if (currentMinutes >= schedule.abreMin || currentMinutes <= (schedule.cierraMin - 1440)) {
+          return true;
+        }
+      } else {
+        // Horario normal
+        if (currentMinutes >= schedule.abreMin && currentMinutes <= schedule.cierraMin) {
+          return true;
+        }
+      }
+    }
+
+    // También verificar si es continuación del día anterior
+    const prevDayIndex = (currentDayIndex - 1 + 7) % 7;
+    const prevDay = dayMap[prevDayIndex];
+    const yesterdaySchedules = horarios.filter(h => h.day === prevDay && !h.cerrado);
+
+    for (const schedule of yesterdaySchedules) {
+      if (schedule.cierraMin > 1440) {
+        const remainingMinutes = schedule.cierraMin - 1440;
+        if (currentMinutes <= remainingMinutes) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }, [company?.preferenciasWeb?.horarios]);
+
   // Cargar rating
   useEffect(() => {
     if (company?.id) {
@@ -412,9 +458,39 @@ export default function CompanyStoreScreen() {
                   </Text>
                 </View>
               )}
-
-
             </View>
+
+            {/* Status Pills - Abierto/Cerrado y Delivery */}
+            {(company.preferenciasWeb?.horarios?.length || company.preferenciasWeb?.envioDomicilio) && (
+              <View style={styles.statusPillsRow}>
+                {company.preferenciasWeb?.horarios && company.preferenciasWeb.horarios.length > 0 && (
+                  <View style={[
+                    styles.statusPill,
+                    { backgroundColor: isOpenNow ? `${buttonColor}15` : '#FEE2E2' }
+                  ]}>
+                    <View style={[
+                      styles.statusDot,
+                      { backgroundColor: isOpenNow ? buttonColor : '#EF4444' }
+                    ]} />
+                    <Text style={[
+                      styles.statusPillText,
+                      { color: isOpenNow ? buttonColor : '#DC2626' }
+                    ]}>
+                      {isOpenNow ? 'Abierto ahora' : 'Cerrado'}
+                    </Text>
+                  </View>
+                )}
+
+                {company.preferenciasWeb?.envioDomicilio && (
+                  <View style={[styles.statusPill, { backgroundColor: `${buttonColor}15` }]}>
+                    <Ionicons name="bicycle" size={14} color={buttonColor} />
+                    <Text style={[styles.statusPillText, { color: buttonColor }]}>
+                      Delivery disponible
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           {/* Business Hours - Premium Collapsible */}
@@ -1294,6 +1370,34 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontSize: normalize(13),
     fontWeight: '500',
     color: colors.textSecondary,
+  },
+
+  // Status Pills
+  statusPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 12,
+    flexWrap: 'wrap',
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusPillText: {
+    fontSize: normalize(12),
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 
   // Categories

@@ -264,6 +264,7 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
   };
 
   const dark = isColorDark(buttonColor);
+  const isDark = dark; // Alias para consistencia
   const textColor = dark ? '#f5f5f5' : '#1a1a1a';
   const subTextColor = dark
     ? 'rgba(255,255,255,0.7)'
@@ -271,6 +272,15 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
   const counterBg = dark
     ? 'rgba(255,255,255,0.2)'
     : 'rgba(0,0,0,0.1)';
+
+  // Calcular color más claro para el gradiente
+  const lighterColor = React.useMemo(() => {
+    const hex = buttonColor.replace('#', '');
+    const r = Math.min(255, parseInt(hex.substring(0, 2), 16) + 30);
+    const g = Math.min(255, parseInt(hex.substring(2, 4), 16) + 30);
+    const b = Math.min(255, parseInt(hex.substring(4, 6), 16) + 30);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  }, [buttonColor]);
 
   return (
     <>
@@ -282,115 +292,50 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
           },
         ]}
       >
-        {/* Indicadores superiores */}
-        <View style={styles.indicatorsContainer}>
-          {/* Indicador de horario */}
-          {horarios && horarios.length > 0 && (
-            <View style={[
-              styles.indicator,
-              { backgroundColor: isOpenNow ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)' }
-            ]}>
-              <View style={[
-                styles.indicatorDot,
-                { backgroundColor: isOpenNow ? '#22c55e' : '#ef4444' }
-              ]} />
-              <Text style={[
-                styles.indicatorText,
-                { color: isOpenNow ? '#22c55e' : '#ef4444' }
-              ]}>
-                {isOpenNow ? 'Abierto' : 'Cerrado'}
-              </Text>
-            </View>
-          )}
-
-          {/* Indicador de delivery */}
-          {envioDomicilio && (
-            <View style={[styles.indicator, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
-              <Ionicons name="bicycle" size={14} color="#3b82f6" />
-              <Text style={[styles.indicatorText, { color: '#3b82f6' }]}>
-                Delivery
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Botón principal con glassmorphism */}
+        {/* Botón estilo Duolingo/PedidosYa - Colorido y con personalidad */}
         <TouchableOpacity
-          activeOpacity={0.95}
+          activeOpacity={0.85}
           onPress={handlePress}
-          style={styles.touchable}
+          style={styles.mainButton}
         >
-          <BlurView intensity={95} tint={dark ? 'dark' : 'light'} style={styles.blurContainer}>
-            <LinearGradient
-              colors={[
-                `${buttonColor}F0`,
-                `${buttonColor}E8`,
-              ]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientContainer}
-            >
-              {/* Brillo sutil superior */}
-              <LinearGradient
-                colors={['rgba(255,255,255,0.2)', 'transparent']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 0.5 }}
-                style={StyleSheet.absoluteFill}
-              />
-
-              <View style={styles.contentRow}>
-                {/* Sección izquierda: Icono y contador */}
-                <View style={styles.leftSection}>
-                  <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
-                    <Ionicons name="cart" size={24} color={textColor} />
-                  </View>
-                  <View style={styles.counterBadge}>
-                    <LinearGradient
-                      colors={['#ffffff', '#f0f0f0']}
-                      style={styles.counterGradient}
-                    >
-                      <Text style={[styles.counterText, { color: buttonColor }]}>
-                        {totalItems}
-                      </Text>
-                    </LinearGradient>
-                  </View>
+          <LinearGradient
+            colors={[lighterColor, buttonColor]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.buttonGradient}
+          >
+            <View style={styles.buttonContent}>
+              {/* Sección izquierda - Icono circular con animación */}
+              <View style={styles.iconCircle}>
+                <View style={styles.iconInnerCircle}>
+                  <Ionicons name="bag-handle" size={26} color={buttonColor} />
                 </View>
-
-                {/* Sección central: Información */}
-                <View style={styles.centerSection}>
-                  <View style={styles.titleRow}>
-                    <Text style={[styles.mainTitle, { color: textColor }]}>
-                      Ver Pedido
-                    </Text>
-                    {subtotal > total && (
-                      <View style={[styles.discountPill, { backgroundColor: 'rgba(34, 197, 94, 0.2)' }]}>
-                        <Ionicons name="pricetag" size={10} color="#22c55e" />
-                        <Text style={[styles.discountText, { color: '#22c55e' }]}>
-                          ¡Descuento!
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.priceRow}>
-                    <Text style={[styles.totalPrice, { color: textColor }]}>
-                      ${formatPrice(total)}
-                    </Text>
-                    {subtotal > total && (
-                      <Text style={[styles.oldPrice, { color: subTextColor }]}>
-                        ${formatPrice(subtotal)}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-
-                {/* Sección derecha: Flecha */}
-                <View style={[styles.arrowCircle, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                  <Ionicons name="arrow-forward" size={20} color={textColor} />
+                <View style={[styles.badge, { borderColor: lighterColor }]}>
+                  <Text style={styles.badgeText}>{totalItems}</Text>
                 </View>
               </View>
-            </LinearGradient>
-          </BlurView>
+
+              {/* Sección central - Info con emojis y personalidad */}
+              <View style={styles.centerInfo}>
+                <Text style={styles.funLabel}>¡Tu pedido te espera! 🛍️</Text>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.bigPrice}>${formatPrice(total)}</Text>
+                  {subtotal > total && (
+                    <View style={styles.discountPill}>
+                      <Text style={[styles.discountText, { color: buttonColor }]}>
+                        ¡-${formatPrice(subtotal - total)}!
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+
+            </View>
+
+            {/* Efecto de brillo animado en la parte superior */}
+            <View style={styles.topShine} />
+          </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
 
@@ -418,175 +363,185 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: spacing.lg + 10,
+    bottom: spacing.lg + 12,
     left: spacing.lg,
     right: spacing.lg,
     zIndex: 100,
   },
 
-  // Indicadores superiores
-  indicatorsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  indicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  indicatorDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  indicatorText: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-
-  // Botón principal
-  touchable: {
-    borderRadius: 24,
+  // Botón principal - Estilo Duolingo/PedidosYa
+  mainButton: {
+    borderRadius: 28,
     overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
+        shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.25,
-        shadowRadius: 16,
+        shadowRadius: 24,
       },
       android: {
-        elevation: 10,
+        elevation: 16,
       },
     }),
   },
-  blurContainer: {
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  gradientContainer: {
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-  },
-  contentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-
-  // Sección izquierda
-  leftSection: {
+  buttonGradient: {
+    borderRadius: 28,
     position: 'relative',
   },
-  iconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
+  buttonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    gap: 16,
   },
-  counterBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    borderRadius: 12,
-    overflow: 'hidden',
+
+  // Icono circular con fondo blanco
+  iconCircle: {
+    position: 'relative',
+  },
+  iconInnerCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 5,
+        elevation: 6,
       },
     }),
   },
-  counterGradient: {
-    minWidth: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    minWidth: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FF6B9D',
     alignItems: 'center',
-    paddingHorizontal: 6,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    borderWidth: 3,
+    borderColor: '#00D9A5',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#FF6B9D',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.5,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
-  counterText: {
-    fontSize: 12,
+  badgeText: {
+    fontSize: 13,
     fontWeight: '900',
-    letterSpacing: -0.5,
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
 
-  // Sección central
-  centerSection: {
+  // Sección central con personalidad
+  centerInfo: {
     flex: 1,
-    gap: 4,
+    gap: 6,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  mainTitle: {
+  funLabel: {
     fontSize: 14,
     fontWeight: '700',
-    letterSpacing: 0.2,
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
-  discountPill: {
+  priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    gap: 10,
   },
-  discountText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-  },
-  totalPrice: {
-    fontSize: 24,
+  bigPrice: {
+    fontSize: 26,
     fontWeight: '900',
+    color: '#FFFFFF',
     letterSpacing: -1,
   },
-  oldPrice: {
-    fontSize: 14,
-    fontWeight: '600',
-    textDecorationLine: 'line-through',
-    opacity: 0.6,
+  discountPill: {
+    backgroundColor: '#FFD93D',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  discountText: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#00B388',
+    letterSpacing: 0.2,
   },
 
-  // Sección derecha
-  arrowCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
+  // Mini indicadores
+  miniIndicators: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+    marginTop: 2,
+  },
+  miniIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  miniDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  miniText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    opacity: 0.9,
+    letterSpacing: 0.2,
+  },
+
+  // Flecha circular
+  arrowCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+
+  // Brillo superior
+  topShine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
 });
