@@ -30,6 +30,7 @@ import { BusinessHours } from '../../src/components/companies/BusinessHours';
 import { FloatingCartButton } from '../../src/components/cart/FloatingCartButton';
 import { FloatingSocialLinks } from '../../src/components/companies/FloatingSocialLinks';
 import { Toast } from '../../src/components/common';
+import { CategoryLoader } from '../../src/components/categories';
 import { textStyles, spacing, shadows, borderRadius } from '../../src/theme';
 import { Product, Agregado, Promocion } from '../../src/types/company';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -221,9 +222,11 @@ export default function CompanyStoreScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <CategoryLoader
+        categoryName={company?.categoria?.nombre || 'Cargando'}
+        categoryIcon={company?.categoria?.icono}
+        isVisible={true}
+      />
     );
   }
 
