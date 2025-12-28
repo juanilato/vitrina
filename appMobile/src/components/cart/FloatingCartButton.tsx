@@ -23,6 +23,7 @@ import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 import { formatPrice } from '../../utils/formatPrice';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 /** Utilidad simple para detectar si un color es oscuro o claro */
 function isColorDark(hexColor: string): boolean {
@@ -34,12 +35,23 @@ function isColorDark(hexColor: string): boolean {
   return brightness < 140;
 }
 
+interface HorarioAtencion {
+  id: number;
+  day: string;
+  abreMin: number;
+  cierraMin: number;
+  cerrado: boolean;
+  slotIndex: number;
+}
+
 interface FloatingCartButtonProps {
   buttonColor?: string;
   from?: 'store' | 'dashboard' | 'company';
   storeId?: string;
   companyName?: string;
   companyId?: string;
+  horarios?: HorarioAtencion[];
+  envioDomicilio?: boolean;
 }
 
 export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
@@ -48,6 +60,8 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
   storeId,
   companyName,
   companyId,
+  horarios,
+  envioDomicilio = false,
 }) => {
   const router = useRouter();
   const { cart } = useCart();
@@ -58,6 +72,51 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
   // Animation refs
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const pressAnim = useRef(new Animated.Value(1)).current;
+
+  // Función para verificar si está abierto ahora
+  const isOpenNow = React.useMemo(() => {
+    if (!horarios || horarios.length === 0) return true; // Si no hay horarios, asumimos abierto
+
+    const now = new Date();
+    const currentDayIndex = now.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+    const dayMap = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
+    const currentDay = dayMap[currentDayIndex];
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Filtrar horarios del día actual
+    const todaySchedules = horarios.filter(h => h.day === currentDay && !h.cerrado);
+
+    // Verificar si está dentro de algún horario
+    for (const schedule of todaySchedules) {
+      if (schedule.cierraMin > 1440) {
+        // Cruza medianoche
+        if (currentMinutes >= schedule.abreMin || currentMinutes <= (schedule.cierraMin - 1440)) {
+          return true;
+        }
+      } else {
+        // Horario normal
+        if (currentMinutes >= schedule.abreMin && currentMinutes <= schedule.cierraMin) {
+          return true;
+        }
+      }
+    }
+
+    // También verificar si es continuación del día anterior
+    const prevDayIndex = (currentDayIndex - 1 + 7) % 7;
+    const prevDay = dayMap[prevDayIndex];
+    const yesterdaySchedules = horarios.filter(h => h.day === prevDay && !h.cerrado);
+
+    for (const schedule of yesterdaySchedules) {
+      if (schedule.cierraMin > 1440) {
+        const remainingMinutes = schedule.cierraMin - 1440;
+        if (currentMinutes <= remainingMinutes) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }, [horarios]);
 
   // Calcular items y total relevantes (globales o por empresa)
   const { totalItems, total, subtotal } = React.useMemo(() => {
@@ -223,65 +282,115 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
           },
         ]}
       >
+        {/* Indicadores superiores */}
+        <View style={styles.indicatorsContainer}>
+          {/* Indicador de horario */}
+          {horarios && horarios.length > 0 && (
+            <View style={[
+              styles.indicator,
+              { backgroundColor: isOpenNow ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)' }
+            ]}>
+              <View style={[
+                styles.indicatorDot,
+                { backgroundColor: isOpenNow ? '#22c55e' : '#ef4444' }
+              ]} />
+              <Text style={[
+                styles.indicatorText,
+                { color: isOpenNow ? '#22c55e' : '#ef4444' }
+              ]}>
+                {isOpenNow ? 'Abierto' : 'Cerrado'}
+              </Text>
+            </View>
+          )}
+
+          {/* Indicador de delivery */}
+          {envioDomicilio && (
+            <View style={[styles.indicator, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
+              <Ionicons name="bicycle" size={14} color="#3b82f6" />
+              <Text style={[styles.indicatorText, { color: '#3b82f6' }]}>
+                Delivery
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Botón principal con glassmorphism */}
         <TouchableOpacity
-          activeOpacity={1}
+          activeOpacity={0.95}
           onPress={handlePress}
           style={styles.touchable}
         >
-          {/* Main Container with Gradient or Solid Color */}
-          <View style={[styles.container, { backgroundColor: buttonColor }]}>
-            {/* Optional: Add a subtle gradient overlay for depth if desired, 
-                 but keeping it clean with solid color as per "Formal Black & Grey" theme 
-                 unless user specifically asked for gradients. 
-                 The user asked for "more attractive", so let's add a subtle shine/gloss effect 
-                 using a very transparent white gradient if it's a dark button.
-             */}
-            {dark && (
+          <BlurView intensity={95} tint={dark ? 'dark' : 'light'} style={styles.blurContainer}>
+            <LinearGradient
+              colors={[
+                `${buttonColor}F0`,
+                `${buttonColor}E8`,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.gradientContainer}
+            >
+              {/* Brillo sutil superior */}
               <LinearGradient
-                colors={['rgba(255,255,255,0.15)', 'transparent']}
+                colors={['rgba(255,255,255,0.2)', 'transparent']}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
+                end={{ x: 0, y: 0.5 }}
                 style={StyleSheet.absoluteFill}
               />
-            )}
 
-            {/* Content Row */}
-            <View style={styles.contentRow}>
-              {/* Left: Icon & Counter */}
-              <View style={styles.leftSection}>
-                <View style={[styles.iconCircle, { backgroundColor: counterBg }]}>
-                  <Ionicons name="cart" size={20} color={textColor} />
+              <View style={styles.contentRow}>
+                {/* Sección izquierda: Icono y contador */}
+                <View style={styles.leftSection}>
+                  <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
+                    <Ionicons name="cart" size={24} color={textColor} />
+                  </View>
+                  <View style={styles.counterBadge}>
+                    <LinearGradient
+                      colors={['#ffffff', '#f0f0f0']}
+                      style={styles.counterGradient}
+                    >
+                      <Text style={[styles.counterText, { color: buttonColor }]}>
+                        {totalItems}
+                      </Text>
+                    </LinearGradient>
+                  </View>
                 </View>
-                <View style={styles.counterBadge}>
-                  <Text style={[styles.counterText, { color: buttonColor }]}>
-                    {totalItems}
-                  </Text>
-                </View>
-              </View>
 
-              {/* Middle: Text Info */}
-              <View style={styles.textSection}>
-                <Text style={[styles.viewCartText, { color: subTextColor }]}>
-                  Ver pedido
-                </Text>
-                <View style={styles.priceRow}>
-                  <Text style={[styles.totalText, { color: textColor }]}>
-                    ${formatPrice(total)}
-                  </Text>
-                  {subtotal > total && (
-                    <Text style={[styles.strikethroughText, { color: subTextColor }]}>
-                      ${formatPrice(subtotal)}
+                {/* Sección central: Información */}
+                <View style={styles.centerSection}>
+                  <View style={styles.titleRow}>
+                    <Text style={[styles.mainTitle, { color: textColor }]}>
+                      Ver Pedido
                     </Text>
-                  )}
+                    {subtotal > total && (
+                      <View style={[styles.discountPill, { backgroundColor: 'rgba(34, 197, 94, 0.2)' }]}>
+                        <Ionicons name="pricetag" size={10} color="#22c55e" />
+                        <Text style={[styles.discountText, { color: '#22c55e' }]}>
+                          ¡Descuento!
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.priceRow}>
+                    <Text style={[styles.totalPrice, { color: textColor }]}>
+                      ${formatPrice(total)}
+                    </Text>
+                    {subtotal > total && (
+                      <Text style={[styles.oldPrice, { color: subTextColor }]}>
+                        ${formatPrice(subtotal)}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                {/* Sección derecha: Flecha */}
+                <View style={[styles.arrowCircle, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                  <Ionicons name="arrow-forward" size={20} color={textColor} />
                 </View>
               </View>
-
-              {/* Right: Arrow */}
-              <View style={styles.rightSection}>
-                <Ionicons name="chevron-forward" size={20} color={textColor} style={{ opacity: 0.8 }} />
-              </View>
-            </View>
-          </View>
+            </LinearGradient>
+          </BlurView>
         </TouchableOpacity>
       </Animated.View>
 
@@ -309,46 +418,89 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: spacing.lg + 10, // Lifted up a bit
+    bottom: spacing.lg + 10,
     left: spacing.lg,
     right: spacing.lg,
     zIndex: 100,
+  },
+
+  // Indicadores superiores
+  indicatorsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  indicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  indicatorDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  indicatorText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+
+  // Botón principal
+  touchable: {
+    borderRadius: 24,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
       },
       android: {
         elevation: 10,
       },
     }),
   },
-  touchable: {
+  blurContainer: {
     borderRadius: 24,
     overflow: 'hidden',
   },
-  container: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  gradientContainer: {
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     borderRadius: 24,
-    minHeight: 64,
-    justifyContent: 'center',
   },
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 14,
   },
+
+  // Sección izquierda
   leftSection: {
     position: 'relative',
-    marginRight: 12,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -356,52 +508,85 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: '#fff',
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+    borderRadius: 12,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  counterGradient: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    borderWidth: 1.5,
-    borderColor: 'transparent', // Or match button color if needed
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2,
+    paddingHorizontal: 6,
   },
   counterText: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
-  textSection: {
+
+  // Sección central
+  centerSection: {
     flex: 1,
-    justifyContent: 'center',
+    gap: 4,
   },
-  viewCartText: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  mainTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  discountPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  discountText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 6,
+    gap: 8,
   },
-  totalText: {
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+  totalPrice: {
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -1,
   },
-  strikethroughText: {
-    fontSize: 12,
+  oldPrice: {
+    fontSize: 14,
+    fontWeight: '600',
     textDecorationLine: 'line-through',
-    opacity: 0.7,
+    opacity: 0.6,
   },
-  rightSection: {
-    marginLeft: 8,
+
+  // Sección derecha
+  arrowCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
