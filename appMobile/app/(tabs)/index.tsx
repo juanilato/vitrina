@@ -81,7 +81,10 @@ export default function HomeScreen() {
     if (loading && !refreshing) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <View style={styles.loadingSpinner}>
+            <ActivityIndicator size="small" color={colors.primary} />
+          </View>
+          <Text style={styles.loadingText}>Cargando categorías...</Text>
         </View>
       );
     }
@@ -270,17 +273,17 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Header azul con bordes redondeados estilo burbuja
+  // Header premium minimalista
   headerGradient: {
-    paddingBottom: spacing.lg,
-    borderBottomLeftRadius: normalize(32),
-    borderBottomRightRadius: normalize(32),
-    // Sombra suave
-    shadowColor: '#0A2A43',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: normalize(28),
+    borderBottomRightRadius: normalize(28),
+    // Sombra muy sutil
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   safeArea: {
     paddingHorizontal: spacing.lg,
@@ -300,13 +303,18 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     gap: spacing.md,
   },
   actionButton: {
-    width: normalize(32),
-    height: normalize(32),
-    borderRadius: normalize(8),
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    width: normalize(36),
+    height: normalize(36),
+    borderRadius: normalize(18),
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    // Sin borde
+    // Sombra sutil
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   logoSection: {
     flexDirection: 'row',
@@ -315,27 +323,34 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   logoText: {
     ...textStyles.headline,
-    fontSize: normalize(18),
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: -0.3,
+    fontSize: normalize(20),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
+    letterSpacing: -0.5,
   },
 
-  // Search
+  // Search premium
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: normalize(14),
-    paddingHorizontal: spacing.md,
-    paddingVertical: normalize(12),
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: normalize(16),
+    paddingHorizontal: spacing.lg,
+    paddingVertical: normalize(14),
     gap: spacing.sm,
     marginBottom: spacing.md,
+    // Sombra sutil
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   searchInput: {
     flex: 1,
     ...textStyles.body,
     fontSize: normalize(15),
+    fontWeight: '400',
     color: colors.text,
   },
 
@@ -375,11 +390,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   recentTitle: {
     ...textStyles.headline,
-    fontSize: normalize(18),
-    fontWeight: '700',
+    fontSize: normalize(20),
+    fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.md,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   recentScroll: {
     paddingRight: spacing.lg,
@@ -390,34 +405,57 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     width: normalize(90),
   },
   recentLogo: {
-    width: normalize(64),
-    height: normalize(64),
-    borderRadius: normalize(32),
+    width: normalize(68),
+    height: normalize(68),
+    borderRadius: normalize(20),
     backgroundColor: colors.gray100,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
+    // Sombra sutil
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   recentLogoPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: `${colors.primary}08`,
   },
   recentLogoText: {
-    fontSize: normalize(24),
-    fontWeight: '700',
+    fontSize: normalize(26),
+    fontWeight: '600',
     color: colors.primary,
   },
   recentName: {
     ...textStyles.caption1,
-    fontSize: normalize(11),
-    fontWeight: '600',
+    fontSize: normalize(12),
+    fontWeight: '500',
     color: colors.text,
     textAlign: 'center',
+    opacity: 0.85,
   },
 
   // Loading & Empty
   loadingContainer: {
     paddingVertical: spacing['4xl'],
     alignItems: 'center',
+    gap: spacing.md,
+  },
+  loadingSpinner: {
+    width: normalize(48),
+    height: normalize(48),
+    borderRadius: normalize(24),
+    backgroundColor: `${colors.primary}08`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    ...textStyles.body,
+    fontSize: normalize(14),
+    fontWeight: '500',
+    color: colors.textSecondary,
+    opacity: 0.7,
   },
   emptyContainer: {
     paddingVertical: spacing['4xl'],
