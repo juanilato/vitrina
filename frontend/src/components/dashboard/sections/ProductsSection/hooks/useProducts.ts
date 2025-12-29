@@ -21,12 +21,16 @@ export const useProducts = () => {
     if (!ingredientes || ingredientes.length === 0) return undefined;
 
     return ingredientes.map((ing: any) => ({
+      id: ing.id || '',
+      productoId: ing.productoId || '',
       ingredienteId: ing.ingredienteId,
-      nombre: ing.ingrediente?.nombre || ing.nombre || '',
-      cantidadRequerida: ing.cantidadRequerida,
-      unidadMedida: ing.ingrediente?.unidadMedida || ing.unidadMedida || '',
-      esExtraPermitido: ing.esExtraPermitido,
+      cantidad: ing.cantidadRequerida || ing.cantidad || 0,
+      opcional: ing.esExtraPermitido || ing.opcional || false,
       precioExtra: ing.precioExtra,
+      nombre: ing.ingrediente?.nombre || ing.nombre || '',
+      unidadMedida: ing.ingrediente?.unidadMedida || ing.unidadMedida || '',
+      cantidadRequerida: ing.cantidadRequerida,
+      esExtraPermitido: ing.esExtraPermitido,
       minimoExtra: ing.minimoExtra,
       maximoExtra: ing.maximoExtra,
       icono: ing.ingrediente?.icono || ing.icono
@@ -48,6 +52,9 @@ export const useProducts = () => {
         precio: producto.precio || 0,
         category: 'General',
         createdAt: producto.createdAt || new Date().toISOString(),
+        tipoStock: (producto.tipoStock === 'individual' || producto.tipoStock === 'compuesto')
+          ? producto.tipoStock
+          : undefined,
         ingredientes: transformIngredientes(producto.ingredientes)
       }));
 
@@ -85,6 +92,10 @@ export const useProducts = () => {
         // Campos simulados para UI (no existen en backend)
         category: 'General', // Simulado
         createdAt: producto.createdAt || new Date().toISOString(),
+        // Tipar correctamente tipoStock
+        tipoStock: (producto.tipoStock === 'individual' || producto.tipoStock === 'compuesto')
+          ? producto.tipoStock
+          : undefined,
         // Ingredientes transformados
         ingredientes: transformIngredientes(producto.ingredientes)
       }));
@@ -144,6 +155,9 @@ export const useProducts = () => {
         const updatedProductWithExtras: ProductWithExtras = {
           ...updatedProduct,
           category: editingProduct.category,
+          tipoStock: (updatedProduct.tipoStock === 'individual' || updatedProduct.tipoStock === 'compuesto')
+            ? updatedProduct.tipoStock
+            : undefined,
           ingredientes: transformIngredientes(updatedProduct.ingredientes)
         };
 
@@ -170,6 +184,9 @@ export const useProducts = () => {
         const newProductWithExtras: ProductWithExtras = {
           ...newProduct,
           category: 'General',
+          tipoStock: (newProduct.tipoStock === 'individual' || newProduct.tipoStock === 'compuesto')
+            ? newProduct.tipoStock
+            : undefined,
           ingredientes: transformIngredientes(newProduct.ingredientes)
         };
         setProducts([...products, newProductWithExtras]);

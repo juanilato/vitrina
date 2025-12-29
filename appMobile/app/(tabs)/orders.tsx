@@ -25,6 +25,8 @@ import { textStyles as typography } from '../../src/theme/typography';
 import { useRatingRequest, RatingModal } from '../../src/components/ratings';
 import ratingService from '../../src/services/rating.service';
 import { PedidoWithDetails } from '../../src/types/order';
+import { Logo } from '../../src/components/common/Logo';
+import { normalize } from '../../src/utils/responsive';
 
 type FilterOption = 'all' | 'active' | 'completed' | 'cancelled';
 
@@ -146,60 +148,50 @@ export default function OrdersScreen() {
 
   if (loading && !refreshing) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {/* Modern Glass Header */}
-        <View style={styles.navbar}>
-          <LinearGradient
-            colors={isDark
-              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-            }
-            style={styles.navbarGradient}
-          >
-            <View style={styles.ordersBadge}>
-              <View style={styles.ordersIconContainer}>
-                <Ionicons name="receipt" size={22} color={colors.primary} />
-              </View>
-              <View style={styles.ordersTextContainer}>
-                <Text style={styles.ordersLabel}>MIS PEDIDOS</Text>
-                <Text style={styles.ordersTitle}>Cargando...</Text>
+      <View style={styles.container}>
+        {/* Header con degradado azul igual al home */}
+        <LinearGradient
+          colors={['#0A2A43', '#0D3354']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <SafeAreaView edges={['top']} style={styles.safeArea}>
+            <View style={styles.topBar}>
+              <View style={styles.logoSection}>
+                <Logo variant="icon" size={20} />
+                <Text style={styles.logoText}>Vitrina • Pedidos</Text>
               </View>
             </View>
-            <View style={styles.headerRight} />
-          </LinearGradient>
-        </View>
+          </SafeAreaView>
+        </LinearGradient>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Cargando pedidos...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {/* Modern Glass Header */}
-        <View style={styles.navbar}>
-          <LinearGradient
-            colors={isDark
-              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-            }
-            style={styles.navbarGradient}
-          >
-            <View style={styles.ordersBadge}>
-              <View style={styles.ordersIconContainer}>
-                <Ionicons name="receipt" size={22} color={colors.primary} />
-              </View>
-              <View style={styles.ordersTextContainer}>
-                <Text style={styles.ordersLabel}>MIS PEDIDOS</Text>
-                <Text style={styles.ordersTitle}>Error</Text>
+      <View style={styles.container}>
+        {/* Header con degradado azul igual al home */}
+        <LinearGradient
+          colors={['#0A2A43', '#0D3354']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <SafeAreaView edges={['top']} style={styles.safeArea}>
+            <View style={styles.topBar}>
+              <View style={styles.logoSection}>
+                <Logo variant="icon" size={20} />
+                <Text style={styles.logoText}>Vitrina • Pedidos</Text>
               </View>
             </View>
-            <View style={styles.headerRight} />
-          </LinearGradient>
-        </View>
+          </SafeAreaView>
+        </LinearGradient>
         <EmptyState
           icon="alert-circle-outline"
           title="Error al cargar"
@@ -207,100 +199,85 @@ export default function OrdersScreen() {
           actionLabel="Reintentar"
           onAction={refresh}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Modern Glass Header */}
-      <View style={styles.navbar}>
-        <LinearGradient
-          colors={isDark
-            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-          }
-          style={styles.navbarGradient}
-        >
-          <View style={styles.ordersBadge}>
-            <View style={styles.ordersIconContainer}>
-              <Ionicons name="receipt" size={24} color={colors.white} />
-              {stats.total > 0 && (
-                <View style={styles.ordersCountBadge}>
-                  <Text style={styles.ordersCountText}>{stats.total}</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.ordersTextContainer}>
-              <Text style={styles.ordersLabel}>MIS PEDIDOS</Text>
-              <Text style={styles.ordersTitle}>
-                {stats.total === 0 ? 'Sin pedidos' : `${stats.total} ${stats.total === 1 ? 'pedido' : 'pedidos'}`}
-              </Text>
+    <View style={styles.container}>
+      {/* Header con degradado azul igual al home */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <View style={styles.topBar}>
+            <View style={styles.logoSection}>
+              <Logo variant="icon" size={20} />
+              <Text style={styles.logoText}>Vitrina • Pedidos</Text>
             </View>
           </View>
-          <View style={styles.headerRight} />
-        </LinearGradient>
-      </View>
 
-      {/* Cute Filters - Redesigned */}
-      <View style={styles.filtersContainer}>
-        <View style={styles.filtersGrid}>
-          {filterOptions.map((item) => {
-            const isActive = filter === item.value;
-            const count = item.value === 'all' ? stats.total :
-                         item.value === 'active' ? stats.active :
-                         item.value === 'completed' ? stats.completed :
-                         stats.cancelled;
+          {/* Info de pedidos */}
+          {stats.total > 0 && (
+            <View style={styles.ordersInfo}>
+              <Text style={styles.ordersInfoText}>
+                {stats.total} {stats.total === 1 ? 'pedido' : 'pedidos'}
+                {stats.active > 0 && ` • ${stats.active} activos`}
+              </Text>
+            </View>
+          )}
 
-            return (
-              <TouchableOpacity
-                key={item.value}
-                style={[
-                  styles.filterChip,
-                  isActive && styles.filterChipActive,
-                ]}
-                onPress={() => setFilter(item.value)}
-                activeOpacity={0.7}
-              >
-                <View style={[
-                  styles.filterIconContainer,
-                  isActive && { backgroundColor: item.color }
-                ]}>
+          {/* Filtros integrados en el header */}
+          <View style={styles.headerFilters}>
+            {filterOptions.map((item) => {
+              const isActive = filter === item.value;
+              const count = item.value === 'all' ? stats.total :
+                           item.value === 'active' ? stats.active :
+                           item.value === 'completed' ? stats.completed :
+                           stats.cancelled;
+
+              return (
+                <TouchableOpacity
+                  key={item.value}
+                  style={[
+                    styles.headerFilterChip,
+                    isActive && styles.headerFilterChipActive,
+                  ]}
+                  onPress={() => setFilter(item.value)}
+                  activeOpacity={0.7}
+                >
                   <Ionicons
                     name={item.icon}
-                    size={16}
-                    color={isActive ? colors.white : item.color}
+                    size={normalize(14)}
+                    color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)'}
                   />
-                </View>
-                <View style={styles.filterTextContainer}>
                   <Text
                     style={[
-                      styles.filterChipText,
-                      isActive && { color: colors.text, fontWeight: '800' },
+                      styles.headerFilterText,
+                      isActive && styles.headerFilterTextActive,
                     ]}
-                    numberOfLines={1}
                   >
                     {item.label}
                   </Text>
                   {count > 0 && (
                     <View style={[
-                      styles.countBadge,
-                      isActive && { backgroundColor: item.color }
+                      styles.headerFilterBadge,
+                      isActive && styles.headerFilterBadgeActive
                     ]}>
-                      <Text style={[
-                        styles.countBadgeText,
-                        isActive && styles.countBadgeTextActive
-                      ]}>
+                      <Text style={styles.headerFilterBadgeText}>
                         {count}
                       </Text>
                     </View>
                   )}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
       {/* Orders List or Empty State */}
       {filteredOrders.length === 0 ? (
@@ -398,7 +375,7 @@ export default function OrdersScreen() {
           onSuccess={handleManualRatingSuccess}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -408,182 +385,106 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Modern Glass Header - Cute & Soft
-  navbar: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    shadowColor: isDark ? colors.black : '#000',
+  // Header premium igual al home
+  headerGradient: {
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 4,
   },
-  navbarGradient: {
+  safeArea: {
+    paddingHorizontal: spacing.lg,
+  },
+
+  // Top bar - Logo a la izquierda
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 14,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.4)' : 'rgba(255, 255, 255, 0.8)',
+    marginBottom: spacing.md,
+    marginTop: spacing.md,
   },
-
-  // Orders Badge - Cute & Friendly
-  ordersBadge: {
+  logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${colors.primary}10`,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 12,
-    flex: 1,
-    marginRight: spacing.sm,
-    borderWidth: 1,
-    borderColor: `${colors.primary}20`,
+    gap: spacing.xs,
   },
-  ordersIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  ordersCountBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: colors.secondary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-    borderWidth: 2,
-    borderColor: isDark ? colors.background : colors.white,
-  },
-  ordersCountText: {
-    color: colors.white,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  ordersTextContainer: {
-    flex: 1,
-  },
-  ordersLabel: {
-    ...typography.caption1,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  ordersTitle: {
-    ...typography.body,
-    fontSize: 17,
-    fontWeight: '800',
-    color: colors.text,
-    marginTop: 3,
+  logoText: {
+    ...typography.headline,
+    fontSize: normalize(20),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
     letterSpacing: -0.5,
   },
-  headerRight: {
-    width: 36,
+
+  // Orders Info - Simple y limpio
+  ordersInfo: {
+    marginTop: spacing.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: normalize(12),
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  ordersInfoText: {
+    ...typography.body,
+    fontSize: normalize(14),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
   },
 
-  // Compact Filters Container
-  filtersContainer: {
-    backgroundColor: colors.background,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  filtersGrid: {
+  // Filtros en el header
+  headerFilters: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'space-between',
+    gap: spacing.xs,
+    marginTop: spacing.md,
   },
-
-  // Compact Filter Chips
-  filterChip: {
+  headerFilterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.4)' : 'rgba(255, 255, 255, 0.9)',
+    gap: spacing.xs,
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(12),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: `${colors.primary}10`,
-    gap: spacing.xs,
-    flex: 1,
-    minWidth: '48%',
-    maxWidth: '48%',
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
-  filterChipActive: {
-    backgroundColor: `${colors.primary}08`,
-    borderColor: colors.primary,
-    borderWidth: 1.5,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 2,
+  headerFilterChipActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
-  filterIconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: `${colors.primary}12`,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
+  headerFilterText: {
+    ...typography.caption1,
+    fontSize: normalize(11),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
-  filterTextContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.xs,
-  },
-  filterChipText: {
-    fontSize: 11,
-    color: colors.textSecondary,
+  headerFilterTextActive: {
+    color: 'rgba(255, 255, 255, 0.95)',
     fontWeight: '700',
-    flex: 1,
   },
-  countBadge: {
-    backgroundColor: `${colors.primary}15`,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    minWidth: 20,
+  headerFilterBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(2),
+    minWidth: normalize(18),
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: `${colors.primary}20`,
-    flexShrink: 0,
   },
-  countBadgeText: {
-    fontSize: 10,
-    color: colors.primary,
+  headerFilterBadgeActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  headerFilterBadgeText: {
+    ...typography.caption1,
+    fontSize: normalize(10),
     fontWeight: '800',
-  },
-  countBadgeTextActive: {
-    color: colors.white,
+    color: 'rgba(255, 255, 255, 0.95)',
   },
 
   // Loading State - Cute & Friendly

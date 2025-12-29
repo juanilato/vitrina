@@ -22,8 +22,6 @@ import { CartPreviewModal } from './CartPreviewModal';
 import { spacing } from '../../theme/spacing';
 import { textStyles as typography } from '../../theme/typography';
 import { formatPrice } from '../../utils/formatPrice';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 
 /** Utilidad simple para detectar si un color es oscuro o claro */
 function isColorDark(hexColor: string): boolean {
@@ -273,15 +271,6 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
     ? 'rgba(255,255,255,0.2)'
     : 'rgba(0,0,0,0.1)';
 
-  // Calcular color más claro para el gradiente
-  const lighterColor = React.useMemo(() => {
-    const hex = buttonColor.replace('#', '');
-    const r = Math.min(255, parseInt(hex.substring(0, 2), 16) + 30);
-    const g = Math.min(255, parseInt(hex.substring(2, 4), 16) + 30);
-    const b = Math.min(255, parseInt(hex.substring(4, 6), 16) + 30);
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  }, [buttonColor]);
-
   return (
     <>
       <Animated.View
@@ -292,50 +281,31 @@ export const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
           },
         ]}
       >
-        {/* Botón estilo Duolingo/PedidosYa - Colorido y con personalidad */}
+        {/* Botón compacto similar al de agregar producto */}
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handlePress}
-          style={styles.mainButton}
+          style={[styles.mainButton, { backgroundColor: buttonColor }]}
         >
-          <LinearGradient
-            colors={[lighterColor, buttonColor]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.buttonGradient}
-          >
-            <View style={styles.buttonContent}>
-              {/* Sección izquierda - Icono circular con animación */}
-              <View style={styles.iconCircle}>
-                <View style={styles.iconInnerCircle}>
-                  <Ionicons name="bag-handle" size={26} color={buttonColor} />
-                </View>
-                <View style={[styles.badge, { borderColor: lighterColor }]}>
+          <View style={styles.buttonContent}>
+            {/* Icono del carrito con badge */}
+            <View style={styles.iconContainer}>
+              <Ionicons name="cart" size={22} color="#FFFFFF" />
+              {totalItems > 0 && (
+                <View style={styles.badge}>
                   <Text style={styles.badgeText}>{totalItems}</Text>
                 </View>
-              </View>
-
-              {/* Sección central - Info con emojis y personalidad */}
-              <View style={styles.centerInfo}>
-                <Text style={styles.funLabel}>¡Tu pedido te espera! 🛍️</Text>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.bigPrice}>${formatPrice(total)}</Text>
-                  {subtotal > total && (
-                    <View style={styles.discountPill}>
-                      <Text style={[styles.discountText, { color: buttonColor }]}>
-                        ¡-${formatPrice(subtotal - total)}!
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-
-
+              )}
             </View>
 
-            {/* Efecto de brillo animado en la parte superior */}
-            <View style={styles.topShine} />
-          </LinearGradient>
+            {/* Texto */}
+            <Text style={styles.buttonText}>Ver Pedido</Text>
+
+            {/* Precio */}
+            <View style={styles.priceBox}>
+              <Text style={styles.priceText}>${formatPrice(total)}</Text>
+            </View>
+          </View>
         </TouchableOpacity>
       </Animated.View>
 
@@ -369,179 +339,83 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
 
-  // Botón principal - Estilo Duolingo/PedidosYa
+  // Botón principal compacto
   mainButton: {
-    borderRadius: 28,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.25,
-        shadowRadius: 24,
-      },
-      android: {
-        elevation: 16,
-      },
-    }),
-  },
-  buttonGradient: {
-    borderRadius: 28,
-    position: 'relative',
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-
-  // Icono circular con fondo blanco
-  iconCircle: {
-    position: 'relative',
-  },
-  iconInnerCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 20,
+    paddingVertical: spacing.md + 4,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
-        elevation: 6,
+        elevation: 5,
       },
     }),
+  },
+
+  buttonContent: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  // Icono del carrito con badge
+  iconContainer: {
+    position: 'relative',
   },
   badge: {
     position: 'absolute',
-    top: -6,
-    right: -6,
-    minWidth: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FF6B9D',
+    top: -8,
+    right: -8,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FF3B30',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
-    borderWidth: 3,
-    borderColor: '#00D9A5',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#FF6B9D',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.5,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  badgeText: {
-    fontSize: 13,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -0.3,
-  },
-
-  // Sección central con personalidad
-  centerInfo: {
-    flex: 1,
-    gap: 6,
-  },
-  funLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  bigPrice: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -1,
-  },
-  discountPill: {
-    backgroundColor: '#FFD93D',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  discountText: {
-    fontSize: 12,
-    fontWeight: '900',
-    color: '#00B388',
-    letterSpacing: 0.2,
-  },
-
-  // Mini indicadores
-  miniIndicators: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 2,
-  },
-  miniIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  miniDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  miniText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    opacity: 0.9,
-    letterSpacing: 0.2,
-  },
-
-  // Flecha circular
-  arrowCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 6,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.12,
-        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
       },
       android: {
         elevation: 4,
       },
     }),
   },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+  },
 
-  // Brillo superior
-  topShine: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '40%',
+  // Texto del botón
+  buttonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+
+  // Caja del precio
+  priceBox: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  priceText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
 });

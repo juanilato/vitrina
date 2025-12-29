@@ -22,6 +22,8 @@ import { textStyles, spacing, borderRadius, shadows } from '../../src/theme';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { formatPrice } from '../../src/utils/formatPrice';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Logo } from '../../src/components/common/Logo';
+import { normalize } from '../../src/utils/responsive';
 
 export default function CartScreen() {
   const router = useRouter();
@@ -255,53 +257,49 @@ export default function CartScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Modern Glass Header */}
-      <View style={styles.header}>
-        <LinearGradient
-          colors={isDark
-            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-          }
-          style={styles.headerGradient}
-        >
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => {
-              if (from === 'company') {
-                router.back();
-              } else {
-                router.push('/(tabs)/');
-              }
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={20} color={colors.primary} />
-          </TouchableOpacity>
-
-          <View style={styles.cartBadge}>
-            <View style={styles.cartIconContainer}>
-              <Ionicons name="cart" size={22} color={colors.primary} />
-              {cart.totalItems > 0 && (
-                <View style={styles.cartCountBadge}>
-                  <Text style={styles.cartCountText}>{cart.totalItems}</Text>
-                </View>
-              )}
+    <View style={styles.container}>
+      {/* Header con degradado azul igual al home */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          {/* Top bar - Logo Vitrina a la izquierda, botón volver a la derecha */}
+          <View style={styles.topBar}>
+            <View style={styles.logoSection}>
+              <Logo variant="icon" size={20} />
+              <Text style={styles.logoText}>Vitrina • Carrito</Text>
             </View>
-            <View style={styles.cartTextContainer}>
-              <Text style={styles.cartLabel}>TU CARRITO</Text>
-              <Text style={styles.cartTitle}>
-                {cart.totalItems === 0
-                  ? 'Vacío'
-                  : `${cart.totalItems} ${cart.totalItems === 1 ? 'producto' : 'productos'}`
-                }
-              </Text>
+
+            <View style={styles.actionsButtons}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => {
+                  if (from === 'company') {
+                    router.back();
+                  } else {
+                    router.push('/(tabs)/');
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={styles.headerRight} />
-        </LinearGradient>
-      </View>
+          {/* Info del carrito */}
+          {cart.totalItems > 0 && (
+            <View style={styles.cartInfo}>
+              <Text style={styles.cartInfoText}>
+                {cart.totalItems} {cart.totalItems === 1 ? 'producto' : 'productos'} • ${formatPrice(cart.total)}
+              </Text>
+            </View>
+          )}
+        </SafeAreaView>
+      </LinearGradient>
 
       {/* Content */}
       {cart.items.length === 0 ? (
@@ -376,7 +374,7 @@ export default function CartScreen() {
           </ScrollView>
         </>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -386,102 +384,74 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Header - Modern Glass Design
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
+  // Header premium igual al home
   headerGradient: {
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  safeArea: {
+    paddingHorizontal: spacing.lg,
+  },
+
+  // Top bar - Logo a la izquierda, botones a la derecha
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+    marginBottom: spacing.md,
+    marginTop: spacing.md,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(58, 58, 58, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-
-  // Cart Badge
-  cartBadge: {
+  actionsButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    gap: 10,
-    flex: 1,
-    marginHorizontal: spacing.md,
-    shadowColor: colors.primary,
+    gap: spacing.md,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  cartIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: `${colors.primary}15`,
+  logoSection: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    gap: spacing.xs,
   },
-  cartCountBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  cartCountText: {
-    color: colors.white,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  cartTextContainer: {
-    flex: 1,
-  },
-  cartLabel: {
-    ...textStyles.caption1,
-    fontSize: 10,
+  logoText: {
+    ...textStyles.headline,
+    fontSize: normalize(20),
     fontWeight: '600',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: 'rgba(255, 255, 255, 0.95)',
+    letterSpacing: -0.5,
   },
-  cartTitle: {
+
+  // Cart Info - Simple y limpio
+  cartInfo: {
+    marginTop: spacing.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: normalize(12),
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  cartInfoText: {
     ...textStyles.body,
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.text,
-    marginTop: 2,
+    fontSize: normalize(14),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
   },
 
   // Legacy styles (kept for compatibility)

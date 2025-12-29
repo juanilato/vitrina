@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '../../../contexts/NotificationsContext';
+import { useAuthOptimized } from '../../../hooks/useAuthOptimized';
 import './NotificationsSection.css';
 import { NotificationsSectionSkeleton } from '../../skeletons';
 
 const NotificationsSection: React.FC = () => {
-  const { 
-    notifications, 
-    unreadCount, 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification, 
-    loading 
+  const { user } = useAuthOptimized();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    loading
   } = useNotifications();
-  
+
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
 
@@ -74,43 +76,46 @@ const NotificationsSection: React.FC = () => {
   };
 
   return (
-    <div className="notifications-section">
-      <div className="notifications-header">
-        <div className="header-title">
-          <h2>Notificaciones</h2>
-          {unreadCount > 0 && (
-            <span className="unread-badge">{unreadCount}</span>
-          )}
-        </div>
-        
-        <div className="header-actions">
-          <div className="filter-tabs">
-            <button 
-              className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              Todas ({notifications.length})
-            </button>
-            <button 
-              className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
-              onClick={() => setFilter('unread')}
-            >
-              No leídas ({unreadCount})
-            </button>
+    <div className="desktop-shell">
+      <div className="app-window">
+        {/* TITLEBAR */}
+        <div className="titlebar" data-tauri-drag-region>
+          <div className="titlebar-left">
+            <img src="/vitrina-logo.png" alt="Vitrina" className="cnav-logo"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }} />
+            <span className="app-title">Vitrina • Notificaciones</span>
           </div>
-          
-          {unreadCount > 0 && (
-            <button 
-              className="mark-all-read-btn"
-              onClick={handleMarkAllAsRead}
-            >
-              Marcar todas como leídas
-            </button>
-          )}
+          <div className="titlebar-right">
+            <div className="filter-tabs">
+              <button
+                className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
+                onClick={() => setFilter('all')}
+              >
+                Todas ({notifications.length})
+              </button>
+              <button
+                className={`filter-tab ${filter === 'unread' ? 'active' : ''}`}
+                onClick={() => setFilter('unread')}
+              >
+                No leídas ({unreadCount})
+              </button>
+            </div>
+            {unreadCount > 0 && (
+              <button
+                className="toolbar-btn"
+                onClick={handleMarkAllAsRead}
+              >
+                Marcar todas como leídas
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="notifications-content">
+        {/* BODY */}
+        <div className="app-body">
+          <section className="workspace">
+            <div className="workspace-content">
+              <div className="notifications-content">
         {loading ? (
           <NotificationsSectionSkeleton />
         ) : filteredNotifications.length === 0 ? (
@@ -171,6 +176,10 @@ const NotificationsSection: React.FC = () => {
             ))}
           </div>
         )}
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
 
       {/* Modal de detalles de notificación */}
@@ -179,17 +188,17 @@ const NotificationsSection: React.FC = () => {
           <div className="notification-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{selectedNotification.titulo}</h3>
-              <button 
+              <button
                 className="modal-close"
                 onClick={() => setSelectedNotification(null)}
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="modal-content">
               <p>{selectedNotification.mensaje}</p>
-              
+
               {selectedNotification.metadata && (
                 <div className="modal-metadata">
                   <h4>Detalles:</h4>
@@ -204,9 +213,9 @@ const NotificationsSection: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="modal-actions">
-              <button 
+              <button
                 className="modal-btn secondary"
                 onClick={() => setSelectedNotification(null)}
               >

@@ -23,6 +23,8 @@ import { spacing } from '../../src/theme';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { textStyles as typography } from '../../src/theme/typography';
 import { EmptyState } from '../../src/components/common';
+import { Logo } from '../../src/components/common/Logo';
+import { normalize } from '../../src/utils/responsive';
 
 // Tipos para las secciones
 interface NotificationSection {
@@ -245,30 +247,27 @@ export default function NotificationsScreen() {
 
   if (loading && !refreshing) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <LinearGradient
-            colors={isDark
-              ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-              : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-            }
-            style={styles.headerGradient}
-          >
-            <View style={styles.notificationBadge}>
-              <View style={styles.notificationIconContainer}>
-                <Ionicons name="notifications" size={22} color={colors.primary} />
-              </View>
-              <View style={styles.notificationTextContainer}>
-                <Text style={styles.notificationLabel}>NOTIFICACIONES</Text>
-                <Text style={styles.notificationTitle}>Cargando...</Text>
+      <View style={styles.container}>
+        {/* Header con degradado azul igual al home */}
+        <LinearGradient
+          colors={['#0A2A43', '#0D3354']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <SafeAreaView edges={['top']} style={styles.safeArea}>
+            <View style={styles.topBar}>
+              <View style={styles.logoSection}>
+                <Logo variant="icon" size={20} />
+                <Text style={styles.logoText}>Vitrina • Notificaciones</Text>
               </View>
             </View>
-          </LinearGradient>
-        </View>
+          </SafeAreaView>
+        </LinearGradient>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -277,80 +276,71 @@ export default function NotificationsScreen() {
     : notifications.length;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Modern Glass Header */}
-      <View style={styles.header}>
-        <LinearGradient
-          colors={isDark
-            ? ['rgba(30, 30, 30, 0.95)', 'rgba(30, 30, 30, 0.85)']
-            : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']
-          }
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerRow}>
-            <View style={styles.notificationBadge}>
-              <View style={styles.notificationIconContainer}>
-                <Ionicons name="notifications" size={24} color={colors.white} />
-                {unreadCount > 0 && (
-                  <View style={styles.notificationCountBadge}>
-                    <Text style={styles.notificationCountText}>{unreadCount}</Text>
-                  </View>
-                )}
-              </View>
-              <View style={styles.notificationTextContainer}>
-                <Text style={styles.notificationLabel}>NOTIFICACIONES</Text>
-                <Text style={styles.notificationTitle}>
-                  {totalNotifications} {totalNotifications === 1 ? 'notificación' : 'notificaciones'}
-                </Text>
-              </View>
+    <View style={styles.container}>
+      {/* Header con degradado azul igual al home */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <View style={styles.topBar}>
+            <View style={styles.logoSection}>
+              <Logo variant="icon" size={20} />
+              <Text style={styles.logoText}>Vitrina • Notificaciones</Text>
             </View>
           </View>
 
-          {unreadCount > 0 && (
-            <TouchableOpacity onPress={handleMarkAllAsRead} style={styles.markAllButton}>
-              <Ionicons name="checkmark-done" size={20} color={colors.white} />
-              <Text style={styles.markAllButtonText}>Marcar todas leídas</Text>
-            </TouchableOpacity>
-          )}
-        </LinearGradient>
-      </View>
-
-      {/* Filter Toggle */}
-      {unreadCount > 0 && (
-        <View style={styles.filterContainer}>
-          <TouchableOpacity
-            style={[styles.filterChip, !showOnlyUnread && styles.filterChipActive]}
-            onPress={() => setShowOnlyUnread(false)}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.filterChipText, !showOnlyUnread && styles.filterChipTextActive]}>
-              Todas
-            </Text>
-            <View style={[styles.filterBadge, !showOnlyUnread && styles.filterBadgeActive]}>
-              <Text style={[styles.filterBadgeText, !showOnlyUnread && styles.filterBadgeTextActive]}>
-                {notifications.length}
+          {/* Info de notificaciones */}
+          {totalNotifications > 0 && (
+            <View style={styles.notificationsInfo}>
+              <Text style={styles.notificationsInfoText}>
+                {totalNotifications} {totalNotifications === 1 ? 'notificación' : 'notificaciones'}
+                {unreadCount > 0 && ` • ${unreadCount} sin leer`}
               </Text>
             </View>
-          </TouchableOpacity>
+          )}
 
-          <TouchableOpacity
-            style={[styles.filterChip, showOnlyUnread && styles.filterChipActive]}
-            onPress={() => setShowOnlyUnread(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.filterChipText, showOnlyUnread && styles.filterChipTextActive]}>
-              No leídas
-            </Text>
-            {unreadCount > 0 && (
-              <View style={[styles.filterBadge, showOnlyUnread && styles.filterBadgeActive]}>
-                <Text style={[styles.filterBadgeText, showOnlyUnread && styles.filterBadgeTextActive]}>
-                  {unreadCount}
-                </Text>
+          {/* Filtros y acción en el header */}
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.headerFilterChip, !showOnlyUnread && styles.headerFilterChipActive]}
+              onPress={() => setShowOnlyUnread(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.headerFilterText, !showOnlyUnread && styles.headerFilterTextActive]}>
+                Todas
+              </Text>
+              <View style={[styles.headerFilterBadge, !showOnlyUnread && styles.headerFilterBadgeActive]}>
+                <Text style={styles.headerFilterBadgeText}>{notifications.length}</Text>
               </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.headerFilterChip, showOnlyUnread && styles.headerFilterChipActive]}
+              onPress={() => setShowOnlyUnread(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.headerFilterText, showOnlyUnread && styles.headerFilterTextActive]}>
+                No leídas
+              </Text>
+              {unreadCount > 0 && (
+                <View style={[styles.headerFilterBadge, showOnlyUnread && styles.headerFilterBadgeActive]}>
+                  <Text style={styles.headerFilterBadgeText}>{unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {unreadCount > 0 && (
+              <TouchableOpacity onPress={handleMarkAllAsRead} style={styles.markAllButton}>
+                <Ionicons name="checkmark-done" size={normalize(16)} color="rgba(255, 255, 255, 0.95)" />
+                <Text style={styles.markAllButtonText}>Marcar leídas</Text>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
-      )}
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
       {/* Notifications List */}
       {sections.length === 0 ? (
@@ -381,7 +371,7 @@ export default function NotificationsScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -391,187 +381,121 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // Header - Cute & Soft
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
+  // Header premium igual al home
   headerGradient: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 14,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-    backgroundColor: isDark ? 'rgba(42, 42, 42, 0.4)' : 'rgba(255, 255, 255, 0.8)',
-    gap: spacing.md,
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  safeArea: {
+    paddingHorizontal: spacing.lg,
   },
 
-  headerRow: {
+  // Top bar - Logo a la izquierda
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: spacing.md,
+    marginTop: spacing.md,
   },
-
-  // Notification Badge - Cute & Friendly
-  notificationBadge: {
+  logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${colors.primary}10`,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 12,
-    flex: 1,
-    borderWidth: 1,
-    borderColor: `${colors.primary}20`,
+    gap: spacing.xs,
   },
-  notificationIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  notificationCountBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: colors.secondary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-    borderWidth: 2,
-    borderColor: isDark ? colors.background : colors.white,
-  },
-  notificationCountText: {
-    color: colors.white,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  notificationTextContainer: {
-    flex: 1,
-  },
-  notificationLabel: {
-    ...typography.caption1,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  notificationTitle: {
-    ...typography.body,
-    fontSize: 17,
-    fontWeight: '800',
-    color: colors.text,
-    marginTop: 3,
+  logoText: {
+    ...typography.headline,
+    fontSize: normalize(20),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
     letterSpacing: -0.5,
   },
 
+  // Notifications Info - Simple y limpio
+  notificationsInfo: {
+    marginTop: spacing.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: normalize(12),
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  notificationsInfoText: {
+    ...typography.body,
+    fontSize: normalize(14),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
+  },
+
+  // Acciones en el header
+  headerActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+  },
+  headerFilterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(12),
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  headerFilterChipActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  headerFilterText: {
+    ...typography.caption1,
+    fontSize: normalize(11),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  headerFilterTextActive: {
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '700',
+  },
+  headerFilterBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: normalize(8),
+    paddingHorizontal: normalize(6),
+    paddingVertical: normalize(2),
+    minWidth: normalize(18),
+    alignItems: 'center',
+  },
+  headerFilterBadgeActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  headerFilterBadgeText: {
+    ...typography.caption1,
+    fontSize: normalize(10),
+    fontWeight: '800',
+    color: 'rgba(255, 255, 255, 0.95)',
+  },
   markAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    gap: spacing.xs,
+    paddingHorizontal: normalize(10),
+    paddingVertical: normalize(6),
+    borderRadius: normalize(12),
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
-
   markAllButtonText: {
-    ...typography.bodySmall,
-    fontSize: 13,
-    fontWeight: '800',
-    color: colors.white,
-  },
-
-  // Filter - Cute & Soft
-  filterContainer: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    backgroundColor: colors.background,
-  },
-
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 18,
-    backgroundColor: `${colors.primary}08`,
-    borderWidth: 1.5,
-    borderColor: `${colors.primary}15`,
-  },
-
-  filterChipActive: {
-    backgroundColor: `${colors.primary}12`,
-    borderColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-
-  filterChipText: {
-    ...typography.bodySmall,
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '700',
-  },
-
-  filterChipTextActive: {
-    color: colors.primary,
-    fontWeight: '800',
-  },
-
-  filterBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    backgroundColor: `${colors.primary}12`,
-    borderWidth: 1,
-    borderColor: `${colors.primary}20`,
-  },
-
-  filterBadgeActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-
-  filterBadgeText: {
     ...typography.caption1,
-    fontSize: 12,
-    color: colors.primary,
-    fontWeight: '800',
-  },
-
-  filterBadgeTextActive: {
-    color: colors.white,
+    fontSize: normalize(11),
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.95)',
   },
 
   // Loading - Cute & Friendly

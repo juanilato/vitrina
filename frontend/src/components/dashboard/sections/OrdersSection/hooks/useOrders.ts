@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthOptimized } from '../../../../../hooks/useAuthOptimized';
 import { useWebSocket } from '../../../../../hooks/useWebSocket';
 import pedidosService from '../../../../../services/pedidosService';
-import { PedidoWithDetails, OrdersStats } from '../types';
+import { PedidoWithDetails, OrdersStats, EstadoPedido } from '../types';
 
 export const useOrders = () => {
   const { user } = useAuthOptimized();
@@ -82,8 +82,8 @@ export const useOrders = () => {
   }, [socket, isConnected, user?.id]);
 
   const handleUpdateOrderStatus = async (
-    pedidoId: string, 
-    newStatus: 'pendiente_confirmacion' | 'confirmado' | 'en_proceso' | 'esperando_delivery' | 'en_camino' | 'entregado' | 'esperando_retiro'
+    pedidoId: string,
+    newStatus: EstadoPedido
   ) => {
     try {
 

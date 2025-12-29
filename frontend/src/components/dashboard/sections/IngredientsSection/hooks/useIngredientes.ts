@@ -209,12 +209,16 @@ export const useIngredientes = () => {
       return [
         ...productoIngredientes,
         {
+          id: '', // Temporary ID, will be assigned by backend
+          productoId: '', // Will be set when saving the product
           ingredienteId,
-          nombre: ingrediente.nombre,
-          cantidadRequerida,
-          unidadMedida: ingrediente.unidadMedida,
-          esExtraPermitido,
+          cantidad: cantidadRequerida,
+          opcional: esExtraPermitido,
           precioExtra,
+          nombre: ingrediente.nombre,
+          unidadMedida: ingrediente.unidadMedida,
+          cantidadRequerida,
+          esExtraPermitido,
           minimoExtra,
           maximoExtra,
           icono: ingrediente.icono
