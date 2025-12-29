@@ -30,6 +30,8 @@ import { useWebSocket } from '../../src/hooks/useWebSocket';
 import { colors } from '../../src/theme/colors';
 import { spacing } from '../../src/theme/spacing';
 import { textStyles as typography } from '../../src/theme/typography';
+import { Logo } from '../../src/components/common/Logo';
+import { normalize } from '../../src/utils/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -152,30 +154,25 @@ export default function OrderDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.navbar}>
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
-            style={styles.navbarGradient}
-          >
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <View style={styles.backIconContainer}>
-                <Ionicons name="arrow-back" size={20} color={colors.primary} />
+        <LinearGradient
+          colors={['#0A2A43', '#0D3354']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <SafeAreaView edges={['top']} style={styles.safeArea}>
+            <View style={styles.topBar}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+              </TouchableOpacity>
+              <View style={styles.logoSection}>
+                <Logo variant="icon" size={20} />
+                <Text style={styles.logoText}>Vitrina • Pedido</Text>
               </View>
-            </TouchableOpacity>
-            <View style={styles.headerCenter}>
-              <View style={styles.orderBadge}>
-                <View style={styles.orderIconContainer}>
-                  <Ionicons name="receipt" size={18} color={colors.primary} />
-                </View>
-                <View style={styles.orderTextContainer}>
-                  <Text style={styles.orderLabel}>PEDIDO</Text>
-                  <Text style={styles.orderTitle}>Cargando...</Text>
-                </View>
-              </View>
+              <View style={{ width: 40 }} />
             </View>
-            <View style={{ width: 40 }} />
-          </LinearGradient>
-        </View>
+          </SafeAreaView>
+        </LinearGradient>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -186,30 +183,25 @@ export default function OrderDetailScreen() {
   if (error || !order) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.navbar}>
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
-            style={styles.navbarGradient}
-          >
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <View style={styles.backIconContainer}>
-                <Ionicons name="arrow-back" size={20} color={colors.primary} />
+        <LinearGradient
+          colors={['#0A2A43', '#0D3354']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <SafeAreaView edges={['top']} style={styles.safeArea}>
+            <View style={styles.topBar}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+              </TouchableOpacity>
+              <View style={styles.logoSection}>
+                <Logo variant="icon" size={20} />
+                <Text style={styles.logoText}>Vitrina • Pedido</Text>
               </View>
-            </TouchableOpacity>
-            <View style={styles.headerCenter}>
-              <View style={styles.orderBadge}>
-                <View style={styles.orderIconContainer}>
-                  <Ionicons name="receipt" size={18} color={colors.primary} />
-                </View>
-                <View style={styles.orderTextContainer}>
-                  <Text style={styles.orderLabel}>PEDIDO</Text>
-                  <Text style={styles.orderTitle}>Error</Text>
-                </View>
-              </View>
+              <View style={{ width: 40 }} />
             </View>
-            <View style={{ width: 40 }} />
-          </LinearGradient>
-        </View>
+          </SafeAreaView>
+        </LinearGradient>
         <View style={styles.centered}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <Text style={styles.errorText}>{error || 'Pedido no encontrado'}</Text>
@@ -226,33 +218,28 @@ export default function OrderDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Modern Glass Header */}
-      <View style={styles.navbar}>
-        <LinearGradient
-          colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
-          style={styles.navbarGradient}
-        >
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <View style={styles.backIconContainer}>
-              <Ionicons name="arrow-back" size={20} color={colors.primary} />
+      {/* Header con degradado azul */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.logoSection}>
+              <Logo variant="icon" size={20} />
+              <Text style={styles.logoText}>Vitrina • Pedido</Text>
             </View>
-          </TouchableOpacity>
-
-          <View style={styles.headerCenter}>
-            <View style={styles.orderBadge}>
-              <View style={styles.orderIconContainer}>
-                <Ionicons name="receipt" size={18} color={colors.primary} />
-              </View>
-              <View style={styles.orderTextContainer}>
-                <Text style={styles.orderLabel}>PEDIDO</Text>
-                <Text style={styles.orderTitle}>#{order.id.slice(0, 8).toUpperCase()}</Text>
-              </View>
-            </View>
+            <View style={{ width: 40 }} />
           </View>
 
-          <View style={{ width: 40 }} />
-        </LinearGradient>
-      </View>
+
+        </SafeAreaView>
+      </LinearGradient>
 
       <ScrollView
         style={styles.scroll}
@@ -296,7 +283,6 @@ export default function OrderDetailScreen() {
               <View style={styles.mapHeader}>
                 <View style={styles.mapHeaderLeft}>
                   <Ionicons name="navigate" size={18} color={colors.primary} />
-                  <Text style={styles.mapTitle}>Seguimiento en vivo</Text>
                   {isConnected && <View style={styles.liveDot} />}
                 </View>
                 <Ionicons name={mapExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.gray600} />
@@ -368,10 +354,6 @@ export default function OrderDetailScreen() {
 
           {/* Empresa */}
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="storefront" size={18} color={colors.gray700} />
-              <Text style={styles.cardTitle}>Empresa</Text>
-            </View>
             <View style={styles.companyRow}>
               {order.empresa?.logo ? (
                 <Image source={{ uri: order.empresa.logo }} style={styles.logo} />
@@ -394,10 +376,6 @@ export default function OrderDetailScreen() {
 
           {/* Productos */}
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="cart" size={18} color={colors.gray700} />
-              <Text style={styles.cardTitle}>Productos ({order.items?.length || 0})</Text>
-            </View>
             {order.items && order.items.length > 0 ? (
               order.items.map((item, index) => {
                 const ingredientesExtras = parseIngredientesExtras(item.ingredientesExtras);
@@ -449,10 +427,6 @@ export default function OrderDetailScreen() {
 
           {/* Entrega */}
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name={order.tipoEntrega === 'delivery' ? 'bicycle' : 'bag-handle'} size={18} color={colors.gray700} />
-              <Text style={styles.cardTitle}>Entrega</Text>
-            </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Método</Text>
               <Text style={styles.infoValue}>{order.tipoEntrega === 'delivery' ? 'Delivery' : 'Retiro en local'}</Text>
@@ -467,10 +441,6 @@ export default function OrderDetailScreen() {
 
           {/* Pago y Resumen */}
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="card" size={18} color={colors.gray700} />
-              <Text style={styles.cardTitle}>Pago</Text>
-            </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Método</Text>
               <Text style={styles.infoValue}>{(order.metodoPago || order.formaPago) === 'efectivo' ? 'Efectivo' : 'Transferencia'}</Text>
@@ -500,10 +470,6 @@ export default function OrderDetailScreen() {
 
           {order.notas && (
             <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons name="document-text" size={18} color={colors.gray700} />
-                <Text style={styles.cardTitle}>Notas</Text>
-              </View>
               <Text style={styles.notesText}>{order.notas}</Text>
             </View>
           )}
@@ -518,22 +484,28 @@ export default function OrderDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.gray50 },
 
-  // Modern Glass Navbar
-  navbar: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
-    shadowColor: colors.shadowColor,
+  // Header premium igual al home
+  headerGradient: {
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 4,
   },
-  navbarGradient: {
+  safeArea: {
+    paddingHorizontal: spacing.lg,
+  },
+
+  // Top bar - Logo centrado
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
   },
   backButton: {
     width: 40,
@@ -541,60 +513,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  orderBadge: {
+  logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-    shadowColor: colors.shadowColor,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  orderIconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: `${colors.primary}15`,
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
   },
-  orderTextContainer: {
-    gap: 0,
+  logoText: {
+    ...typography.headline,
+    fontSize: normalize(20),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
+    letterSpacing: -0.5,
   },
-  orderLabel: {
-    ...typography.caption2,
-    fontSize: 9,
+
+  // Order info
+  orderInfo: {
+    marginTop: spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: normalize(12),
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  orderNumber: {
+    ...typography.body,
+    fontSize: normalize(14),
     fontWeight: '700',
-    color: colors.gray600,
+    color: 'rgba(255, 255, 255, 0.95)',
     letterSpacing: 0.5,
-  },
-  orderTitle: {
-    ...typography.bodySmall,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.gray900,
   },
 
   scroll: { flex: 1 },
@@ -602,8 +550,6 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.md },
 
   card: { backgroundColor: colors.white, borderRadius: 16, padding: spacing.md, marginBottom: spacing.md, shadowColor: colors.shadowColor, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },
-  cardTitle: { ...typography.bodyMedium, fontWeight: '700', color: colors.gray900 },
 
   statusHeader: { borderRadius: 16, padding: spacing.md, marginBottom: spacing.md, shadowColor: colors.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 2 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -612,10 +558,9 @@ const styles = StyleSheet.create({
   statusDate: { ...typography.caption1, color: 'rgba(255,255,255,0.9)', marginTop: 2 },
 
   mapCard: { backgroundColor: colors.white, borderRadius: 16, padding: spacing.md, marginBottom: spacing.md, shadowColor: colors.shadowColor, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
-  mapHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  mapHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
   mapHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  mapTitle: { ...typography.bodyMedium, fontWeight: '700', color: colors.gray900 },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success },
+  liveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.success },
   mapContainer: { marginTop: spacing.md, borderRadius: 12, overflow: 'hidden', height: 200 },
   map: { flex: 1 },
   fullMapBtn: { position: 'absolute', bottom: spacing.sm, right: spacing.sm, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: 6, borderRadius: 8 },

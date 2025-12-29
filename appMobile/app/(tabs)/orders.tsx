@@ -441,6 +441,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   headerFilters: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    
     gap: spacing.xs,
     marginTop: spacing.md,
   },
@@ -448,7 +449,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: normalize(4),
-    paddingHorizontal: normalize(8),
+    paddingHorizontal: normalize(4),
     paddingVertical: normalize(5),
     borderRadius: normalize(10),
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -463,7 +464,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   headerFilterText: {
     ...typography.caption1,
-    fontSize: normalize(10),
+    fontSize: normalize(8),
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.7)',
     flexShrink: 1,
