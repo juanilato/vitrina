@@ -68,23 +68,22 @@
 
 .subcategories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
 }
 
 .subcategory-card {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1rem;
+  padding: 1rem 1.25rem;
   border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: 10px;
   background-color: white;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 120px;
+  min-height: 50px;
 }
 
 .subcategory-card:hover {
@@ -95,35 +94,33 @@
 
 .subcategory-card.selected {
   border-color: #0d6efd;
-  background-color: #f0f7ff;
-}
-
-.subcategory-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
 }
 
 .subcategory-name {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   text-align: center;
   color: #333;
+  flex: 1;
 }
 
 .check-mark {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 24px;
-  height: 24px;
+  top: 0.4rem;
+  right: 0.4rem;
+  width: 22px;
+  height: 22px;
   background-color: #0d6efd;
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: bold;
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
 }
 
 /* Resumen de Selección */
@@ -249,17 +246,17 @@
   }
 
   .subcategories-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.6rem;
   }
 
   .subcategory-card {
-    padding: 1rem 0.5rem;
-    min-height: 100px;
+    padding: 0.85rem 1rem;
+    min-height: 45px;
   }
 
-  .subcategory-icon {
-    font-size: 1.5rem;
+  .subcategory-name {
+    font-size: 0.9rem;
   }
 
   .categories-actions {

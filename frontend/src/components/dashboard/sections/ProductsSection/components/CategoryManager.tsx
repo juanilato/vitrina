@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import categoryService, { CategoriaProducto } from '../../../../../services/category.service';
-import EmojiPickerModal from '../../../sections/IngredientsSection/components/EmojiPickerModal';
 import './CategoryManager.css';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
-import EmojiEmotionsOutlinedIcon from '@mui/icons-material/EmojiEmotionsOutlined';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 
@@ -18,8 +16,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
   const [categories, setCategories] = useState<CategoriaProducto[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<CategoriaProducto | null>(null);
-  const [formData, setFormData] = useState({ nombre: '', icono: '' });
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [formData, setFormData] = useState({ nombre: '' });
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -51,7 +48,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
       } else {
         await categoryService.create(formData);
       }
-      setFormData({ nombre: '', icono: '' });
+      setFormData({ nombre: '' });
       setEditing(null);
       loadCategories();
     } catch (error: any) {
@@ -61,7 +58,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
 
   const handleEdit = (category: CategoriaProducto) => {
     setEditing(category);
-    setFormData({ nombre: category.nombre, icono: category.icono || '' });
+    setFormData({ nombre: category.nombre });
   };
 
   const handleDelete = async (id: string) => {
@@ -77,7 +74,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
 
   const handleCancel = () => {
     setEditing(null);
-    setFormData({ nombre: '', icono: '' });
+    setFormData({ nombre: '' });
   };
 
   const handleClearSearch = () => {
@@ -131,32 +128,15 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
 
           {/* Formulario */}
           <div className="cm-form-section">
-            <div className="cm-form-grid">
-              <div className="cm-input-group">
-                <label className="cm-label">Nombre de la categoría</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Bebidas, Postres, Principales..."
-                  className="cm-input"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                />
-              </div>
-
-              <div className="cm-icon-selector">
-                <label className="cm-label">Icono</label>
-                <div
-                  className="cm-icon-display"
-                  onClick={() => setShowEmojiPicker(true)}
-                  title="Seleccionar icono"
-                >
-                  {formData.icono ? (
-                    <span className="cm-emoji-large">{formData.icono}</span>
-                  ) : (
-                    <EmojiEmotionsOutlinedIcon style={{ fontSize: 36, color: '#D4D4D4' }} />
-                  )}
-                </div>
-              </div>
+            <div className="cm-input-group">
+              <label className="cm-label">Nombre de la categoría</label>
+              <input
+                type="text"
+                placeholder="Ej: Bebidas, Postres, Principales..."
+                className="cm-input"
+                value={formData.nombre}
+                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+              />
             </div>
 
             <div className="cm-form-actions">
@@ -190,14 +170,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
               <div className="cm-categories-grid">
                 {filteredCategories.map((category) => (
                   <div key={category.id} className="cm-category-card">
-                    <div className="cm-category-icon-wrapper">
-                      {category.icono ? (
-                        <span className="cm-category-icon">{category.icono}</span>
-                      ) : (
-                        <CategoryOutlinedIcon style={{ fontSize: 32, color: '#A3A3A3' }} />
-                      )}
-                    </div>
-
                     <div className="cm-category-content">
                       <div className="cm-category-name">{category.nombre}</div>
                       {category._count && (
@@ -230,17 +202,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ empresaId, onClose })
           </div>
         </div>
       </div>
-
-      {/* Emoji Picker Modal */}
-      <EmojiPickerModal
-        open={showEmojiPicker}
-        onClose={() => setShowEmojiPicker(false)}
-        onSelectEmoji={(emoji) => {
-          setFormData({ ...formData, icono: emoji });
-          setShowEmojiPicker(false);
-        }}
-        currentEmoji={formData.icono}
-      />
     </>
   );
 };

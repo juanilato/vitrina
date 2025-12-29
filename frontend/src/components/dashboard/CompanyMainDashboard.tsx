@@ -9,6 +9,7 @@ import OrdersSection from './sections/OrdersSection';
 import NotificationsSection from './sections/NotificationsSection';
 import AccountConfigSection from './sections/AccountConfigSection';
 import StatsSection from './sections/StatsSection';
+import UserManualSection from './sections/UserManualSection';
 import MenuOpenOutlinedIcon from '@mui/icons-material/MenuOpenOutlined';
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
@@ -24,7 +25,7 @@ const CompanyMainDashboard: React.FC = () => {
   const { user, logout } = useAuthOptimized();
   const { isDataLoaded, loading, error, loadingStatus } = useDashboardData();
   const [activeSection, setActiveSection] = useState<
-    'dashboard' | 'productos' | 'ingredientes' | 'pedidos' | 'notificacionesDropdown' | 'notificaciones' | 'estadisticas' | 'config'
+    'dashboard' | 'productos' | 'ingredientes' | 'pedidos' | 'notificacionesDropdown' | 'notificaciones' | 'estadisticas' | 'manual' | 'config'
   >('dashboard');
 
   const [showNotificationsPeek, setShowNotificationsPeek] = useState(false);
@@ -49,6 +50,7 @@ const CompanyMainDashboard: React.FC = () => {
       case 'ingredientes': return <IngredientsSection />;
       case 'notificaciones': return <NotificationsSection />;
       case 'estadisticas': return <StatsSection />;
+      case 'manual': return <UserManualSection />;
       case 'config': return <div className="tab-content"><AccountConfigSection /></div>;
       default:
         return (
@@ -170,6 +172,7 @@ const CompanyMainDashboard: React.FC = () => {
                     : activeSection === 'pedidos' ? 'Pedidos'
                     : activeSection === 'notificaciones' || activeSection === 'notificacionesDropdown' ? 'Notificaciones'
                     : activeSection === 'estadisticas' ? 'Estadísticas'
+                    : activeSection === 'manual' ? 'Manual de Usuario'
                     : activeSection === 'config' ? 'Configuración' : activeSection}
                 </span>
               </div>

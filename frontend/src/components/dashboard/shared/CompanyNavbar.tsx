@@ -12,6 +12,7 @@ import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import DinnerDiningIcon from '@mui/icons-material/Fastfood';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 interface CompanyNavbarProps {
   activeSection: string;
@@ -51,6 +52,7 @@ const CompanyNavbar: React.FC<CompanyNavbarProps> = ({
     { id: 'ingredientes', label: 'Ingredientes', icon: <DinnerDiningIcon fontSize="small" /> },
     { id: 'pedidos', label: 'Pedidos', icon: <ReceiptLongOutlinedIcon fontSize="small" /> },
     { id: 'estadisticas', label: 'Estadísticas', icon: <InsightsOutlinedIcon fontSize="small" /> },
+    { id: 'manual', label: 'Manual de Usuario', icon: <HelpOutlineIcon fontSize="small" /> },
     { id: 'config', label: 'Configuración', icon: <SettingsOutlinedIcon fontSize="small" />, showAlert: profileIncomplete },
   ];
 

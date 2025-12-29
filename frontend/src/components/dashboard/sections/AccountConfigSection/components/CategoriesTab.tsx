@@ -126,7 +126,6 @@ const CategoriesTab: React.FC = () => {
             <option value="">Selecciona una categoría</option>
             {categorias.map(categoria => (
               <option key={categoria.id} value={categoria.id}>
-                {categoria.icono && `${categoria.icono} `}
                 {categoria.nombre}
               </option>
             ))}
@@ -149,9 +148,6 @@ const CategoriesTab: React.FC = () => {
                   onClick={() => handleSubcategoriaToggle(subcategoria.id)}
                   type="button"
                 >
-                  <div className="subcategory-icon">
-                    {subcategoria.icono || '📦'}
-                  </div>
                   <div className="subcategory-name">{subcategoria.nombre}</div>
                   {selectedSubcategoriaIds.includes(subcategoria.id) && (
                     <div className="check-mark">✓</div>
