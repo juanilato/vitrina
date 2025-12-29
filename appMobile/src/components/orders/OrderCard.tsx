@@ -85,17 +85,12 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
 
       {/* Estado Badge */}
       <View style={styles.statusSection}>
-        <Text style={styles.statusLabel}>Estado del pedido</Text>
         <OrderStatusBadge status={order.estado as any} />
       </View>
 
       {/* Lista de productos */}
       {order.items && order.items.length > 0 && (
         <View style={styles.productsSection}>
-          <View style={styles.productsSectionHeader}>
-            <Ionicons name="list" size={14} color={colors.textSecondary} />
-            <Text style={styles.productsTitle}>Detalle del pedido</Text>
-          </View>
           {order.items.map((item, index) => (
             <View key={index} style={styles.productItem}>
               <View style={styles.productQuantityBadge}>
@@ -174,10 +169,6 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
           {rating ? (
             // Mostrar calificación existente
             <View style={styles.ratingDisplay}>
-              <View style={styles.ratingHeader}>
-                <Ionicons name="star" size={18} color={colors.orange} />
-                <Text style={styles.ratingTitle}>Tu calificación</Text>
-              </View>
               <View style={styles.ratingContent}>
                 <RatingStars rating={rating.promedio} size="md" readonly />
                 <Text style={styles.ratingValue}>{rating.promedio.toFixed(1)}</Text>
@@ -194,10 +185,10 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
               activeOpacity={0.7}
             >
               <View style={styles.rateButtonContent}>
-                <Ionicons name="star-outline" size={20} color={colors.orange} />
-                <Text style={styles.rateButtonText}>Calificar pedido</Text>
+                <Ionicons name="star-outline" size={18} color={colors.orange} />
+                <Text style={styles.rateButtonText}>Calificar</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.orange} />
+              <Ionicons name="chevron-forward" size={16} color={colors.orange} />
             </TouchableOpacity>
           )}
         </View>
@@ -206,13 +197,9 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order, rating, onRatePress
       {/* Promociones aplicadas - Abajo */}
       {(order.descuento || 0) > 0 && order.promocionesAplicadas && order.promocionesAplicadas.length > 0 && (
         <View style={styles.promosSection}>
-          <View style={styles.promosDivider} />
-          <View style={styles.promosHeader}>
-            <Ionicons name="pricetag" size={14} color="#10b981" />
-            <Text style={styles.promosTitle}>Promociones aplicadas</Text>
-          </View>
           {order.promocionesAplicadas.map((promo, index) => (
             <View key={index} style={styles.promoItem}>
+              <Ionicons name="pricetag" size={12} color="#10b981" />
               <Text style={styles.promoName}>{promo.nombre}</Text>
               <Text style={styles.promoDiscount}>
                 -${((order.descuento || 0) / order.promocionesAplicadas!.length).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
@@ -267,24 +254,16 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
 
   logoContainer: {
     padding: 4,
-    backgroundColor: `${colors.primary}15`,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: `${colors.primary}25`,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+
     elevation: 4,
   },
 
   companyLogo: {
     width: 64,
     height: 64,
-    borderRadius: 12,
-    backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
-    borderWidth: 2,
-    borderColor: isDark ? '#4a4a4a' : '#f3f4f6',
+
+   
+
     flexShrink: 0,
   },
 
@@ -328,48 +307,20 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   statusSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.md,
+    paddingVertical: SIZES.sm,
     backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: isDark ? '#333' : '#f3f4f6',
   },
 
-  statusLabel: {
-    ...typography.bodySmall,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-
   // Products List - Friendly Invoice Style
   productsSection: {
     paddingHorizontal: SIZES.lg,
-    paddingTop: SIZES.lg,
+    paddingTop: SIZES.md,
     paddingBottom: SIZES.md,
     backgroundColor: isDark ? '#2a2a2a' : '#ffffff',
-  },
-
-  productsSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SIZES.xs,
-    marginBottom: SIZES.md,
-    paddingBottom: SIZES.sm,
-    borderBottomWidth: 2,
-    borderBottomColor: isDark ? '#333' : '#e5e7eb',
-  },
-
-  productsTitle: {
-    ...typography.bodySmall,
-    fontWeight: '800',
-    color: colors.text,
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
   },
 
   productItem: {
@@ -463,58 +414,38 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   // Promos Section - Friendly Style
   promosSection: {
     paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.md,
+    paddingVertical: SIZES.sm,
     backgroundColor: isDark ? '#1f3a2c' : '#f0fdf4',
     borderTopWidth: 1,
     borderTopColor: isDark ? '#2d5a3f' : '#d1fae5',
-  },
-
-  promosDivider: {
-    height: 2,
-    backgroundColor: isDark ? '#2d5a3f' : '#d1fae5',
-    marginBottom: SIZES.sm,
-  },
-
-  promosHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SIZES.sm,
-    marginBottom: SIZES.md,
-  },
-
-  promosTitle: {
-    ...typography.bodySmall,
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#10b981',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    gap: SIZES.xs,
   },
 
   promoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: SIZES.sm,
+    paddingVertical: SIZES.xs,
     paddingHorizontal: SIZES.sm,
     backgroundColor: isDark ? '#254133' : '#dcfce7',
     borderRadius: 8,
-    marginBottom: SIZES.xs,
+    gap: SIZES.xs,
   },
 
   promoName: {
     ...typography.bodySmall,
-    fontSize: 13,
+    fontSize: 12,
     color: isDark ? '#86efac' : '#166534',
-    fontWeight: '700',
+    fontWeight: '600',
     flex: 1,
   },
 
   promoDiscount: {
     ...typography.bodySmall,
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: 12,
+    fontWeight: '800',
     color: '#10b981',
+    flexShrink: 0,
   },
 
   // Footer - Friendly Total Style
@@ -609,30 +540,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   ratingDisplay: {
     backgroundColor: `${colors.primary}08`,
     borderRadius: 12,
-    padding: SIZES.md,
+    padding: SIZES.sm,
     borderWidth: 1,
     borderColor: `${colors.primary}15`,
-  },
-
-  ratingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SIZES.xs,
-    marginBottom: SIZES.sm,
-  },
-
-  ratingTitle: {
-    ...typography.bodyMedium,
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
 
   ratingContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: SIZES.md,
   },
 
@@ -647,10 +563,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   rateButton: {
     backgroundColor: `${colors.primary}08`,
     borderRadius: 12,
-    padding: SIZES.md,
+    padding: SIZES.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    gap: SIZES.sm,
     borderWidth: 1,
     borderColor: `${colors.primary}20`,
   },
@@ -658,13 +575,13 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   rateButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SIZES.sm,
+    gap: SIZES.xs,
   },
 
   rateButtonText: {
     ...typography.bodyMedium,
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '700',
     color: colors.primary,
   },
 });

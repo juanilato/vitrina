@@ -251,7 +251,7 @@ export default function OrdersScreen() {
                 >
                   <Ionicons
                     name={item.icon}
-                    size={normalize(14)}
+                    size={normalize(12)}
                     color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)'}
                   />
                   <Text
@@ -447,13 +447,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   headerFilterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: normalize(10),
-    paddingVertical: normalize(6),
-    borderRadius: normalize(12),
+    gap: normalize(4),
+    paddingHorizontal: normalize(8),
+    paddingVertical: normalize(5),
+    borderRadius: normalize(10),
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
+    flex: 1,
+    minWidth: 0,
   },
   headerFilterChipActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
@@ -461,9 +463,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   headerFilterText: {
     ...typography.caption1,
-    fontSize: normalize(11),
+    fontSize: normalize(10),
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.7)',
+    flexShrink: 1,
   },
   headerFilterTextActive: {
     color: 'rgba(255, 255, 255, 0.95)',
@@ -471,18 +474,19 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   headerFilterBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: normalize(8),
-    paddingHorizontal: normalize(6),
-    paddingVertical: normalize(2),
-    minWidth: normalize(18),
+    borderRadius: normalize(6),
+    paddingHorizontal: normalize(5),
+    paddingVertical: normalize(1),
+    minWidth: normalize(16),
     alignItems: 'center',
+    flexShrink: 0,
   },
   headerFilterBadgeActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   headerFilterBadgeText: {
     ...typography.caption1,
-    fontSize: normalize(10),
+    fontSize: normalize(9),
     fontWeight: '800',
     color: 'rgba(255, 255, 255, 0.95)',
   },
