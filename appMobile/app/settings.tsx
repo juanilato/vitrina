@@ -17,11 +17,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { spacing } from '../src/theme';
 import { textStyles as typography } from '../src/theme/typography';
 import { useAuth } from '../src/contexts/AuthContext';
 import { usePreferences } from '../src/contexts/PreferencesContext';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { Logo } from '../src/components/common/Logo';
+import { normalize } from '../src/utils/responsive';
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
@@ -102,17 +105,26 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Configuración</Text>
-        <View style={styles.headerRight} />
-      </View>
+      {/* Header con degradado azul */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.logoSection}>
+              <Logo variant="icon" size={20} />
+              <Text style={styles.logoText}>Vitrina • Configuración</Text>
+            </View>
+            <View style={{ width: 40 }} />
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
       <ScrollView
         style={styles.scrollView}
@@ -142,8 +154,6 @@ export default function SettingsScreen() {
 
         {/* Mi Cuenta Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>MI CUENTA</Text>
-
           <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
@@ -187,8 +197,6 @@ export default function SettingsScreen() {
 
         {/* Preferencias Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PREFERENCIAS</Text>
-
           <View style={styles.menuContainer}>
             {/* Modo Oscuro */}
             <View style={styles.menuItem}>
@@ -220,8 +228,6 @@ export default function SettingsScreen() {
 
         {/* Notificaciones Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>NOTIFICACIONES</Text>
-
           <View style={styles.menuContainer}>
             <View style={styles.menuItem}>
               <View style={styles.menuItemLeft}>
@@ -313,8 +319,6 @@ export default function SettingsScreen() {
 
         {/* Privacidad Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>PRIVACIDAD</Text>
-
           <View style={styles.menuContainer}>
             <View style={styles.menuItem}>
               <View style={styles.menuItemLeft}>
@@ -362,8 +366,6 @@ export default function SettingsScreen() {
 
         {/* Soporte Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>SOPORTE</Text>
-
           <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
@@ -434,25 +436,47 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.md,
   },
-  header: {
+
+  // Header premium igual al home
+  headerGradient: {
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  safeArea: {
+    paddingHorizontal: spacing.lg,
+  },
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
   },
   backButton: {
-    padding: spacing.xs,
-  },
-  headerTitle: {
-    ...typography.h3,
-    color: colors.text,
-  },
-  headerRight: {
     width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  logoText: {
+    ...typography.headline,
+    fontSize: normalize(20),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
+    letterSpacing: -0.5,
   },
   scrollView: {
     flex: 1,
@@ -515,13 +539,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   section: {
     marginTop: spacing.lg,
-  },
-  sectionTitle: {
-    ...typography.bodySmall,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
   },
   menuContainer: {
     backgroundColor: colors.card,

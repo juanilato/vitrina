@@ -16,12 +16,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { spacing } from '../src/theme';
 import { textStyles as typography } from '../src/theme/typography';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useOrders } from '../src/hooks/useOrders';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { LocationsDrawer } from '../src/components/navigation/LocationsDrawer';
+import { Logo } from '../src/components/common/Logo';
+import { normalize } from '../src/utils/responsive';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -64,18 +67,26 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header con botón de volver */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleGoBack}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mi Perfil</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      {/* Header con degradado azul */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.logoSection}>
+              <Logo variant="icon" size={20} />
+              <Text style={styles.logoText}>Vitrina • Perfil</Text>
+            </View>
+            <View style={{ width: 40 }} />
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
       <ScrollView
         style={styles.scrollView}
@@ -112,8 +123,6 @@ export default function ProfileScreen() {
 
         {/* Menu Options */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mi cuenta</Text>
-
           <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
@@ -156,14 +165,9 @@ export default function ProfileScreen() {
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
             </TouchableOpacity>
-          </View>
-        </View>
 
-        {/* Settings */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Configuración</Text>
+            <View style={styles.divider} />
 
-          <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push('/settings')}
@@ -173,18 +177,13 @@ export default function ProfileScreen() {
                 <View style={[styles.menuIcon, { backgroundColor: '#5856D6' + '15' }]}>
                   <Ionicons name="settings-outline" size={20} color="#5856D6" />
                 </View>
-                <Text style={styles.menuLabel}>Preferencias y configuración</Text>
+                <Text style={styles.menuLabel}>Configuración</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
             </TouchableOpacity>
-          </View>
-        </View>
 
-        {/* Support */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Soporte</Text>
+            <View style={styles.divider} />
 
-          <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => Alert.alert('Ayuda', 'Centro de ayuda')}
@@ -195,20 +194,6 @@ export default function ProfileScreen() {
                   <Ionicons name="help-circle-outline" size={20} color="#0066CC" />
                 </View>
                 <Text style={styles.menuLabel}>Ayuda</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => Alert.alert('Acerca de', 'Vitrina Cliente v1.0.0')}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuLeft}>
-                <View style={[styles.menuIcon, { backgroundColor: colors.gray300 }]}>
-                  <Ionicons name="information-circle-outline" size={20} color={colors.gray700} />
-                </View>
-                <Text style={styles.menuLabel}>Acerca de</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.gray400} />
             </TouchableOpacity>
@@ -243,46 +228,48 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  header: {
+  // Header premium igual al home
+  headerGradient: {
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  safeArea: {
+    paddingHorizontal: spacing.lg,
+  },
+
+  // Top bar - Logo centrado
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: isDark ? colors.gray200 : colors.gray200,
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
   },
-
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: isDark ? colors.gray200 : colors.gray100,
-    shadowColor: isDark ? colors.black : '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
-
-  headerTitle: {
-    ...typography.h2,
-    color: colors.text,
-    fontWeight: '700',
+  logoSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     flex: 1,
-    textAlign: 'center',
+    justifyContent: 'center',
   },
-
-  headerSpacer: {
-    width: 40,
+  logoText: {
+    ...typography.headline,
+    fontSize: normalize(20),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
+    letterSpacing: -0.5,
   },
 
   scrollView: {
@@ -367,15 +354,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     marginTop: spacing.lg,
   },
 
-  sectionTitle: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-    fontSize: 12,
+  divider: {
+    height: 1,
+    backgroundColor: isDark ? colors.gray200 : colors.gray100,
   },
 
   menuContainer: {

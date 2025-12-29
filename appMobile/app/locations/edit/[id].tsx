@@ -12,6 +12,7 @@ import {
 import { Alert } from '../../../src/utils/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { MapView, Marker, MapFallback } from '../../../src/components/common/MapViewUniversal';
 import { MapViewPickerWeb } from '../../../src/components/common/MapViewPicker.web';
@@ -19,6 +20,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors, spacing, textStyles } from '../../../src/theme';
 import { locationService, SavedLocation } from '../../../src/services/location.service';
 import { useLocation } from '../../../src/contexts/LocationContext';
+import { Logo } from '../../../src/components/common/Logo';
+import { normalize } from '../../../src/utils/responsive';
 
 // Helper para obtener dirección desde coordenadas
 const getAddressFromCoords = async (lat: number, lng: number): Promise<string> => {
@@ -233,14 +236,26 @@ export default function EditLocationScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Editar Ubicación</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      {/* Header con degradado azul */}
+      <LinearGradient
+        colors={['#0A2A43', '#0D3354']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView edges={['top']} style={styles.safeArea}>
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.logoSection}>
+              <Logo variant="icon" size={20} />
+              <Text style={styles.logoText}>Vitrina • Editar Ubicación</Text>
+            </View>
+            <View style={{ width: 40 }} />
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
       {/* Map */}
       <View style={styles.mapContainer}>
@@ -387,15 +402,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  header: {
+
+  // Header premium igual al home
+  headerGradient: {
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  safeArea: {
+    paddingHorizontal: spacing.lg,
+  },
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
   },
   backButton: {
     width: 40,
@@ -403,10 +430,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: {
-    ...textStyles.title3,
-    fontWeight: '700',
-    color: colors.text
+  logoSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  logoText: {
+    ...textStyles.headline,
+    fontSize: normalize(18),
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.95)',
+    letterSpacing: -0.5,
   },
 
   mapContainer: {

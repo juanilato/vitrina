@@ -28,6 +28,9 @@ import { locationService } from '../../services/location.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { MapViewPickerWeb } from '../common/MapViewPicker.web';
 import { useTheme } from '../../contexts/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Logo } from '../common/Logo';
+import { normalize } from '../../utils/responsive';
 
 const { width } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(width * 0.7, 320);
@@ -462,16 +465,23 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
       {/* Map Modal para agregar nueva ubicación */}
       {mapModalVisible && newCoords && (
         <Modal visible={mapModalVisible} animationType="slide">
-          <SafeAreaView style={styles.modalContainer}>
-            {/* Header con botón de volver */}
-            <View style={styles.mapHeader}>
-              <TouchableOpacity onPress={closeMapModal} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color={colors.text} />
-                <Text style={styles.backButtonText}>Volver</Text>
-              </TouchableOpacity>
-              <Text style={styles.mapHeaderTitle}>Seleccionar ubicación</Text>
-              <View style={{ width: 80 }} />
-            </View>
+          <SafeAreaView style={styles.modalContainer} edges={['top']}>
+            {/* Header con gradiente azul */}
+            <LinearGradient
+              colors={['#0A2A43', '#0D3354']}
+              style={styles.headerGradient}
+            >
+              <View style={styles.topBar}>
+                <TouchableOpacity onPress={closeMapModal} style={styles.backButton}>
+                  <Ionicons name="arrow-back" size={normalize(20)} color="#FFFFFF" />
+                </TouchableOpacity>
+                <View style={styles.logoSection}>
+                  <Logo variant="icon" size={20} />
+                  <Text style={styles.logoText}>Vitrina • Nueva Ubicación</Text>
+                </View>
+                <View style={{ width: 40 }} />
+              </View>
+            </LinearGradient>
 
             {/* Map Container con altura fija */}
             <View style={styles.mapModalContainer}>
@@ -550,38 +560,35 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
                   placeholder="Nombre (Casa, Trabajo, etc.)"
                   value={form.nombre}
                   onChangeText={(t) => setForm({ ...form, nombre: t })}
+                  placeholderTextColor={colors.textTertiary}
                 />
 
                 <View style={styles.addressInputContainer}>
-                  <Text style={styles.addressLabel}>
-                    Dirección {loadingAddress && '(detectando...)'}
-                  </Text>
                   <TextInput
                     style={[styles.input, styles.addressInput]}
-                    placeholder="Dirección (puedes editarla manualmente)"
+                    placeholder={loadingAddress ? "Detectando dirección..." : "Dirección"}
                     value={form.direccion}
                     onChangeText={(t) => setForm({ ...form, direccion: t })}
                     multiline
                     numberOfLines={3}
                     editable={!loadingAddress}
+                    placeholderTextColor={colors.textTertiary}
                   />
                   {loadingAddress && (
                     <View style={styles.loadingIndicatorInline}>
                       <ActivityIndicator size="small" color={colors.primary} />
                     </View>
                   )}
-                  <Text style={styles.addressHint}>
-                    💡 La dirección se detecta automáticamente, pero puedes editarla si es necesaria
-                  </Text>
                 </View>
 
                 <TextInput
                   style={styles.input}
-                  placeholder="Referencia (opcional, ej: Depto 3B, timbre azul)"
+                  placeholder="Referencia (opcional)"
                   value={form.referencia}
                   onChangeText={(t) => setForm({ ...form, referencia: t })}
                   multiline
                   numberOfLines={2}
+                  placeholderTextColor={colors.textTertiary}
                 />
 
                 <TouchableOpacity
@@ -593,7 +600,7 @@ export const LocationsDrawer: React.FC<LocationsDrawerProps> = ({ visible, onClo
                   {savingLocation ? (
                     <ActivityIndicator size="small" color={colors.white} />
                   ) : (
-                    <Text style={styles.saveText}>Guardar ubicación</Text>
+                    <Text style={styles.saveText}>Guardar</Text>
                   )}
                 </TouchableOpacity>
 
@@ -835,30 +842,39 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   mapModal: {
     flex: 1,
   },
-  mapHeader: {
+  headerGradient: {
+    paddingHorizontal: normalize(16),
+    paddingVertical: normalize(12),
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: isDark ? colors.gray200 : colors.border,
   },
   backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+  },
+  logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: normalize(8),
   },
-  backButtonText: {
-    ...textStyles.subheadline,
-    color: colors.text,
+  logoText: {
+    fontSize: normalize(18),
     fontWeight: '600',
-  },
-  mapHeaderTitle: {
-    ...textStyles.headline,
-    color: colors.text,
-    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.95)',
+    letterSpacing: 0.3,
   },
   overlayButtonContainer: {
     position: 'absolute',
